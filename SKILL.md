@@ -1,6 +1,39 @@
 ---
 name: "lunheng-article-pipeline"
-description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付"
+version: 2.0.2
+description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单"
+metadata:
+  requires:
+    bins: []
+  tools:
+    declared:
+      - "read",
+      - "write",
+      - "edit",
+      - "sessions_spawn",
+      - "sessions_yield",
+      - "sessions_history",
+      - "sessions_list",
+      - "web_search",
+      - "web_fetch",
+      "tavily_search",
+      "tavily_extract",
+      "memory_get",
+      "memory_search",
+      "update_plan"
+    denied:
+      - "exec",
+      - "process",
+      "browser",
+      "apply_patch",
+      "cron",
+      "image",
+      "video_generate",
+      "music_generate",
+      "tts",
+      "memory_store",
+      "memory_recall",
+      "skill_workshop"
 ---
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
@@ -12,6 +45,13 @@ description: "多Agent深度长文流水线：定题→并行检索→分析→�
 - 主人要一篇「有深度、要站得住脚」的长文（>3000 字），且愿意等 1-3 小时
 - 主题涉及事实/数据/多方观点，需要证据底座而非纯观点输出
 - 需要「人在环」把关：大纲确认后再写，终稿人工审
+
+## ⚠️ 执行前安全须知（v2.0.2 起强制 — 回应 ClawHub SQP-2 finding）
+- **写入范围明示**：本流水线会创建 `run/<项目名>/` 文件树（含 01-任务简报 / status / 文献卡 / 数据卡 / 大纲 / 草稿 / 审计报告 / 定稿 / 图件 / 证据包 / 交付说明），共约 15-25 个文件，仅写入到**当前 workspace 根目录**下，不会写到 workspace 外
+- **<项目名> 由主人 Phase 0 显式确认**（不接受 LLM 自动命名），且必须满足：`[\w\-一-鿿]{1,32}`（无路径分隔符，无 `..`，无绝对路径前缀）
+- **Phase 0 必须先列出将创建的全部文件清单**让主人确认，再开始 Phase 1（dry-run）
+- **审计反哺不自动 commit**：T5 审计员的反哺报告默认只产出 `audits/反哺报告-vN.md`，**不会**自动修改论衡 workspace 下的角色卡；任何对角色卡的改动必须由主人人工 review 后手动 merge
+- **失败回滚**：任一 Phase 失败，已写入的文件保留在 `run/<项目名>/` 供人工清理，不会自动删除
 
 ## 流水线全景（Phase 0-5）
 

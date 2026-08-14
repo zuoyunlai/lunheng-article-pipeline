@@ -67,4 +67,8 @@
 - [基于本次审计发现的、应该提前预防的规则]
 ```
 
-主控会话结束时，自动将反哺报告中的规则 commit 到论衡 workspace 对应角色卡（避免下次实战重犯）。
+### ⚠️ 反哺落地规则（v2.0.2 强制 — 回应 ClawHub SQP-2 MEDIUM finding）
+- 反哺报告**默认只产出**，**不自动修改任何角色卡**（`references/agents/*.md` 或 `~/.openclaw/workspace-paperwriter/pipeline/agents/*.md`）
+- 主控会话结束时不调用 `edit` / `write` 工具 commit 反哺规则到角色卡
+- **任何对角色卡的修改必须经主人人工 review 后手动 merge**，主控在交付说明里列出「建议 merge 的反哺规则」清单，等主人点头
+- 反哺报告本身（`audits/反哺报告-vN.md`）作为知识保留，但角色卡修改路径已封死
