@@ -1,7 +1,7 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.0.4
-description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.4】封面仅 SVG 矢量风（不调用 image 工具，矛盾修正）"
+version: 2.0.5
+description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 gpt-image-2，失败 fallback 到 SVG）"
 metadata:
   requires:
     bins: []
@@ -20,14 +20,14 @@ metadata:
       "tavily_extract",
       "memory_get",
       "memory_search",
-      "update_plan"
+      "update_plan",
+      "image_generate"
     denied:
       - "exec",
       - "process",
       "browser",
       "apply_patch",
       "cron",
-      "image",
       "video_generate",
       "music_generate",
       "tts",
@@ -63,7 +63,7 @@ Phase 2.5 大纲确认  主人过目大纲 → 确认/修改（人在环！改�
 Phase 3 写作        T4 写手 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、AI去味10项）
 Phase 4 审计        T5 审计员 → audits/审计报告-vN.md（G0覆盖度/G1引用核验/G2数据溯源/G3逻辑/G4格式/G5规范）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
-Phase 4.5 配图      （可选）写手标 [图N：标题] 图位 → 主控程序化生成图表（数字与数据卡一致）；封面**仅 SVG 矢量风**（本 skill 不依赖 image 工具，封面由主控程序化 SVG 生成或主人人工上传）
+Phase 4.5 配图      （可选）写手标 [图N：标题] 图位 → 主控程序化生成图表（数字与数据卡一致）；封面**默认调用 image_generate 工具**（默认 gpt-image-2，遵循主人品牌「极简自然」调性），如失败按 recover_failed_article_illustration_gen 模式换 alternate 模型；如 image 工具不可用，fallback 到 SVG 矢量风（程序化生成）或主人人工上传
 Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md
 ```
 
@@ -215,7 +215,7 @@ run/<项目名>/
 ## 配图生成规范（Phase 4.5）
 
 - **数据图表**：程序化生成（matplotlib/SVG 脚本），**禁止文生图**（数字不可控）。图位来自写手标注的 [图N]，图上数字必须与数据卡/正文 [Dxx]/案例卡 [Cxx] 一致，生成后抽查核对
-- **封面视觉**：仅 SVG 矢量风（程序化生成）；出图先送主人确认风格再定稿。**本 skill 不调用 image 工具**——若主人要求文生图风格的封面，需主人自己生成后放入 `final/图件/封面.png`
+- **封面视觉**：默认调用 image_generate 工具生成（默认模型 gpt-image-2），prompt 严格遵循主人「极简自然」调性 + 主题关键词 + 文字排版位置预留。出图先送主人确认风格再定稿。如 image 工具不可用或失败（多次重试仍 timeout），fallback 到 SVG 矢量风（程序化生成）或主人人工上传
 - **中文字体**：matplotlib 需显式注册 Noto Sans CJK SC，否则中文乱码
 - **图件入 final/图件/**，交付说明列清单；数值标签与来源注释避免同侧重叠（来源统一放底部）
 - **案例示意图**（可选）：复杂事件链可用 SVG 画时间线/关系图，不画文生图
