@@ -1,6 +1,6 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.0.7
+version: 2.0.8
 description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认平台 minimax / minimax/minimax-image-01；fallback OpenAI gpt-image-2 → Google gemini-3.1-flash-image-preview → SVG）。【v2.0.8】默认平台调整 minimax（原默认 gpt-image-2）。"
 metadata:
   requires:
