@@ -1,7 +1,8 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.1.0
-description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。【v2.1.0】激进重构——执行层韧化（心跳+分阶段 ack+4 模型 fallback）+ 审计 G8 成品度 + G9 时序合理性。"
+version: 2.1.1
+description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。【v2.1.0】激进重构——执行层韧化（心跳+分阶段 ack+4 模型 fallback）+ 审计 G8 成品度 + G9 时序合理性。
+【v2.1.1】回应 ClawHub 7 项新 findings：修写手矛盾 + 限「据行业经验估算」使用条件 + 首次 image_generate 主人同意 + 分析员触发条件段 + README 语言声明。"
 metadata:
   requires:
     bins: []
@@ -63,7 +64,7 @@ Phase 2.5 大纲确认  主人过目大纲 → 确认/修改（人在环！改�
 Phase 3 写作        T4 写手 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、AI去味10项）
 Phase 4 审计        T5 审计员 → audits/审计报告-vN.md（G0覆盖度/G1引用核验/G2数据溯源/G3逻辑/G4格式/G5规范）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
-Phase 4.5 配图      （可选）写手标 [图N：标题] 图位 → 主控程序化生成图表（数字与数据卡一致）；封面**默认调用 image_generate 工具**（默认 **OpenAI gpt-image-2**，考虑普适性，遵循主人品牌「极简自然」调性），如失败按 recover_failed_article_illustration_gen 模式自动降级到 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01）；如 image 工具不可用，fallback 到 SVG 矢量风（程序化生成）或主人人工上传
+Phase 4.5 配图      （可选）写手标 [图N：标题] 图位 → 主控程序化生成图表（数字与数据卡一致）；**封面生成需主人首次确认（v2.1.1 新增）**——首次调用 image_generate 前**必须**先询问主人同意（调用外部图像生成服务，可能 fallback 跨 provider）；封面**默认调用 image_generate 工具**（默认 **OpenAI gpt-image-2**，考虑普适性，遵循主人品牌「极简自然」调性），如失败按 recover_failed_article_illustration_gen 模式自动降级到 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01）；如 image 工具不可用，fallback 到 SVG 矢量风（程序化生成）或主人人工上传
 Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md
 ```
 
@@ -215,7 +216,7 @@ run/<项目名>/
 ## 配图生成规范（Phase 4.5）
 
 - **数据图表**：程序化生成（matplotlib/SVG 脚本），**禁止文生图**（数字不可控）。图位来自写手标注的 [图N]，图上数字必须与数据卡/正文 [Dxx]/案例卡 [Cxx] 一致，生成后抽查核对
-- **封面视觉**：默认调用 image_generate 工具生成（默认 **OpenAI gpt-image-2**，考虑普适性，v2.0.8 明确），prompt 严格遵循主人「极简自然」调性 + 主题关键词 + 文字排版位置预留。出图先送主人确认风格再定稿。如 OpenAI 不可用或失败（多次重试仍 timeout），自动降级 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01），仍失败则 fallback 到 SVG 矢量风（程序化生成）或主人人工上传
+- **封面视觉**：默认调用 image_generate 工具生成（默认 **OpenAI gpt-image-2**，考虑普适性，v2.0.8 明确），prompt 严格遵循主人「极简自然」调性 + 主题关键词 + 文字排版位置预留。**首次调用需主人显式同意（v2.1.1 新增）**——主控必须在调用前询问「是否同意调用外部图像生成服务」，主人确认后再调用（防未授权调用 + 成本/数据外发）。出图先送主人确认风格再定稿。如 OpenAI 不可用或失败（多次重试仍 timeout），自动降级 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01），仍失败则 fallback 到 SVG 矢量风（程序化生成）或主人人工上传
 - **中文字体**：matplotlib 需显式注册 Noto Sans CJK SC，否则中文乱码
 - **图件入 final/图件/**，交付说明列清单；数值标签与来源注释避免同侧重叠（来源统一放底部）
 - **案例示意图**（可选）：复杂事件链可用 SVG 画时间线/关系图，不画文生图
