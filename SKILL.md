@@ -1,7 +1,7 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.0.8
-description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。"
+version: 2.1.0
+description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。【v2.1.0】激进重构——执行层韧化（心跳+分阶段 ack+4 模型 fallback）+ 审计 G8 成品度 + G9 时序合理性。"
 metadata:
   requires:
     bins: []
