@@ -27,7 +27,7 @@
 - 交付要求：是否需要证据包（文献卡+数据卡+审计记录，默认需要）
 - **配图需求**：无（默认）/ 数据图表 / 封面视觉 / 图表+封面全套
   - 数据图表：写手在正文标注图位 `[图N：标题]`，主控按图位用程序化脚本（matplotlib/SVG）生成，数字必须与数据卡一致
-  - 封面视觉：主控**默认调用 image_generate 工具**（gpt-image-2）生成，prompt 遵循主人「极简自然」调性；若 image 不可用/失败则 fallback 到 SVG 矢量风或主人人工上传
+  - 封面视觉：主控**默认调用 image_generate 工具**（默认平台 **minimax**，模型 **minimax/minimax-image-01**，v2.0.8 调整）生成，prompt 遵循主人「极简自然」调性；若 minimax 不可用/失败则按 recover_failed_article_illustration_gen 模式自动降级到 fallback（OpenAI gpt-image-2 → Google gemini-3.1-flash-image-preview），仍失败则 fallback 到 SVG 矢量风或主人人工上传
 
 ## 角色清单（主控派发后勾选）
 - [ ] T1 文献检索 → literature/文献卡.md
