@@ -16,12 +16,12 @@ metadata:
       - "sessions_list",
       - "web_search",
       - "web_fetch",
-      "tavily_search",
-      "tavily_extract",
-      "memory_get",
-      "memory_search",
-      "update_plan",
-      "image_generate"
+      - "tavily_search",
+      - "tavily_extract",
+      - "memory_get",
+      - "memory_search",
+      - "update_plan",
+      - "image_generate"
     denied:
       - "exec",
       - "process",

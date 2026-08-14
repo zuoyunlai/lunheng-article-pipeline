@@ -80,7 +80,8 @@ lunheng-article-pipeline/
     │   ├── 02-数据检索-data-scout.md
     │   ├── 03-分析-analyst.md
     │   ├── 04-写作-writer.md
-    │   └── 05-审计-auditor.md
+    │   ├── 05-审计-auditor.md
+    │   └── 06-案例检索-case-scout.md  # 重量场景可选
     ├── templates/                  # 4 个模板
     │   ├── 案例卡-template.md
     │   ├── 交接报告-template.md
