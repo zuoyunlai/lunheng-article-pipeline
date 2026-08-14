@@ -7,38 +7,38 @@ metadata:
     bins: []
   tools:
     declared:
-      - "read",
-      - "write",
-      - "edit",
-      - "sessions_spawn",
-      - "sessions_yield",
-      - "sessions_history",
-      - "sessions_list",
-      - "web_search",
-      - "web_fetch",
-      - "tavily_search",
-      - "tavily_extract",
-      - "memory_get",
-      - "memory_search",
-      - "update_plan",
+      - "read"
+      - "write"
+      - "edit"
+      - "sessions_spawn"
+      - "sessions_yield"
+      - "sessions_history"
+      - "sessions_list"
+      - "web_search"
+      - "web_fetch"
+      - "tavily_search"
+      - "tavily_extract"
+      - "memory_get"
+      - "memory_search"
+      - "update_plan"
       - "image_generate"
     denied:
-      - "exec",
-      - "process",
-      "browser",
-      "apply_patch",
-      "cron",
-      "video_generate",
-      "music_generate",
-      "tts",
-      "memory_store",
-      "memory_recall",
-      "skill_workshop"
+      - "exec"
+      - "process"
+      - "browser"
+      - "apply_patch"
+      - "cron"
+      - "video_generate"
+      - "music_generate"
+      - "tts"
+      - "memory_store"
+      - "memory_recall"
+      - "skill_workshop"
 ---
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
-> 把一篇深度文章/论文的生产拆成 6 个角色 + 5 个阶段，用 OpenClaw `sessions_spawn` 子代理编排。产出有证据底座（文献卡+数据卡）、有反方论证、有独立审计、有人工核验节点的交付物。
+> 把一篇深度文章/论文的生产拆成 **7 个角色 + 5 个阶段**（6 主线角色 + T6 案例检索员，重量场景才 spawn，v2.2+），用 OpenClaw `sessions_spawn` 子代理编排。产出有证据底座（文献卡+数据卡）、有反方论证、有独立审计、有人工核验节点的交付物。
 > 适用：公众号深度文章、研究报告、论文、长文评论。经验证：一篇 7650 字/8 节/2 图/52 文献/60 数据点的深度文，全流程约 2 小时完成。
 
 ## 何时使用
@@ -246,7 +246,7 @@ run/<项目名>/
 
 ## 角色卡与模板（完整版）
 
-- 6 张角色卡（主控/文献检索/数据检索/分析/写作/审计）：`references/agents/`
+- **7 张角色卡**（主控/文献检索/数据检索/分析/写作/审计/案例检索）：`references/agents/`（T6 案例检索员为重量场景可选，v2.2+）
 - 4 个模板（任务简报/status状态机/交接报告/**案例卡**）：`references/templates/`
 - 流水线运行手册：`references/pipeline-readme.md`
 - （可选启用）T6 案例检索员：与 T1∥T2 并行，重量案例场景才 spawn
