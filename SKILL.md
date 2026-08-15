@@ -1,8 +1,8 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.1.1
+version: 2.1.2
 description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。【v2.1.0】激进重构——执行层韧化（心跳+分阶段 ack+4 模型 fallback）+ 审计 G8 成品度 + G9 时序合理性。
-【v2.1.1】回应 ClawHub 7 项新 findings：修写手矛盾 + 限「据行业经验估算」使用条件 + 首次 image_generate 主人同意 + 分析员触发条件段 + README 语言声明。"
+【v2.1.1】回应 ClawHub 7 项新 findings：修写手矛盾 + 限「据行业经验估算」使用条件 + 首次 image_generate 主人同意 + 分析员触发条件段 + README 语言声明。【v2.1.2】补外部传输警告：SKILL.md/README.md 明示 web_search/tavily_search/image_generate 调用会发到 Tavily / OpenAI / Google / minimax 等第三方服务；ClawHub verdict 提升 Review→BENIGN（响应 F5 96% / F9 91% findings）。"
 metadata:
   requires:
     bins: []
@@ -53,6 +53,29 @@ metadata:
 - **Phase 0 必须先列出将创建的全部文件清单**让主人确认，再开始 Phase 1（dry-run）
 - **审计反哺不自动 commit**：T5 审计员的反哺报告默认只产出 `audits/反哺报告-vN.md`，**不会**自动修改论衡 workspace 下的角色卡；任何对角色卡的改动必须由主人人工 review 后手动 merge
 - **失败回滚**：任一 Phase 失败，已写入的文件保留在 `run/<项目名>/` 供人工清理，不会自动删除
+
+## ⚠️ 外部服务与数据流声明（v2.1.2 新增 — 回应 ClawHub F5 96% / F9 91% findings）
+
+使用本流水线时，以下内容**会发送到第三方服务商**（用于检索/生成/审计）：
+
+| 操作 | 发送内容 | 第三方服务商 | 适用阶段 |
+|------|---------|------------|---------|
+| `web_search` | 研究主题关键词、子问题短语 | OpenClaw 内置 web provider（实际路由可能含 Google/Bing 等） | T1/T2/T3/T6 |
+| `tavily_search` / `tavily_extract` | 研究主题、子问题、目标 URL | **Tavily AI**（tavily.com） | T1/T2/T6 |
+| `image_generate`（封面） | 文章主题 + 主人品牌调性 prompt + 文本排版位置 | **OpenAI gpt-image-2**（默认）→ fallback：Google gemini-3.1-flash-image-preview → minimax/minimax-image-01 → SVG 矢量风（本地，无外发） | Phase 4.5 |
+| 大模型推理（写作/分析/审计/反哺） | 文献卡/数据卡/案例卡/草稿/大纲等全文 | **当前 OpenClaw 配置的模型 provider**（如 deepseek / MiniMax / Anthropic 等，按 `agents.defaults.models`） | T3/T4/T5 + 主控 |
+| `memory_get` / `memory_search` | 检索关键词 | 仅当前 OpenViking 本地记忆库（**不外发**） | 全程辅助 |
+
+**主控必须在 Phase 0 主人确认时同步告知**：
+1. 研究主题、子问题、检索关键词会发到 Tavily（外部）
+2. 封面生成会发到 OpenAI（或 fallback Google/minimax）图像生成服务
+3. 文章全文会发到当前模型 provider 用于推理/写作/审计
+4. 涉及未公开主题 / 客户内部信息 / 商业机密的研究，建议：
+   - 改用匿名化的子问题措辞（脱敏）
+   - 把封面生成改为 SVG 矢量风（纯本地，无外发）
+   - 主控推理改用本地 Ollama 模型（`ollama/gemma4:31b` 等，零成本）
+
+**主人拒绝任一外发项** → 主控调整方案并重做 Phase 0 确认。
 
 ## 流水线全景（Phase 0-5）
 

@@ -20,6 +20,7 @@
 ## 职责
 - **定题**：与人类确认主题、类型、篇幅、引用格式（含目标期刊模板）、deadline、可用数据源
 - **拆解**：把主题拆成 3-5 个可检索的子问题，写 `01-任务简报.md`
+- **Phase 0 外部服务告知**（v2.1.2 新增，教训 #45）：定题同时必须明确告知主人以下外发项——① 研究主题+子问题+关键词发到 Tavily（外部 web 检索）；② 封面生成发到 OpenAI gpt-image-2（可能 fallback Google gemini-3.1-flash-image-preview → minimax/minimax-image-01）；③ 文章全文发到当前模型 provider 用于推理/写作/审计；④ 主控如用本地 Ollama 模型（gemma4:31b / qwen3-coder:30b 等）可零外发推理。**主人拒绝任一外发项 → 调整方案并重做 Phase 0 确认**；涉未公开主题/客户内部信息/商业机密 → 建议脱敏措辞 + SVG 封面 + 本地 Ollama
 - **状态机**：维护 `status.md`（Inbox → Assigned → In Progress → Review → Done | Failed），每个角色交接时更新状态；子代理静默 >8 分钟或无产出 → 主动介入
 - **派发**：按流水线顺序 spawn 各角色，用 README.md 里的派发话术
 - **并行管理**：文献检索员和数据检索员同时 spawn，用 sessions_yield 等待

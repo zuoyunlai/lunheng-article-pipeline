@@ -22,6 +22,27 @@
 
 ---
 
+## ⚠️ 数据流与第三方服务（v2.1.2 新增 — 回应 ClawHub F5 96% / F9 91% findings）
+
+使用本技能时，以下内容会**发送到第三方服务商**：
+
+| 操作 | 发送内容 | 第三方服务商 | 适用阶段 |
+|------|---------|------------|---------|
+| `web_search` | 检索关键词 | OpenClaw 内置 web provider（路由可能含 Google/Bing） | T1/T2/T3/T6 |
+| `tavily_search` / `tavily_extract` | 研究主题、子问题、URL | **Tavily AI** | T1/T2/T6 |
+| `image_generate`（封面） | 文章主题 + 品牌 prompt + 排版位置 | **OpenAI gpt-image-2**（默认）→ fallback：Google gemini-3.1-flash-image-preview → minimax/minimax-image-01 → SVG 矢量风（本地） | Phase 4.5 |
+| 大模型推理 | 文献/数据/案例/草稿/大纲全文 | 当前模型 provider（deepseek / MiniMax / Anthropic 等，按 `agents.defaults.models`） | T3/T4/T5 + 主控 |
+| `memory_get` / `memory_search` | 检索关键词 | 仅本地 OpenViking 记忆库（**不外发**） | 全程辅助 |
+
+**主控必须在 Phase 0 主人确认时同步告知上述外发项**。涉及未公开主题/客户内部信息/商业机密的研究：
+- 改用匿名化措辞（脱敏）
+- 把封面生成改为 SVG 矢量风（本地零外发）
+- 主控推理改用本地 Ollama 模型（`ollama/gemma4:31b` 等，零成本）
+
+**主人拒绝任一外发项** → 主控调整方案并重做 Phase 0 确认。详见 SKILL.md 「⚠️ 外部服务与数据流声明」章节。
+
+---
+
 ## 核心特点
 
 ### 三不原则（质量底线）
