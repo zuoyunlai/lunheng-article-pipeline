@@ -1,8 +1,7 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.1.3
-description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。【v2.1.0】激进重构——执行层韧化（心跳+分阶段 ack+4 模型 fallback）+ 审计 G8 成品度 + G9 时序合理性。
-【v2.1.1】回应 ClawHub 7 项新 findings：修写手矛盾 + 限「据行业经验估算」使用条件 + 首次 image_generate 主人同意 + 分析员触发条件段 + README 语言声明。【v2.1.2】补外部传输警告：SKILL.md/README.md 明示 web_search/tavily_search/image_generate 调用会发到 Tavily / OpenAI / Google / minimax 等第三方服务；ClawHub verdict 提升 Review→BENIGN（响应 F5 96% / F9 91% findings）。【v2.1.3】执行层可靠性补强：主控完成验证铁律 + 修订任务目标拆分 + 小修订主控 edit + T5 G10 一致性审计 + 写手元数据边界 + 终检统计口径/先行者闭环 + Phase 3.5 主人洞察窗口。"
+version: 2.1.4
+description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。【v2.1.0】激进重构——执行层韧化（心跳+分阶段 ack+4 模型 fallback）+ 审计 G8 成品度 + G9 时序合理性。【v2.1.1】回应 ClawHub 7 项新 findings：修写手矛盾 + 限「据行业经验估算」使用条件 + 首次 image_generate 主人同意 + 分析员触发条件段 + README 语言声明。【v2.1.2】补外部传输警告：SKILL.md/README.md 明示 web_search/tavily_search/image_generate 调用会发到 Tavily / OpenAI / Google / minimax 等第三方服务；ClawHub verdict 提升 Review→BENIGN（响应 F5 96% / F9 91% findings）。【v2.1.3】执行层可靠性补强：主控完成验证铁律 + 修订任务目标拆分 + 小修订主控 edit + T5 G10 一致性审计 + 写手元数据边界 + 终检统计口径/先行者闭环 + Phase 3.5 主人洞察窗口。【v2.1.4】文末「引用来源」四节完整性闭环（教训 #47，教师场域孤岛实战）：README 两节→四节 + 写手铁律 #9 + 主控终检 ⑨ + 审计 G4-2 + diff 三件套 grep+comm；论衡 agent 工具 15 项白名单 + description v2.1.4 同步（gateway restart pid 2960）；全面质量审计 F1-F10 全部修复（教训 #48 sed -i 静默清空文件事故已写）。
 metadata:
   requires:
     bins: []
