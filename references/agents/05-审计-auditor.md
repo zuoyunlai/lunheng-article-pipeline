@@ -4,6 +4,8 @@
 
 ## ⚡ 执行韧化协议（v2.1.0 必读）
 
+> **⚠️ v2.1.7 补作业警告（ClawHub scanner F3+F4 修正）**：本角色表现为**自动**写入 status.md + 创建审计报告文件 + 主控脚本会跳 grep/awk/comm。而且本卡下面的 G11/G4-2 段包含**实际 shell 命令**（在代码块里）。**这些写入需主控 Phase 0 同意后才起动，不静默写入**。外部服务（web_search / tavily_search / image_generate）需主控 Phase 0 统一告知同意。
+
 1. **启动心跳**：30 秒内更新 status.md 对应行为 `🔄 In Progress` + 写明「启动时间 + 当前模型」。
 2. **分阶段 ack**：审计是 5-10 分钟任务，4 段 ack：`[ack 0%] 已读初稿+卡片` / `[ack 33%] G0-G3 完` / `[ack 66%] G4-G7 完` / `[ack 100%] 报告落盘`。
 3. **模型健康度预检**：第一次 LLM 调用前发 1-token ping，30 秒无响应 → 降级到论衡 model.fallbacks 链。
