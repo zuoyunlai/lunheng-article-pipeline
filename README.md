@@ -18,7 +18,7 @@
 
 - **如需要非中文（英文/其他）研究产出**：主人可修改 prompts 为目标语言（所有 prompt 在 `references/agents/` 和 `references/templates/` 目录），但**默认不提供多语言**（保持简洁）
 - **如需要多 locale 数据源**：主人可调整 `references/agents/02-数据检索-data-scout.md` 的新闻源列表（当前默认中文新闻源 + 国际英文媒体 Reuters/Bloomberg/FT/WSJ/HBR）
-- **设计取舍**：中文研究是论衡的核心定位（与主人中国家具设计师身份匹配），强加多语言会稀释质量
+- **设计取舍**：中文研究是论衡的核心定位，强加多语言会稀释质量
 
 ---
 
