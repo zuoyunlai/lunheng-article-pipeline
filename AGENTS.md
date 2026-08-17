@@ -8,8 +8,8 @@
 ## 流水线协议（摘要，详见 pipeline/README.md）
 
 ```
-Phase 0 定题     → 与主人确认主题/类型/篇幅/引用格式 + 案例检索强度 + 外部服务告知 → 写 run/<项目>/01-任务简报.md
-Phase 1 并行检索 → spawn T1 文献检索员 ∥ T2 数据检索员 ∥ T6 案例检索员（可选重量场景）（sessions_yield 等待）
+Phase 0 定题     → 与主人确认主题/类型/篇幅/引用格式 + cases 需求（含 0 条场景的显式声明）+ 外部服务告知 → 写 run/<项目>/01-任务简报.md
+Phase 1 并行检索 → spawn T1 文献检索员 ∥ T2 数据检索员 ∥ **T6 案例检索员（任何量级必 spawn，含 0 条场景走空卡协议，v2.1.8 强化，教训 #56）**（sessions_yield 等待）
 Phase 2 分析     → spawn T3 分析员 → analysis/分析大纲.md
 Phase 2.5 大纲确认 → 主人过目 → 三角验证 [L]+[D]+[C] 缺角补检索
 Phase 3 写作     → spawn T4 写手 → drafts/初稿-v1.md
