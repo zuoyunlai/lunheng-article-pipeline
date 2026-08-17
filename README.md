@@ -1,6 +1,6 @@
 # 论衡（lunheng-article-pipeline）— 多 Agent 深度长文流水线
 
-把一篇深度文章 / 论文的生产拆成 **7 个角色 + 5 个阶段**（6 主线 + T6 案例检索员，重量场景才 spawn，v2.2+），用 OpenClaw 的 `sessions_spawn` 子代理编排，产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。
+把一篇深度文章 / 论文的生产拆成 **7 个角色 + 5 个阶段**（6 主线 + T6 案例检索员**任何量级必 spawn**，含 0 条场景走空卡协议，**v2.1.8**），用 OpenClaw 的 `sessions_spawn` 子代理编排（**T1∥T2∥T6 三方真并行互不干涉，教训 #56**），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。
 
 > 适用：公众号深度文章、研究报告、论文、长文评论。经验证：一篇 ~9500 字的深度文，全流程约 2 小时完成。
 
@@ -42,7 +42,7 @@
 
 | 操作 | 发送内容 | 第三方服务商 | 适用阶段 |
 |------|---------|------------|---------|
-| `web_search` | 检索关键词 | OpenClaw 内置 web provider（路由可能含 Google/Bing） | T1/T2/T3/T6 |
+| `web_search` | 检索关键词 | OpenClaw 内置 web provider（路由可能含 Google/Bing） | T1/T2/T6 |
 | `tavily_search` / `tavily_extract` | 研究主题、子问题、URL | **Tavily AI** | T1/T2/T6 |
 | `image_generate`（封面） | 文章主题 + 品牌 prompt + 排版位置 | **OpenAI gpt-image-2**（默认）→ fallback：Google gemini-3.1-flash-image-preview → minimax/minimax-image-01 → SVG 矢量风（本地） | Phase 4.5 |
 | 大模型推理 | 文献/数据/案例/草稿/大纲全文 | 当前模型 provider（deepseek / MiniMax / Anthropic 等，按 `agents.defaults.models`） | T3/T4/T5 + 主控 |
