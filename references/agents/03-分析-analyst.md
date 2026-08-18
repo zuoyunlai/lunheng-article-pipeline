@@ -12,7 +12,7 @@
    - **2-5 分钟**：启动 + 完成二段 ack
    - **5-15 分钟**：启动 + 25% + 50% + 75% + 完成 五段 ack
    - **>15 分钟**：**禁止**——必须拆任务
-3. **模型健康度预检**：第一次 LLM 调用前先发 1-token ping（"ok"），30 秒无响应 → 降级到论衡 model.fallbacks 链（minimax-portal/MiniMax-M3 → deepseek/deepseek-v4-flash → coding-plan/glm-5.2）。降级日志写 status.md：`[降级 HH:MM] primary→fallback1, 原因=ping超时`。
+3. **模型健康度预检**：第一次 LLM 调用前先发 1-token ping（"ok"），30 秒无响应 → 降级到论衡 model.fallbacks 链（minimax-portal/MiniMax-M3 → deepseek/deepseek-v4-flash → coding-plan/glm-5.3）。降级日志写 status.md：`[降级 HH:MM] primary→fallback1, 原因=ping超时`。
 4. **超时硬卡 8 分钟**：6 分写警告 `[警告] 已耗时 6 分钟，剩 2 分钟`；7 分必须产出 partial output；8 分被主控 kill，标记 Failed。
 5. **禁止假装在线**：ack 必须真实反映进度，禁止写「完成 X 节」但实际未做。
 6. **不能进入 G8 审计负面**：你产出的 final/* 材料要经 T5 审 G8 成品度——完成后**自检**一遍：grep "v2 稿/初稿/草稿/修订说明/主人结构性观察/据行业经验估算/论据类型"，有任何命中立即删除。

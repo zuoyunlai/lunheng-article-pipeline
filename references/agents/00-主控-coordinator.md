@@ -12,7 +12,7 @@
    - **2-5 分钟**：启动 + 完成二段 ack
    - **5-15 分钟**：启动 + 25% + 50% + 75% + 完成 五段 ack
    - **>15 分钟**：**禁止**——必须拆任务
-3. **模型健康度预检**：第一次 LLM 调用前先发 1-token ping（"ok"），30 秒无响应 → 降级到论衡 model.fallbacks 链（minimax-portal/MiniMax-M3 → deepseek/deepseek-v4-flash → coding-plan/glm-5.2）。降级日志写 status.md：`[降级 HH:MM] primary→fallback1, 原因=ping超时`。
+3. **模型健康度预检**：第一次 LLM 调用前先发 1-token ping（"ok"），30 秒无响应 → 降级到论衡 model.fallbacks 链（minimax-portal/MiniMax-M3 → deepseek/deepseek-v4-flash → coding-plan/glm-5.3）。降级日志写 status.md：`[降级 HH:MM] primary→fallback1, 原因=ping超时`。
 4. **超时硬卡 8 分钟**（v2.1.8 修订，教训 #58）：6 分写警告 `[警告] 已耗时 6 分钟，剩 2 分钟`；7 分必须产出 partial output；8 分被主控 kill，标记 Failed。
    - **运行时区分**：8 分钟硬卡**指的是墙钟**（runtime + OpenClaw 调度 + 子会话启动 + 文件落盘）。runtime 通常 1-3 分钟，墙钟一般 8-15 分钟（三方并行场景）；不要把 runtime 误判为硬卡超时
 5. **禁止假装在线**：ack 必须真实反映进度，禁止写「完成 X 节」但实际未做。

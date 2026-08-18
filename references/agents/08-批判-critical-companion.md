@@ -10,7 +10,7 @@
 
 1. **启动心跳**（30 秒内必做）：更新 `status.md` 对应行为 `🔄 In Progress` + 写明「启动时间 + 当前模型」。不写心跳 = 主控视为未启动。
 2. **分阶段 ack**（批判是 3-5 分钟任务，3 段 ack）：`[ack 0%] 已读初稿+大纲` / `[ack 50%] C1-C3 完` / `[ack 100%] C4-C5 完 + 报告落盘`。
-3. **模型健康度预检**：第一次 LLM 调用前先发 1-token ping（"ok"），30 秒无响应 → 降级到论衡 model.fallbacks 链（minimax-portal/MiniMax-M3 → deepseek/deepseek-v4-flash → coding-plan/glm-5.2）。降级日志写 status.md：`[降级 HH:MM] primary→fallback1, 原因=ping超时`。
+3. **模型健康度预检**：第一次 LLM 调用前先发 1-token ping（"ok"），30 秒无响应 → 降级到论衡 model.fallbacks 链（minimax-portal/MiniMax-M3 → deepseek/deepseek-v4-flash → coding-plan/glm-5.3）。降级日志写 status.md：`[降级 HH:MM] primary→fallback1, 原因=ping超时`。
 4. **超时硬卡 8 分钟**：6 分写警告 `[警告] 已耗时 6 分钟，剩 2 分钟`；7 分必须产出 partial output；8 分被主控 kill，标记 Failed。
 5. **禁止假装在线**：ack 必须真实反映进度，禁止写「完成 X 节」但实际未做。
 
