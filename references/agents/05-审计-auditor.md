@@ -91,7 +91,7 @@ v2.2.0 M 门保留 + v2.2.1 扩展 4 项：
 - **M-Integrity-1 T2.5 闸门**（T2 → T3 前主控 checkpoint）：数据条目数 ≥ 大纲 D 列数 + 信任级别完整 + 主人签字 Phase 1
 - **M-Integrity-2 T5.5 闸门**（T5 → T7 前主控 checkpoint）：审计报告最新版 + P0/P1 清单 + M 门全 exit 0 + 论文交付物 vs 操作员报告隔离 + 主人签字 Phase 5
 
-**详细算法规约**：`pipeline/_shared/M-Gate-Algorithm-v2.2.1.md`
+**详细算法规约**：`pipeline/_shared/M-Gate-Algorithm-v2.2.1.md` + `M-Gate-Algorithm-v2.2.1.2.md`（v2.2.1.2 含 M-Form-3/M-Exist-1 算法修复 + M-Form-6/M-Exist-3 双格式支持）
 
 ### T5.5 完整性门必查项（v2.2.1 新增，教训 #77）
 
