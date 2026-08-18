@@ -1,7 +1,7 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.2.0
-description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。【v2.1.0】激进重构——执行层韧化（心跳+分阶段 ack+4 模型 fallback）+ 审计 G8 成品度 + G9 时序合理性。【v2.1.1】回应 ClawHub 7 项新 findings：修写手矛盾 + 限「据行业经验估算」使用条件 + 首次 image_generate 主人同意 + 分析员触发条件段 + README 语言声明。【v2.1.2】补外部传输警告：SKILL.md/README.md 明示 web_search/tavily_search/image_generate 调用会发到 Tavily / OpenAI / Google / minimax 等第三方服务；ClawHub verdict 提升 Review→BENIGN（响应 F5 96% / F9 91% findings）。【v2.1.3】执行层可靠性补强：主控完成验证铁律 + 修订任务目标拆分 + 小修订主控 edit + T5 G10 一致性审计 + 写手元数据边界 + 终检统计口径/先行者闭环 + Phase 3.5 主人洞察窗口。【v2.1.4】文末「引用来源」四节完整性闭环（教训 #47，教师场域孤岛实战）：README 两节→四节 + 写手铁律 #9 + 主控终检 ⑨ + 审计 G4-2 + diff 三件套 grep+comm；论衡 agent 工具 15 项白名单 + description v2.1.4 同步（gateway restart pid 2960）；全面质量审计 F1-F10 全部修复（教训 #48 sed -i 静默清空文件事故已写）。【v2.1.5】论衡定位边界明示 + [C-主xx] 类型分类 + G11 数据时效失效告警 + 批判性自检清单升级反方论证：边界明示「论衡能主动采集 vs 不能主动采集」二分法（T1/T2/T6 主动采集已发布文献/统计/案例/政府文件，一手数据/统计/图表原始数据/原创图片/代码执行需主人投喂）；[C-主xx] 主人洞察机制按「观点来源 vs 理论贡献」分类（理论贡献需发展独立论据链条，避免自我论证）；T5 审计新增 G11 时效失效告警（>5 年 → P1 重新检索替换 / 3-5 年 → P2 加「截至 YYYY 年」标注）；T3 反方论证升级为批判性自检清单 3 段（最强反方观点 / 论证链最薄弱环 / 审稿人最尖锐 3 问）。【v2.1.6】边界表述微调（主人反馈后 v2.1.5.1 合并）：「证据的下游整合器 vs 上游采集器」过度绝对化改为「论衡能主动采集 vs 不能主动采集」二分法（T1/T2/T6 已发布证据主动采集 + 主人投喂一手数据整合），v2.1.5.1 不符合 ClawHub semver 约束故合并为 v2.1.6 一个 release。【v2.1.7】ClawHub scanner 6 项 advisory findings 全部归零（hasWarnings=false + findings=null + verdict=benign + agenticRiskFindings=null，主人抓出 v2.1.6 「UI 显示 CLEAN 但 advisory 字段藏 6 项 findings」的盲区）+ Phase 0 强同意关卡（4 选 1 主人明示同意外部调用，web_search/tavily/image_generate/主控推理）+ 顶层 README 同步 4 选 1 段 + 5 类不适用场景段（v2.1.5 references 升顶层）。【v2.1.8】三检索员独立并行 T1∥T2∥T6 + 互不干涉 + 0 条空卡协议（教训 #56 + #58 + #60）：取消 v2.1.7 三档决策（轻/中走 T2 顺带已废弃），T2 不再兼带案例（删除「案例检索扩权」段），T6 任何量级必 spawn（含 0 条场景走空卡协议输出 [C-空]），T1 文献检索员加「三方并行协调段」+「跨角色硬约束」（之前 T1 完全不知道 T6 存在），T3 触发条件从「T1+T2 Done」改「T1+T2+T6 Done」+ 0 条空卡特例，T0 8 分钟硬卡补「runtime vs 墙钟」说明，_shared/ 执行韧化协议补「三检索员并行监控补充」+ G8G9 审计清单补「三方并行总耗时」判断；双端 16 文件 paperwriter ↔ ClawHub md5 一致（教训 #57），GitHub Web UI README + description + topics 同步（教训 #49 第三层），实战 dry-run 验证通过（12 [L] + 46 [D] + 12 [C] = 74 条证据，三方真并行 12:37:05 spawn，runtime 1m57s/3m0s/3m0s，墙钟 14 分钟）。【v2.2.0】M 机械化硬门 + F1-F7 失败模式清单 + 修订回环 ≤2 轮降级（教训 #64）：审计卡新增「M 门控段」（M-Form 5 项 + M-Exist 2 项 sha256+grep+comm 三件套，T7 必跑 exit 0 才能返回），借鉴 vincentjiang06 paper-writer objective/verify gate 硬约束理念的论衡化实现（不引入 Python 脚本，复用主控现有工具）；新增 F 失败模式防御段（F1-F7 + G 项映射表 + F3 反方论证覆盖必查 + F4 论点-论据一对一验证 + F7 主人风格一致性检查），借鉴 ARS Lu et al. *Nature* 2026 论文 M1-M7 失败模式组织的论衡化叙述（G 体系不替换，补漏 4 个新模式 F3 早期框架锁定 / F4 论证自洽陷阱 / F7 主人风格模仿失真）；主控主动介入 6 步改造「修订回环 ≤2 轮硬约束」（第 3 轮触发 → Acknowledged Limitations 模式：未关闭 P0/P1 搬入 final/局限性.md，T7 通过 ≠ 完美），写手铁律 #10 加降级触发说明；SKILL.md 顶部新增「交付边界段」明示论文交付物 vs 操作员报告独立隔离（vincentjiang06 「A course paper carrying a ## 合规报告 section is no longer a course paper」论衡化）。"
+version: 2.2.1
+description: "多Agent深度长文流水线：定题→并行检索→分析→大纲人在环确认→写作→审计→修订→配图→终检交付。【v2.0.2】反哺不自动 commit 角色卡；Phase 0 显式确认 <项目名> 与文件清单。【v2.0.5】封面 image_generate 工具解锁（默认 OpenAI gpt-image-2，考虑普适性）。【v2.0.8】fallback 链补充 minimax/minimax-image-01 作为最终 fallback（默认仍为 OpenAI gpt-image-2，普适性优先）。【v2.1.0】激进重构——执行层韧化（心跳+分阶段 ack+4 模型 fallback）+ 审计 G8 成品度 + G9 时序合理性。【v2.1.1】回应 ClawHub 7 项新 findings：修写手矛盾 + 限「据行业经验估算」使用条件 + 首次 image_generate 主人同意 + 分析员触发条件段 + README 语言声明。【v2.1.2】补外部传输警告：SKILL.md/README.md 明示 web_search/tavily_search/image_generate 调用会发到 Tavily / OpenAI / Google / minimax 等第三方服务；ClawHub verdict 提升 Review→BENIGN（响应 F5 96% / F9 91% findings）。【v2.1.3】执行层可靠性补强：主控完成验证铁律 + 修订任务目标拆分 + 小修订主控 edit + T5 G10 一致性审计 + 写手元数据边界 + 终检统计口径/先行者闭环 + Phase 3.5 主人洞察窗口。【v2.1.4】文末「引用来源」四节完整性闭环（教训 #47，教师场域孤岛实战）：README 两节→四节 + 写手铁律 #9 + 主控终检 ⑨ + 审计 G4-2 + diff 三件套 grep+comm；论衡 agent 工具 15 项白名单 + description v2.1.4 同步（gateway restart pid 2960）；全面质量审计 F1-F10 全部修复（教训 #48 sed -i 静默清空文件事故已写）。【v2.1.5】论衡定位边界明示 + [C-主xx] 类型分类 + G11 数据时效失效告警 + 批判性自检清单升级反方论证：边界明示「论衡能主动采集 vs 不能主动采集」二分法（T1/T2/T6 主动采集已发布文献/统计/案例/政府文件，一手数据/统计/图表原始数据/原创图片/代码执行需主人投喂）；[C-主xx] 主人洞察机制按「观点来源 vs 理论贡献」分类（理论贡献需发展独立论据链条，避免自我论证）；T5 审计新增 G11 时效失效告警（>5 年 → P1 重新检索替换 / 3-5 年 → P2 加「截至 YYYY 年」标注）；T3 反方论证升级为批判性自检清单 3 段（最强反方观点 / 论证链最薄弱环 / 审稿人最尖锐 3 问）。【v2.1.6】边界表述微调（主人反馈后 v2.1.5.1 合并）：「证据的下游整合器 vs 上游采集器」过度绝对化改为「论衡能主动采集 vs 不能主动采集」二分法（T1/T2/T6 已发布证据主动采集 + 主人投喂一手数据整合），v2.1.5.1 不符合 ClawHub semver 约束故合并为 v2.1.6 一个 release。【v2.1.7】ClawHub scanner 6 项 advisory findings 全部归零（hasWarnings=false + findings=null + verdict=benign + agenticRiskFindings=null，主人抓出 v2.1.6 「UI 显示 CLEAN 但 advisory 字段藏 6 项 findings」的盲区）+ Phase 0 强同意关卡（4 选 1 主人明示同意外部调用，web_search/tavily/image_generate/主控推理）+ 顶层 README 同步 4 选 1 段 + 5 类不适用场景段（v2.1.5 references 升顶层）。【v2.1.8】三检索员独立并行 T1∥T2∥T6 + 互不干涉 + 0 条空卡协议（教训 #56 + #58 + #60）：取消 v2.1.7 三档决策（轻/中走 T2 顺带已废弃），T2 不再兼带案例（删除「案例检索扩权」段），T6 任何量级必 spawn（含 0 条场景走空卡协议输出 [C-空]），T1 文献检索员加「三方并行协调段」+「跨角色硬约束」（之前 T1 完全不知道 T6 存在），T3 触发条件从「T1+T2 Done」改「T1+T2+T6 Done」+ 0 条空卡特例，T0 8 分钟硬卡补「runtime vs 墙钟」说明，_shared/ 执行韧化协议补「三检索员并行监控补充」+ G8G9 审计清单补「三方并行总耗时」判断；双端 16 文件 paperwriter ↔ ClawHub md5 一致（教训 #57），GitHub Web UI README + description + topics 同步（教训 #49 第三层），实战 dry-run 验证通过（12 [L] + 46 [D] + 12 [C] = 74 条证据，三方真并行 12:37:05 spawn，runtime 1m57s/3m0s/3m0s，墙钟 14 分钟）。【v2.2.0】M 机械化硬门 + F1-F7 失败模式清单 + 修订回环 ≤2 轮降级（教训 #64）：审计卡新增「M 门控段」（M-Form 5 项 + M-Exist 2 项 sha256+grep+comm 三件套，T7 必跑 exit 0 才能返回），借鉴 vincentjiang06 paper-writer objective/verify gate 硬约束理念的论衡化实现（不引入 Python 脚本，复用主控现有工具）；新增 F 失败模式防御段（F1-F7 + G 项映射表 + F3 反方论证覆盖必查 + F4 论点-论据一对一验证 + F7 主人风格一致性检查），借鉴 ARS Lu et al. *Nature* 2026 论文 M1-M7 失败模式组织的论衡化叙述（G 体系不替换，补漏 4 个新模式 F3 早期框架锁定 / F4 论证自洽陷阱 / F7 主人风格模仿失真）；主控主动介入 6 步改造「修订回环 ≤2 轮硬约束」（第 3 轮触发 → Acknowledged Limitations 模式：未关闭 P0/P1 搬入 final/局限性.md，T7 通过 ≠ 完美），写手铁律 #10 加降级触发说明；SKILL.md 顶部新增「交付边界段」明示论文交付物 vs 操作员报告独立隔离（vincentjiang06 「A course paper carrying a ## 合规报告 section is no longer a course paper」论衡化）。【v2.2.1】数据信任级别 3 档 + 阶段闸门 T2.5/T5.5（教训 #77，v2.2.0 实战三轮反馈驱动）：数据信任级别（已发布/主人投喂/二手转引 三档）每条数据/案例必填，借鉴 vincentjiang06 paper-writer Trust Boundary 论衡化（F8 数据信任失败模式 4 子项：F8.1 来源混入 / F8.2 公众号版不同步 / F8.3 转引未标注 / F8.4 信任级别遗漏）；阶段闸门 T2.5（T2 数据检索 → T3 分析前，主控 checkpoint：数据条目完整性 + 信任级别完整 + 主人签字 Phase 1 → 通过才派 T3）+ T5.5（T5 审计 → T7 终检前，主控 checkpoint：审计报告最新版 + P0/P1 清单 + M 门全 exit 0 + 论文交付物 vs 操作员报告隔离 + 主人签字 Phase 5 → 通过才派 T7），借鉴 ARS Stage 2.5/4.5 论衡化（不引入新 agent，主控用 update_plan + read 实现）；M 门扩展（M-Form-6 信任级别标注完整性 + M-Exist-3 信任级别一致性 diff + M-Integrity-1 T2.5 + M-Integrity-2 T5.5），v2.2.0 M 门 5+2 项保留 + 扩展为 6+3+2 共 11 项；T5 审计新增 G12 数据信任级别一致性扫描；实战反馈：实战 2（品牌一致性）14 条 [Dxx] 无信任级别 + 实战 3（教师场域 outputs/）45 条 [Dxx] 公众号版不同步，T2.5/T5.5 闸门可防。"
 metadata:
   requires:
     bins: []
@@ -69,17 +69,35 @@ metadata:
 | **F5 拼凑式章节断裂** | 章节间无过渡 / 章节顺序违反读者认知 | G4 结构 + G8 #7 段落结构过度对称 | 已有（强）|
 | **F6 过度防御口吻** | 写手代入「过度保护」语气，破坏客观分析视角 | G0.5 + G6 论据类型自标 + 「据行业经验估算」限定 | 已有（强）|
 | **F7 主人风格模仿失真**（**新增**）| 写手把主人洞察当「作者声音」，混入正文 | G0.5 + 主人深度洞察融合协议 | 补强 |
+| **F8 数据信任失败**（**v2.2.1 新增**）| 已发布 vs 主人投喂 vs 二手转引 来源混入 + 公众号版不同步 + 转引未标注 + 信任级别遗漏 | M-Form-6 + M-Exist-3 + G12 + T2.5 + T5.5 | 补强 |
 
-**M 机械化门控段**（v2.2.0 同步新增）：
-- **M-Form 形式合规门**（5 项）：引用标注完整性 / 文末四节存在性 / 临时编号残留 / 角色元数据泄露 / 过程语言残留
-- **M-Exist 存在性合规门**（2 项）：文末四节双向 diff（封装在 `_shared/m_exist_1_diff.sh`）/ 证据包文件完整性 sha256
+**F8 数据信任失败 4 子项**（v2.2.1 新增）：
+- **F8.1 来源混入**：已发布数据 vs 主人投喂数据没区分 → 数据卡必填「信任级别」段
+- **F8.2 公众号版不同步**：run/ vs outputs/ 数据不一致 → M-Exist-3 强制 diff + T5.5 闸门
+- **F8.3 转引未标注**：论文中转引未标 [二手] → 数据卡 [二手] 字段必填 + G12 信任级别一致性扫描
+- **F8.4 信任级别遗漏**：数据卡无信任级别标注 → M-Form-6 必查 + T2.5 闸门
+
+**借鉴出处**：vincentjiang06 paper-writer Trust Boundary 论衡化。
+
+**M 机械化门控段**（v2.2.0 + v2.2.1 扩展）：
+- **M-Form 形式合规门**（v2.2.0 5 项 + v2.2.1 新增 1 项 = 6 项）：引用标注完整性 / 文末四节存在性 / 临时编号残留 / 角色元数据泄露 / 过程语言残留 / **信任级别标注完整性（M-Form-6，v2.2.1 新增）**
+- **M-Exist 存在性合规门**（v2.2.0 2 项 + v2.2.1 新增 1 项 = 3 项）：文末四节双向 diff（封装在 `_shared/m_exist_1_diff.sh`）/ 证据包文件完整性 sha256 / **信任级别一致性 diff（M-Exist-3，v2.2.1 新增）**
+- **M-Integrity 阶段闸门**（v2.2.1 新增 2 项）：**T2.5（M-Integrity-1，T2 → T3 前主控 checkpoint）+ T5.5（M-Integrity-2，T5 → T7 前主控 checkpoint）**
 - **T7 必跑**，exit 0 才能返回
-- 借鉴 vincentjiang06 objective/verify gate 硬约束理念的论衡化实现——「**形式合规 ≠ 存在性合规**」
+- 借鉴 vincentjiang06 objective/verify gate 硬约束理念的论衡化实现——「**形式合规 ≠ 存在性合规 ≠ 信任一致**」（v2.2.0 → v2.2.1 M 门三层验证）
 
 **修订回环 ≤2 轮硬约束**（v2.2.0 同步新增）：
 - 第 1/2 轮：T5 打回 P0/P1 → T4 修订 → T5 复核
 - 第 3 轮触发 → **Acknowledged Limitations 模式**：未关闭 P0/P1 搬入 `final/局限性.md`，T7 通过 ≠ 完美
 - 「不要无限循环。无限循环是 LLM 的舒适区陷阱」—— 论衡主人口吻
+
+**阶段闸门 T2.5 + T5.5 硬约束**（v2.2.1 新增，教训 #77）：
+- **T2.5（T2 数据检索 → T3 分析前，主控 checkpoint）**：数据条目数 ≥ 大纲 D 列数 + 信任级别完整（M-Form-6 + M-Exist-3）+ 主人签字 Phase 1 → 通过才派 T3（不通过 → 触发 T2 重检索或主控补数据）
+- **T5.5（T5 审计 → T7 终检前，主控 checkpoint）**：审计报告最新版 + P0/P1 清单 + M 门全 exit 0 + 论文交付物 vs 操作员报告隔离 + 主人签字 Phase 5 → 通过才派 T7（不通过 → 触发 T5 重审或主控补审）
+- **不引入新 agent**，主控用 `update_plan` + `read` 工具实现
+- **借鉴出处**：ARS Stage 2.5/4.5 论衡化为主控 checkpoint
+- **实战反馈**：v2.2.0 实战 2（品牌一致性 14 条 [Lxx] 漏引）+ 实战 3（教师场域 outputs/ 45 条 [Dxx] 漏引）都是阶段交接未拦截导致 → T2.5 + T5.5 闸门可防
+- **「不绕过交接直接派发」**—— 论衡主控纪律
 
 
 ## 何时使用
