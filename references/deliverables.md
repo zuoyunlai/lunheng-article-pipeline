@@ -60,7 +60,7 @@
 - **T7 必跑**，exit 0 才能返回
 - 借鉴 vincentjiang06 objective/verify gate 硬约束理念的论衡化实现——「**形式合规 ≠ 存在性合规 ≠ 信任一致**」（v2.2.0 → v2.2.1 M 门三层验证）
 
-**M 门算法完整规约**：[`M-Gate-Algorithm-v2.2.4.md`](M-Gate-Algorithm-v2.2.4.md)
+**M 门算法完整规约**：[`M-Gate-Algorithm.md`](M-Gate-Algorithm.md)
 
 ## 修订回环 ≤2 轮硬约束（v2.2.0 同步新增）
 

@@ -72,9 +72,9 @@ grep -E "T[0-8] (写手|检索员|审计|分析|批判|主控)|论衡 v2\.|输�
 
 执行必查项时，配合以下 M 门算法（**T7 必跑 exit 0**）：
 
-- **M-Form 形式合规门**（6 项）：见 `M-Gate-Algorithm-v2.2.4.md` § M-Form
-- **M-Exist 存在性合规门**（3 项）：见 `M-Gate-Algorithm-v2.2.4.md` § M-Exist
-- **M-Integrity 阶段闸门**（2 项）：见 `M-Gate-Algorithm-v2.2.4.md` § M-Integrity
+- **M-Form 形式合规门**（6 项）：见 `M-Gate-Algorithm.md` § M-Form
+- **M-Exist 存在性合规门**（3 项）：见 `M-Gate-Algorithm.md` § M-Exist
+- **M-Integrity 阶段闸门**（2 项）：见 `M-Gate-Algorithm.md` § M-Integrity
 
 ## F 失败模式交叉引用
 

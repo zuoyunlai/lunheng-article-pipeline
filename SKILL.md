@@ -47,7 +47,7 @@ metadata:
 4. 读 `memory/YYYY-MM-DD.md`（今天+昨天）看主人最近关注主题
 5. 项目目录固定 `run/<项目名>/`，路径映射见 `references/pipeline-readme.md` 的「项目目录结构」段
 6. **spawn 子代理前必读派发话术**（v2.2.8 按需加载）：T1/T2/T3/T4/T5/T6/T8 七个角色的完整派发模板见 [`references/pipeline-readme.md#派发话术`](references/pipeline-readme.md)；不要凭记忆复制 SKILL.md 历史版本（避免双形式同步漂移，教训 #57）
-7. 审计前必读 G 体系：`references/agents/05-审计-auditor.md#必查项`（G0-G13 详解）+ `_shared/M-Gate-Algorithm-v2.2.4.md`（M 门算法）
+7. 审计前必读 G 体系：`references/agents/05-审计-auditor.md#必查项`（G0-G13 详解）+ `_shared/M-Gate-Algorithm.md`（M 门算法）
 8. 文件修改走安全流程（v2.1.4 F5 补完）：**任何时候禁止 `sed -i`**（静默清空文件事故教训 #48）
    - 改前：`wc -l` 记录 + `cp <file> /tmp/<file>.bak` 备份
    - 改中：用 `edit` 工具精确 oldText 匹配，不用 sed/awk/perl 直接写回
@@ -153,7 +153,7 @@ metadata:
 ## 交付边界 + F 失败模式 + M 门 + 修订回环 + 阶段闸门（v2.2.8 按需加载）
 
 > **核心机制详见** [`references/deliverables.md`](references/deliverables.md)（含交付边界 v2.2.0 + F1-F9 失败模式 + M 机械化门控段 v2.2.0~v2.2.1 + 修订回环 ≤2 轮硬约束 v2.2.0 + 阶段闸门 T2.5/T5.5 v2.2.1）。
-> **交叉引用**：[`failure-modes.md`](references/failure-modes.md)（F 体系详解）+ [`audit-checklist-quickref.md`](references/audit-checklist-quickref.md)（G0-G13 详解）+ [`M-Gate-Algorithm-v2.2.4.md`](references/_shared/M-Gate-Algorithm-v2.2.4.md)（M 门算法完整规约）。
+> **交叉引用**：[`failure-modes.md`](references/failure-modes.md)（F 体系详解）+ [`audit-checklist-quickref.md`](references/audit-checklist-quickref.md)（G0-G13 详解）+ [`M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)（M 门算法完整规约）。
 ## 流水线全景（Phase 0-5）
 
 ```
@@ -226,10 +226,10 @@ run/<项目名>/
 - G0-G5 速查表 → 审计员角色卡行 149-165
 - G6 论据类型自标 → 行 206
 - G7 原创性审计 → 行 208+
-- G11 时效告警 → M-Gate-Algorithm-v2.2.4.md
-- G12 数据信任一致性 → M-Gate-Algorithm-v2.2.1.2.md
+- G11 时效告警 → M-Gate-Algorithm.md
+- G12 数据信任一致性 → M-Gate-Algorithm.md
 - G13 AI 使用披露 → 审计员角色卡 + pipeline-readme.md#AI 使用披露
-- M-Form/M-Exist/M-Integrity 三层 → _shared/M-Gate-Algorithm-v2.2.4.md
+- M-Form/M-Exist/M-Integrity 三层 → _shared/M-Gate-Algorithm.md
 
 ## 修订回环
 ```

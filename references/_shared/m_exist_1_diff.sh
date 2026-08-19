@@ -4,7 +4,7 @@
 # 形式合规 ≠ 存在性合规——comm -23/-13 是 LLM 无法伪造的硬证据
 #
 # ⚠️ 角色：v2.2.0 M 门的「主控 host shell 实战 dry-run 工具」+「备份实现」
-# 主路径：论衡主控 T7 用 LLM 兜底读 _shared/M-Gate-Algorithm-v2.2.0.md + final/ 文件推理执行
+# 主路径：论衡主控 T7 用 LLM 兜底读 _shared/M-Gate-Algorithm.md + final/ 文件推理执行
 # 本脚本用于：① 主控 host shell 实战验证 ② 论衡工作区独立 dry-run ③ 备份实现
 #
 # ⚠️ Phase 0 同意关卡（教训 #51 金标准）
@@ -104,7 +104,7 @@ echo "=== M-Exist-1 文末「引用来源」双向 diff 报告（v2.2.0 备份�
 echo "工作区根：$(pwd)"
 echo "项目：${PROJECT_NAME}"
 echo "生成时间：$(date +%Y-%m-%d\ %H:%M:%S)"
-echo "⚠️ 主路径是 LLM 兜底执行（见 _shared/M-Gate-Algorithm-v2.2.0.md），本脚本为实战 dry-run 工具"
+echo "⚠️ 主路径是 LLM 兜底执行（见 _shared/M-Gate-Algorithm.md），本脚本为实战 dry-run 工具"
 echo ""
 
 # Step 1: 提取正文所有编号

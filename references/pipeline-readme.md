@@ -319,12 +319,12 @@ Phase 5 终检      主控终检 → final/定稿.md + 图件/（如有）+ 证�
 
 ## M 机械化硬门（v2.2.0 新增，教训 #64 + #65）
 
-> **核心**：T7 终检前**必读** `pipeline/_shared/M-Gate-Algorithm-v2.2.0.md`，按伪代码执行 M-Form 5 项 + M-Exist 2 项。
+> **核心**：T7 终检前**必读** `pipeline/_shared/M-Gate-Algorithm.md`，按伪代码执行 M-Form 5 项 + M-Exist 2 项。
 
 ### M 门算法规约（v2.2.0 哲学最纯粹版）
 
 **不引入 Python 脚本**——M 门由 LLM 兜底执行：
-1. 主控用 `read` 工具读 `pipeline/_shared/M-Gate-Algorithm-v2.2.0.md` 全文
+1. 主控用 `read` 工具读 `pipeline/_shared/M-Gate-Algorithm.md` 全文
 2. 主控用 `read` 工具读 `final/定稿.md` + `final/证据包/` 所有文件
 3. 主控按伪代码推理执行 M-Form 5 项 + M-Exist 2 项
 4. 主控用 `write` 工具产出 `final/M-Gate-Report-v2.2.0.json`

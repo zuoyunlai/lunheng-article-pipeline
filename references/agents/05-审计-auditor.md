@@ -44,7 +44,7 @@
 
 > **审计员启动必读**：审计是论衡核心质量关卡，必查项 + M 门 + F 模式 三层验证。
 
-- **M 门算法（v2.2.0~v2.2.4）**：详见 [`_shared/M-Gate-Algorithm-v2.2.4.md`](../_shared/M-Gate-Algorithm-v2.2.4.md)（含 M-Form 6 项 + M-Exist 3 项 + M-Integrity 2 项 + 内联引用分支 + 修订回环）
+- **M 门算法（v2.2.0~v2.2.4）**：详见 [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md)（含 M-Form 6 项 + M-Exist 3 项 + M-Integrity 2 项 + 内联引用分支 + 修订回环）
 - **审计必查项 G0-G13**：详见 [`_shared/audit-checklist-quickref.md`](../_shared/audit-checklist-quickref.md)（G0 覆盖度/G0.5 视角一致性/G1-G10 引用数据案例逻辑格式规范/G6 论据自标/G7 原创性/G8 成品度/G9 时序/G10 模型一致性/G11 时效/G12 信任级别/G13 AI 披露）
 - **F 失败模式防御 F1-F9**：详见 [`_shared/failure-modes.md`](../_shared/failure-modes.md)（F1-F7 论证/格式专维度 + F8 数据信任专维度 + F9 论证强度不足专维度）
 
