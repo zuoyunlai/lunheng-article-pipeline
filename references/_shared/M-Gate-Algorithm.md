@@ -235,17 +235,28 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 - 实战 4（品牌一致性-发布稿）：v2.2.0 算法误判 14 条漏引 → v2.2.1.2 算法 0 漏引 0 孤儿（## 附 段被识别）✅
 - 实战 AI安全隐患：v2.2.1.2 标准 diff 在内联引用模式下空转 → v2.2.4 内联模式分支覆盖 24 条引用 ✅
 
-### M-Exist-2: 证据包文件完整性 sha256（v2.2.0 原版）
+### M-Exist-2: 证据包文件完整性 sha256（v2.2.0 原版 + v2.2.10 跨平台等价命令）
 
 ```
 算法步骤：
 1. 读取 final/证据包/ 目录下所有 .md 和 .txt 文件
-2. 对每个文件计算 sha256（用 LLM 模拟：读全文 + hashlib.sha256）
+2. 对每个文件计算 sha256
 3. 输出字典 {文件名: sha256}
 4. 写入 final/交付说明.md 的「证据包指纹」段
-5. 判定：所有文件都能计算 sha256（非空）→ 通过；否则 → 失败
+6. 判定：所有文件都能计算 sha256（非空）→ 通过；否则 → 失败
+```
 
-注意：LLM 实际无法直接计算 sha256 哈希（需要 binary 计算），但可以验证文件非空 + 列文件名 + 大小 + 修改时间 + 标 "sha256 待主控 host shell 计算" 占位。
+**跨平台等价命令**（v2.2.10 新增，教训 #107）：
+
+| 平台 | 命令 |
+|------|------|
+| **Linux/macOS** | `sha256sum file.md` 或 `hashlib.sha256(open(file,'rb').read()).hexdigest()`（Python） |
+| **Windows PowerShell** | `Get-FileHash -Algorithm SHA256 file.md`（默认输出 `Hash` 字段为 64 位十六进制） |
+| **Windows CMD** | `certutil -hashfile file.md SHA256` |
+
+**实战反例**（教训 #107）：主人在 Windows 环境下随手用了 MD5（顺手），与 sha256 要求不符。跨平台应统一 SHA256。
+
+LLM 实际无法直接计算 sha256 哈希（需要 binary 计算），但可以验证文件非空 + 列文件名 + 大小 + 修改时间 + 标 "sha256 待主控 host shell 计算" 占位。
 ```
 
 ### M-Exist-3: 数据信任级别一致性 diff（v2.2.1.2 双格式升级版，教训 #84）
@@ -292,19 +303,47 @@ return (all_pass, leaked, orphan, missing_trust)
 
 ## M-Integrity 阶段闸门（2 项，含 v2.2.4 修订轮流程约束）
 
-### M-Integrity-1: T2.5 完整性门（T2 数据检索 → T3 分析前，v2.2.1 新增）
+### M-Integrity-1: T2.5 完整性门（T2 数据检索 → T3 分析前，v2.2.1 新增 + v2.2.10 时序修正）
+
+> **v2.2.10 重要修正**：原版逻辑矛盾 — M-Integrity-1 在 T2→T3 之间，大纲（T3 产物）尚不存在却需查「数据条目数 ≥ 大纲 D 列数」。修正为查任务简报（Phase 0 已产物化）子问题的数据需求数。
 
 ```
 算法步骤（主控 LLM 兜底执行）：
 1. 检查数据卡文件存在：ls final/证据包/数据卡.md → 必须存在
-2. 提取数据条目数：grep -c '^\[D[0-9]+\]' final/证据包/数据卡.md
-3. 提取大纲 D 列需求数：grep -oE '\[D[0-9]+\]' analysis/分析大纲.md | sort -u | wc -l
-4. 数据条目数 >= 大纲 D 需求数 → 数据完整 → 通过；否则 → 触发 T2 重检索
+2. 提取数据条目数（双格式）：
+   标准 [Dxx] 计数：grep -cE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md
+   表格 [1.x] 计数：grep -cE '^\| [0-9]+\.[0-9]+ \|' final/证据包/数据卡.md
+   两者取并集 dedupe
+3. **v2.2.10 修正**：提取任务简报子问题数据需求数
+   从 01-任务简报.md 「研究问题」段读取每个子问题的「需找数据点 ≥N」
+   需求总数 = Σ 子问题数据需求数
+   （不再 grep analysis/分析大纲.md，因 T3 尚未产出）
+4. 数据条目数 >= 任务简报需求总数 → 数据完整 → 通过；否则 → 触发 T2 重检索
 5. 信任级别完整性：M-Form-6 exit 0 → 通过；否则 → 触发 T2 补标注
 6. 信任级别一致性：M-Exist-3 exit 0 → 通过；否则 → 触发 T2 补数据卡
 7. 数据卡 sha256 指纹：写入 final/交付说明.md「证据包指纹」段（M-Exist-2 复用）
 8. 主人签字 Phase 1：任务简报有 4 选 1 选项确认
-9. 判定：8 项全通过 → T2.5 ✅ 派发 T3；任一失败 → T2.5 ❌ 不派发 T3
+9. **v2.2.10 新增（教训 #106）**：数据卡头部「共 N 条」声明 vs 实际 grep 计数一致性
+   头部声明：grep -oE '共 [0-9]+ 条' final/证据包/数据卡.md
+   实际计数：步骤 2 的双格式并集 dedupe
+   不一致 → 标 Failed（防 T2 未自检 + T3 人工 grep 才发现的延后问题）
+10. 判定：8 项全通过 → T2.5 ✅ 派发 T3；任一失败 → T2.5 ❌ 不派发 T3
+
+伪代码：
+data_card = 'final/证据包/数据卡.md'
+data_count = count_d_entries(data_card)
+outline_count = count_data_requirements_in_brief('01-任务简报.md')  # v2.2.10 修正
+data_ok = data_count >= outline_count
+trust_form_ok = check_M_Form_6(data_card)
+trust_exist_ok = check_M_Exist_3(data_card, 'final/定稿.md')
+sha256_ok = write_evidence_sha256(data_card)
+owner_signed = check_phase1_signature()
+header_consistent = check_header_vs_actual_count(data_card)  # v2.2.10 新增
+all_pass = data_ok and trust_form_ok and trust_exist_ok and sha256_ok and owner_signed and header_consistent
+return (all_pass, fail_reasons)
+```
+
+**实战反例**（教训 #106）：T2 写数据卡时凭印象在头部写「共 29 条」，实际 grep 只有 26 条，T3 靠人工 grep 才发现。本次新增步骤 9 拦截。
 
 伪代码：
 data_card = 'final/证据包/数据卡.md'
