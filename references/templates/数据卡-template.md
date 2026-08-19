@@ -32,6 +32,8 @@ T2 **交付前**必须执行以下自检命令，并在数据卡头部 `[自检-
 
 ```bash
 # 1. 实际数据条目计数（双格式并集 dedupe）
+# 注：以下 > /tmp/d_entries.txt 是伪代码描述（v2.2.11 补充）
+# 实际执行时主控 LLM 用 read 工具读全文推理统计，或主人在 host shell 手动跑。
 DATA_CARD='data/数据卡.md'
 COUNT_STD=$(grep -cE '^\*\*\[D[0-9]+\]' "$DATA_CARD")
 COUNT_TABLE=$(grep -cE '^\| [0-9]+\.[0-9]+ \|' "$DATA_CARD")
@@ -43,6 +45,11 @@ HEADER_TOTAL=$(grep -oE '总条数.*[0-9]+' "$DATA_CARD" | grep -oE '[0-9]+' | h
 ACTUAL_TOTAL=$((COUNT_STD + COUNT_TABLE))  # 简化，实际需 dedupe
 [ "$ACTUAL_TOTAL" -eq "$HEADER_TOTAL" ] && echo "✅ 一致" || echo "❌ 不一致（头部=$HEADER_TOTAL, 实际=$ACTUAL_TOTAL）"
 ```
+
+**v2.2.11 能力边界澄清**：
+- 上面 `grep` / `sort -u > /tmp/...` 等是**伪代码描述**，主控 LLM 不能直接执行 shell
+- 实际执行：主控用 `read` 读数据卡全文 + 推理统计「[Dxx] 编号数」+ 头部「总条数」是否一致
+- 如需实际 shell 跑（如跨项目大批量审计），由**人类主人在 host shell 手动跑**后回填
 
 **实战反例**（教训 #106）：T2 凭印象在头部写「共 29 条」，实际只有 26 条，T3 靠人工 grep 才发现 → 延后 → 本次新增自检留痕与 T2.5 拦截同时加固。
 

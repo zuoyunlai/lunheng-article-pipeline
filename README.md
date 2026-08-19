@@ -7,6 +7,27 @@
 
 ---
 
+## ⚠️ 外发项与能力边界声明（v2.2.11 重要补充）
+
+**流水线默认会调用以下外部服务**（使用前需主人同意——Phase 0 同意关卡）：
+
+- **web_search / tavily_search**：主题/关键词发送至 Tavily/OpenClaw Web Provider（学术论文检索时同时查询 CNKI/PubMed/Google Scholar 等）
+- **主控模型推理**：主题+素材+草稿全文发送至当前 OpenClaw 配置的模型 provider（如 deepseek/MiniMax/Anthropic 等）
+- **image_generate**（仅 Phase 4.5）：封面主题+品牌调性 prompt 发送至 OpenAI gpt-image-2（默认）→ Google gemini → minimax-image → SVG 矢量风（本地）
+
+**主控 agent 能力边界**（**不**会做的事）：
+- ❌ 不调用 `exec` / `process` 工具（15 项白名单 denied）
+- ❌ 不读取 `~/.openclaw/agents/<agent>/sessions/*.trajectory.jsonl` 等运行时内部文件
+- ❌ 不直接计算 sha256（需要时由主人在 host shell 手动跑后回填）
+
+**不适用场景**：
+- <2000 字短文 / 即时短答 / 朋友圈文案 / 邮件 / 诗歌小说等创作型写作
+- 未公开商业机密 / 个人隐私 / 未发表研究（即使脱敏也请用纯本地 Ollama 模式）
+
+**Phase 0 强同意关卡**：所有外发项在流水线启动前需主人明示同意（4 选 1）。详见 SKILL.md 「外部服务与数据流声明」段。
+
+---
+
 ## 何时使用（v2.2.7 软化分层）
 
 **适用场景**（v2.2.4 定位升级：深度长文通用引擎）：
