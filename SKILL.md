@@ -6,6 +6,7 @@ metadata:
   requires:
     bins: []
   tools:
+    declared:
       - "read"
       - "write"
       - "edit"
