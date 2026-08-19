@@ -4,7 +4,7 @@
 
 ## ⚡ 执行韧化协议（v2.1.0 必读，v2.2.8 精简版）
 
-> **详细协议见** [`_shared/执行韧化协议-v2.1.0.md`](../_shared/执行韧化协议-v2.1.0.md)（含三检索员并行监控补充 v2.1.8 + 模型 fallback 链）。
+> **详细协议见** [`_shared/执行韧化协议-v2.1.0.md`](../_shared/执行韧化协议-v2.1.0.md)（含三检索员并行监控补充 v2.1.8 + 编排防空转 v2.2.8 教训 #102 + 模型 fallback 链）。
 
 1. **启动心跳**（30 秒内必做）：更新 `status.md` 为 `🔄 In Progress` + 写明「启动时间 + 当前模型」。
 2. **分阶段 ack**：<2 分钟启动 ack 即可；2-5 分钟启动+完成；5-15 分钟五段 ack；>15 分钟**禁止**（必须拆任务）。
@@ -162,6 +162,45 @@
 6. **两类上限独立判断**（F4 重构 + v2.2.0 补强）：
    - **同场景重试 ≤2 次**（重派同一任务），避免无限重试
    - **修订回环 ≤2 轮硬约束**（T5 审计打回后 T4 重写，**v2.2.0 新增，教训 #64**）：
+
+## 编排循环防空转（v2.2.8 新增，教训 #102，2026-08-19 ECS 实战）
+
+> **背景**：T8→T5 交接点被 duplicate 完成事件打断，spawn T5 的 tool call 丢失，主控空转 2.5 小时。根因：push-based 编排循环过度依赖「完成事件恰好投递一次」。
+
+**主控在 T 角色交接点必须遵守的三道防御**（详见 [`_shared/执行韧化协议-v2.1.0.md`](../_shared/执行韧化协议-v2.1.0.md) § 4）：
+
+1. **spawn 后立即验证落地**：每次 `sessions_spawn` 后用 `subagents(action=list)` 确认 runId 在 active，没出现 = spawn 丢失，立即重试（≤2 次）
+2. **yield watchdog**：yield 后 3 分钟无完成事件 → 自查 `subagents list` + `sessions_list`，判断 spawn 丢失空转还是子代理真在跑
+3. **完成事件幂等**：收到某角色完成事件时先查 `status.md` 该角色是否已 Done，已 Done = duplicate 事件，**忽略不重复推进**
+4. **交接点「三段式 spawn」**：T8→T5、T4→T8、T5→T4（修订）禁止「spawn → 直接 yield」，必须「spawn → 验证落地 → 确认后 yield」
+
+**主控 spawn 验证落地伪代码**：
+```python
+run = sessions_spawn(task=...)
+if not subagents_has_active(run.runId):
+    log("[#102] spawn runId={} 未落地，重试".format(run.runId))
+    run = sessions_spawn(task=...)
+```
+
+**完成事件幂等伪代码**：
+```python
+def on_completion(role, runId):
+    if status_md[role]['state'] == 'Done':
+        log("[#102 幂等] {} 已在 Done，忽略 duplicate runId={}".format(role, runId))
+        return
+    status_md[role]['state'] = 'Done'
+    spawn_next_role()
+```
+
+**诊断（spawn 链空转排查）**：
+```bash
+cd ~/.openclaw/agents/<agent>/sessions/
+F=$(ls -t *.trajectory.jsonl | head -1)
+echo "spawn: $(grep -c '"sessions_spawn"' $F) / yield: $(grep -c '"sessions_yield"' $F)"
+# yield > spawn = 空转嫌疑
+grep -oE 'session_key: agent:[a-z]+:subagent:[a-f0-9-]+' $F | sort | uniq -c | sort -rn | head -5
+# 同一 subagent uuid >1 次 = duplicate 完成事件
+```
      - **第 1 轮修订**：T5 审计打回 P0/P1 → T4 修订 → T5 复核
      - **第 2 轮修订**：若第 1 轮仍有关键 P0/P1 未关闭 → T4 再修订 → T5 再复核
      - **第 3 轮触发 → 「Acknowledged Limitations 模式」（v2.2.0 新增，教训 #64 子教训 3）**：
