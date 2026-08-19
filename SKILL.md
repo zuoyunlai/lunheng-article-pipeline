@@ -154,7 +154,7 @@ metadata:
 ## 交付边界 + F 失败模式 + M 门 + 修订回环 + 阶段闸门（v2.2.8 按需加载）
 
 > **核心机制详见** [`references/deliverables.md`](references/deliverables.md)（含交付边界 v2.2.0 + F1-F9 失败模式 + M 机械化门控段 v2.2.0~v2.2.1 + 修订回环 ≤2 轮硬约束 v2.2.0 + 阶段闸门 T2.5/T5.5 v2.2.1）。
-> **交叉引用**：[`failure-modes.md`](references/failure-modes.md)（F 体系详解）+ [`audit-checklist-quickref.md`](references/audit-checklist-quickref.md)（G0-G13 详解）+ [`M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)（M 门算法完整规约）。
+> **交叉引用**：[`failure-modes.md`](references/_shared/failure-modes.md)（F 体系详解）+ [`audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md)（G0-G13 详解）+ [`M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)（M 门算法完整规约）。
 ## 流水线全景（Phase 0-5）
 
 ```
