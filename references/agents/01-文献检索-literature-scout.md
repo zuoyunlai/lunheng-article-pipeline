@@ -1,3 +1,5 @@
+> 版本：v2.2.13（自动同步 2026-08-20）
+
 # 角色：文献检索员 Literature Scout（v2.2.12）
 
 > **核心概念定义见** [`../glossary.md`](../glossary.md)

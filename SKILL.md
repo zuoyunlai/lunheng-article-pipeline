@@ -1,6 +1,6 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.2.12
+version: 2.2.13
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）。3 角色协作主路径（T1 文献 + T2 数据 + T3 分析 → T4 写手 → T5 审计）或 5 角色重量档（+ T6 案例 + T8 批判）。【外发项与边界声明】流水线默认会调用 web_search / tavily_search / 主控模型推理处理数据/主题——使用前需主人同意（Phase 0 同意关卡）；不适用于未公开商业机密/个人隐私/未发表研究。**不在适用范围内**：<2000 字短文、即时短答、朋友圈文案、邮件、诗歌小说等创作型写作。**适用场景**：严谨证据链条型长文（如学术论文 / 商业评论 / 行业分析）。若只需一篇 1000 字短评或即时问答，请直接使用主控 LLM，不要走本流水线。"
 metadata:
   requires:
@@ -37,6 +37,9 @@ metadata:
 ---
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
+
+> **🌟 新功能（v2.2.13）**：5 分钟快速开始？读 [`QUICKSTART.md`](QUICKSTART.md)。
+> **📖 核心概念**：定义见 [`references/glossary.md`](references/glossary.md)（单一真源）。
 
 ## 📖 核心概念词汇表（单一真源入口）
 
@@ -164,34 +167,11 @@ metadata:
 
 仅以上警告项主人独立同意后，主控 T0 才可调用。
 
-## ⚠️ 外部服务与数据流声明（v2.1.2 + v2.1.7 强同意关卡）
+## ⚠️ 外部服务与数据流声明（按需加载）
 
-使用本流水线时，以下内容**会发送到第三方服务商**（用于检索/生成/审计）：
+> **完整服务列表 + 4 选 1 同意关卡详见** [`references/glossary.md § 九 外部服务声明`](../glossary.md#九外部服务声明-v212)
 
-| 操作 | 发送内容 | 第三方服务商 | 适用阶段 |
-|------|---------|------------|---------|
-| `web_search` | 研究主题关键词、子问题短语 | OpenClaw 内置 web provider（实际路由可能含 Google/Bing 等） | T1/T2/T3/T6 |
-| `tavily_search` / `tavily_extract` | 研究主题、子问题、目标 URL | **Tavily AI**（tavily.com） | T1/T2/T6 |
-| `image_generate`（封面） | 文章主题 + 主人品牌调性 prompt + 文本排版位置 | **OpenAI gpt-image-2**（默认）→ fallback：Google gemini-3.1-flash-image-preview → minimax/minimax-image-01 → SVG 矢量风（本地，无外发） | Phase 4.5 |
-| 大模型推理（写作/分析/审计/反哺） | 文献卡/数据卡/案例卡/草稿/大纲等全文 | **当前 OpenClaw 配置的模型 provider**（如 deepseek / MiniMax / Anthropic 等，按 `agents.defaults.models`） | T3/T4/T5 + 主控 |
-| `memory_get` / `memory_search` | 检索关键词 | 仅当前 OpenViking 本地记忆库（**不外发**） | 全程辅助 |
-
-**v2.1.7 强同意关卡（Phase 0 主控必走）**：上面表格的工具都会外发——**项目名/主题/论文纲要可能含未公开信息**（客户内部 / 商业机密 / 个人隐私）。主控 Phase 0 必须给主人「4 选 1」明示同意：
-
-| 选项 | 适用 | 零外发项 |
-|------|------|---------|
-| ① 全部同意（默认） | 公开主题 / 不介意外发 | 无 |
-| ② 脱敏+SVG 封面+本地 Ollama（`gemma4:31b`） | 未公开主题 / 客户内部 / 商业机密 | Tavily / OpenAI / Google / minimax-image |
-| ③ 部分同意 | 主人指定具体外发项 | 主人未勾选的项 |
-| ④ 全部拒绝 | 极端敏感 | 全部 → 改纯本地（Ollama + SVG） |
-
-**主控必须**把主人选项 + 同意时间写入 `01-任务简报.md` 头部作为审计可追溯依据。
-
-**涉未公开主题/客户内部信息/商业机密的研究，建议**：
-
-- 改用匿名化的子问题措辞（脱敏）
-- 把封面生成改为 SVG 矢量风（纯本地，无外发）
-- 主控推理改用本地 Ollama 模型（`ollama/gemma4:31b` 等，零成本）
+**主控 Phase 0 必须给主人 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝），并写入 `01-任务简报.md` 头部作为审计追溯依据。
 
 **主人拒绝任一外发项** → 主控调整方案并重做 Phase 0 确认。
 
@@ -199,6 +179,7 @@ metadata:
 
 > **核心机制详见** [`references/deliverables.md`](references/deliverables.md)（含交付边界 v2.2.0 + F1-F9 失败模式 + M 机械化门控段 v2.2.0~v2.2.1 + 修订回环 ≤2 轮硬约束 v2.2.0 + 阶段闸门 T2.5/T5.5 v2.2.1）。
 > **交叉引用**：[`failure-modes.md`](references/_shared/failure-modes.md)（F 体系详解）+ [`audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md)（G0-G13 详解）+ [`M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)（M 门算法完整规约）。
+> **错误信息友好化**：详见 [`references/errors.md`](references/errors.md)（12 类常见错误的三段式友好版）
 ## 流水线全景（Phase 0-5）
 
 ```
