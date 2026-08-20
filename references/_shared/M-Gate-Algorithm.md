@@ -1,4 +1,6 @@
-> 版本：v2.2.16（自动同步 2026-08-20）
+> 版本：v2.2.18（自动同步 2026-08-20）
+
+> 版本：v2.2.17（自动同步 2026-08-20）
 
 > 版本：v2.2.15（自动同步 2026-08-20）
 
@@ -360,19 +362,31 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 ### M-Exist-2: 证据包文件完整性 sha256（v2.2.0 原版 + v2.2.10 跨平台等价命令 + v2.2.11 能力边界修正）
 
 ```
-算法步骤（v2.2.11 修订）：
+算法步骤（v2.2.17 修订，回应 ClawHub scanner v2.2.16 finding F03+F05 94%/92%）：
 1. 读取 final/证据包/ 目录下所有 .md 和 .txt 文件
-2. **LLM 能力边界**：主控 LLM 不能直接计算 sha256 二进制哈希 → 主控用 `read` 读全文 + 推理验证「文件非空」+ 列文件名 +修改时间
-3. **生成 sha256 占位**：在 final/交付说明.md「证据包指纹」段写出：
+2. **LLM 能力边界**（v2.2.17 澄清）：主控 LLM 不能直接计算 sha256 二进制哈希 → 主控用 `read` 读全文 + 推理验证「文件非空」+ 列文件名 +修改时间。**重要：以下占位符机制是论衡默认设计，不是 bug**。
+3. **生成 sha256 占位**（v2.2.17 明确占位符机制）：在 final/交付说明.md「证据包指纹」段写出（由主控 LLM 写入，纯文本占位符）：
    ```
-   ## 证据包指纹（v2.2.11）
-   - 数据卡.md: <sha256 待人类主人在 host shell 手动计算>
-   - 案例卡.md: <sha256 待人类主人在 host shell 手动计算>
-   - 文献卡.md: <sha256 待人类主人在 host shell 手动计算>
-   - 先行者清单.md: <sha256 待人类主人在 host shell 手动计算>
+   ## 证据包指纹（v2.2.17）
+
+   ⚠️ 重要：以下 sha256 哈希是【待主人在 host shell 手动计算后回填】的占位符，不是 agent 计算结果。
+
+   - 数据卡.md: `[SHA256-PENDING:HOST-VERIFY]`
+   - 案例卡.md: `[SHA256-PENDING:HOST-VERIFY]`
+   - 文献卡.md: `[SHA256-PENDING:HOST-VERIFY]`
+   - 先行者清单.md: `[SHA256-PENDING:HOST-VERIFY]`
+
+   主人回填（可选）：
+   sha256sum final/证据包/数据卡.md >> final/交付说明.md
+   sha256sum final/证据包/案例卡.md >> final/交付说明.md
+   # ... 其他文件同上
    ```
-4. **判定**：所有文件能被主控 `read` 读出（非空）→ 通过；否则 → 失败
-5. **人类主人补填**：可选步骤，人类主人在 host shell 跑后回填 sha256 值
+4. **判定**（v2.2.17 三种状态全部接受）：
+   - （a）占位符存在 `[SHA256-PENDING:HOST-VERIFY]` → **P5 ✅ 通过**（主人未验证不阻塞交付）
+   - （b）实际 sha256 已回填（主人手动计算后）→ **P5 ✅ 通过**（高信任度）
+   - （c）指纹段完全缺失 → **P5 ❌ 失败**（主控未生成占位符，是真错误）
+5. **人类主人补填**（v2.2.17 明示）：可选步骤，人类主人在 host shell 跑后回填 sha256 值
+6. **本文档中所有 sha256 示例**（v2.2.17 立场声明）：是「跨平台命令参考」，给主人在自己机器上手动验证用——**不是 agent 执行的代码**。论衡 LLM **不执行**任何 bash 命令（不在 15 项白名单内）。
 ```
 
 **跨平台等价命令**（v2.2.10 新增，教训 #107）——**仅人类主人使用，不是论衡 agent 调用**：
@@ -453,7 +467,7 @@ return (all_pass, leaked, orphan, missing_trust)
 4. 数据条目数 >= 任务简报需求总数 → 数据完整 → 通过；否则 → 触发 T2 重检索
 5. 信任级别完整性：M-Form-6 exit 0 → 通过；否则 → 触发 T2 补标注
 6. 信任级别一致性：M-Exist-3 exit 0 → 通过；否则 → 触发 T2 补数据卡
-7. 数据卡 sha256 指纹：写入 final/交付说明.md「证据包指纹」段（M-Exist-2 复用）
+7. **v2.2.17 修复（教训 #123）**：sha256 指纹为**可选验证**——主控发占位符 `[SHA256-PENDING:HOST-VERIFY]` 到 `final/交付说明.md`「证据包指纹」段，**不**作为闸门强制项。主人需手动在 host shell 跑 `sha256sum final/证据包/*.md >> final/交付说明.md`（参考 `_shared/m_exist_1_diff.sh`）。**该步骤不是 agent 执行的代码，是人类验证示例。**
 8. 主人签字 Phase 1：任务简报有 4 选 1 选项确认
 9. **v2.2.10 新增（教训 #106）**：数据卡头部「共 N 条」声明 vs 实际 grep 计数一致性
    头部声明：grep -oE '共 [0-9]+ 条' final/证据包/数据卡.md
@@ -464,30 +478,19 @@ return (all_pass, leaked, orphan, missing_trust)
 伪代码：
 data_card = 'final/证据包/数据卡.md'
 data_count = count_d_entries(data_card)
-outline_count = count_data_requirements_in_brief('01-任务简报.md')  # v2.2.10 修正
+outline_count = count_data_requirements_in_brief('01-任务简报.md')  # v2.2.17 显式标注：读任务简报，不读分析大纲
 data_ok = data_count >= outline_count
 trust_form_ok = check_M_Form_6(data_card)
 trust_exist_ok = check_M_Exist_3(data_card, 'final/定稿.md')
-sha256_ok = write_evidence_sha256(data_card)
+sha256_pending = emit_placeholder_sha256(data_card)  # v2.2.17：发占位符 [SHA256-PENDING:HOST-VERIFY]，**不**作为闸门强制项
 owner_signed = check_phase1_signature()
 header_consistent = check_header_vs_actual_count(data_card)  # v2.2.10 新增
-all_pass = data_ok and trust_form_ok and trust_exist_ok and sha256_ok and owner_signed and header_consistent
-return (all_pass, fail_reasons)
+all_pass = data_ok and trust_form_ok and trust_exist_ok and owner_signed and header_consistent
+# v2.2.17 修复 F03 + F05：sha256 不是“必填门”，是“可选验证”（主人手动跑）
+return (all_pass, fail_reasons, sha256_pending)
 ```
 
 **实战反例**（教训 #106）：T2 写数据卡时凭印象在头部写「共 29 条」，实际 grep 只有 26 条，T3 靠人工 grep 才发现。本次新增步骤 9 拦截。
-
-伪代码：
-data_card = 'final/证据包/数据卡.md'
-data_count = count_d_entries(data_card)
-outline_count = count_d_in_outline('analysis/分析大纲.md')
-data_ok = data_count >= outline_count
-trust_form_ok = check_M_Form_6(data_card)
-trust_exist_ok = check_M_Exist_3(data_card, 'final/定稿.md')
-sha256_ok = write_evidence_sha256(data_card)
-owner_signed = check_phase1_signature()
-all_pass = data_ok and trust_form_ok and trust_exist_ok and sha256_ok and owner_signed
-return (all_pass, fail_reasons)
 ```
 
 ### M-Integrity-2: T5.5 完整性门（T5 审计 → T7 终检前，v2.2.1 新增 + v2.2.4 修订轮扩展）

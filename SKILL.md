@@ -1,7 +1,7 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.2.16
-description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）。3 角色协作主路径（T1 文献 + T2 数据 + T3 分析 → T4 写手 → T5 审计）或 5 角色重量档（+ T6 案例 + T8 批判）。【外发项与边界声明】流水线默认会调用 web_search / tavily_search / 主控模型推理处理数据/主题——使用前需主人同意（Phase 0 同意关卡）；不适用于未公开商业机密/个人隐私/未发表研究。**不在适用范围内**：<2000 字短文、即时短答、朋友圈文案、邮件、诗歌小说等创作型写作。**适用场景**：严谨证据链条型长文（如学术论文 / 商业评论 / 行业分析）。若只需一篇 1000 字短评或即时问答，请直接使用主控 LLM，不要走本流水线。"
+version: 2.2.18
+description: "严肃长文流水线（学术论文 / 商业评论 / 行业分析 / 公众号深度长文）——多 Agent 子代理编排。**不适用于**短文/即时问答/文学创作。**重点功能**：三角验证（文献/数据/案例）+ M 机械化硬门 + F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。**不适用于** <2000 字短文。若需短文或即时问答，请直接使用主控 LLM，不要走本流水线。"
 metadata:
   requires:
     bins: []
@@ -68,6 +68,7 @@ metadata:
 - ❌ **不可以**：exec / process / browser（见上方 metadata.tools.denied）
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档，按伪代码**推理判定**，不执行实际 shell 命令
 - ℹ️  **跨平台 sha256**：需要主人在 host shell 手动计算后回填（算法文档中的 shell 示例仅供人类参考）
+- ℹ️  **算法文档中的 grep/ls/sort/sha256 等命令**（v2.2.17 澄清，回应 ClawHub scanner v2.2.16 finding F06 90%）：是「**LLM 推理模拟**」伪代码，主控用 `read` 读全文后用 LLM 推理模拟「如果执行 grep 会得到什么结果」。**论衡 agent 不执行这些 bash 命令**——它们是给人类主人参考的跨平台命令示例，不是 agent 执行代码。判定以「LLM 推理模拟结果」为准。
 
 **为什么这么设计**：
 - 论衡是纯推理流水线，所有验证都通过 LLM 推理完成（读文件 → 正则匹配 → 集合运算 → 判定）
@@ -191,7 +192,7 @@ Phase 3 写作        T4 写手 → drafts/初稿-v1.md（铁律：引用标[Lxx
 Phase 3.6 批判      T8 批判伙伴（v2.2.2 新增）→ analysis/批判报告-vN.md（从反方攻击 C1-C5，轻量档可跳过）
 Phase 4 审计        T5 审计员 → audits/审计报告-vN.md（G0覆盖度/G1引用核验/G2数据溯源/G3逻辑/G4格式/G5规范）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控（v2.2.4 起修订轮强制 spawn 独立写手）
-Phase 4.5 配图      （可选）写手标 [图N：标题] 图位 → 主控程序化生成图表（数字与数据卡一致）；**封面生成需主人首次确认（v2.1.1 新增）**——首次调用 image_generate 前**必须**先询问主人同意（调用外部图像生成服务，可能 fallback 跨 provider）；封面**默认调用 image_generate 工具**（默认 **OpenAI gpt-image-2**，考虑普适性，遵循主人品牌「极简自然」调性），如失败按 recover_failed_article_illustration_gen 模式自动降级到 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01）；如 image 工具不可用，fallback 到 SVG 矢量风（程序化生成）或主人人工上传
+Phase 4.5 配图      （**默认关闭**，需主人在 Phase 0 同意关卡明确勾选）写手标 [图N：标题] 图位 → 主控程序化生成图表（数字与数据卡一致）；封面生成需主人首次确认（v2.1.1 + v2.2.17 强化）——首次调用 image_generate 前**必须**先询问主人同意（调用外部图像生成服务，可能 fallback 跨 provider）。**重要**（v2.2.17 修订，回应 ClawHub scanner v2.2.16 finding F08 93%）：**封面调用 image_generate 不是默认行为**，而是「可选行为」，需主人在 Phase 0 同意关卡明确勾选「启用封面生成」才调用。如未勾选，则不调用 image_generate，默认用 SVG 矢量风（程序化生成）或主人人工上传。如启用后调用 OpenAI gpt-image-2 失败，按 recover_failed_article_illustration_gen 模式自动降级到 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01 → SVG）。
 Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md
 ```
 
