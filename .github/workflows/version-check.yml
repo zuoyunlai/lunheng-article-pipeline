@@ -1,0 +1,171 @@
+name: 版本号一致性检查
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'SKILL.md'
+      - 'references/**/*.md'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - 'SKILL.md'
+      - 'references/**/*.md'
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 读取 SKILL.md 版本号
+        id: version
+        run: |
+          EXPECTED=$(grep -E '^version:' SKILL.md | head -1 | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
+          if [ -z "$EXPECTED" ]; then
+            echo "❌ 无法从 SKILL.md 读取版本号"
+            exit 1
+          fi
+          echo "期望版本号：v$EXPECTED"
+          echo "expected=$EXPECTED" >> $GITHUB_OUTPUT
+
+      - name: 检查核心文档版本号
+        run: |
+          EXPECTED="${{ steps.version.outputs.expected }}"
+          FAIL=0
+
+          echo "=== 版本号一致性检查 ==="
+
+          # 核心文档列表
+          FILES=(
+            "references/glossary.md"
+            "references/pipeline-readme.md"
+            "references/设计文档.md"
+            "references/_shared/M-Gate-Algorithm.md"
+            "references/agents/00-主控-coordinator.md"
+            "references/agents/01-文献检索-literature-scout.md"
+            "references/agents/02-数据检索-data-scout.md"
+            "references/agents/03-分析-analyst.md"
+            "references/agents/04-写作-writer.md"
+            "references/agents/05-审计-auditor.md"
+            "references/agents/06-案例检索-case-scout.md"
+            "references/agents/08-批判-critical-companion.md"
+          )
+
+          for file in "${FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "⚠️  $file 不存在"
+              FAIL=$((FAIL+1))
+              continue
+            fi
+
+            count=$(grep -cE "v$EXPECTED" "$file" || true)
+
+            if [ "$count" -ge 1 ]; then
+              echo "✅ $file（$count 处）"
+            else
+              echo "❌ $file（未找到 v$EXPECTED）"
+              FAIL=$((FAIL+1))
+            fi
+          done
+
+          echo ""
+          if [ "$FAIL" -eq 0 ]; then
+            echo "✅ 版本号一致性检查通过（v$EXPECTED）"
+            exit 0
+          else
+            echo "❌ 版本号一致性检查失败（$FAIL 个文件）"
+            exit 1
+          fi
+
+      - name: 检查文件顶部版本号
+        run: |
+          EXPECTED="${{ steps.version.outputs.expected }}"
+          HEADER_FAIL=0
+
+          echo "=== 文件顶部版本号检查（前 5 行）==="
+
+          FILES=(
+            "references/glossary.md"
+            "references/pipeline-readme.md"
+            "references/设计文档.md"
+            "references/_shared/M-Gate-Algorithm.md"
+            "references/agents/00-主控-coordinator.md"
+            "references/agents/01-文献检索-literature-scout.md"
+            "references/agents/02-数据检索-data-scout.md"
+            "references/agents/03-分析-analyst.md"
+            "references/agents/04-写作-writer.md"
+            "references/agents/05-审计-auditor.md"
+            "references/agents/06-案例检索-case-scout.md"
+            "references/agents/08-批判-critical-companion.md"
+          )
+
+          for file in "${FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              continue
+            fi
+
+            header_has_version=$(head -5 "$file" | grep -cE "v$EXPECTED" || true)
+
+            if [ "$header_has_version" -ge 1 ]; then
+              echo "✅ $file 顶部包含 v$EXPECTED"
+            else
+              echo "⚠️  $file 顶部缺少 v$EXPECTED"
+              HEADER_FAIL=$((HEADER_FAIL+1))
+            fi
+          done
+
+          echo ""
+          if [ "$HEADER_FAIL" -eq 0 ]; then
+            echo "✅ 文件顶部版本号检查通过"
+            exit 0
+          else
+            echo "⚠️  $HEADER_FAIL 个文件顶部缺少版本号（非阻塞）"
+            exit 0
+          fi
+
+      - name: 生成版本号报告
+        if: always()
+        run: |
+          EXPECTED="${{ steps.version.outputs.expected }}"
+
+          echo "## 版本号一致性检查报告" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**期望版本号**：v$EXPECTED" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 检查结果" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 文件 | 版本号出现次数 | 状态 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|---------------|------|" >> $GITHUB_STEP_SUMMARY
+
+          FILES=(
+            "references/glossary.md"
+            "references/pipeline-readme.md"
+            "references/设计文档.md"
+            "references/_shared/M-Gate-Algorithm.md"
+            "references/agents/00-主控-coordinator.md"
+            "references/agents/01-文献检索-literature-scout.md"
+            "references/agents/02-数据检索-data-scout.md"
+            "references/agents/03-分析-analyst.md"
+            "references/agents/04-写作-writer.md"
+            "references/agents/05-审计-auditor.md"
+            "references/agents/06-案例检索-case-scout.md"
+            "references/agents/08-批判-critical-companion.md"
+          )
+
+          for file in "${FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "| $file | N/A | ⚠️ 不存在 |" >> $GITHUB_STEP_SUMMARY
+              continue
+            fi
+
+            count=$(grep -cE "v$EXPECTED" "$file" || true)
+
+            if [ "$count" -ge 1 ]; then
+              echo "| $file | $count | ✅ |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $file | 0 | ❌ |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done

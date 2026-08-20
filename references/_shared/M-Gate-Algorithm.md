@@ -8,11 +8,15 @@
 
 ---
 
-## 执行模型（重要：先读这一段）
+## 📖 核心概念（优先阅读）
 
-**论衡 agent 的能力边界**：
-- ✅ **可以**：`read` / `write` / `edit` / `web_search` / `tavily_search` 等 15 项工具（见 SKILL.md metadata.tools.declared）
-- ❌ **不可以**：`exec` / `process` / `browser`（见 SKILL.md metadata.tools.denied）
+**执行 M 门前，请先阅读**：[`../glossary.md`](../glossary.md)
+
+词汇表第二章详细定义了 M 门的性质、覆盖范围、单一真源原则。本文档是算法实现细节，不重复概念定义。
+
+---
+
+## 执行模型（v2.2.12 澄清）
 
 **M 门的执行方式**：
 1. 主控用 `read` 工具读取本算法文档
@@ -23,6 +27,8 @@
 **本文档中的代码示例**：
 - **Python 风格** → 伪代码，描述算法逻辑（主控 LLM 推理执行）
 - **Bash 风格** → 验证示例，供人类主人在 host shell 手动执行（非 agent 执行）
+
+**工具能力边界**：详见 [glossary.md 第五章](../glossary.md#五工具能力边界v2212-前置声明)
 
 ---
 
