@@ -1,4 +1,4 @@
-# M 门算法规约（论衡当前主流程完整版，v2.2.8 Phase D-1 合并）
+# M 门算法规约（论衡当前主流程完整版，v2.2.12 Phase D-1 合并）
 
 > **v2.2.8 Phase D-1 重大变更**：本规约从「**4 个增量版本并存**」（v2.2.0/v2.2.1/v2.2.1.2/v2.2.4 共 15.4K tokens）合并为「**1 个完整版**」（本文件约 12K tokens，主流程只读这一份）。
 >
@@ -8,41 +8,29 @@
 
 ---
 
-## ⚠️ 论衡 agent 能力边界声明（v2.2.11 重要补充）
+## 执行模型（重要：先读这一段）
 
-**本文出现的 `grep`/`sort`/`uniq`/`comm`/`wc`/`sha256sum`/`ls` 等 shell 语法元素，都是伪代码描述，不是论衡 agent 执行的 shell 命令**。
+**论衡 agent 的能力边界**：
+- ✅ **可以**：`read` / `write` / `edit` / `web_search` / `tavily_search` 等 15 项工具（见 SKILL.md metadata.tools.declared）
+- ❌ **不可以**：`exec` / `process` / `browser`（见 SKILL.md metadata.tools.denied）
 
-**论衡 agent 的实际能力边界**：
+**M 门的执行方式**：
+1. 主控用 `read` 工具读取本算法文档
+2. 主控用 `read` 工具读取 `final/定稿.md` + `final/证据包/` 所有文件  
+3. 主控按下面的**伪代码推理判定**，产出 `M-Gate-Report-v2.2.12.json`
+4. exit 0 才能返回，否则触发修订或补检索
 
-| 能力 | 论衡 agent 是否能做 | 备注 |
-|------|------------------|------|
-| `read` / `write` / `edit` 工具 | ✅ 是 | 15 项白名单内 |
-| `web_search` / `tavily_search` 等检索 | ✅ 是 | 走外部服务（需 Phase 0 同意） |
-| LLM 推理执行 M 门伪代码 | ✅ 是 | 按伪代码**推理**判定结果 |
-| `exec` / `process` 工具 | ❌ 否 | 白名单 denied（**不存在** exec 能力） |
-| 直接跑 shell 命令（如 `grep file.md`） | ❌ 否 | 主控 agent 不调 shell |
-| 跨平台 sha256 验证 | ⚠️ **需人类主人在 host shell 手动跑** | 主控产占位标记 + 人类补填 |
-
-**本规约中的 shell 命令是「人类手跑 + LLM 推理」两路径的描述**，不是论衡 agent 自动执行的能力。主控 LLM 按伪代码**推理**得出判定；需要实际 hash/grep 时由主控**用 read 读全文 + 推理统计**，或由人类主人在 host shell **手动**跑后回填。
-
----
-
-## 执行前置（v2.2.0 → v2.2.4 合并版）
+**本文档中的代码示例**：
+- **Python 风格** → 伪代码，描述算法逻辑（主控 LLM 推理执行）
+- **Bash 风格** → 验证示例，供人类主人在 host shell 手动执行（非 agent 执行）
 
 ---
 
 ## 背景（v2.2.0 原版）
 
-论衡 agent 的 15 项白名单不含 `exec`，M 门脚本（m_exist_1_diff.sh）无法由主控 agent 自动执行。
+论衡 agent 的 15 项白名单不含 `exec`，M 门由 LLM 推理执行，不引入新代码风险。
 
-**解法**（v2.2.11 能力边界修正）：本规约用「**LLM 可直接执行的伪代码 + 算法步骤**」描述 M 门，主控用 `read` 工具读 final/定稿.md + final/证据包/，再按本规约的步骤**推理判定**。
-
-**v2.2.11 能力边界警告**（重要，回应 ClawHub scanner findings #3-#7）：
-- 下面算法中出现的 `grep`/`sort`/`uniq`/`comm`/`wc`/`sha256sum` 等是**伪代码描述**——目的是让主控 LLM 按步骤推理，不是让主控生成 shell 命令
-- **实际需要 shell 执行的任务（如跨平台 sha256 计算）由人类主人在 host shell 手动跑**，主控 agent 不调用 exec（论衡白名单不含 exec）
-- 本节顶部重复「LLM 推理」 + 「zero exec」是表述一致，不是矛盾——**LLM 推理 = 论衡 agent 的能力边界**；shell = **人类主人的** fallback
-
-**设计哲学**：**不引入新代码风险**——M 门由 LLM 推理执行，算法规约 100% 由论衡主控可读懂的伪代码构成。
+**设计哲学**：算法规约 100% 由论衡主控可读懂的伪代码构成，零 shell 依赖。
 
 **借鉴出处**：vincentjiang06 paper-writer objective/verify gate 硬约束理念 + ARS M1-M7 失败模式组织。
 
@@ -61,7 +49,7 @@
 1. ✅ **读取本规约全文**（用 `read` 工具读 `M-Gate-Algorithm.md`，**不再需要读 4 个历史版本**）
 2. ✅ **读取 final/定稿.md + final/证据包/所有文件**（用 `read` 工具）
 3. ✅ **依次执行 M-Form 6 项 + M-Exist 3 项 + M-Integrity 2 项**（按本规约伪代码推理，含 v2.2.1.2/v2.2.4 升级算法）
-4. ✅ **产出 M-Gate-Report-v2.2.4.json**（用 `write` 工具写入）
+4. ✅ **产出 M-Gate-Report-v2.2.12.json**（用 `write` 工具写入）
 5. ✅ **判定 exit code 0 才允许 T7 返回**，否则触发 T4 修订或主控补检索
 
 **Phase 0 同意关卡**：本算法不调用任何外部服务（纯 LLM 推理 + 文件 I/O），无需主人额外同意。实战验证如需 m_exist_1_diff.sh（shell 版）跑 dry-run，需主人明示同意（教训 #51 金标准）。
@@ -72,24 +60,50 @@
 
 ### M-Form-1: 引用标注完整性（v2.2.0 原版）
 
+**伪代码**（主控 LLM 推理执行）：
+```python
+# 读取定稿全文
+draft_text = read("final/定稿.md")
+
+# 提取所有引用标注
+import re
+references = re.findall(r'\[(?:D|C|C-主|L|先)\d+\]', draft_text)
+references_unique = sorted(set(references))
+
+# 判定
+if len(references_unique) > 0:
+    return {"通过": True, "引用数": len(references_unique)}
+else:
+    return {"通过": False, "失败原因": "正文无任何引用标注"}
 ```
-算法步骤：
-1. 读取 final/定稿.md 全文
-2. 用正则 r'\[(?:D|C|C-主|L|先)\d+\]' 提取所有匹配
-3. 去重（set）+ 排序（sorted）
-4. 判定：len(提取结果) > 0 → 通过；否则 → 失败
+
+**人类验证示例**（可选，主人手动复核用）：
+```bash
+# 在 host shell 执行
+grep -oE '\[(D|C|L|先)\d+\]' final/定稿.md | sort -u | wc -l
 ```
 
 ### M-Form-2: 文末四节存在性（v2.2.0 原版）
 
-```
-算法步骤：
-1. 检查 final/定稿.md 是否同时包含以下 4 个二级标题：
-   - "## 数据来源"
-   - "## 案例来源"
-   - "## 参考文献"
-   - "## 先行者文献"
-2. 判定：4 个都存在 → 通过；任一缺失 → 失败（缺哪个写哪个）
+**伪代码**（主控 LLM 推理执行）：
+```python
+# 读取定稿全文
+draft_text = read("final/定稿.md")
+
+# 检查四节
+required_sections = [
+    "## 数据来源",
+    "## 案例来源", 
+    "## 参考文献",
+    "## 先行者文献"
+]
+
+missing = [s for s in required_sections if s not in draft_text]
+
+if len(missing) == 0:
+    return {"通过": True}
+else:
+    return {"通过": False, "缺失章节": missing}
 ```
 
 ### M-Form-3: 临时编号残留（v2.2.1.2 升级版，教训 #79）
@@ -98,38 +112,57 @@
 
 **v2.2.1.2 新算法**：
 
+**伪代码**（主控 LLM 推理执行）：
+```python
+# 读取定稿
+draft_text = read("final/定稿.md")
+
+# 辅助函数：提取正文部分（排除文末四节）
+def extract_body(text):
+    endnote_markers = ["## 数据来源", "## 案例来源", "## 参考文献", "## 先行者文献", "## 附"]
+    for marker in endnote_markers:
+        if marker in text:
+            text = text.split(marker)[0]
+    return text
+
+# 辅助函数：提取文末部分
+def extract_endnote(text):
+    endnote_markers = ["## 数据来源", "## 案例来源", "## 参考文献", "## 先行者文献", "## 附"]
+    parts = []
+    for marker in endnote_markers:
+        if marker in text:
+            parts.append(text.split(marker)[1] if len(text.split(marker)) > 1 else "")
+    return "\n".join(parts)
+
+# 提取正文和文末的引用编号
+import re
+body_text = extract_body(draft_text)
+endnote_text = extract_endnote(draft_text)
+
+intext = sorted(set(re.findall(r'\[(L|D|C)\d+\]', body_text)))
+endnote = sorted(set(re.findall(r'\[(L|D|C)\d+\]', endnote_text)))
+
+# 计算真正残留（正文有但文末无）
+orphan = sorted(set(intext) - set(endnote))
+
+if len(orphan) == 0:
+    return {"通过": True}
+else:
+    return {"通过": False, "残留编号": orphan}
 ```
-算法步骤：
-1. 提取正文段落中所有 [Lxx] / [Dxx] / [Cxx]（不在文末四节内）：
-   awk '
-     /^## 数据来源/ { in_endnote=1 }
-     /^## 案例来源/ { in_endnote=1 }
-     /^## 参考文献/ { in_endnote=1 }
-     /^## 先行者文献/ { in_endnote=1 }
-     /^## 附/ { in_endnote=1 }
-     !in_endnote { print }
-   ' final/定稿.md
-   → 提取所有 [Lxx] / [Dxx] / [Cxx] → set_intext
 
-2. 提取文末所有 [Lxx] / [Dxx] / [Cxx]（在 ## 数据来源 / ## 案例来源 / ## 参考文献 / ## 先行者文献 / ## 附 等任意段内）：
-   awk '
-     /^## 数据来源/ { in_endnote=1 }
-     /^## 案例来源/ { in_endnote=1 }
-     /^## 参考文献/ { in_endnote=1 }
-     /^## 先行者文献/ { in_endnote=1 }
-     /^## 附/ { in_endnote=1 }
-     in_endnote { print }
-   ' final/定稿.md
-   → 提取所有 [Lxx] / [Dxx] / [Cxx] → set_endnote
+**人类验证示例**（可选）：
+```bash
+# 提取正文编号（文末四节之前）
+awk '/^## 数据来源|^## 案例来源|^## 参考文献|^## 先行者/{exit} {print}' final/定稿.md | \
+  grep -oE '\[(L|D|C)\d+\]' | sort -u > /tmp/intext.txt
 
-3. 计算真正残留：comm -13 set_intext set_endnote = 真正残留（正文有但文末无）
-4. 判定：真正残留空 → 通过；非空 → 失败
+# 提取文末编号
+awk '/^## 数据来源|^## 案例来源|^## 参考文献|^## 先行者/{flag=1} flag' final/定稿.md | \
+  grep -oE '\[(L|D|C)\d+\]' | sort -u > /tmp/endnote.txt
 
-伪代码：
-intext = sorted(set(re.findall(r'\[(L|D|C)\d+\]', extract_body(draft_text))))
-endnote = sorted(set(re.findall(r'\[(L|D|C)\d+\]', extract_endnote(draft_text))))
-orphan = sorted(set(intext) - set(endnote))  # 真正残留
-return (len(orphan) == 0, orphan)
+# 计算差集
+comm -23 /tmp/intext.txt /tmp/endnote.txt  # 正文有但文末无
 ```
 
 **实战验证**：
@@ -138,31 +171,67 @@ return (len(orphan) == 0, orphan)
 
 ### M-Form-4: 角色元数据泄露（v2.2.0 原版）
 
-```
-算法步骤：
-1. 检查 final/定稿.md 是否含以下元数据泄露词：
-   - "T1" / "T2" / ... / "T7"（角色编号）
-   - "交接报告" / "六要素"
-   - "论衡主控" / "子代理"
-   - "反哺报告" / "角色卡"
-2. 判定：无命中 → 通过；有命中 → 失败（P0 致命）
+**伪代码**（主控 LLM 推理执行）：
+```python
+# 读取定稿
+draft_text = read("final/定稿.md")
 
-注意：M-Form-4 是 P0 优先级，角色元数据泄露 = 读者看到论衡内部代码 = 失去学术严肃性。
+# 元数据泄露检查词
+metadata_leaks = [
+    "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8",
+    "交接报告", "六要素", "论衡主控", "子代理", "反哺报告", "角色卡"
+]
+
+found = [word for word in metadata_leaks if word in draft_text]
+
+if len(found) == 0:
+    return {"通过": True}
+else:
+    return {"通过": False, "泄露词": found, "优先级": "P0"}
 ```
+
+**注意**：M-Form-4 是 P0 优先级，角色元数据泄露 = 读者看到论衡内部代码 = 失去学术严肃性。
 
 ### M-Form-5: 过程语言残留（v2.2.0 原版）
 
-```
-算法步骤：
-1. 检查 final/定稿.md 是否含以下过程语言：
-   - "v[0-9] 稿"（如 v1 稿、v2 稿）
-   - "初稿" / "草稿"
-   - "修订说明" / "上一版" / "下一版"
-   - "据行业经验估算"
-2. 判定：无命中 → 通过；有命中 → 失败
+**伪代码**（主控 LLM 推理执行）：
+```python
+# 读取定稿
+draft_text = read("final/定稿.md")
 
-注意："据行业经验估算" 是 v2.1.1 引入的「合法估算标记」。如果段落开头标 [行业估算，非数据卡] → 属于 G6 论据类型自标（合法）；无标记直接用 → 属于 P1 残留。
+import re
+
+# 过程语言检查
+process_patterns = [
+    r'v[0-9] 稿',
+    r'初稿',
+    r'草稿',
+    r'修订说明',
+    r'上一版',
+    r'下一版'
+]
+
+found = []
+for pattern in process_patterns:
+    matches = re.findall(pattern, draft_text)
+    if matches:
+        found.extend(matches)
+
+# 特殊检查："据行业经验估算" 必须有 [行业估算] 标记
+estimate_uses = re.findall(r'据行业经验估算', draft_text)
+for use in estimate_uses:
+    # 检查上下文是否有 [行业估算] 标记
+    context = get_paragraph_containing(draft_text, use)
+    if "[行业估算" not in context:
+        found.append("据行业经验估算（未标记）")
+
+if len(found) == 0:
+    return {"通过": True}
+else:
+    return {"通过": False, "残留词": found}
 ```
+
+**注意**："据行业经验估算" 是 v2.1.1 引入的「合法估算标记」。段落开头标 `[行业估算，非数据卡]` → G6 论据类型自标（合法）；无标记直接用 → P1 残留。
 
 ### M-Form-6: 信任级别标注完整性（v2.2.1.2 双格式升级版，教训 #83 + #84）
 
@@ -170,39 +239,48 @@ return (len(orphan) == 0, orphan)
 
 **v2.2.1.2 新算法**（双格式支持）：
 
-```
-算法步骤：
-1. 标准格式检查（[Dxx] 编号）：
-   提取数据条目首行：grep -oE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md | sort -u > /tmp/d_entries.txt
-   提取信任级别标注：grep -c '信任级别：(已发布|主人投喂|二手转引)' final/证据包/数据卡.md > /tmp/d_trust.txt
-   比较：len(标准条目) == len(信任级别标注)？
+**伪代码**（主控 LLM 推理执行）：
+```python
+# 读取数据卡
+data_card_text = read("final/证据包/数据卡.md")
 
-2. 表格 fallback 检查（1.x 表格格式）：
-   提取表格行：grep -cE '^\| [0-9]+\.[0-9]+ \|' final/证据包/数据卡.md > /tmp/d_table.txt
-   提取表格信任级别字段：grep -cE '\|\s*(已发布|主人投喂|二手转引)\s*\|' final/证据包/数据卡.md > /tmp/d_table_trust.txt
-   比较：len(表格行) == len(表格信任级别字段)？
+import re
 
-3. 混合格式检查：[Dxx] 编号 + 1.x 表格 + 行内引用 三种混用时，每种都需覆盖
-
-4. 判定：标准格式 + 表格 fallback 都通过 → 通过；任一失败 → 失败
-
-伪代码：
-d_entries_std = re.findall(r'^\*\*\[D\d+\]', data_card_text)
-d_entries_table = re.findall(r'^\| \d+\.\d+ \|', data_card_text)
+# 标准格式检查（[Dxx] 编号）
+d_entries_std = re.findall(r'^\*\*\[D\d+\]', data_card_text, re.MULTILINE)
 trust_std = re.findall(r'信任级别：(已发布|主人投喂|二手转引)', data_card_text)
+
+# 表格 fallback 检查（1.x 表格格式）
+d_entries_table = re.findall(r'^\| \d+\.\d+ \|', data_card_text, re.MULTILINE)
 trust_table = re.findall(r'\|\s*(已发布|主人投喂|二手转引)\s*\|', data_card_text)
-return (
-    len(d_entries_std) == len(trust_std) and
-    len(d_entries_table) == len(trust_table),
-    {
-        '标准格式': {'条目': len(d_entries_std), '信任级别': len(trust_std)},
-        '表格格式': {'条目': len(d_entries_table), '信任级别': len(trust_table)}
+
+# 判定
+std_pass = (len(d_entries_std) == len(trust_std))
+table_pass = (len(d_entries_table) == len(trust_table))
+
+if std_pass and table_pass:
+    return {
+        "通过": True,
+        "标准格式": {"条目": len(d_entries_std), "信任级别": len(trust_std)},
+        "表格格式": {"条目": len(d_entries_table), "信任级别": len(trust_table)}
     }
-)
+else:
+    return {"通过": False, "详情": {"标准格式通过": std_pass, "表格格式通过": table_pass}}
+```
+
+**人类验证示例**（可选）：
+```bash
+# 标准格式
+grep -cE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md  # 条目数
+grep -c '信任级别：' final/证据包/数据卡.md  # 信任级别标注数
+
+# 表格格式
+grep -cE '^\| [0-9]+\.[0-9]+ \|' final/证据包/数据卡.md  # 表格行数
+grep -cE '\|\s*(已发布|主人投喂|二手转引)\s*\|' final/证据包/数据卡.md  # 信任级别字段数
 ```
 
 **实战验证**：
-- 实战 5（教师场域孤岛）：标准格式 47 条 D + 0 信任级别 → 失败（原样，跟 v2.2.1 一致）
+- 实战 5（教师场域孤岛）：标准格式 47 条 D + 0 信任级别 → 失败
 - 实战 4（品牌一致性）：表格格式 35 行 + 0 信任级别 → v2.2.1.2 能识别为表格格式
 
 ---
@@ -404,7 +482,7 @@ return (all_pass, fail_reasons)
 算法步骤（主控 LLM 兜底执行）：
 1. 检查审计报告最新版：ls audits/审计报告-vN.md → N 取最大 → 必须存在
 2. P0/P1 清单已列：grep -E '^- \*\*P0|^- \*\*P1' audits/审计报告-vN.md → 必须有 ≥1 条
-3. M 门（M-Form 6 项 + M-Exist 3 项）全部 exit 0：读 M-Gate-Report-v2.2.4.json → 全部 true
+3. M 门（M-Form 6 项 + M-Exist 3 项）全部 exit 0：读 M-Gate-Report-v2.2.12.json → 全部 true
 4. 证据包 sha256 指纹完整：读 final/交付说明.md「证据包指纹」段 → 必须有 sha256 哈希
 5. 信任级别一致性：M-Exist-3 exit 0 → 通过
 6. 论文交付物 vs 操作员报告独立隔离：
@@ -420,7 +498,7 @@ return (all_pass, fail_reasons)
 伪代码：
 audit_latest = get_latest_audit_report('audits/')
 p0_p1_listed = check_p0_p1_listed(audit_latest)
-m_gate_ok = check_m_gate_all_pass('final/M-Gate-Report-v2.2.4.json')
+m_gate_ok = check_m_gate_all_pass('final/M-Gate-Report-v2.2.12.json')
 sha256_ok = check_evidence_sha256('final/交付说明.md')
 trust_ok = check_M_Exist_3(...)
 isolation_ok = check_draft_vs_report_isolation('final/定稿.md', 'final/交付说明.md', 'audits/')
@@ -434,7 +512,7 @@ return (all_pass, fail_reasons)
 
 ## M-Gate-Report v2.2.4 输出格式（4 版本合并最终版）
 
-主控 T7 执行 M 门后，必须产出 `final/M-Gate-Report-v2.2.4.json`：
+主控 T7 执行 M 门后，必须产出 `final/M-Gate-Report-v2.2.12.json`：
 
 ```json
 {
