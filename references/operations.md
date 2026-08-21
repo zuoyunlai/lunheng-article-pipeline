@@ -4,7 +4,7 @@
 
 ## 配图生成规范（Phase 4.5）
 
-- **数据图表**：程序化生成（matplotlib/SVG 脚本），**禁止文生图**（数字不可控）。图位来自写手标注的 [图N]，图上数字必须来自数据卡，与正文 [Dxx]/案例卡 [Cxx] 一致，生成后抽查核对
+- **数据图表**：主控用 `write` 工具手写 SVG 矢量图（参考 [`templates/图表-SVG-template.md`](templates/图表-SVG-template.md)，v2.3.1 新增），**禁止文生图**（数字不可控）。图位来自写手标注的 [图N]，图上数字必须来自数据卡，与正文 [Dxx]/案例卡 [Cxx] 一致，生成后抽查核对。SVG 是文本，主控 LLM 可直接生成，符合论衡「零 exec」哲学。
 - **封面视觉**：默认调用 image_generate 工具生成（默认 **OpenAI gpt-image-2**，考虑普适性，v2.0.8 明确），prompt 严格遵循主人「极简自然」调性 + 主题关键词 + 文字排版位置预留。**首次调用需主人显式同意（v2.1.1 新增）**——主控必须在调用前询问「是否同意调用外部图像生成服务」，主人确认后再调用（防未授权调用 + 成本/数据外发）。出图先送主人确认风格再定稿。如 OpenAI 不可用或失败（多次重试仍 timeout），自动降级 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01），仍失败则 fallback 到 SVG 矢量风（程序化生成）或主人人工上传
 - **中文字体**：matplotlib 需显式注册 Noto Sans CJK SC，否则中文乱码
 - **图件入 final/图件/**，交付说明列清单；数值标签与来源注释避免同侧重叠（来源统一放底部）
