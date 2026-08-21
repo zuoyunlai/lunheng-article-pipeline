@@ -1,16 +1,19 @@
 name: 版本号一致性检查（v2.3.0 重构，教训 #116）
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master, main ]
     paths:
       - 'SKILL.md'
       - 'references/**/*.md'
+      - '.github/workflows/version-check.yml'
   pull_request:
     branches: [ master, main ]
     paths:
       - 'SKILL.md'
       - 'references/**/*.md'
+      - '.github/workflows/version-check.yml'
 
 jobs:
   version-check:
