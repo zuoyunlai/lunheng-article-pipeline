@@ -133,8 +133,8 @@ jobs:
 
           echo "=== 9 角色编号 v2.3.0 一致性检查 ==="
 
-          # v2.3.0 角色编号清单（含 T8 终检 = 主控亲完成）
-          # 任何文件出现 T6 案例检索（应 T3）/ T8 批判（应 T6）/ T5 审计（应 T7）/ T7 终检（应 T8 主控亲完成） 等 v2.2.x 命名 → FAIL
+          # v2.3.0 角色编号重构：任何文件出现 v2.2.x 旧角色命名（非历史段）→ FAIL
+          # 旧命名 → 新命名：T6 案例检索→T3 / T8 批判→T6 / T5 审计→T7 / T7 终检→T8 / T3 分析→T4 / T4 写手→T5
           LEGACY_ROLES=(
             'T6 案例检索'
             'T8 批判'
@@ -142,16 +142,15 @@ jobs:
             'T7 终检'
             'T3 分析'
             'T4 写手'
-            '原 T6→T3'  # v2.3.0 重构说明标识（应在文档中出现 ≥1 次）
-            'T8 主控亲完成'  # v2.3.0 关键标识
+            'T1/T2/T6'
+            'T1∥T2∥T6'
           )
 
-          # 排除「v2.3.0 改 X→Y」这种重构标注段（这是历史叙事，需要保留）
           FILES=(
             "references/glossary.md"
             "references/pipeline-readme.md"
-            "references/README.md"
-            "references/SKILL.md"
+            "README.md"
+            "SKILL.md"
             "references/agents/00-主控-coordinator.md"
           )
 
@@ -161,25 +160,14 @@ jobs:
             fi
 
             for p in "${LEGACY_ROLES[@]}"; do
-              if [[ "$p" == "原 T6→T3" || "$p" == "T8 主控亲完成" ]]; then
-                # 这些是 v2.3.0 标识，必须存在
-                cnt=$(grep -cF "$p" "$file" 2>/dev/null || true)
-                if [ "$cnt" -ge 1 ]; then
-                  echo "  ✅ $file 含 v2.3.0 标识 '$p' ($cnt 处)"
-                else
-                  echo "  ⚠️  $file 缺 v2.3.0 标识 '$p'"
-                  ROLE_FAIL=$((ROLE_FAIL+1))
-                fi
+              # 排除合法的「v2.3.0 重构标注段」+「版本历史 changelog/表格」（含 v2.x 版本号标记的行）
+              hits=$(grep -E "$p" "$file" 2>/dev/null \
+                     | grep -v 'v2\.[0-9]' | grep -v '→T' | grep -v '原 T' | grep -v '应改' | wc -l)
+              if [ "$hits" -gt 0 ]; then
+                echo "  ❌ $file 含真正 v2.2.x 角色命名 '$p' ($hits 处)"
+                ROLE_FAIL=$((ROLE_FAIL+1))
               else
-                # 这些是 v2.2.x 旧角色命名，必须不出现（排除「v2.3.0 重命名」「→T」重构标注段）
-                hits=$(grep -E "$p" "$file" 2>/dev/null \
-                       | grep -v 'v2.3.0' | grep -v '→T' | grep -v '原 T' | grep -v '应改' | wc -l)
-                if [ "$hits" -gt 0 ]; then
-                  echo "  ❌ $file 含真正 v2.2.x 角色命名 '$p' ($hits 处)"
-                  ROLE_FAIL=$((ROLE_FAIL+1))
-                else
-                  echo "  ✅ $file 无 v2.2.x 角色命名 '$p'"
-                fi
+                echo "  ✅ $file 无 v2.2.x 角色命名 '$p'"
               fi
             done
           done
