@@ -1,3 +1,4 @@
+> 版本：v2.3.4（自动同步 2026-08-21）
 > 版本：v2.3.3（自动同步 2026-08-21）
 > 版本：v2.3.2（自动同步 2026-08-21）
 > 版本：v2.3.1（自动同步 2026-08-21）
@@ -509,12 +510,12 @@ return (all_pass, fail_reasons, sha256_pending)
 6. 论文交付物 vs 操作员报告独立隔离：
    - final/定稿.md（论文）不含 audits/ / final/交付说明.md 内容
    - final/交付说明.md / audits/（报告）不混入 final/定稿.md
-7. 主人签字 Phase 5（如有 v2.2.0 修订回环 ≤2 轮降级触发）：任务简报注明 + 主人已读局限性.md
+7. **v2.3.3 删「主人签字 Phase 5」（教训 #138）**：T7.5 是纯机械化闸门（T7 审计 → T8 终检），主人签字在 Phase 5（T8 终检交付后主人验收），**不在** T7.5 闸门里；原「如有修订回环 ≤2 轮降级触发则主人读局限性.md」逻辑，改为 T8 终检交付时一并请主人验收（含局限性声明）
 8. **v2.2.4 修订轮流程约束**：检查本轮修订是否由独立写手子代理执行
    - 证据：status.md 修订回环记录写明「spawn 独立写手 vN 执行」
    - 若发现主控代执行 → 打回修订轮，强制 spawn 独立写手
    - 例外：主控直接 edit 定点修复（<5 处纯校对类，v2.1.3 允许）不视为违反
-9. 判定：8 项全通过 → T7.5 ✅ 派发 T8；任一失败 → T7.5 ❌ 不派发 T8
+9. 判定：7 项全通过 → T7.5 ✅ 派发 T8；任一失败 → T7.5 ❌ 不派发 T8
 
 伪代码：
 audit_latest = get_latest_audit_report('audits/')
@@ -523,9 +524,8 @@ m_gate_ok = check_m_gate_all_pass('final/M-Gate-Report-v2.2.12.json')
 sha256_ok = check_evidence_sha256('final/交付说明.md')
 trust_ok = check_M_Exist_3(...)
 isolation_ok = check_draft_vs_report_isolation('final/定稿.md', 'final/交付说明.md', 'audits/')
-owner_signed = check_phase5_signature()
 revision_independent = check_revision_by_independent_writer('status.md')
-all_pass = audit_latest and p0_p1_listed and m_gate_ok and sha256_ok and trust_ok and isolation_ok and owner_signed and revision_independent
+all_pass = audit_latest and p0_p1_listed and m_gate_ok and sha256_ok and trust_ok and isolation_ok and revision_independent  # v2.3.3 删 owner_signed（主人签字在 Phase 5，不在 T7.5 闸门，教训 #138）
 return (all_pass, fail_reasons)
 ```
 
@@ -605,7 +605,6 @@ return (all_pass, fail_reasons)
       "P0P1清单已列": true | false,
       "M门全exit0": true | false,
       "论文vs报告隔离": true | false,
-      "主人签字Phase5": true | false,
       "修订轮独立写手_v2.2.4新增": true | false,
       "通过": true | false
     },
