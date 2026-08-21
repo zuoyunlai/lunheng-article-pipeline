@@ -1,3 +1,4 @@
+> 版本：v2.3.1（自动同步 2026-08-21）
 > 版本：v2.3.0（自动同步 2026-08-21）
 
 > 版本：v2.2.16（自动同步 2026-08-20）
@@ -132,7 +133,8 @@ v2.1.4（2026-08-15，**测试期 finding，本地修订未发布**）：**文�
    - deepseek-v4-flash：轻量检索默认，置信度高
    - deepseek-v4-pro：推理/分析默认，但有过超时历史（教训 #35）
    - minimax-m3：推理/分析 fallback，但近期 T3 三连超时主要责任方
-   - claude-opus-5：审计顶配，但成本高
+   - claude-opus-5：审计顶配（T7 审计员主模型），但成本高 + **有 kkaiapi 接口静默无响应前科（教训 #119）**
+   - **T7 审计员派发前必查**（v2.3.1 新增，教训 #119）：T7 主模型 claude-opus-5 → fallback 链 `claude-opus-5 → deepseek-v4-pro → minimax-M3`；派发前 1-token ping 预检，若 claude-opus-5 静默无响应 → **直接以 deepseek-v4-pro 派发**，并在产物头标注「T7 由 deepseek-v4-pro 兑底（原 claude-opus-5 静默无响应，教训 #119）」
    - **主控派发前查 status.md 顶部「论衡本轮可用模型」表**（论衡会话启动时自动填）
 
 2. **超时硬卡 8 分钟**（实战中旧阈值过宽，介入太晚）：
@@ -363,6 +365,7 @@ Phase 5 终检      **T8** 主控终检 → final/定稿.md + 图件/（如有�
 
 **触发条件**：T7 仅在 T6 批判报告 + T5 v3 完成后 spawn
 **独立性**：T7 仅审不改，与 T5 写手分离；引用分级抽验（C 级 100% / B 级 ≥50% / A 级 ≥10%）
+**模型 fallback（v2.3.1 新增，教训 #119）**：主模型 `claude-opus-5` → fallback 链 `deepseek-v4-pro → minimax-M3`；若 claude-opus-5 静默无响应（0 tokens / 超时），自动切 fallback，并在审计报告头部标注「T7 由 XX 兑底（原 claude-opus-5 静默无响应）」
 ```
 
 ### 终检（T8，主控亲完成）

@@ -1,3 +1,4 @@
+> 版本：v2.3.1（自动同步 2026-08-21）
 > 版本：v2.3.0（自动同步 2026-08-21）
 
 > 版本：v2.2.18（自动同步 2026-08-20）
@@ -49,14 +50,19 @@
 3. **模型健康度预检** → 1-token ping，30s 无响应降级
 4. **8 分钟硬卡** → 6 分警告 / 7 分 partial / 8 分 kill
 
-**Fallback 链**：`deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3`
+**主模型 + Fallback 链（v2.3.1 新增，教训 #119）**：
+- **主模型**：`claude-opus-5`（kkaiapi 接口，审计顶配，成本高）
+- **Fallback 链**：`claude-opus-5 → deepseek-v4-pro → minimax-M3`（T7 专属，v2.3.1 显式声明；原通用 4 档链 `deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3` 不适合 T7——审计需顶配推理，glm-5.3/flash 不是审计级）
+- **fallback 触发后必须标注**（v2.3.1 新增，教训 #119）：若主模型静默无响应（0 tokens / 超时）自动切 fallback 后，**必须**在①产物头部 + ②交接报告 写明「T7 由 XX 兑底（原 claude-opus-5 静默无响应）」，让主人可追溯到模型降级事实
 
 ## 职责
 
 - 独立研读：任务简报、分析大纲、初稿、文献卡、数据卡
 - 产出 `audits/审计报告-vN.md`，按严重级列出全部问题：
   - **P0 致命**（必须改，否则不能用）：编造引用/数据、论点无据、论证链断裂、抄袭、跑题（研究问题未回答）
-  - **P1 严重**（应当改）：引用格式不统一、数据缺溯源/用红级数据未说明、结构缺失、AI 空话套话、反方观点缺失
+  - **P1 严重**（应当改，v2.3.1 细分 P1-A/B/C/D，教训 #120）：
+    - **P1-A/B/C 结构性**（→ T5 重启独立写手）：论证补强 / 结构缺失 / 反方观点缺失
+    - **P1-D 事实错误**（→ T8 亲修慢活快改）：引用格式不统一 / 数据缺溯源 / 红级数据未说明 / 漏引 / 拼写
   - **P2 建议**（可优化）：措辞、篇幅、可读性
 - **修订复核**：写手提交修订说明后，逐条对照确认 P0/P1 是否真正关闭；未关闭的升级为 P0
 
@@ -66,6 +72,7 @@
 
 - **M 门算法**：详见 [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md) + [`glossary.md § M 门`](../glossary.md#m-门形式合规门)
 - **审计必查项 G0-G13**：详见 [`_shared/audit-checklist-quickref.md`](../_shared/audit-checklist-quickref.md) + [`glossary.md § G 清单`](../glossary.md#g-清单质量审计清单)
+- **G8 字数核验（v2.3.1 强调，教训 #120）**：T7 **强制**用机械化命令核实字数——`grep -o '[一-龥]' final/定稿.md | wc -l`（纯中文字符数权威口径），与任务简报「目标篇幅」区间对比；与 T5 自报、T6 攻击三方同口径，不一致 → P1 并回写正确值
 - **F 失败模式防御 F1-F9**：详见 [`_shared/failure-modes.md`](../_shared/failure-modes.md) + [`glossary.md § F 模式`](../glossary.md#f-模式失败模式清单)
 
 ## 结论格式
