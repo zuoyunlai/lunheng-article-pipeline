@@ -1,3 +1,4 @@
+> 版本：v2.3.5（自动同步 2026-08-21）
 > 版本：v2.3.4（自动同步 2026-08-21）
 > 版本：v2.3.3（自动同步 2026-08-21）
 > 版本：v2.3.2（自动同步 2026-08-21）
@@ -78,7 +79,7 @@
 
 ---
 
-## M-Form 形式合规门（6 项，含 v2.2.1.2 升级算法）
+## M-Form 形式合规门（7 项，含 v2.2.1.2 + v2.3.5 升级）
 
 ### M-Form-1: 引用标注完整性（v2.2.0 原版）
 
@@ -304,6 +305,53 @@ grep -cE '\|\s*(已发布|主人投喂|二手转引)\s*\|' final/证据包/数�
 **实战验证**：
 - 实战 5（教师场域孤岛）：标准格式 47 条 D + 0 信任级别 → 失败
 - 实战 4（品牌一致性）：表格格式 35 行 + 0 信任级别 → v2.2.1.2 能识别为表格格式
+
+### M-Form-7: 定稿文末节标题白名单纯净（v2.3.5 新增，教训 #139）
+
+**背景**：v2.3.1 首次实战（ai-productivity-scene-dependence）定稿文末混入「图表清单」「引用规范（四节闭环）」「主控签字（T8 终检）」三段操作员报告内容，而「终检必查项①」只在文档层声明、未机械执行——T8 签字时自己签「✅ 交付边界纯净」但文末明明混着禁止项。**教训 #139：规范从文档层到执行层断链，签字走形式。**
+
+**伪代码**（主控 LLM 推理执行）：
+```python
+# 读取定稿全文
+draft_text = read("final/定稿.md")
+
+import re
+
+# 白名单 5 节（deliverables.md「定稿文末白名单」）
+whitelist = ["参考文献", "数据来源", "案例来源", "先行者文献", "AI 使用声明"]
+
+def is_whitelisted(title):
+    # 前缀匹配：容忍「数据来源（可信度标注）」这类带括号的变体
+    return any(title == w or title.startswith(w) for w in whitelist)
+
+# 提取所有二级标题（含行号）
+lines = draft_text.split('\n')
+sections = [(i, m.group(1)) for i, l in enumerate(lines)
+            if (m := re.match(r'^##\s+(.+)$', l))]
+
+# 找文末节起点（第一个白名单标题）
+start_idx = next((idx for idx, (i, t) in enumerate(sections) if is_whitelisted(t)), None)
+
+if start_idx is None:
+    return {"通过": False, "优先级": "P0", "失败原因": "文末无任何白名单节（参考文献/数据来源/案例来源/先行者文献/AI 使用声明）"}
+
+# 起点之后的所有 ## 标题必须在白名单内
+violations = [t for (i, t) in sections[start_idx:] if not is_whitelisted(t)]
+
+if len(violations) == 0:
+    return {"通过": True}
+else:
+    return {"通过": False, "优先级": "P0", "违规节标题": violations,
+            "失败原因": "文末混入操作员报告节（图表清单/主控签字/引用规范等），需移入 final/交付说明.md 或删除"}
+```
+
+**人类验证示例**（可选）：
+```bash
+# 从第一个白名单标题起，打印其后所有 ## 标题——白名单外任何输出 = 违规
+awk '/^## (参考文献|数据来源|案例来源|先行者文献|AI 使用声明)/{flag=1} flag && /^## /{print}' final/定稿.md
+```
+
+**判定铁律**：M-Form-7 是 **P0 优先级**。文末混入操作员报告节 = 读者看到论衡内部代码 = 失去「论文是给读者的，报告是给主人的」边界。**T8 在 M-Form-7 exit 0 之前，禁止在签字块写「交付边界纯净」四个字**（教训 #139）。
 
 ---
 
@@ -558,6 +606,11 @@ return (all_pass, fail_reasons)
       "标准格式_信任级别标注数": 0,
       "表格格式_行数": 0,
       "表格格式_信任级别字段数": 0,
+      "通过": true | false
+    },
+    "M-Form-7_定稿文末节标题白名单纯净_v2.3.5": {
+      "文末节标题": [],
+      "违规节标题": [],
       "通过": true | false
     },
     "全部通过": true | false
