@@ -1,4 +1,4 @@
-name: 版本号一致性检查
+name: 版本号一致性检查（v2.3.0 重构，教训 #116）
 
 on:
   push:
@@ -31,14 +31,14 @@ jobs:
           echo "期望版本号：v$EXPECTED"
           echo "expected=$EXPECTED" >> $GITHUB_OUTPUT
 
-      - name: 检查核心文档版本号
+      - name: 检查核心文档版本号（v2.3.0 8 张角色卡）
         run: |
           EXPECTED="${{ steps.version.outputs.expected }}"
           FAIL=0
 
-          echo "=== 版本号一致性检查 ==="
+          echo "=== 版本号一致性检查（v2.3.0 重构后路径）==="
 
-          # 核心文档列表
+          # v2.3.0 角色卡路径（教训 #116：原 T6 案例检索 → T3，原 T8 批判 → T6，原 T5 审计 → T7，原 T7 终检 → T8 由主控亲完成无独立卡）
           FILES=(
             "references/glossary.md"
             "references/pipeline-readme.md"
@@ -47,11 +47,11 @@ jobs:
             "references/agents/00-主控-coordinator.md"
             "references/agents/01-文献检索-literature-scout.md"
             "references/agents/02-数据检索-data-scout.md"
-            "references/agents/03-分析-analyst.md"
-            "references/agents/04-写作-writer.md"
-            "references/agents/05-审计-auditor.md"
-            "references/agents/06-案例检索-case-scout.md"
-            "references/agents/08-批判-critical-companion.md"
+            "references/agents/03-案例检索-case-scout.md"
+            "references/agents/04-分析-analyst.md"
+            "references/agents/05-写作-writer.md"
+            "references/agents/06-批判-critical-companion.md"
+            "references/agents/07-审计-auditor.md"
           )
 
           for file in "${FILES[@]}"; do
@@ -80,7 +80,7 @@ jobs:
             exit 1
           fi
 
-      - name: 检查文件顶部版本号
+      - name: 检查文件顶部版本号（v2.3.0 路径）
         run: |
           EXPECTED="${{ steps.version.outputs.expected }}"
           HEADER_FAIL=0
@@ -95,11 +95,11 @@ jobs:
             "references/agents/00-主控-coordinator.md"
             "references/agents/01-文献检索-literature-scout.md"
             "references/agents/02-数据检索-data-scout.md"
-            "references/agents/03-分析-analyst.md"
-            "references/agents/04-写作-writer.md"
-            "references/agents/05-审计-auditor.md"
-            "references/agents/06-案例检索-case-scout.md"
-            "references/agents/08-批判-critical-companion.md"
+            "references/agents/03-案例检索-case-scout.md"
+            "references/agents/04-分析-analyst.md"
+            "references/agents/05-写作-writer.md"
+            "references/agents/06-批判-critical-companion.md"
+            "references/agents/07-审计-auditor.md"
           )
 
           for file in "${FILES[@]}"; do
@@ -126,6 +126,73 @@ jobs:
             exit 0
           fi
 
+      - name: 检查 9 角色编号 v2.3.0 一致性（教训 #116）
+        run: |
+          EXPECTED="${{ steps.version.outputs.expected }}"
+          ROLE_FAIL=0
+
+          echo "=== 9 角色编号 v2.3.0 一致性检查 ==="
+
+          # v2.3.0 角色编号清单（含 T8 终检 = 主控亲完成）
+          # 任何文件出现 T6 案例检索（应 T3）/ T8 批判（应 T6）/ T5 审计（应 T7）/ T7 终检（应 T8 主控亲完成） 等 v2.2.x 命名 → FAIL
+          LEGACY_ROLES=(
+            'T6 案例检索'
+            'T8 批判'
+            'T5 审计'
+            'T7 终检'
+            'T3 分析'
+            'T4 写手'
+            '原 T6→T3'  # v2.3.0 重构说明标识（应在文档中出现 ≥1 次）
+            'T8 主控亲完成'  # v2.3.0 关键标识
+          )
+
+          # 排除「v2.3.0 改 X→Y」这种重构标注段（这是历史叙事，需要保留）
+          FILES=(
+            "references/glossary.md"
+            "references/pipeline-readme.md"
+            "references/README.md"
+            "references/SKILL.md"
+            "references/agents/00-主控-coordinator.md"
+          )
+
+          for file in "${FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              continue
+            fi
+
+            for p in "${LEGACY_ROLES[@]}"; do
+              if [[ "$p" == "原 T6→T3" || "$p" == "T8 主控亲完成" ]]; then
+                # 这些是 v2.3.0 标识，必须存在
+                cnt=$(grep -cF "$p" "$file" 2>/dev/null || true)
+                if [ "$cnt" -ge 1 ]; then
+                  echo "  ✅ $file 含 v2.3.0 标识 '$p' ($cnt 处)"
+                else
+                  echo "  ⚠️  $file 缺 v2.3.0 标识 '$p'"
+                  ROLE_FAIL=$((ROLE_FAIL+1))
+                fi
+              else
+                # 这些是 v2.2.x 旧角色命名，必须不出现（排除「v2.3.0 重命名」「→T」重构标注段）
+                hits=$(grep -E "$p" "$file" 2>/dev/null \
+                       | grep -v 'v2.3.0' | grep -v '→T' | grep -v '原 T' | grep -v '应改' | wc -l)
+                if [ "$hits" -gt 0 ]; then
+                  echo "  ❌ $file 含真正 v2.2.x 角色命名 '$p' ($hits 处)"
+                  ROLE_FAIL=$((ROLE_FAIL+1))
+                else
+                  echo "  ✅ $file 无 v2.2.x 角色命名 '$p'"
+                fi
+              fi
+            done
+          done
+
+          echo ""
+          if [ "$ROLE_FAIL" -eq 0 ]; then
+            echo "✅ 9 角色编号 v2.3.0 一致性检查通过"
+            exit 0
+          else
+            echo "❌ 9 角色编号一致性检查失败（$ROLE_FAIL 处）"
+            exit 1
+          fi
+
       - name: 生成版本号报告
         if: always()
         run: |
@@ -135,7 +202,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**期望版本号**：v$EXPECTED" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 检查结果" >> $GITHUB_STEP_SUMMARY
+          echo "### 检查结果（v2.3.0 角色编号重构后路径）" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| 文件 | 版本号出现次数 | 状态 |" >> $GITHUB_STEP_SUMMARY
           echo "|------|---------------|------|" >> $GITHUB_STEP_SUMMARY
@@ -148,11 +215,11 @@ jobs:
             "references/agents/00-主控-coordinator.md"
             "references/agents/01-文献检索-literature-scout.md"
             "references/agents/02-数据检索-data-scout.md"
-            "references/agents/03-分析-analyst.md"
-            "references/agents/04-写作-writer.md"
-            "references/agents/05-审计-auditor.md"
-            "references/agents/06-案例检索-case-scout.md"
-            "references/agents/08-批判-critical-companion.md"
+            "references/agents/03-案例检索-case-scout.md"
+            "references/agents/04-分析-analyst.md"
+            "references/agents/05-写作-writer.md"
+            "references/agents/06-批判-critical-companion.md"
+            "references/agents/07-审计-auditor.md"
           )
 
           for file in "${FILES[@]}"; do
