@@ -597,7 +597,7 @@ return (all_pass, fail_reasons)
       "主人签字Phase1": true | false,
       "通过": true | false
     },
-    "M-Integrity-2_T5.5": {
+    "M-Integrity-2_T7.5": {
       "审计报告最新版": true | false,
       "P0P1清单已列": true | false,
       "M门全exit0": true | false,
