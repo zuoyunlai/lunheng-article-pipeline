@@ -1,3 +1,4 @@
+> 版本：v2.3.3（自动同步 2026-08-21）
 > 版本：v2.3.2（自动同步 2026-08-21）
 > 版本：v2.3.1（自动同步 2026-08-21）
 > 版本：v2.3.0（自动同步 2026-08-21）
@@ -472,12 +473,12 @@ return (all_pass, leaked, orphan, missing_trust)
 5. 信任级别完整性：M-Form-6 exit 0 → 通过；否则 → 触发 T2 补标注
 6. 信任级别一致性：M-Exist-3 exit 0 → 通过；否则 → 触发 T2 补数据卡
 7. **v2.2.17 修复（教训 #123）**：sha256 指纹为**可选验证**——主控发占位符 `[SHA256-PENDING:HOST-VERIFY]` 到 `final/交付说明.md`「证据包指纹」段，**不**作为闸门强制项。主人需手动在 host shell 跑 `sha256sum final/证据包/*.md >> final/交付说明.md`（参考 `_shared/m_exist_1_diff.sh`）。**该步骤不是 agent 执行的代码，是人类验证示例。**
-8. 主人签字 Phase 1：任务简报有 4 选 1 选项确认
-9. **v2.2.10 新增（教训 #106）**：数据卡头部「共 N 条」声明 vs 实际 grep 计数一致性
+8. **v2.2.10 新增（教训 #106）**：数据卡头部「共 N 条」声明 vs 实际 grep 计数一致性
    头部声明：grep -oE '共 [0-9]+ 条' final/证据包/数据卡.md
    实际计数：步骤 2 的双格式并集 dedupe
    不一致 → 标 Failed（防 T2 未自检 + T4 人工 grep 才发现的延后问题）
-10. 判定：8 项全通过 → T2.5 ✅ 派发 T4；任一失败 → T2.5 ❌ 不派发 T4
+9. 判定：7 项全通过 → T2.5 ✅ 派发 T4；任一失败 → T2.5 ❌ 不派发 T4
+   **v2.3.2 删「主人签字 Phase 1」（教训 #136）**：T2.5 是纯机械化闸门，主人签字只在 Phase 0（4 选 1 同意关卡）/ Phase 2.5（大纲确认）/ Phase 5（终稿）三节点；检索完成→T4 之间**不应**打断主人（v2.3.1 实战暴露「T2/T3 完成后分别询问主人 4 选 1」的过度打断）
 
 伪代码：
 data_card = 'final/证据包/数据卡.md'
@@ -487,9 +488,8 @@ data_ok = data_count >= outline_count
 trust_form_ok = check_M_Form_6(data_card)
 trust_exist_ok = check_M_Exist_3(data_card, 'final/定稿.md')
 sha256_pending = emit_placeholder_sha256(data_card)  # v2.2.17：发占位符 [SHA256-PENDING:HOST-VERIFY]，**不**作为闸门强制项
-owner_signed = check_phase1_signature()
 header_consistent = check_header_vs_actual_count(data_card)  # v2.2.10 新增
-all_pass = data_ok and trust_form_ok and trust_exist_ok and owner_signed and header_consistent
+all_pass = data_ok and trust_form_ok and trust_exist_ok and header_consistent  # v2.3.2 删 owner_signed（主人签字不在 T2.5 闸门，教训 #136）
 # v2.2.17 修复 F03 + F05：sha256 不是“必填门”，是“可选验证”（主人手动跑）
 return (all_pass, fail_reasons, sha256_pending)
 ```
@@ -598,7 +598,6 @@ return (all_pass, fail_reasons)
     "M-Integrity-1_T2.5": {
       "数据条目完整性": true | false,
       "信任级别完整性": true | false,
-      "主人签字Phase1": true | false,
       "通过": true | false
     },
     "M-Integrity-2_T7.5": {
