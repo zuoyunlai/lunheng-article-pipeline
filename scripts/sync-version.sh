@@ -74,7 +74,7 @@ for sync in "${SYNCS[@]}"; do
   fi
 
   # 检查是否已包含当前版本号
-  if grep -qE "v$EXPECTED" "$full_path"; then
+  if head -1 "$full_path" | grep -qE "v$EXPECTED"; then
     echo "⏭️  跳过：$file（已包含 v$EXPECTED）"
     SKIPPED=$((SKIPPED+1))
     continue
