@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # 论衡版本号一致性检查脚本（P1-3 版本号自动化 - 层 1）
 #
+# ⚠️ 三层联动防漏改（教训 #118.1）：
+#   层 1 本脚本（check-version.sh）= 本地只读验证
+#   层 2 sync-version.sh = 本地批量同步写入
+#   层 3 .github/workflows/version-check.yml = CI 云端自动验证
+#   改角色文件名（references/agents/0X-*.md 重命名）时，必须三处同步更新角色文件清单，
+#   否则版本号自动化会扫错路径直接报错（v2.3.0 重构时 scripts/ 两层漏改，教训 #118.1）。
+
+#
 # 用途：检查所有应含版本号的文件，文件顶部版本号是否与 SKILL.md frontmatter 一致
 # 调用：./scripts/check-version.sh
 # 退出码：0 = 全部一致 / 1 = 存在不一致
@@ -36,11 +44,11 @@ CHECKS=(
   "references/agents/00-主控-coordinator.md|v$EXPECTED|1"
   "references/agents/01-文献检索-literature-scout.md|v$EXPECTED|1"
   "references/agents/02-数据检索-data-scout.md|v$EXPECTED|1"
-  "references/agents/03-分析-analyst.md|v$EXPECTED|1"
-  "references/agents/04-写作-writer.md|v$EXPECTED|1"
-  "references/agents/05-审计-auditor.md|v$EXPECTED|1"
-  "references/agents/06-案例检索-case-scout.md|v$EXPECTED|1"
-  "references/agents/08-批判-critical-companion.md|v$EXPECTED|1"
+  "references/agents/03-案例检索-case-scout.md|v$EXPECTED|1"
+  "references/agents/04-分析-analyst.md|v$EXPECTED|1"
+  "references/agents/05-写作-writer.md|v$EXPECTED|1"
+  "references/agents/06-批判-critical-companion.md|v$EXPECTED|1"
+  "references/agents/07-审计-auditor.md|v$EXPECTED|1"
 )
 
 PASS=0
