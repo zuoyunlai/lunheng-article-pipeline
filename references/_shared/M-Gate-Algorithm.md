@@ -356,6 +356,74 @@ awk '/^## (参考文献|数据来源|案例来源|先行者文献|AI 使用声�
 
 **判定铁律**：M-Form-7 是 **P0 优先级**。文末混入操作员报告节 = 读者看到论衡内部代码 = 失去「论文是给读者的，报告是给主人的」边界。**T8 在 M-Form-7 exit 0 之前，禁止在签字块写「交付边界纯净」四个字**（教训 #139）。
 
+### M-Form-8: 三角验证覆盖率检查（v2.3.7 论文三实战升级，P1-4）
+
+**背景**：v2.3.7 论文三实战 §四 P4 一直缺 [Lxx]（L=0 D=22 C=3），直到 T7 fallback 审计才发现（v3→v4 加了 [L06] [L12]）。**毛在才不出现**——主控「三角验证把关」职责未机制化，写手 v1 落地前没自动跑 [Lxx]+[Dxx]+[Cxx] 三维 grep。
+
+**三角验证原理**（论衡核心机制）：任何论点必须能映射到文献卡[Lxx]+数据卡[Dxx]+案例卡[Cxx]（涉企业行为/事件者必须配案例卡，至少两项齐全）。检索不到就标缺口，严禁编造。主角控「三角验证把关」职责（2026-08-13 v2.4 增）原本是主控手动检查，v2.3.7 P1-4 升级为**写手 v1 落地前机械化自动跑**。
+
+**伪代码**（主控 LLM 推理执行，写手 v1 落地前跑）：
+```python
+import re
+
+# 读取任务简报 + 初稿
+brief = read("01-任务简报.md")
+draft_text = read("drafts/初稿-v1.md")
+
+# 提取任务简报 §四「核心论点」清单（如 [论点N] 格式）
+# 如任务简报未明确标论点，以 §三 研究问题作为论点提取依据
+claim_pattern = re.findall(r'\[论点\d+\]|第[一二三四五六七八九十]+章', brief)
+claims = [c.strip() for c in claim_pattern]
+
+# 从初稿提取所有引用编号（4 类）
+l_refs = re.findall(r'\[L\d+\]', draft_text)
+d_refs = re.findall(r'\[(?:D-?基?-?\w*-?\d+)\]', draft_text)
+c_refs = re.findall(r'\[C\d+\]', draft_text)
+
+# 对每个论点检查三角验证：拆初稿为按论点的段落（按章节切分）
+sections = re.split(r'^## ', draft_text, flags=re.MULTILINE)
+
+violations = []
+for claim in claims:
+    # 找包含该论点的章节
+    section_for_claim = next((s for s in sections if claim in s), "")
+    # 检查三角验证覆盖率
+    has_l = bool(re.search(r'\[L\d+\]', section_for_claim))
+    has_d = bool(re.search(r'\[(?:D-?基?-?\w*-?\d+)\]', section_for_claim))
+    has_c = bool(re.search(r'\[C\d+\]', section_for_claim))
+    # 三角验证：至少 2 项齐全（不必须 3 项）
+    coverage = sum([has_l, has_d, has_c])
+    if coverage < 2:
+        violations.append({
+            "claim": claim,
+            "section": section_for_claim[:50],
+            "has_L": has_l,
+            "has_D": has_d,
+            "has_C": has_c,
+            "coverage": f"{coverage}/3"
+        })
+
+if len(violations) == 0:
+    return {"通过": True, "论点数": len(claims)}
+else:
+    return {"通过": False, "优先级": "P0",
+            "未复核论点数": len(violations),
+            "违规详情": violations,
+            "失败原因": "写手 v1 未补齐三角验证覆盖（<2 类引用），需补检索或降级为「观点」"}
+```
+
+**触发时机**：
+1. **写手 v1 落地后**（v1 写手产物已落盘）→ T4 分析员或主控跑 M-Form-8 预检 → 不通过 → 打回 v2 重写（计入修订轮）
+2. **T7 审计员**跑最终审计时也跑 M-Form-8 → 不通过 → 打回（计入修订轮）
+
+**实战背景**（v2.3.7 论文三）：§四 P4 [论点4] 一直缺 [Lxx]（L=0 D=22 C=3）直到 T7 fallback 审计才发现 → v3→v4 加了 [L06] [L12] 修补 → 浪费 1 轮修订。v2.3.7 升级后 M-Form-8 在 v1 落地时拦截，不再依赖 T7 兜底。
+
+**人类验证示例**（可选）：
+```bash
+# 提取每个章节的引用类型分布
+awk '/^## /{section=$0; next} /\[L[0-9]+\]/{l++} /\[D[0-9]+\]/{d++} /\[C[0-9]+\]/{c++} END{print section, "L="l, "D="d, "C="c}' drafts/初稿-v1.md
+```
+
 ---
 
 ## M-Exist 存在性合规门（3 项，含 v2.2.1.2 + v2.2.4 升级算法）
