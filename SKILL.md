@@ -54,7 +54,7 @@ metadata:
 - 三层防御体系（M 门/F 模式/G 清单）
 - 数据信任级别（3 档）
 - 关键协议（Phase 0/0 条空卡/并行独立运行）
-- 工具能力边界（15 项可用 / 7 项禁用）
+- 工具能力边界（15 项可用 / 11 项禁用）
 - 版本号管理（5 层真源）
 - 教训沉淀体系（#1-#115）
 
@@ -69,7 +69,7 @@ metadata:
 
 **论衡技能的执行能力**：
 - ✅ **可以**：read / write / edit / web_search / tavily_search / memory_search 等 15 项工具（见上方 metadata.tools.declared）
-- ❌ **不可以**：exec / process / browser（见上方 metadata.tools.denied）
+- ❌ **不可以**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / memory_recall / skill_workshop（11 项，见上方 metadata.tools.denied）
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档，按伪代码**推理判定**，不执行实际 shell 命令
 - ℹ️  **跨平台 sha256**：需要主人在 host shell 手动计算后回填（算法文档中的 shell 示例仅供人类参考）
 - ℹ️  **算法文档中的 grep/ls/sort/sha256 等命令**（v2.2.17 澄清，回应 ClawHub scanner v2.2.16 finding F06 90%）：是「**LLM 推理模拟**」伪代码，主控用 `read` 读全文后用 LLM 推理模拟「如果执行 grep 会得到什么结果」。**论衡 agent 不执行这些 bash 命令**——它们是给人类主人参考的跨平台命令示例，不是 agent 执行代码。判定以「LLM 推理模拟结果」为准。
@@ -175,7 +175,7 @@ metadata:
 
 ## ⚠️ 外部服务与数据流声明（按需加载）
 
-> **完整服务列表 + 4 选 1 同意关卡详见** [`references/glossary.md § 九 外部服务声明`](../glossary.md#九外部服务声明-v212)
+> **完整服务列表 + 4 选 1 同意关卡详见** [`references/glossary.md § 九 外部服务声明`](references/glossary.md#九外部服务声明-v212)
 
 **主控 Phase 0 必须给主人 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝），并写入 `01-任务简报.md` 头部作为审计追溯依据。
 
@@ -214,7 +214,7 @@ run/<项目名>/
 ├── data/数据卡.md       # T2 产出：[D01]... 每条含来源机构+年份+URL+时效🟢🟡🔴
 ├── cases/案例卡.md      # T3 产出：[C01]... 每条含事件/主体/时间窗口/多方说法/≥2来源
 ├── analysis/分析大纲.md # T4 产出：论证主线+映射表+反方规划+章节字数预算
-├── analysis/批判报告-vN.md # T6 产出（v2.2.2）：C1-C5 五维批判（从反方攻击论证）
+├── analysis/批判报告-vN.md # T6 产出（v2.3.0 改 T8→T6）：C1-C5 五维批判（从反方攻击论证）
 ├── drafts/初稿-vN.md    # T5 产出 + 修订稿 v2/v3（**显式覆盖前稿**，每轮均同步 `drafts/修订说明-vN.md`） + 修订说明
 ├── audits/审计报告-vN.md# T7 产出：P0致命/P1严重/P2建议
 ├── final/定稿.md        # Phase 5：终稿（去标注版另存）
@@ -250,22 +250,22 @@ run/<项目名>/
 **审计必查项**：G0-G13 十三项审计清单的逐条详解 + M 门算法 + G6/G7/G11/G12 实战子项见 [`references/agents/07-审计-auditor.md#必查项`](references/agents/07-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
 
 **派发话术锚点速查**（主控读 pipeline-readme.md 后定位用）：
-- T1 文献检索员 → pipeline-readme.md 行 108-127
-- T2 数据检索员 → 行 127-159
-- T4 案例检索员 → 行 159-180
-- T4 分析员 → 行 180-198
-- T7 写手 → 行 198-217
-- T6 批判伙伴 → 行 217-238
-- T7 审计员 → 行 238-262
+- T1 文献检索员 → pipeline-readme.md 行 207-225
+- T2 数据检索员 → 行 226-253
+- T3 案例检索员 → 行 254-287
+- T4 分析员 → 行 288-307
+- T5 写手 → 行 308-329
+- T6 批判伙伴 → 行 330-355
+- T7 审计员 → 行 356-380
 
 **审计锚点速查**：
-- G0-G5 速查表 → 审计员角色卡行 149-165
-- G6 论据类型自标 → 行 206
-- G7 原创性审计 → 行 208+
-- G11 时效告警 → M-Gate-Algorithm.md
-- G12 数据信任一致性 → M-Gate-Algorithm.md
-- G13 AI 使用披露 → 审计员角色卡 + pipeline-readme.md#AI 使用披露
-- M-Form/M-Exist/M-Integrity 三层 → _shared/M-Gate-Algorithm.md
+- G0-G13 速查表 → `references/_shared/audit-checklist-quickref.md`（全集）+ `references/agents/07-审计-auditor.md#必查项`（说明）
+- G6 论据类型自标 → `references/agents/07-审计-auditor.md`
+- G7 原创性审计 → `references/agents/07-审计-auditor.md`
+- G11 时效告警 → `references/_shared/M-Gate-Algorithm.md`
+- G12 数据信任一致性 → `references/_shared/M-Gate-Algorithm.md`
+- G13 AI 使用披露 → `references/agents/07-审计-auditor.md` + `references/pipeline-readme.md#AI 使用披露`
+- M-Form/M-Exist/M-Integrity 三层 → `references/_shared/M-Gate-Algorithm.md`
 
 ## 修订回环
 ```
@@ -278,12 +278,12 @@ run/<项目名>/
 > **Phase 4.5 配图 + 写手禁做 + 模型建议**详见 [`references/operations.md`](references/operations.md)。
 ## 角色卡与模板（完整版）
 
-- **8 张角色卡**（主控/文献检索/数据检索/分析/写作/审计/案例检索/批判伙伴）：`references/agents/`（T4 案例检索员为重量场景可选，T6 批判伙伴 v2.2.2 新增，轻量档可跳过）
-- 4 个模板（任务简报/status状态机/交接报告/**案例卡**）：`references/templates/`
+- **8 张角色卡**（主控/文献检索/数据检索/分析/写作/审计/案例检索/批判伙伴）：`references/agents/`（T3 案例检索员为重量场景可选，T6 批判伙伴 v2.2.2 新增，轻量档可跳过）
+- 7 类模板（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单，每类含 lite精简版 + full完整版）：`references/templates/`
 - 流水线运行手册（含 7 角色完整派发话术 + M 门 + F 模式 + AI 使用披露）：`references/pipeline-readme.md`
 - 设计文档（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判 详解）：`references/设计文档.md`
 - 实战案例库（商业热点 / 品牌一致性 / 原创性悖论 + 教训沉淀）：`references/case-studies.md`
-- （可选启用）T4 案例检索员：与 T1∥T2 并行，重量案例场景才 spawn
+- （可选启用）T3 案例检索员：与 T1∥T2 并行，重量案例场景才 spawn
 
 ## 实战验证案例
 
