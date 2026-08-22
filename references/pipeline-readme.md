@@ -164,6 +164,65 @@ v2.1.4（2026-08-15，**测试期 finding，本地修订未发布**）：**文�
    - 任何 T 阶段主控亲自产出 → 必须在文件头标注「主控兜底 v1.0」+ 注明失败原因
    - 写手收到时能识别这是非 T 产物，调整引用对齐策略
 
+## 模型配置与更换指南（v2.3.10 补全）
+
+> **背景**（主人 2026-08-22 指出）：operations.md 引用「模型配置与更换指南」段，但 v2.3.0 重构时 TOC 加入了三个子标题（`三层模型配置`/`更换的自由、途径、权限`/`能力分层原则`），**正文未补**——造成文档漂移（教训 #60 双形式同步漂移反模式）。本节为 v2.3.10 补全。
+
+### 三层模型配置（从外到内）
+
+论衡模型配置分**三层**，主人/主控从最外到最内修改：
+
+1. **OpenClaw agent 配置层**（`~/.openclaw/openclaw.json`）
+   - `agents.list[].model.primary`：全局主模型（论衡默认 `deepseek/deepseek-v4-pro`）
+   - `agents.list[].model.fallbacks`：全局兑底锥（默认 4 档）
+   - 适用范围：该 agent 所有会话与子代理派发的**全局默认**
+
+2. **角色卡顶部声明层**（`pipeline/agents/*.md`）
+   - 角色卡顶部可写「**本角色推荐模型**」（如「T7 审计顶配 = claude-opus-5」）
+   - 主控 spawn 该角色时**优先用角色卡推荐**（v2.3.7 升级）
+   - 适用场景：T7 审计需要顶配、T1/T2/T3 检索需要便宜快
+
+3. **论衡会话 status.md 顶部「本轮可用模型」表**
+   - 主人每轮会话启动时手动填（如 claude-opus-5 静默无响应 → 取消该模型）
+   - 主控 spawn 前**必查**此表（v2.3.1 新增，教训 #119）
+
+### 更换的自由、途径、权限
+
+| 层面 | 谁能改 | 怎么改 | 生效时机 |
+|---|---|---|---|
+| OpenClaw agent 配置 | 主人（手动 edit openclaw.json）或 gateway.patch | 需 backup 后改，gateway 重启生效 | 重启后 |
+| 角色卡推荐模型 | 主人 / 主控（经主人同意） | edit 角色卡顶部，sync-version.sh 同步 | 下一轮会话 |
+| 本轮可用模型 | 主控在 status.md 顶部填 | write status.md 头部「本轮可用模型」表 | 即时生效 |
+
+**主人的自由度**：
+- ✅ 任意层都可改，无需经过论衡批准
+- ✅ OpenClaw 兼容的任何模型都可接入（含 Ollama 本地）
+- ✅ fallback 顺序可自由调整
+- ⚠️ 改完需**重跑论衡首单测试**，验证模型组合不超时/不崩
+
+### 能力分层原则（换模型时遵循）
+
+按角色能力需求分层选模型，**避免「T7 审计用便宜快模型」「T1 检索用顶配」错配**：
+
+| 角色 | 能力需求 | 推荐模型（v2.3.7 实战） | 错配后果 |
+|---|---|---|---|
+| **T1/T2/T3 检索** | 机械检索 + 信息密度 | **deepseek-v4-flash**（便宜快）/ minimax-M3 / deepseek-v4-pro / glm-5.3 | 用顶配 = 浪费 + 慢；用太弱 = 信息丢失 |
+| **T4 分析** | 推理 + 结构化输出 | deepseek-v4-pro / deepseek-v4-flash / minimax-M3 / glm-5.3 | 用 flash = 大纲粗糙 |
+| **T5 写手** | 推理 + 文笔 + 引用规范 | deepseek-v4-pro / deepseek-v4-flash / minimax-M3 / glm-5.3 | 用 flash = 文章失味 |
+| **T6 批判** | 反方推理 + 论证强度 | deepseek-v4-pro / minimax-M3 / deepseek-v4-flash / glm-5.3 | 用 flash = 批判无刃 |
+| **T7 审计** | **顶配**（专抓错） | **claude-opus-5** / claude-sonnet-4.5 / deepseek-v4-pro / minimax-M3 / glm-5.3 | 用 v4-pro 兑底 = 审计质量降级（v2.3.7 P0-1 教训） |
+| **T0 主控** | 强推理 + 路由判断 | deepseek-v4-pro / minimax-M3 / deepseek-v4-flash / glm-5.3 | 主控崩 = 全流水线停 |
+
+**核心原则**：
+- **审计顶配不省**：T7 是最后一道防线，论文质量全压这——宁可其他地方慢
+- **检索不奢侈**：T1/T2/T3 是机械化检索，便宜快模型够用
+- **写手分场景**：内联引用 / 学术编号 = deepseek-v4-pro；公众号短文 = flash 够
+- **本地 Ollama 可用**：涉敏 / 零外发场景用 gemma4:31b / qwen3-coder:30b
+
+**见** `pipeline/operations.md` 成本与模型段（示例表与 fallback 链）
+
+---
+
 ## 流水线全景
 
 ```
