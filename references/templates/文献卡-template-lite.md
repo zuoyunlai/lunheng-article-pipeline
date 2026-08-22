@@ -2,7 +2,7 @@
 
 > **精简版**：只保留骨架 + 必填字段，详细说明见 [`文献卡-template.md`](文献卡-template.md)
 
-```markdown
+````markdown
 # 文献卡（Lxx 系列）
 
 > **位置**: `run/<项目名>/literature/文献卡.md`
@@ -59,3 +59,4 @@ grep "^## 基本信息" -A 3 文献卡.md    # 总条数
 **精简版结束**
 
 > 完整版见 [`文献卡-template.md`](文献卡-template.md)
+````

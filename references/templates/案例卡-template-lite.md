@@ -2,7 +2,7 @@
 
 > **精简版**：只保留骨架 + 必填字段，详细说明见 [`案例卡-template.md`](案例卡-template.md)
 
-```markdown
+````markdown
 # 案例卡（Cxx 系列）
 
 > **位置**: `run/<项目名>/cases/案例卡.md`
@@ -54,3 +54,4 @@ grep -c "^### \[C" 案例卡.md           # 实际条目数
 **精简版结束**
 
 > 完整版见 [`案例卡-template.md`](案例卡-template.md)
+````

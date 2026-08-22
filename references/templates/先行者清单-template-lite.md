@@ -2,7 +2,7 @@
 
 > **精简版**：只保留骨架，详细说明见 [`先行者清单-template.md`](先行者清单-template.md)
 
-```markdown
+````markdown
 # 先行者清单
 
 > **位置**: `run/<项目名>/literature/先行者清单.md`
@@ -44,3 +44,4 @@ grep -c "^### \[先" 先行者清单.md
 **精简版结束**
 
 > 完整版（含差异汇总 + 实战分类）见 [`先行者清单-template.md`](先行者清单-template.md)
+````

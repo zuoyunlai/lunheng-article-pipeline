@@ -86,7 +86,7 @@
 
 **借鉴出处**：vincentjiang06 paper-writer Trust Boundary 论衡化。
 
-**F 体系与 G 体系交叉引用**：详见 [`failure-modes.md`](failure-modes.md) 与 [`audit-checklist-quickref.md`](audit-checklist-quickref.md)。
+**F 体系与 G 体系交叉引用**：详见 [`failure-modes.md`](_shared/failure-modes.md) 与 [`audit-checklist-quickref.md`](_shared/audit-checklist-quickref.md)。
 
 ## M 机械化门控段（v2.2.0 + v2.2.1 扩展）
 
@@ -96,7 +96,7 @@
 - **T7 必跑**，exit 0 才能返回
 - 借鉴 vincentjiang06 objective/verify gate 硬约束理念的论衡化实现——「**形式合规 ≠ 存在性合规 ≠ 信任一致**」（v2.2.0 → v2.2.1 M 门三层验证）
 
-**M 门算法完整规约**：[`M-Gate-Algorithm.md`](M-Gate-Algorithm.md)
+**M 门算法完整规约**：[`M-Gate-Algorithm.md`](_shared/M-Gate-Algorithm.md)
 
 ## 修订回环 ≤2 轮硬约束（v2.2.0 新增，v2.3.1 定义细化，教训 #64 + #120）
 
