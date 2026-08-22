@@ -17,7 +17,20 @@
 set -e
 
 SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SKILL_MD="$SKILL_ROOT/SKILL.md"
+
+# 自动检测目录结构：工作区（pipeline/）vs skill 副本（references/ + 根 SKILL.md）
+if [ -d "$SKILL_ROOT/pipeline" ]; then
+  CONTENT_DIR="$SKILL_ROOT/pipeline"
+  SKILL_MD="$CONTENT_DIR/SKILL.md"
+  ENTRY_DIR="$CONTENT_DIR"
+elif [ -d "$SKILL_ROOT/references" ]; then
+  CONTENT_DIR="$SKILL_ROOT/references"
+  SKILL_MD="$SKILL_ROOT/SKILL.md"
+  ENTRY_DIR="$SKILL_ROOT"
+else
+  echo "❌ 无法识别目录结构（找不到 pipeline/ 或 references/）"
+  exit 1
+fi
 DRY_RUN=false
 
 if [ "$1" == "--dry-run" ]; then
@@ -39,28 +52,29 @@ echo ""
 
 # 定义需要同步版本号的文件列表
 # 格式：文件路径|插入位置（header=文件顶部，replace=全文替换旧版本号）
+# 路径规则：内容文件（glossary/agents 等）相对 CONTENT_DIR；入口文件（README/QUICKSTART）用 @ 前缀，相对 ENTRY_DIR
 SYNCS=(
   # 核心文档（顶部插入版本号）
-  "references/glossary.md|header"
-  "references/pipeline-readme.md|header"
-  "references/设计文档.md|header"
+  "glossary.md|header"
+  "pipeline-readme.md|header"
+  "设计文档.md|header"
 
   # 共享协议（顶部插入版本号）
-  "references/_shared/M-Gate-Algorithm.md|header"
+  "_shared/M-Gate-Algorithm.md|header"
 
   # 8 个角色卡（顶部插入版本号）
-  "references/agents/00-主控-coordinator.md|header"
-  "references/agents/01-文献检索-literature-scout.md|header"
-  "references/agents/02-数据检索-data-scout.md|header"
-  "references/agents/03-案例检索-case-scout.md|header"
-  "references/agents/04-分析-analyst.md|header"
-  "references/agents/05-写作-writer.md|header"
-  "references/agents/06-批判-critical-companion.md|header"
-  "references/agents/07-审计-auditor.md|header"
+  "agents/00-主控-coordinator.md|header"
+  "agents/01-文献检索-literature-scout.md|header"
+  "agents/02-数据检索-data-scout.md|header"
+  "agents/03-案例检索-case-scout.md|header"
+  "agents/04-分析-analyst.md|header"
+  "agents/05-写作-writer.md|header"
+  "agents/06-批判-critical-companion.md|header"
+  "agents/07-审计-auditor.md|header"
 
-  # 顶层文档（根目录，v2.3.6 起纳入）
-  "README.md|header"
-  "references/QUICKSTART.md|header"
+  # 顶层文档（入口，v2.3.6 起纳入；@ = 相对 ENTRY_DIR）
+  "@README.md|header"
+  "@QUICKSTART.md|header"
 )
 
 UPDATED=0
@@ -69,7 +83,13 @@ SKIPPED=0
 echo "=== 版本号同步 ==="
 for sync in "${SYNCS[@]}"; do
   IFS='|' read -r file mode <<< "$sync"
-  full_path="$SKILL_ROOT/$file"
+  # 入口文件（@ 前缀）相对 ENTRY_DIR，内容文件相对 CONTENT_DIR
+  if [[ "$file" == @* ]]; then
+    file="${file#@}"
+    full_path="$ENTRY_DIR/$file"
+  else
+    full_path="$CONTENT_DIR/$file"
+  fi
 
   if [ ! -f "$full_path" ]; then
     echo "⚠️  跳过：$file（文件不存在）"

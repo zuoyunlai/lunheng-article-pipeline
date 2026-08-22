@@ -16,7 +16,20 @@
 set -e
 
 SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SKILL_MD="$SKILL_ROOT/SKILL.md"
+
+# 自动检测目录结构：工作区（pipeline/）vs skill 副本（references/ + 根 SKILL.md）
+if [ -d "$SKILL_ROOT/pipeline" ]; then
+  CONTENT_DIR="$SKILL_ROOT/pipeline"
+  SKILL_MD="$CONTENT_DIR/SKILL.md"
+  ENTRY_DIR="$CONTENT_DIR"
+elif [ -d "$SKILL_ROOT/references" ]; then
+  CONTENT_DIR="$SKILL_ROOT/references"
+  SKILL_MD="$SKILL_ROOT/SKILL.md"
+  ENTRY_DIR="$SKILL_ROOT"
+else
+  echo "❌ 无法识别目录结构（找不到 pipeline/ 或 references/）"
+  exit 1
+fi
 
 # 从 SKILL.md frontmatter 读取版本号（单一真源）
 EXPECTED=$(grep -E '^version:' "$SKILL_MD" | head -1 | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
@@ -31,28 +44,29 @@ echo ""
 
 # 定义版本号检查矩阵（文件路径 + 匹配模式 + 最少出现次数）
 # 格式：文件路径|匹配模式|最少次数
+# 路径规则：内容文件相对 CONTENT_DIR；入口文件（README/QUICKSTART）用 @ 前缀，相对 ENTRY_DIR
 CHECKS=(
   # 核心文档
-  "references/glossary.md|v$EXPECTED|1"
-  "references/pipeline-readme.md|v$EXPECTED|1"
-  "references/设计文档.md|v$EXPECTED|1"
+  "glossary.md|v$EXPECTED|1"
+  "pipeline-readme.md|v$EXPECTED|1"
+  "设计文档.md|v$EXPECTED|1"
 
   # 共享协议
-  "references/_shared/M-Gate-Algorithm.md|v$EXPECTED|1"
+  "_shared/M-Gate-Algorithm.md|v$EXPECTED|1"
 
   # 8 个角色卡（顶部必须含版本号）
-  "references/agents/00-主控-coordinator.md|v$EXPECTED|1"
-  "references/agents/01-文献检索-literature-scout.md|v$EXPECTED|1"
-  "references/agents/02-数据检索-data-scout.md|v$EXPECTED|1"
-  "references/agents/03-案例检索-case-scout.md|v$EXPECTED|1"
-  "references/agents/04-分析-analyst.md|v$EXPECTED|1"
-  "references/agents/05-写作-writer.md|v$EXPECTED|1"
-  "references/agents/06-批判-critical-companion.md|v$EXPECTED|1"
-  "references/agents/07-审计-auditor.md|v$EXPECTED|1"
+  "agents/00-主控-coordinator.md|v$EXPECTED|1"
+  "agents/01-文献检索-literature-scout.md|v$EXPECTED|1"
+  "agents/02-数据检索-data-scout.md|v$EXPECTED|1"
+  "agents/03-案例检索-case-scout.md|v$EXPECTED|1"
+  "agents/04-分析-analyst.md|v$EXPECTED|1"
+  "agents/05-写作-writer.md|v$EXPECTED|1"
+  "agents/06-批判-critical-companion.md|v$EXPECTED|1"
+  "agents/07-审计-auditor.md|v$EXPECTED|1"
 
-  # 顶层文档（根目录，v2.3.6 起纳入）
-  "README.md|v$EXPECTED|1"
-  "references/QUICKSTART.md|v$EXPECTED|1"
+  # 顶层文档（入口，v2.3.6 起纳入；@ = 相对 ENTRY_DIR）
+  "@README.md|v$EXPECTED|1"
+  "@QUICKSTART.md|v$EXPECTED|1"
 )
 
 PASS=0
@@ -65,7 +79,12 @@ echo "--------------------------------------------------------------------------
 
 for check in "${CHECKS[@]}"; do
   IFS='|' read -r file pattern min_count <<< "$check"
-  full_path="$SKILL_ROOT/$file"
+  if [[ "$file" == @* ]]; then
+    file="${file#@}"
+    full_path="$ENTRY_DIR/$file"
+  else
+    full_path="$CONTENT_DIR/$file"
+  fi
 
   if [ ! -f "$full_path" ]; then
     printf "%-50s %-15s %-10s %s\n" "$file" "v$EXPECTED" "N/A" "⚠️  文件不存在"
@@ -99,7 +118,12 @@ HEADER_FAIL=0
 
 for check in "${CHECKS[@]}"; do
   IFS='|' read -r file pattern min_count <<< "$check"
-  full_path="$SKILL_ROOT/$file"
+  if [[ "$file" == @* ]]; then
+    file="${file#@}"
+    full_path="$ENTRY_DIR/$file"
+  else
+    full_path="$CONTENT_DIR/$file"
+  fi
 
   if [ ! -f "$full_path" ]; then
     continue
