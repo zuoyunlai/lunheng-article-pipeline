@@ -58,9 +58,13 @@ SYNCS=(
   "glossary.md|header"
   "pipeline-readme.md|header"
   "设计文档.md|header"
+  "设计文档-架构.md|header"
+  "设计文档-哲学.md|header"
+  "deliverables.md|header"
 
   # 共享协议（顶部插入版本号）
   "_shared/M-Gate-Algorithm.md|header"
+  "_shared/audit-checklist-quickref.md|header"
 
   # 8 个角色卡（顶部插入版本号）
   "agents/00-主控-coordinator.md|header"

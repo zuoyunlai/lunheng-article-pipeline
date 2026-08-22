@@ -50,9 +50,13 @@ CHECKS=(
   "glossary.md|v$EXPECTED|1"
   "pipeline-readme.md|v$EXPECTED|1"
   "设计文档.md|v$EXPECTED|1"
+  "设计文档-架构.md|v$EXPECTED|1"
+  "设计文档-哲学.md|v$EXPECTED|1"
+  "deliverables.md|v$EXPECTED|1"
 
   # 共享协议
   "_shared/M-Gate-Algorithm.md|v$EXPECTED|1"
+  "_shared/audit-checklist-quickref.md|v$EXPECTED|1"
 
   # 8 个角色卡（顶部必须含版本号）
   "agents/00-主控-coordinator.md|v$EXPECTED|1"
