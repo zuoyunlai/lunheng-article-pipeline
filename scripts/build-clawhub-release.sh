@@ -110,6 +110,30 @@ PYEOF
   sed -i -E 's/版本升级自审门/版本一致性检查/g' "$f"
   sed -i -E 's/`_shared\/版本一致性检查-v2\.3\.0\.md`[^））]*）//g' "$f"
   sed -i -E 's/M-Gate-渐进式验证-v2\.2\.15\.md/M-Gate-Algorithm.md/g' "$f"
+
+  # 3f. 主控卡「反哺报告处理」整段替换为净化版（彻底消除跨项目共享状态写入表述，回应 Finding 3）
+  if [[ "$(basename "$f")" == "00-主控-coordinator.md" ]]; then
+    python3 - "$f" <<'PYEOF'
+import sys, re
+path = sys.argv[1]
+s = open(path, encoding='utf-8').read()
+# 定位「## 反哺报告处理」到「## 边界」之间的整段，替换为净化版
+pattern = re.compile(r'## 反哺报告处理.*?(?=\n## 边界)', re.DOTALL)
+replacement = '''## 反哺报告处理（发布版简化）
+
+主控会话结束时（Phase 5 终检后）执行：
+
+1. **读取** T7 审计员交付的 `audits/反哺报告-vN.md`
+2. **列出建议 merge 的反哺规则**到 `final/交付说明.md` 末段「建议 merge 的反哺规则」清单
+3. **不自动修改任何角色卡或共享状态文件**——等主人人工 review 后手动 merge
+4. **项目内教训记录**：本次实战发现写入 `run/<项目>/audit-lessons.md`（**项目内文件**，非跨项目共享状态）；跨项目教训沉淀仅存在于论衡开发版（含跨项目 lessons 同步机制），见 GitHub 仓库：https://github.com/zuoyunlai/lunheng-article-pipeline
+
+如反哺报告为空（无新增问题），主控写「本轮反哺报告：T7 未发现可沉淀新增问题」，避免机制被跳过。'''
+s, n = pattern.subn(replacement, s)
+open(path, 'w', encoding='utf-8').write(s)
+print(f'✅ 主控卡反哺段净化完成（替换 {n} 处）')
+PYEOF
+  fi
 }
 
 # 对所有 md 文件净化
