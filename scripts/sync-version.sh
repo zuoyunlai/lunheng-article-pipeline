@@ -57,6 +57,10 @@ SYNCS=(
   "references/agents/05-写作-writer.md|header"
   "references/agents/06-批判-critical-companion.md|header"
   "references/agents/07-审计-auditor.md|header"
+
+  # 顶层文档（根目录，v2.3.6 起纳入）
+  "README.md|header"
+  "references/QUICKSTART.md|header"
 )
 
 UPDATED=0

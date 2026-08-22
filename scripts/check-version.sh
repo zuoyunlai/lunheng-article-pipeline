@@ -49,6 +49,10 @@ CHECKS=(
   "references/agents/05-写作-writer.md|v$EXPECTED|1"
   "references/agents/06-批判-critical-companion.md|v$EXPECTED|1"
   "references/agents/07-审计-auditor.md|v$EXPECTED|1"
+
+  # 顶层文档（根目录，v2.3.6 起纳入）
+  "README.md|v$EXPECTED|1"
+  "references/QUICKSTART.md|v$EXPECTED|1"
 )
 
 PASS=0

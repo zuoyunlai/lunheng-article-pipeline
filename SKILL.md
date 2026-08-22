@@ -1,8 +1,9 @@
+> 版本：v2.3.6（自动同步 2026-08-22）
 > 版本：v2.3.5（自动同步 2026-08-21）
 > 版本：v2.3.4（自动同步 2026-08-21）
 ---
 name: "lunheng-article-pipeline"
-version: 2.3.5
+version: 2.3.6
 description: "严肃长文流水线（学术论文 / 商业评论 / 行业分析 / 公众号深度长文）——多 Agent 子代理编排。**不适用于**短文/即时问答/文学创作。**重点功能**：三角验证（文献/数据/案例）+ M 机械化硬门 + F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。**不适用于** <2000 字短文。若需短文或即时问答，请直接使用主控 LLM，不要走本流水线。"
 metadata:
   requires:
@@ -48,7 +49,7 @@ metadata:
 **开始使用前，强烈建议先阅读**：[`references/glossary.md`](references/glossary.md)
 
 词汇表集中定义了：
-- 9 个角色职责（T0-T8，v2.3.0 重构：原 8 角色 → 9 角色，原 T6 案例检索 → T3，T6 = 批判伙伴，T7 = 审计员，**T8 终检 = T0 主控亲完成，无独立角色卡**）
+- 8 张角色卡（T0-T7）+ T8 终检职责（v2.3.0 重构：T6 案例检索 → T3，T6 = 批判伙伴，T7 = 审计员，**T8 终检 = T0 主控亲完成，无独立角色卡**）
 - 三层防御体系（M 门/F 模式/G 清单）
 - 数据信任级别（3 档）
 - 关键协议（Phase 0/0 条空卡/并行独立运行）
@@ -77,7 +78,7 @@ metadata:
 - M 门算法文档中的 bash 命令是「人类验证示例」，方便主人手动复核，**不是 agent 执行的代码**
 - 这样设计确保了跨平台兼容（Windows / macOS / Linux）和安全性（零 shell 执行风险）
 
-> 把一篇深度文章/论文的生产拆成 **9 个角色 + 6 个阶段**（T1∥T2∥T3 三方真并行互不干涉，v2.1.8 + v2.3.0 重命名原 T6→T3；T6 批判伙伴 v2.2.2 新增 + v2.3.0 重命名原 T8→T6；T8 终检 = 主控亲完成），用 OpenClaw `sessions_spawn` 子代理编排。产出有证据底座（文献卡+数据卡+案例卡）、有反方论证、有独立审计、有人工核验节点的交付物。**v2.2.4 定位升级：深度长文通用引擎**——学术论文/商业评论/行业分析/公众号深度长文；学术用 [Lxx]/[Dxx] 编号引用，公众号/商业评论用内联（机构，年份）引用。经验证：一篇 7650 字/8 节/2 图/52 文献/60 数据点的深度文，全流程约 2 小时完成。
+> 把一篇深度文章/论文的生产拆成 **8 张角色卡 + 6 个阶段**（T1∥T2∥T3 三方真并行互不干涉，v2.1.8 + v2.3.0 重命名原 T6→T3；T6 批判伙伴 v2.2.2 新增 + v2.3.0 重命名原 T8→T6；T8 终检 = 主控亲完成），用 OpenClaw `sessions_spawn` 子代理编排。产出有证据底座（文献卡+数据卡+案例卡）、有反方论证、有独立审计、有人工核验节点的交付物。**v2.2.4 定位升级：深度长文通用引擎**——学术论文/商业评论/行业分析/公众号深度长文；学术用 [Lxx]/[Dxx] 编号引用，公众号/商业评论用内联（机构，年份）引用。经验证：一篇 7650 字/8 节/2 图/52 文献/60 数据点的深度文，全流程约 2 小时完成。
 
 ## 启动清单（主控 Phase 0 必走）
 
@@ -87,7 +88,7 @@ metadata:
 4. 读 `memory/YYYY-MM-DD.md`（今天+昨天）看主人最近关注主题
 5. 项目目录固定 `run/<项目名>/`，路径映射见 `references/pipeline-readme.md` 的「项目目录结构」段
 6. **spawn 子代理前必读派发话术**（v2.2.8 按需加载，v2.3.0 补 T7）：T1/T2/T3/T4/T5/T6/T7/T8 八个角色（T8 终检不 spawn，仅主控亲完成作参考）的完整派发模板见 [`references/pipeline-readme.md#派发话术`](references/pipeline-readme.md)；不要凭记忆复制 SKILL.md 历史版本（避免双形式同步漂移，教训 #57）
-7. 审计前必读 G 体系：`references/agents/05-审计-auditor.md#必查项`（G0-G13 详解）+ `_shared/M-Gate-Algorithm.md`（M 门算法）
+7. 审计前必读 G 体系：`references/agents/07-审计-auditor.md#必查项`（G0-G13 详解）+ `_shared/M-Gate-Algorithm.md`（M 门算法）
 8. 文件修改走安全流程（v2.1.4 F5 补完）：**任何时候禁止 `sed -i`**（静默清空文件事故教训 #48）
    - 改前：`wc -l` 记录 + `cp <file> /tmp/<file>.bak` 备份
    - 改中：用 `edit` 工具精确 oldText 匹配，不用 sed/awk/perl 直接写回
@@ -210,10 +211,10 @@ run/<项目名>/
 ├── status.md            # 状态机：Inbox→Assigned→In Progress→Review→Done|Failed（角色交接必更新）
 ├── literature/文献卡.md # T1 产出：[L01]... 每条含可信度等级 A/B/C + 关联
 ├── data/数据卡.md       # T2 产出：[D01]... 每条含来源机构+年份+URL+时效🟢🟡🔴
-├── cases/案例卡.md      # T4 产出：[C01]... 每条含事件/主体/时间窗口/多方说法/≥2来源
+├── cases/案例卡.md      # T3 产出：[C01]... 每条含事件/主体/时间窗口/多方说法/≥2来源
 ├── analysis/分析大纲.md # T4 产出：论证主线+映射表+反方规划+章节字数预算
 ├── analysis/批判报告-vN.md # T6 产出（v2.2.2）：C1-C5 五维批判（从反方攻击论证）
-├── drafts/初稿-vN.md    # T7 产出 + 修订稿 v2/v3（**显式覆盖前稿**，每轮均同步 `drafts/修订说明-vN.md`） + 修订说明
+├── drafts/初稿-vN.md    # T5 产出 + 修订稿 v2/v3（**显式覆盖前稿**，每轮均同步 `drafts/修订说明-vN.md`） + 修订说明
 ├── audits/审计报告-vN.md# T7 产出：P0致命/P1严重/P2建议
 ├── final/定稿.md        # Phase 5：终稿（去标注版另存）
 ├── final/图件/          # 数据图表 + 封面
@@ -245,7 +246,7 @@ run/<项目名>/
 
 **派发话术**：T1/T2/T3/T4/T5/T6/T7 七个 spawn 角色的完整派发模板见 [`references/pipeline-readme.md#派发话术`](references/pipeline-readme.md)（T8 终检不 spawn，由主控亲完成，参考主控卡 §终检段）。**主控 spawn 子代理前必读**（不要凭记忆复制 SKILL.md 历史版本，引用 pipeline-readme.md 的最新版，避免双形式同步漂移，教训 #57）。
 
-**审计必查项**：G0-G13 十三项审计清单的逐条详解 + M 门算法 + G6/G7/G11/G12 实战子项见 [`references/agents/05-审计-auditor.md#必查项`](references/agents/05-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
+**审计必查项**：G0-G13 十三项审计清单的逐条详解 + M 门算法 + G6/G7/G11/G12 实战子项见 [`references/agents/07-审计-auditor.md#必查项`](references/agents/07-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
 
 **派发话术锚点速查**（主控读 pipeline-readme.md 后定位用）：
 - T1 文献检索员 → pipeline-readme.md 行 108-127
