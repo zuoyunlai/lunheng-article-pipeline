@@ -116,10 +116,30 @@ for sync in "${SYNCS[@]}"; do
       # 备份原文件
       cp "$full_path" "$full_path.bak.$(date +%Y%m%d-%H%M%S)"
 
-      # 在文件顶部插入版本号注释
-      sed -i "1i\\
+      # 检测文件是否为 YAML frontmatter（第 1 行是 `---`）
+      # 若是，则在 frontmatter 关闭 `---` 之后插入（不破坏 frontmatter 结构）
+      # 若否，则在第 1 行前插入（原行为）
+      if head -1 "$full_path" | grep -qE "^---$"; then
+        # 找第 2 个 `---`（frontmatter 关闭），在它后面插入
+        # 使用 awk 找到第 2 个 `---` 的行号（从 1 开始）
+        CLOSE_LINE=$(awk 'BEGIN{n=0} /^---$/{n++; if(n==2){print NR; exit}}' "$full_path")
+        if [ -n "$CLOSE_LINE" ]; then
+          # 在关闭 `---` 之后插入（行号 +1）
+          sed -i "${CLOSE_LINE}a\\
 > 版本：v$EXPECTED（自动同步 $(date +%Y-%m-%d)）\\
 " "$full_path"
+        else
+          # 兜底：只找到一个 `---`，按第 1 行前插入
+          sed -i "1i\\
+> 版本：v$EXPECTED（自动同步 $(date +%Y-%m-%d)）\\
+" "$full_path"
+        fi
+      else
+        # 非 frontmatter 文件，按原逻辑在第 1 行前插入
+        sed -i "1i\\
+> 版本：v$EXPECTED（自动同步 $(date +%Y-%m-%d)）\\
+" "$full_path"
+      fi
 
       echo "✅ 更新：$file（顶部插入 v$EXPECTED）"
     fi
