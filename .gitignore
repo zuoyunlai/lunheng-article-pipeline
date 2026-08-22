@@ -2,3 +2,4 @@
 .bak-*
 audits/
 references/_shared/archive/
+outputs/clawhub-release/
