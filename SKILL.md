@@ -1,7 +1,7 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.3.7
-description: "严肃长文流水线（学术论文 / 商业评论 / 行业分析 / 公众号深度长文）——多 Agent 子代理编排。**不适用于**短文/即时问答/文学创作。**重点功能**：三角验证（文献/数据/案例）+ M 机械化硬门 + F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。**不适用于** <2000 字短文。若需短文或即时问答，请直接使用主控 LLM，不要走本流水线。"
+version: 2.3.8
+description: "严肃长文流水线（学术论文 / 商业评论 / 行业分析 / 公众号深度长文）——多 Agent 子代理编排。**重点功能**：三角验证（文献/数据/案例）+ M 机械化硬门 + F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字短文/即时问答/文学创作建议直接用主控 LLM（走流水线不划算）。**含技能自我维护**：版本号同步（scripts/check-version.sh + sync-version.sh）+ 实战教训沉淀（memory/lessons.md 跨项目），仅在主人人工 review 后手动 merge，不自动修改角色卡。"
 metadata:
   requires:
     bins: []
@@ -36,6 +36,7 @@ metadata:
       - "skill_workshop"
 ---
 
+> 版本：v2.3.8（自动同步 2026-08-22）
 > 版本：v2.3.7（自动同步 2026-08-22）
 > 版本：v2.3.6（自动同步 2026-08-22）
 > 版本：v2.3.5（自动同步 2026-08-21）
@@ -92,6 +93,7 @@ metadata:
 6. **spawn 子代理前必读派发话术**（v2.2.8 按需加载，v2.3.0 补 T7）：T1/T2/T3/T4/T5/T6/T7/T8 八个角色（T8 终检不 spawn，仅主控亲完成作参考）的完整派发模板见 [`references/pipeline-readme.md#派发话术`](references/pipeline-readme.md)；不要凭记忆复制 SKILL.md 历史版本（避免双形式同步漂移，教训 #57）
 7. 审计前必读 G 体系：`references/agents/07-审计-auditor.md#必查项`（G0-G13 详解）+ `_shared/M-Gate-Algorithm.md`（M 门算法）
 8. 文件修改走安全流程（v2.1.4 F5 补完）：**任何时候禁止 `sed -i`**（静默清空文件事故教训 #48）
+   - ⚠️ **以下 shell 命令（`wc -l`/`cp`/`diff`）是人类在 host shell 手动执行的安全流程示例，不是 agent 执行代码**——论衡 agent 零 exec 依赖，主控用 LLM 推理模拟这些验证（读文件 → 对比 → 判定），不实际调用 shell
    - 改前：`wc -l` 记录 + `cp <file> /tmp/<file>.bak` 备份
    - 改中：用 `edit` 工具精确 oldText 匹配，不用 sed/awk/perl 直接写回
    - 改后：`wc -l` 对比 + `diff <file> /tmp/<file>.bak` 验证，不一致立即恢复
