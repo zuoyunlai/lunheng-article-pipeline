@@ -333,31 +333,30 @@ deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3
 
 ---
 
-## 七、版本号管理（5 层真源）
+## 七、版本号管理（5 层发布同步）
 
-### 第 1 层：Git
-- **Commit**：`git commit -m "论衡 vX.Y.Z: ..."`
-- **Tag**：`git tag -a vX.Y.Z -m "..."`
-- **Push**：`git push origin master && git push origin vX.Y.Z`
+> **真源唯一（v2.3.15 澄清）**：论衡只有一个真源——skill 目录 `references/`（见 §十一「真源 vs 副本」）。本节的「5 层」是**发布同步的 5 个目标**，不是 5 个真源。
 
-### 第 2 层：技能文档
-- `SKILL.md` frontmatter `version: X.Y.Z`
-- `references/设计文档.md` 版本引用
-- `references/pipeline-readme.md` 版本变更记录
-- `references/_shared/M-Gate-Algorithm.md` 顶部版本标注
-- 8 个角色卡顶部版本标注
+### 第 1 层：Git（真源版本控制）
+- **Commit**：`git commit -m "..."`（skill 副本仓库）
+- **Tag**：`git tag vX.Y.Z`
+- **Push**：`git push origin master --tags`
 
-### 第 3 层：OpenClaw 配置
-- `~/.openclaw/openclaw.json` agents.paperwriter.description
+### 第 2 层：技能文档（18 文件版本号同步）
+- `SKILL.md` frontmatter `version: X.Y.Z`（版本号单一真源）
+- `scripts/sync-version.sh` 同步 18 文件顶部版本号
+- `scripts/check-version.sh` 验证一致性
 
-### 第 4 层：GitHub Web UI（需显式 API PATCH）
-- Repository description
-- Topics
-- Homepage URL
+### 第 3 层：本机 OpenClaw 配置（可选，skill 化后非必须）
+- `~/.openclaw/openclaw.json` 本机 agent description（若配置了 paperwriter agent，追加版本号）
 
-### 第 5 层：ClawHub
-- Skill package 重新打包上传
-- Security scan 通过
+### 第 4 层：GitHub（Release + description）
+- **GitHub Releases**：每版必建 `gh release create`（教训：v2.3.11 曾漏建）
+- repo description：`gh repo edit`（含版本号）
+
+### 第 5 层：ClawHub（净化包 + 扫描）
+- `scripts/build-clawhub-release.sh` 生成净化包
+- `clawhub publish` 上传 + security scan
 
 ---
 
