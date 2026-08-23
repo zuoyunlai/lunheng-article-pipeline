@@ -1,3 +1,5 @@
+> 版本：v2.4.0（自动同步 2026-08-23）
+
 > 版本：v2.3.19（自动同步 2026-08-23）
 
 > 版本：v2.3.18（自动同步 2026-08-23）
@@ -49,6 +51,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 # 2. 主控自动派 T1∥T2∥T3 三检索员并行检索（v2.3.0 改 T6→T3）
 # 3. 主控自动派 T4 分析 → T5 写手 → T6 批判 → T7 审计 → T8 主控终检
 #    （v2.3.0 改 T3→T4/T4→T5/T8→T6/T5→T7/T7→T8；新增 Phase 3.6 批判介入）
+# 3.5 可选：Phase 4.5 终稿前 T9 同行评审模拟 + G14 中文 AI 痕迹闸（v2.4.0 新增，默认 T9 关闭）
 # 4. 交付一份带引用来源的高质量长文
 ```
 
@@ -135,7 +138,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 ---
 
-## 📊 8 张角色卡一览（v2.3.0 重构：编号 = 流水线 Phase 顺序，T8 终检由主控亲完成）
+## 📊 9 张角色卡一览（v2.4.0 更新：8 → 9 张，编号 = 流水线 Phase 顺序，T8 终检由主控亲完成）
 
 | 角色 | 职责 | 何时启动 |
 |------|------|---------|
@@ -148,6 +151,9 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | **T6 批判伙伴**（v2.3.0 改 T8→T6） | 从反方攻击论证（C1-C7） | Phase 3.6（T5 v2 后，攻击 v2 含主人洞察） |
 | **T7 审计员**（v2.3.0 改 T5→T7） | 质量检查 + 修订任务书 | Phase 4 |
 | **T8 主控终检**（v2.3.0 改 T7→T8，主控亲完成） | 交付物完整性 + AI 使用披露 | Phase 5（无独立角色卡，主控代） |
+| **T9 同行评审**（v2.4.0 新增，可选） | 预演期刊审稿（6 维度评分 → accept/minor/major/reject） | Phase 4.5（默认关闭，主人拍板） |
+
+> **G14 中文 AI 痕迹闸（v2.4.0 新增）**：Phase 4.5 触发，与 T6 并行。8 类检测（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning 触发修订 / 5+ 类 Fail 强制修订。
 
 完整角色定义：详见 [`glossary.md § 一 核心角色`](references/glossary.md)
 
