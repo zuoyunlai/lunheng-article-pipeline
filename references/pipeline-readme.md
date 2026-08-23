@@ -158,15 +158,8 @@ v2.1.4（2026-08-15，**测试期 finding，本地修订未发布**）：**文�
    - deepseek-v4-pro：推理/分析默认，但有过超时历史（教训 #35）
    - minimax-m3：推理/分析 fallback，但近期 T3 三连超时主要责任方
    - claude-opus-5：审计顶配（T7 审计员主模型），但成本高 + **有 kkaiapi 接口静默无响应前科（教训 #119）**
-   - **T7 审计员派发前必查**（v2.3.1 新增，教训 #119）：T7 主模型 claude-opus-5 → fallback 链 `claude-opus-5 → deepseek-v4-pro → minimax-M3`；派发前 1-token ping 预检，若 claude-opus-5 静默无响应 → **直接以 deepseek-v4-pro 派发**，并在产物头标注「T7 由 deepseek-v4-pro 兑底（原 claude-opus-5 静默无响应，教训 #119）」
-  - **角色级 fallback 分级（v2.3.7 论文三实战升级，P2-2）**：v2.3.7 实战中 T7 fallback 用 deepseek-v4-pro（写手级别）兑底 claude-opus-5（审计级别），deepseek-v4-pro 不一定适合审计顶配场景。**角色级 fallback 分级**：
-    - **T7 审计 fallout 链**（v2.3.7 实战升级，论文三 P0-1 教训）：primary = claude-opus-5（审计顶配）→ fallback-1 = **claude-sonnet-4.5**（审计次顶配）→ fallback-2 = deepseek-v4-pro（推理强模型，跨场景通用）→ fallback-3 = minimax-M3 → fallback-4 = glm-5.3。
-    - **T5 写手 fallback 链**：primary = deepseek-v4-pro（写手级别）→ fallback-1 = deepseek-v4-flash（便宜快够用）→ fallback-2 = minimax-M3 → fallback-3 = glm-5.3。
-    - **T4 分析 fallback 链**：同 T5 写手（deepseek-v4-pro → deepseek-v4-flash → minimax-M3 → glm-5.3）。
-    - **T1/T2/T3 检索 fallback 链**：primary = deepseek-v4-flash（检索便宜快）→ fallback-1 = minimax-M3 → fallback-2 = deepseek-v4-pro → fallback-3 = glm-5.3。
-    - **OpenClaw `agent.paperwriter.model.fallbacks`** 是全局兑底锥（不区分角色），T7/T5 角色级兑底锥应在 `agents/` 角色卡 顶部 `model.fallbacks` 覆盖。
-    - **配置路径**（v2.3.7 升级后）：在 `agents/paperwriter.json`（或各角色 agent 配置）的 `model.fallbacks` 数组里按角色设置兑底锥。
-    - **v2.3.12 P0-2 能力抽象**：上述角色级 fallback 分级已抽象为「能力档 + 候选池」（见下文「模型配置与更换指南 § 能力分层原则」），角色卡不再硬编码单一模型，候选池按本机可用模型自动适配。
+   - **T7 审计员派发前必查**（v2.3.1 新增，教训 #119）：T7 属「批判审计=顶配」能力档，候选池见 SKILL.md 模型分工表；派发前 1-token ping 预检，若顶配模型静默无响应 → 走候选池下一档，并在产物头标注兑底事实。
+  - **角色级 fallback 分级（v2.3.12 P0-2 能力抽象，已取代 v2.3.7 硬编码链）**：v2.3.7 的硬编码 fallback 链（T7 审计 fallout 链 / T5 写手链 / T4 分析链 / T1-T3 检索链）已废弃，统一为「能力档 + 候选池」（候选池唯一真源见 SKILL.md 模型分工表），角色卡不再硬编码单一模型，候选池按本机可用模型自动适配。
    - **主控派发前查 status.md 顶部「论衡本轮可用模型」表**（论衡会话启动时自动填）
 
 2. **超时硬卡 8 分钟**（实战中旧阈值过宽，介入太晚）：
