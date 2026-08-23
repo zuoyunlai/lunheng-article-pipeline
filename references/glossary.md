@@ -327,7 +327,8 @@ deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3
 
 ## 七、版本号管理（5 层发布同步）
 
-> **真源唯一（v2.3.15 澄清）**：论衡只有一个真源——skill 目录 `references/`（见 §十一「真源 vs 副本」）。本节的「5 层」是**发布同步的 5 个目标**，不是 5 个真源。
+> **真源唯一（v2.3.15 澄清）**：论衡只有一个真源——skill 目录 `references/`（见 §十一「真源 vs 副本」）。本节的「4 层」是**发布同步的 4 个目标**，不是 4 个真源。
+> **v2.4.0 更新**：原「5 层」→「4 层」——skill 化（v2.3.13）后论衡不再依赖 OpenClaw 配置（openclaw.json），原第 3 层取消。
 
 ### 第 1 层：Git（真源版本控制）
 - **Commit**：`git commit -m "..."`（skill 副本仓库）
@@ -339,14 +340,11 @@ deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3
 - `scripts/sync-version.sh` 同步 18 文件顶部版本号
 - `scripts/check-version.sh` 验证一致性
 
-### 第 3 层：本机 OpenClaw 配置（可选，skill 化后非必须）
-- `~/.openclaw/openclaw.json` 本机 agent description（若配置了 paperwriter agent，追加版本号）
-
-### 第 4 层：GitHub（Release + description）
+### 第 3 层：GitHub（Release + description）
 - **GitHub Releases**：每版必建 `gh release create`（教训：v2.3.11 曾漏建）
 - repo description：`gh repo edit`（含版本号）
 
-### 第 5 层：ClawHub（净化包 + 扫描）
+### 第 4 层：ClawHub（净化包 + 扫描）
 - `scripts/build-clawhub-release.sh` 生成净化包
 - `clawhub publish` 上传 + security scan
 
