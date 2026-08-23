@@ -289,26 +289,29 @@ run/<项目名>/
 
 ## 派发话术与审计必查项（v2.2.8 按需加载）
 
-**派发话术**：T1/T2/T3/T4/T5/T6/T7 七个 spawn 角色的完整派发模板见 [`references/pipeline-readme.md#派发话术`](references/pipeline-readme.md)（T8 终检不 spawn，由主控亲完成，参考主控卡 §终检段）。**主控 spawn 子代理前必读**（不要凭记忆复制 SKILL.md 历史版本，引用 pipeline-readme.md 的最新版，避免双形式同步漂移，教训 #57）。
+**派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 + G14 检测器的完整派发模板见 [`references/pipeline-readme.md#派发话术`](references/pipeline-readme.md)（T8 终检不 spawn，由主控亲完成，参考主控卡 §终检段）。**主控 spawn 子代理前必读**（不要凭记忆复制 SKILL.md 历史版本，引用 pipeline-readme.md 的最新版，避免双形式同步漂移，教训 #57）。
 
-**审计必查项**：G0-G13 十三项审计清单的逐条详解 + M 门算法 + G6/G7/G11/G12 实战子项见 [`references/agents/07-审计-auditor.md#必查项`](references/agents/07-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
+**审计必查项**：G0-G14 十四项审计清单的逐条详解 + M 门算法 + G6/G7/G11/G12/G14 实战子项见 [`references/agents/07-审计-auditor.md#必查项`](references/agents/07-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
 
-**派发话术锚点速查**（主控读 pipeline-readme.md 后定位用）：
-- T1 文献检索员 → pipeline-readme.md 行 207-225
-- T2 数据检索员 → 行 226-253
-- T3 案例检索员 → 行 254-287
-- T4 分析员 → 行 288-307
-- T5 写手 → 行 308-329
-- T6 批判伙伴 → 行 330-355
-- T7 审计员 → 行 356-380
+**派发话术锚点速查**（主控读 pipeline-readme.md 后定位用，v2.4.0 更新行号 + 补 T9/G14）：
+- T9 同行评审（可选）→ pipeline-readme.md 行 273
+- G14 中文 AI 痕迹检测器 → 行 300
+- T1 文献检索员 → 行 326
+- T2 数据检索员 → 行 345
+- T3 案例检索员 → 行 373
+- T4 分析员 → 行 407
+- T5 写手 → 行 427
+- T6 批判伙伴 → 行 449
+- T7 审计员 → 行 475
 
 **审计锚点速查**：
-- G0-G13 速查表 → `references/_shared/audit-checklist-quickref.md`（全集）+ `references/agents/07-审计-auditor.md#必查项`（说明）
+- G0-G14 速查表 → `references/_shared/audit-checklist-quickref.md`（全集）+ `references/agents/07-审计-auditor.md#必查项`（说明）
 - G6 论据类型自标 → `references/agents/07-审计-auditor.md`
 - G7 原创性审计 → `references/agents/07-审计-auditor.md`
 - G11 时效告警 → `references/_shared/M-Gate-Algorithm.md`
 - G12 数据信任一致性 → `references/_shared/M-Gate-Algorithm.md`
 - G13 AI 使用披露 → `references/agents/07-审计-auditor.md` + `references/pipeline-readme.md#AI 使用披露`
+- **G14 中文 AI 痕迹检测（v2.4.0 新增）** → `references/agents/07-审计-auditor.md` + `references/gates/14-中文AI痕迹-gate.md`
 - M-Form/M-Exist/M-Integrity 三层 → `references/_shared/M-Gate-Algorithm.md`
 
 ## 修订回环
