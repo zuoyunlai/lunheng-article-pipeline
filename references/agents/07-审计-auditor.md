@@ -1,3 +1,5 @@
+> 版本：v2.3.12（自动同步 2026-08-23）
+
 > 版本：v2.3.11（自动同步 2026-08-23）
 
 > 版本：v2.3.10（自动同步 2026-08-22）
@@ -67,6 +69,7 @@
 **主模型 + Fallback 链（v2.3.1 新增，教训 #119）**：
 - **主模型**：`claude-opus-5`（kkaiapi 接口，审计顶配，成本高）
 - **Fallback 链**：`claude-opus-5 → deepseek-v4-pro → minimax-M3`（T7 专属，v2.3.1 显式声明；原通用 4 档链 `deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3` 不适合 T7——审计需顶配推理，glm-5.3/flash 不是审计级）
+- **预算闸门（v2.3.12 P0-1 新增，本机测试教训）**：主控派发 T7 前查 claude-opus-5 余额，< $0.1 直接走 fallback（minimax-m3）并告知主人「审计深度将降级（A 级抽验密度降至下限）」；同一项目已发现余额不足 → 后续顶配角色直接降级，不重复试错（本机测试 T6 已 403，T7 直接跳过，省 41s）。
 - **fallback 触发后必须标注**（v2.3.1 新增，教训 #119）：若主模型静默无响应（0 tokens / 超时）自动切 fallback 后，**必须**在①产物头部 + ②交接报告 写明「T7 由 XX 兑底（原 claude-opus-5 静默无响应）」，让主人可追溯到模型降级事实
 - **产出硬约束（v2.3.11 P0-3 新增，堵 claude-opus-5 静默假完成）**：完成后**必须产出文件**——`audits/审计报告-vN.md` + `audits/反哺报告-vN.md`（两个文件缺一不可），**禁止仅 ACK/计划**（如只回「审计已完成」但无产物文件）。主控收到完成报告后**首检产物存在性**（`ls -la` 两文件存在 + 非空），无产物 = 判定未完成，按兑底协议处理。
 
@@ -90,6 +93,8 @@
 - **M 门算法**：详见 [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md) + [`glossary.md § M 门`](../glossary.md#m-门形式合规门)
 - **审计必查项 G0-G13**：详见 [`_shared/audit-checklist-quickref.md`](../_shared/audit-checklist-quickref.md) + [`glossary.md § G 清单`](../glossary.md#g-清单质量审计清单)
 - **G8 字数核验（v2.3.2 修正教训 #128，v2.3.11 P1-6 升级）**：T7 审计只给「**估算值 + 明确口径（含/不含题名摘要）+ 误差标注**」，**不主张权威精确值**——权威核验固定由有 shell 的主控 T8 在 Phase 5 前用 `grep -oP '\p{Han}' final/定稿.md | wc -l` 执行（T7 子代理无 shell 无法跑权威统计）。T7 与 T5 自报、目标区间三方不一致时标「字数口径待主控 T8 核验」，**禁止三方各执一词**（**禁止 `[一-龥]` 字节 bug 命令**）
+- **[EB/OL] URL 核验（v2.3.12 P1-5 新增）**：G1 引用核验时 grep `\[EB/OL\]`，每条必须匹配 `http(s)?://` + 访问日期，缺 → P1-D。
+- **新增文献 A 级 100% 抽验（v2.3.12 P1-6 新增）**：v2/v3 首次出现的 [Lxx]（修订轮补检索的新文献）按 A 级 100% 抽验（不按 ≥10% 通用规则），防 T5 快速补检索幻觉。
 - **F 失败模式防御 F1-F9**：详见 [`_shared/failure-modes.md`](../_shared/failure-modes.md) + [`glossary.md § F 模式`](../glossary.md#f-模式失败模式清单)
 
 ## 结论格式
