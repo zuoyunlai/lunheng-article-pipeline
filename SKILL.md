@@ -241,9 +241,10 @@ Phase 2.5 大纲确认  主人过目大纲 → 确认/修改（人在环！改�
 Phase 3 写作        T5 写手 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、案例标[Cxx]、AI去味10项，v2.3.0 改 T4→T5）
 Phase 3.5 洞察补充  主人过目初稿 v1 → 主控问主人洞要补 → T5 写手 v2 融入（人在环！v2.1.3 教训 #46）
 Phase 3.6 批判      T6 批判伙伴（v2.2.2 新增）→ analysis/批判报告-vN.md（攻击 v2 不是 v1，轻量档可跳过，v2.3.0 改 T8→T6）
-Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0覆盖度/G1引用核验/G2数据溯源/G3逻辑/G4格式/G5规范，v2.3.0 改 T5→T7）
+Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0覆盖度/G1引用核验/G2数据溯源/G3逻辑/G4格式/G5规范/G14中文AI痕迹，v2.3.0 改 T5→T7，v2.4.0 加 G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控（v2.2.4 起修订轮强制 spawn 独立写手）
 Phase 4.5 配图      （**默认关闭**，需主人在 Phase 0 同意关卡明确勾选）写手标 [图N：标题] 图位 → 主控程序化生成图表（数字与数据卡一致）；封面生成需主人首次确认（v2.1.1 + v2.2.17 强化）——首次调用 image_generate 前**必须**先询问主人同意（调用外部图像生成服务，可能 fallback 跨 provider）。**重要**（v2.2.17 修订，回应 ClawHub scanner v2.2.16 finding F08 93%）：**封面调用 image_generate 不是默认行为**，而是「可选行为」，需主人在 Phase 0 同意关卡明确勾选「启用封面生成」才调用。如未勾选，则不调用 image_generate，默认用 SVG 矢量风（程序化生成）或主人人工上传。如启用后调用 OpenAI gpt-image-2 失败，按 recover_failed_article_illustration_gen 模式自动降级到 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01 → SVG）。
+Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，可选，默认关闭）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject）；G14 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 Warning / 5+ Fail）
 Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md
 ```
 
