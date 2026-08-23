@@ -1,3 +1,5 @@
+> 版本：v2.3.18（自动同步 2026-08-23）
+
 > 版本：v2.3.17（自动同步 2026-08-23）
 
 > 版本：v2.3.16（自动同步 2026-08-23）
@@ -38,7 +40,7 @@
 openclaw skills install @zuoyunlai/lunheng-article-pipeline
 ```
 
-装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline`（或直接对话「写一篇 XX 深度文章」）即可启动流水线。模型由主控 Phase 0 自检自动映射，无需手动配置。
+装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
 ---
 
