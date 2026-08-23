@@ -1,3 +1,5 @@
+> 版本：v2.3.16（自动同步 2026-08-23）
+
 > 版本：v2.3.15（自动同步 2026-08-23）
 
 > 版本：v2.3.14（自动同步 2026-08-23）
@@ -138,7 +140,7 @@
 
 - **M-Form 形式合规门**（v2.2.0 5 项 + v2.2.1 新增 1 项 = 6 项）：引用标注完整性 / 文末四节存在性 / 临时编号残留 / 角色元数据泄露 / 过程语言残留 / **信任级别标注完整性（M-Form-6，v2.2.1 新增）**
 - **M-Exist 存在性合规门**（v2.2.0 2 项 + v2.2.1 新增 1 项 = 3 项）：文末四节双向 diff（封装在 `_shared/m_exist_1_diff.sh`）/ 证据包文件完整性 sha256 / **信任级别一致性 diff（M-Exist-3，v2.2.1 新增）**
-- **M-Integrity 阶段闸门**（v2.2.1 新增 2 项）：**T2.5（M-Integrity-1，T2 → T3 前主控 checkpoint）+ T5.5（M-Integrity-2，T5 → T7 前主控 checkpoint）**
+- **M-Integrity 阶段闸门**（v2.2.1 新增 2 项）：**T2.5（M-Integrity-1，T2 → T4 前主控 checkpoint）+ T7.5（M-Integrity-2，T7 → T8 前主控 checkpoint）**
 - **T7 必跑**，exit 0 才能返回
 - 借鉴 vincentjiang06 objective/verify gate 硬约束理念的论衡化实现——「**形式合规 ≠ 存在性合规 ≠ 信任一致**」（v2.2.0 → v2.2.1 M 门三层验证）
 
