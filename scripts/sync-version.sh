@@ -162,6 +162,66 @@ for sync in "${SYNCS[@]}"; do
 done
 
 echo ""
+echo "✂️  版本栈精简（保留最近 5 个）"
+if [ "$DRY_RUN" == true ]; then
+  echo "（DRY-RUN 模式，未实际修改）"
+else
+  # 收集所有需要 trim 的文件路径（SKILL.md + 18 个 SYNCS 文件）
+  TRIM_FILES="SKILL.md"
+  for s in "${SYNCS[@]}"; do
+    IFS='|' read -r f _ <<< "$s"
+    if [[ "$f" == @* ]]; then
+      TRIM_FILES="$TRIM_FILES ${f#@}"
+    else
+      TRIM_FILES="$TRIM_FILES $f"
+    fi
+  done
+  TRIM_FILES="$TRIM_ROOT/$CONTENT_DIR/../SKILL.md $TRIM_FILES"
+  # 实际文件在 CONTENT_DIR，SKILL.md 在 CONTENT_DIR/SKILL.md
+  # 修正：直接在 cwd 下拼接（脚本运行 cwd = SKILL_ROOT）
+  TRIM_PATHS=""
+  for f in $TRIM_FILES; do
+    if [[ "$f" == SKILL.md ]]; then
+      TRIM_PATHS="$TRIM_PATHS SKILL.md"
+    elif [[ "$f" == @* ]]; then
+      TRIM_PATHS="$TRIM_PATHS ${f#@}"
+    else
+      TRIM_PATHS="$TRIM_PATHS $f"
+    fi
+  done
+  python3 - "$TRIM_PATHS" <<'TRIMEOF'
+import sys, os
+files = sys.argv[1:]
+def trim(path, keep=5):
+    with open(path, encoding='utf-8') as f:
+        lines = f.read().split('\n')
+    version_idx = [i for i, line in enumerate(lines) if line.startswith('> 版本：')]
+    if len(version_idx) <= keep:
+        return 0
+    keep_set = set(version_idx[:keep])
+    remove_set = set(version_idx[keep:])
+    out = []
+    for i, line in enumerate(lines):
+        if i in remove_set:
+            continue
+        if line.strip() == '' and (i-1) in remove_set:
+            continue
+        out.append(line)
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(out))
+    return len(remove_set)
+trimmed = 0
+for f in files:
+    if os.path.isfile(f):
+        n = trim(f, 5)
+        if n > 0:
+            print(f"  -{n} 行  {f}")
+            trimmed += n
+print(f"✅ 清理 {trimmed} 行旧版本记录（每文件保留最近 5 个）")
+TRIMEOF
+fi
+
+echo ""
 echo "📊 统计："
 echo "  ✅ 更新：$UPDATED"
 echo "  ⏭️  跳过：$SKIPPED"
