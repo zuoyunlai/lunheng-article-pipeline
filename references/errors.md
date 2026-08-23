@@ -79,7 +79,7 @@ M-Form-3 failed: temp_id pattern detected in output
 | | |
 | **触发** | 审计发现初稿与任务简报「研究问题」不对应 |
 | **原报错** | `G0 failed: research_question_mismatch` |
-| **友好版** | `❌ 选题漂移<br>【发生了什么】初稿答了 X 问题，但任务简报问的是 Y 问题<br>【为什么】写手可能误解了简报意图，或检索证据不足以回答 Y<br>【怎么解决】1) 主人重新明确研究问题  2) 主控派 T3 重做大纲  3) 或接受漂移并更新简报` |
+| **友好版** | `❌ 选题漂移<br>【发生了什么】初稿答了 X 问题，但任务简报问的是 Y 问题<br>【为什么】写手可能误解了简报意图，或检索证据不足以回答 Y<br>【怎么解决】1) 主人重新明确研究问题  2) 主控派 T4 重做大纲  3) 或接受漂移并更新简报` |
 
 #### E06：G1 引用遗漏
 
@@ -143,7 +143,7 @@ M-Form-3 failed: temp_id pattern detected in output
 | | |
 | **触发** | 修订第 3 轮仍未关闭所有 P0/P1 |
 | **原报错** | `Revision loop exceeded (3+ rounds), triggering Acknowledged Limitations mode` |
-| **友好版** | `📋 Acknowledged Limitations 模式触发<br>【发生了什么】修订第 3 轮仍有 P0/P1 未关闭<br>【为什么】v2.2.0 起的硬约束（教训 #64）—— 防止无限循环<br>【怎么解决】1) 主控 T7 把未关闭项搬入 final/局限性.md  2) 文末列「未关闭 P0/P1」清单  3) 论文正常交付（不假装完美）` |
+| **友好版** | `📋 Acknowledged Limitations 模式触发<br>【发生了什么】修订第 3 轮仍有 P0/P1 未关闭<br>【为什么】v2.2.0 起的硬约束（教训 #64）—— 防止无限循环<br>【怎么解决】1) 主控 T8 把未关闭项搬入 final/局限性.md  2) 文末列「未关闭 P0/P1」清单  3) 论文正常交付（不假装完美）` |
 
 ---
 

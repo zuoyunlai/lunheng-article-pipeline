@@ -1,3 +1,5 @@
+> 版本：v2.3.15（自动同步 2026-08-23）
+
 > 版本：v2.3.14（自动同步 2026-08-23）
 
 > 版本：v2.3.13（自动同步 2026-08-23）
@@ -85,7 +87,7 @@
   │
   ├─ T4 分析员（Analyst，原 T3）───────── 分析大纲（论证主线 + 反方论证）
   ├─ T5 写手（Writer，原 T4）──────────── 初稿（AI 去味 10 项）
-  ├─ T6 批判伙伴（Critical Companion，原 T8）── 批判报告（C1-C5 反方攻击 v2）
+  ├─ T6 批判伙伴（Critical Companion，原 T8）── 批判报告（C1-C7 反方攻击 v2）
   └─ T7 审计员（Auditor，原 T5）───────── 审计报告（G0-G13）
               ↓
          T8 终检 = 主控亲完成（无独立角色卡，v2.3.0 明确）
@@ -132,7 +134,7 @@ Phase 2 分析        **T4** 分析员 → analysis/分析大纲.md（三角验�
 Phase 2.5 大纲确认   主人过目（人在环）
 Phase 3 写作        **T5** 写手 → drafts/初稿-v1.md（AI 去味 10 项 + 反方论证，v2.3.0 改 T4→T5）
 Phase 3.5 洞察补充   主人过目 v1 → 主控问主人洞 → T5 写手 v2 融入（人在环，v2.1.3 教训 #46）
-Phase 3.6 批判      **T6** 批判伙伴 → analysis/批判报告-vN.md（C1-C5 反方攻击 v2，v2.3.0 改 T8→T6，攻击对象 v2 不是 v1）
+Phase 3.6 批判      **T6** 批判伙伴 → analysis/批判报告-vN.md（C1-C7 反方攻击 v2，v2.3.0 改 T8→T6，攻击对象 v2 不是 v1）
 Phase 4 审计        **T7** 审计员 → audits/审计报告-vN.md（G0-G13，v2.3.0 改 T5→T7）
 Phase 4.2 修订       写手交修订说明 + 修订稿（≤2 轮，v2.2.0 硬约束）
 Phase 4.5 配图       （可选）程序化生成数据图表
@@ -169,7 +171,7 @@ lunheng-article-pipeline/
     │   ├── 03-案例检索-case-scout.md       # 任何量级必 spawn
     │   ├── 04-分析-analyst.md
     │   ├── 05-写作-writer.md
-    │   ├── 06-批判-critical-companion.md   # 反方攻击 C1-C5
+    │   ├── 06-批判-critical-companion.md   # 反方攻击 C1-C7
     │   └── 07-审计-auditor.md
     ├── templates/                  # 7 个模板（任务简报/status/交接报告/文献卡/数据卡/案例卡/先行者清单）
     └── _shared/                    # 共享协议与算法
