@@ -1,6 +1,6 @@
 ---
 name: "lunheng-article-pipeline"
-version: 2.3.12
+version: 2.3.13
 description: "严肃长文流水线（学术论文 / 商业评论 / 行业分析 / 公众号深度长文）——多 Agent 子代理编排。**重点功能**：三角验证（文献/数据/案例）+ M 机械化硬门 + F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字短文/即时问答/文学创作建议直接用主控 LLM（走流水线不划算）。**含技能自我维护**：版本号同步（scripts/check-version.sh + sync-version.sh）+ 实战教训沉淀（memory/lessons.md 跨项目），仅在主人人工 review 后手动 merge，不自动修改角色卡。"
 metadata:
   requires:
@@ -81,6 +81,17 @@ metadata:
 - M 门算法文档中的 bash 命令是「人类验证示例」，方便主人手动复核，**不是 agent 执行的代码**
 - 这样设计确保了跨平台兼容（Windows / macOS / Linux）和安全性（零 shell 执行风险）
 
+---
+
+## 📦 skill 化部署（v2.3.13，P0-4/P0-5/P0-6/P0-7）
+
+**论衡是纯 skill，不是独立 agent**——任意有 `sessions_spawn` + 检索工具（web_search / tavily_search）的 OpenClaw agent 加载本 skill 即可运行，**无需手动创建独立 agent 条目**。
+
+- **工具软门（P0-6）**：所需工具见上方 `metadata.tools.declared`（sessions_spawn / sessions_yield / web_search / tavily_search 等），加载 agent 需具备这些工具。建议在**禁用 exec 的 agent** 上运行，以保持论衡「零 exec」哲学（纯 skill 形态下 exec 拒绝边界依赖加载 agent 的配置）。
+- **模型运行时解析（P0-2/P0-3）**：角色模型不再硬编码，由主控 Phase 0 自检按「能力档 + 候选池」从本机可用模型映射；`openclaw.json` 的模型仅作兑底默认。
+- **路径自适应（P0-4）**：skill 内部路径用相对引用（`references/` 目录结构），skill 装到任何位置都能解析，不依赖固定绝对路径。
+- **workspace 解耦（P0-5）**：流水线文件树 `run/<项目名>/` 写到**加载 agent 的 workspace 根目录**（不再是固定 workspace-paperwriter），skill 装到哪个 agent 的 workspace，文件就落在哪。
+
 > 把一篇深度文章/论文的生产拆成 **8 张角色卡 + 6 个阶段**（T1∥T2∥T3 三方真并行互不干涉，v2.1.8 + v2.3.0 重命名原 T6→T3；T6 批判伙伴 v2.2.2 新增 + v2.3.0 重命名原 T8→T6；T8 终检 = 主控亲完成），用 OpenClaw `sessions_spawn` 子代理编排。产出有证据底座（文献卡+数据卡+案例卡）、有反方论证、有独立审计、有人工核验节点的交付物。**v2.2.4 定位升级：深度长文通用引擎**——学术论文/商业评论/行业分析/公众号深度长文；学术用 [Lxx]/[Dxx] 编号引用，公众号/商业评论用内联（机构，年份）引用。经验证：一篇 7650 字/8 节/2 图/52 文献/60 数据点的深度文，全流程约 2 小时完成。
 
 ## 启动清单（主控 Phase 0 必走）
@@ -135,7 +146,7 @@ metadata:
 - **Phase 0 模型自检（P0-3）**：主控启动时扫本机可用模型（`models list`），每个能力档从候选池**按优先级选第一个可用模型**，写入 status.md「本轮可用模型」表；顶配档候选池全不可用 → **显式告知主人**「本机无顶配审计模型，审计/批判深度将降级，是否继续」，禁止静默降级。
 - **预算闸门（P0-1）**：派发 T6/T7 前查顶配模型余额，< $0.1 直接走候选池下一档并告知主人深度降级；同一项目已发现余额不足 → 后续顶配角色直接降级（不重复试错）。
 
-**模型配置路径**：在 `agents/paperwriter.json`（或你本机的论衡 agent 配置）的 `model.fallbacks` 里按角色覆盖；详见 `pipeline/README.md`「模型配置与更换指南」段。
+**模型配置**：角色模型由主控 Phase 0 自检按「能力档 + 候选池」从本机可用模型自动映射，无需手动配置（v2.3.13 起）；候选池唯一真源见上表，映射规则见下方「候选池映射规则」。
 
 ## 边界与轻量化建议（v2.2.7 软化「不适用场景」段）
 

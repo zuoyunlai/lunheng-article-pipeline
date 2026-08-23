@@ -1,3 +1,5 @@
+> 版本：v2.3.13（自动同步 2026-08-23）
+
 > 版本：v2.3.12（自动同步 2026-08-23）
 
 > 版本：v2.3.11（自动同步 2026-08-23）
@@ -424,7 +426,7 @@ deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3
 - **yield**：主控通过 `sessions_yield` 挂起等待子代理完成
 
 ### 真源 vs 副本
-- **真源**：论衡工作区 `~/.openclaw/workspace-paperwriter/pipeline/`
+- **真源**：论衡 skill 目录 `references/`（本 skill 的流水线真源）
 - **副本**：ClawHub skill ZIP / GitHub 仓库
 
 ### 蒸馏 vs 压缩
