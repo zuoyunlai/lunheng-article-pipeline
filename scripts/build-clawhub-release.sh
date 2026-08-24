@@ -53,6 +53,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'audits' --exclude 'scripts' --exclude '.github' \
     --exclude 'references/_shared/archive' --exclude 'references/design' \
     --exclude 'references/_shared/m_exist_1_diff.sh' \
+    --exclude 'references/_shared/通用韧化块-v2.1.0.md' \
     --exclude 'references/_shared/版本升级自审门-*.md' \
     --exclude 'references/_shared/M-Gate-渐进式验证-*.md' \
     --exclude 'references/templates/README-模板拆分方案.md' \
@@ -69,6 +70,7 @@ else
     "$OUT_DIR/docs" "$OUT_DIR/.bak-20260823-2024-v2.4.0-migrate"
   find "$OUT_DIR" -name '*.bak.*' -delete
   rm -f "$OUT_DIR/references/_shared/m_exist_1_diff.sh" "$OUT_DIR/PERFORMANCE-PROFILE.md"
+  rm -f "$OUT_DIR/references/_shared/通用韧化块-v2.1.0.md"
   rm -f "$OUT_DIR/.gitignore"
   rm -f "$OUT_DIR/references/templates/README-模板拆分方案.md"
   rm -f "$OUT_DIR/references/设计文档.md" "$OUT_DIR/references/设计文档-架构.md" "$OUT_DIR/references/设计文档-哲学.md"
