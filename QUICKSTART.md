@@ -22,8 +22,8 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 使用论衡技能会触发以下副作用，请使用前确认你已理解并同意：
 
-- **文件创建/修改**：`run/<项目名>/`、`drafts/`、`final/` 等目录会创建/修改多个文件
-- **Web 检索外发**：检索关键词会发送到 Tavily AI（外部服务）
+- **⚠️ 文件写入**（**运行即会写盘**）：主控与各子代理会在 workspace 创建/修改约 15-25 个文件——`status.md` 状态机、`run/<项目名>/`（任务简报/文献卡/数据卡/案例卡/草稿/审计报告/定稿）、各子代理心跳文件；**仅写 workspace 内**，不写 workspace 外
+- **Web 检索外发**：检索关键词 + 目标 URL 会发送到外部服务（web_search / tavily_search / web_fetch / tavily_extract）
 - **可选手动 sha256 验证**：主控会发占位符 `[SHA256-PENDING:HOST-VERIFY]`，如需真实 hash 需主人在 host shell 手动计算后回填
 - **可选封面外发**（**默认关闭**）：如启用，会向 OpenAI / Google / minimax 发送 prompt
 - **本地记忆系统**：`memory_search` 仅访问本地 OpenViking（不外发）
