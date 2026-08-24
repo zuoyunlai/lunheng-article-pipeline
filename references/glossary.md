@@ -367,10 +367,15 @@ deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3
 2. **OpenAI API**：image_generate（gpt-image-2，封面生成）
 3. **Google Gemini**：image_generate fallback
 4. **MiniMax API**：image_generate 最终 fallback
+5. **大模型推理 provider**（当前模型，如 deepseek / MiniMax / Anthropic / GLM 等）：各角色卡调用 LLM 时，将**文献卡/数据卡/案例卡/草稿/分析大纲全文**发送给模型 provider
 
 ### 🔒 数据流方向
-- **向外发送**：检索关键词（web_search / tavily_search）/ 目标 URL（web_fetch / tavily_extract）/ 图像生成 prompt（image_generate，默认关闭，需主人同意）
-- **不发送**：原始文献内容 / 主人投喂数据 / 中间产物（除非主人显式同意外发）
+- **向外发送**：
+  - 检索关键词（web_search / tavily_search）
+  - 目标 URL（web_fetch / tavily_extract）
+  - 图像生成 prompt（image_generate，默认关闭，需主人同意）
+  - **大模型推理全文**：文献卡/数据卡/案例卡/草稿/大纲/正文全文发送给当前模型 provider
+- **不发送**：原始文献内容 / 主人投喂数据 / 中间产物（除非主人显式同意外发；大模型推理全文属上列外发项）
 
 ### 🛡️ 主人拒绝外部服务时的备选方案
 1. **Web 检索**：主人手动提供文献/数据 PDF

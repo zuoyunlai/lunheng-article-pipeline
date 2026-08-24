@@ -25,10 +25,11 @@
 >
 > | 工具 | 外发服务商 | 发送内容 |
 > |------|---------|---------|
-> | `web_search` | OpenClaw 内置 web provider | 查询关键词 |
-> | `tavily_search` / `tavily_extract` | Tavily AI（tavily.com） | 主题+子问题+URL |
-> | `image_generate`（封面/插图） | OpenAI gpt-image-2 / Google gemini / minimax-image | 主题 + prompt |
-> | 主控推理调用 | 当前模型 provider（deepseek/MiniMax/Anthropic） | 文献/数据/案例/草稿/大纲/全文 |
+> | `web_search` | OpenClaw 内置 web provider | 检索关键词 |
+> | `tavily_search` / `tavily_extract` | **Tavily AI** | 研究主题/URL |
+> | `image_generate`（封面/插图） | **OpenAI gpt-image-2**（默认）→ Google gemini / minimax-image / SVG 本地 | 主题 + 品牌 prompt |
+> | 大模型推理 | 当前模型 provider（deepseek/MiniMax/Anthropic 等） | 文献/数据/案例/草稿/大纲全文 |
+> | `memory_get` / `memory_search` | 仅本地 OpenViking（**不外发**） | 检索关键词 |
 >
 > **项目名/主题/论文纲要可能含未公开信息**——主控 Phase 0 必须问主人：
 > 1. 同意全部外发？（默认）
