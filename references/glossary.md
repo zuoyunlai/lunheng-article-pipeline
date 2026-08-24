@@ -364,10 +364,12 @@ deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3
 
 ### 🌐 涉及的外部服务
 1. **Tavily API**：web_search / tavily_search / tavily_extract
-2. **OpenAI API**：image_generate（gpt-image-2，封面生成）
+2. **OpenAI API**：image_generate（gpt-image-2，**封面生成**）
 3. **Google Gemini**：image_generate fallback
 4. **MiniMax API**：image_generate 最终 fallback
 5. **大模型推理 provider**（当前模型，如 deepseek / MiniMax / Anthropic / GLM 等）：各角色卡调用 LLM 时，将**文献卡/数据卡/案例卡/草稿/分析大纲全文**发送给模型 provider
+
+> **内置功能（零外发）**：**数据图表 SVG** 由主控用 `write` 工具本地手写矢量图，**零外发，不依赖任何外部服务**（符合「零 exec」哲学，禁止文生图）。仅「封面」才调用 `image_generate`（外发，可选默认关闭）。
 
 ### 🔒 数据流方向
 - **向外发送**：

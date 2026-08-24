@@ -35,7 +35,8 @@
 |------|------------|---------|
 | `web_search` | OpenClaw 内置 web provider | 检索关键词 |
 | `tavily_search` / `tavily_extract` | **Tavily AI** | 研究主题/URL |
-| `image_generate`（封面/插图） | **OpenAI gpt-image-2**（默认）→ Google gemini / minimax-image / SVG 本地 | 主题 + 品牌 prompt |
+| `image_generate`（**封面**，可选默认关闭） | **OpenAI gpt-image-2**（默认）→ Google gemini / minimax-image / SVG 本地 | 主题 + 品牌 prompt |
+| **数据图表 SVG** | **本地内置**（主控 `write` 手写 SVG，零外发，不依赖外部） | — |
 | 大模型推理 | 当前模型 provider | 文献/数据/案例/草稿/大纲全文 |
 | `memory_get` / `memory_search` | 仅本地 OpenViking（**不外发**） | 检索关键词 |
 
