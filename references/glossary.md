@@ -1,4 +1,4 @@
-> 版本：v2.4.4（自动同步 2026-08-24）
+> 版本：v2.4.5（自动同步 2026-08-24）
 
 # 论衡核心概念词汇表
 
@@ -369,8 +369,8 @@ deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3
 4. **MiniMax API**：image_generate 最终 fallback
 
 ### 🔒 数据流方向
-- **向外发送**：检索关键词 / 图像生成 prompt
-- **不发送**：原始文献内容 / 主人投喂数据 / 中间产物
+- **向外发送**：检索关键词（web_search / tavily_search）/ 目标 URL（web_fetch / tavily_extract）/ 图像生成 prompt（image_generate，默认关闭，需主人同意）
+- **不发送**：原始文献内容 / 主人投喂数据 / 中间产物（除非主人显式同意外发）
 
 ### 🛡️ 主人拒绝外部服务时的备选方案
 1. **Web 检索**：主人手动提供文献/数据 PDF
