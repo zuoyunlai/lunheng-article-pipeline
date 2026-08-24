@@ -195,7 +195,7 @@ Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0-G14，v2.4
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（需主人首次确认，默认关闭，失败降级 Google → minimax → SVG）
 Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度，详见 [_shared/期刊数据库.md](references/_shared/期刊数据库.md) + [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)）；G14 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail）
-Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（**v2.5.0 多格式导出**：默认 md，按需选 `--format latex/docx/pdf`，详见 [_shared/format-export.md](references/_shared/format-export.md)；**v2.5.0 中文数据源集成**：可选启用知网/万方/CSSCI 并行补充，详见 [_shared/中文数据源集成.md](references/_shared/中文数据源集成.md)）
+Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（**v2.5.0 多格式导出**：默认 md，按需选 `--format latex/docx/pdf`，详见 [_shared/format-export.md](references/_shared/format-export.md)；**v2.5.1 中文数据源集成**（OpenAlex/Crossref 第一梯队默认推荐，无需 Key，详见 [_shared/中文数据源集成.md](references/_shared/中文数据源集成.md)））
 ```
 
 ## 项目目录结构
@@ -285,7 +285,7 @@ run/<项目名>/
   - 修订说明模板（标准化）：`references/templates/修订说明-template-full.md`
   - 投稿就绪检查表（推荐期刊+匹配度 / Word-PDF / AI 声明三套）：`references/templates/投稿就绪检查表-template.md`
   - 期刊数据库（v2.5.0）+ 期刊匹配算法（v2.5.0）：`references/_shared/期刊数据库.md` + `references/_shared/期刊匹配算法.md`
-  - 中文数据源集成（v2.5.0，可选，知网/万方/CSSCI 并行补充层）：`references/_shared/中文数据源集成.md`
+  - 中文数据源集成（v2.5.1 修订：OpenAlex/Crossref 第一梯队默认推荐，无需 Key）：`references/_shared/中文数据源集成.md`
   - 多格式导出（v2.5.0，可选，--format md/latex/docx/pdf）：`references/_shared/format-export.md`
 - 设计文档（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判 详解）：`references/设计文档.md`
 - 实战案例库（商业热点 / 品牌一致性 / 原创性悖论 + 教训沉淀）：`references/case-studies.md`

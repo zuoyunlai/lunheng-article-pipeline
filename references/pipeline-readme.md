@@ -319,7 +319,7 @@ H. 党报话语堆砌（重要讲话精神等，全文 ≥3 处，政治学科�
 项目目录：run/<项目名>/
 任务简报：先读 01-任务简报.md；更新 status.md 对应行为 In Progress
 任务：
-1. 用 web_search / tavily_search 检索主题相关文献（中英文；知网/万方/Google Scholar/期刊官网/SSRN 等）
+1. 用 web_search / tavily_search 检索主题相关文献（中英文；OpenAlex/Crossref 第一梯队无需 Key + 知网/万方/科情/NSTL 二梯队需 API key + paper.edu.cn 三梯队抓取）
 2. 产出 literature/文献卡.md：8-15 条核心文献，按子问题分组
 3. 每条必须真实存在：作者、年份、标题、期刊/来源、DOI 或 URL、与本文的关联
 4. 每条标可信度等级：A（核心期刊/权威机构）/ B（一般期刊/预印本）/ C（网络/二手转引）——C 级必须诚实标注
