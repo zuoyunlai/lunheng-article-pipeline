@@ -49,20 +49,29 @@ mkdir -p "$OUT_DIR"
 # ---- 2. 复制真源（用 rsync 若可用，否则 cp -a）----
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --exclude '.git' --exclude 'outputs' --exclude '*.bak.*' \
+    --exclude '.bak-*' --exclude 'docs' --exclude '.gitignore' \
     --exclude 'audits' --exclude 'scripts' --exclude '.github' \
     --exclude 'references/_shared/archive' --exclude 'references/design' \
     --exclude 'references/_shared/m_exist_1_diff.sh' \
     --exclude 'references/_shared/版本升级自审门-*.md' \
     --exclude 'references/_shared/M-Gate-渐进式验证-*.md' \
+    --exclude 'references/templates/README-模板拆分方案.md' \
+    --exclude 'references/设计文档.md' \
+    --exclude 'references/设计文档-架构.md' \
+    --exclude 'references/设计文档-哲学.md' \
     --exclude 'PERFORMANCE-PROFILE.md' \
     "$SKILL_ROOT/" "$OUT_DIR/"
 else
   cp -a "$SKILL_ROOT/." "$OUT_DIR/"
   # 手动清理
   rm -rf "$OUT_DIR/.git" "$OUT_DIR/outputs" "$OUT_DIR/audits" "$OUT_DIR/scripts" \
-    "$OUT_DIR/.github" "$OUT_DIR/references/_shared/archive" "$OUT_DIR/references/design"
+    "$OUT_DIR/.github" "$OUT_DIR/references/_shared/archive" "$OUT_DIR/references/design" \
+    "$OUT_DIR/docs" "$OUT_DIR/.bak-20260823-2024-v2.4.0-migrate"
   find "$OUT_DIR" -name '*.bak.*' -delete
   rm -f "$OUT_DIR/references/_shared/m_exist_1_diff.sh" "$OUT_DIR/PERFORMANCE-PROFILE.md"
+  rm -f "$OUT_DIR/.gitignore"
+  rm -f "$OUT_DIR/references/templates/README-模板拆分方案.md"
+  rm -f "$OUT_DIR/references/设计文档.md" "$OUT_DIR/references/设计文档-架构.md" "$OUT_DIR/references/设计文档-哲学.md"
   rm -f "$OUT_DIR"/references/_shared/版本升级自审门-*.md
   rm -f "$OUT_DIR"/references/_shared/M-Gate-渐进式验证-*.md
 fi
@@ -135,6 +144,36 @@ open(path, 'w', encoding='utf-8').write(s)
 print(f'✅ 主控卡反哺段净化完成（替换 {n} 处）')
 PYEOF
   fi
+
+  # 3h. 设计文档死链处理（设计文档已 --exclude，需改引用为 glossary）
+  python3 - "$f" <<'PYEOF'
+import sys, re
+path = sys.argv[1]
+s = open(path, encoding='utf-8').read()
+
+# 1. SKILL.md 启动清单第 2 步：设计文档 → glossary
+s = s.replace(
+    '读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）',
+    '读 `references/glossary.md`（核心概念单一真源：角色卡/三层防御/数据信任/协议/工具边界）'
+)
+
+# 2. SKILL.md 角色卡与模板段：删除「设计文档」行
+s = re.sub(r'- 设计文档（[^\n]*）：`references/设计文档\.md`\n', '', s)
+
+# 3. pipeline-readme.md「设计文档加载策略」段：删除
+s = re.sub(r'## 设计文档加载策略.*?(?=\n## 派发话术)', '', s, flags=re.DOTALL)
+
+# 4. pipeline-readme.md 模板拆分方案引用：删除
+s = s.replace('详见 `templates/README-模板拆分方案.md`。', '。')
+
+# 5. README 目录结构里的「设计文档.md」行：删除
+s = re.sub(r'[^\n]*设计文档\.md[^\n]*\n', '', s)
+
+# 6. 任务简报模板「详见设计文档 原创性保证 + 」：删引用，保留写手卡
+s = s.replace('（详见设计文档 原创性保证 + 写手卡视角与精度铁律）', '（详见写手卡视角与精度铁律）')
+
+open(path, 'w', encoding='utf-8').write(s)
+PYEOF
 }
 
 # 对所有 md 文件净化
@@ -157,6 +196,12 @@ s = re.sub(
 open(path, 'w', encoding='utf-8').write(s)
 print('✅ SKILL.md description 净化完成')
 PYEOF
+
+# ---- 3g. shell 命令剥离（净化包极简纯净，主人 2026-08-24 拍板）----
+# 把「人类 host shell 验证示例」里的 shell 命令替换为自然语言，删除 bash/sh 代码块，
+# 保留 python 伪代码（算法判定逻辑）。agent 零 exec，靠 read + LLM 推理模拟。
+echo "🔧 剥离 shell 命令（保持极简纯净）..."
+find "$OUT_DIR" -name '*.md' -print0 | xargs -0 python3 "$SCRIPT_DIR/strip-shell-commands.py"
 
 # ---- 4. 补「使用者视角」声明到 SKILL.md 顶部（回应 scanner 的 scope 疑虑）----
 SKILL_OUT="$OUT_DIR/SKILL.md"
