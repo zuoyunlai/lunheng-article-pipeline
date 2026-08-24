@@ -158,7 +158,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | | | |
 | **M 门**（形式合规） | 机械化、零判断 | 检查引用/数据/案例的形式完整性 |
 | **F 模式**（失败模式） | 面向用户的叙事 | 解释"为什么要这么做" |
-| **G 清单**（质量审计） | 面向审计员 | G0-G13 共 14 项检查 |
+| **G 清单**（质量审计） | 面向审计员 | G0-G14 共 15 项检查 |
 
 完整定义：详见 [`glossary.md § 二 三层防御体系`](references/glossary.md#二三层防御体系)
 

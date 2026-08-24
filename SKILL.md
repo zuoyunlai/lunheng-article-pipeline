@@ -191,7 +191,7 @@ Phase 2.5 大纲确认  主人过目大纲 → 确认/修改 + 拍板 T4 建议�
 Phase 3 写作        T5 写手 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、案例标[Cxx]、AI去味10项）
 Phase 3.5 洞察补充  主人过目初稿 v1 → 主控问主人洞要补 → T5 写手 v2 融入（人在环！v2.1.3 教训 #46）
 Phase 3.6 批判      T6 批判伙伴（v2.2.2 新增）→ analysis/批判报告-vN.md（攻击 v2 不是 v1，轻量档可跳过）
-Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0-G13 + G14，v2.4.0 加 G14）
+Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0-G14，v2.4.0 加 G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（需主人首次确认，默认关闭，失败降级 Google → minimax → SVG）
 Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度，详见 [_shared/期刊数据库.md](references/_shared/期刊数据库.md) + [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)）；G14 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail）
