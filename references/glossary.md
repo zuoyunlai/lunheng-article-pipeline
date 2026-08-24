@@ -1,14 +1,4 @@
-> 版本：v2.4.0（自动同步 2026-08-23）
-
-> 版本：v2.3.19（自动同步 2026-08-23）
-
-> 版本：v2.3.18（自动同步 2026-08-23）
-
-> 版本：v2.3.17（自动同步 2026-08-23）
-
-> 版本：v2.3.16（自动同步 2026-08-23）
-
-> 版本：v2.3.15（自动同步 2026-08-23）
+> 版本：v2.4.1（自动同步 2026-08-24）
 
 # 论衡核心概念词汇表
 
@@ -20,7 +10,7 @@
 
 ## 一、核心角色（9 张角色卡 + T8 终检由主控亲完成）
 
-> **v2.3.0 重构**：原 8 角色 → 8 张独立角色卡（T0-T7）+ T8 主控终检（主控亲完成，无独立角色卡）。编号 = 流水线 Phase 顺序：T1-T3 检索 / T4-T5 加工 / T6-T8 防御。教训 #116。
+> **v2.3.0 重构 + v2.4.0 加 T9**：原 8 角色 → v2.3.0 改为 9 张角色卡（T0-T7 + T9 同行评审 v2.4.0 新增）+ T8 主控终检（主控亲完成，无独立角色卡）。编号 = 流水线 Phase 顺序：T1-T3 检索 / T4-T5 加工 / T6-T8 防御 / T9 同行评审。教训 #116。
 
 ### T0 - 主控（Coordinator，含 T8 终检）
 - **职责**：流程编排 + 任务派发 + 质量把关 + 人机交互 + **T8 终检亲完成**（v2.3.0 明确）
@@ -286,21 +276,24 @@ deepseek-v4-pro → minimax-M3 → deepseek-v4-flash → glm-5.3
 
 ## 五、工具能力边界（v2.2.12 前置声明）
 
-### ✅ 可以使用的工具（15 项）
-- **文件操作**：read / write / edit
-- **Web 检索**：web_search / tavily_search / tavily_extract / web_fetch
-- **记忆系统**：memory_search / memory_recall
-- **子代理编排**：sessions_spawn / sessions_yield / subagents
-- **图像生成**：image_generate
-- **其他**：session_status / update_plan
+> **唯一真源**：[`SKILL.md`](../SKILL.md) frontmatter `metadata.tools.declared` / `metadata.tools.denied`（按版本同步）。本节列项供快速查阅，数量可能随 SKILL.md frontmatter 变化。
 
-### ❌ 不可以使用的工具（7 项）
+### ✅ 可以使用的工具（15 项，v2.4.0）
+- **文件操作**：read / write / edit
+- **Web 检索**：web_search / web_fetch / tavily_search / tavily_extract
+- **记忆系统**：memory_get / memory_search
+- **子代理编排**：sessions_spawn / sessions_yield / sessions_history / sessions_list
+- **可视化**：image_generate
+- **规划**：update_plan
+
+### ❌ 不可以使用的工具（11 项，v2.4.0）
 - **Shell 执行**：exec / process
 - **浏览器控制**：browser
 - **定时任务**：cron
-- **消息发送**：message
-- **配置修改**：gateway
-- **节点控制**：nodes
+- **技能维护**：skill_workshop
+- **多媒体**：video_generate / music_generate / tts
+- **记忆写入**：memory_store / memory_recall
+- **补丁**：apply_patch
 
 ### ℹ️ 关键澄清
 - **M 门算法**：主控 LLM 通过 `read` 读取算法文档，按伪代码**推理判定**
