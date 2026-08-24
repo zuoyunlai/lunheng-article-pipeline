@@ -1,5 +1,6 @@
 *.bak.*
 .bak-*
 audits/
+docs/
 references/_shared/archive/
-outputs/clawhub-release/
+outputs/
