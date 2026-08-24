@@ -17,10 +17,12 @@
 
 ## 二、Word / PDF 转换
 
+> **v2.5.0 多格式导出**：详见 [`../_shared/format-export.md`](../_shared/format-export.md)（默认 `--format md` 零额外 token；选 `latex/docx/pdf` 按 pandoc + rsvg-convert 命令生成）
+
 | 项 | 操作 |
 |----|------|
-| Word 转换 | <pandoc 命令 或 手动复制到 Word 排版> |
-| PDF 转换 | <pandoc 命令 或 Word 导出 PDF> |
+| Word 转换 | <`pandoc final/定稿.md -o final/定稿.docx --reference-doc=...` 或手动复制到 Word 排版> |
+| PDF 转换 | <`pandoc final/定稿.md -o final/定稿.pdf --pdf-engine=xelatex` + SVG 图表嵌入> |
 | 字体/乱码检查 | <中文字体嵌入 / 图表清晰度 / 公式渲染> |
 | 页眉页脚/页码 | <投稿格式要求> |
 

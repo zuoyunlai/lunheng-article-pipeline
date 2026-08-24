@@ -72,12 +72,12 @@
   ├─ T5 写手（Writer，原 T4）──────────── 初稿（AI 去味 10 项）
   ├─ T6 批判伙伴（Critical Companion，原 T8）── 批判报告（C1-C7 反方攻击 v2）
   ├─ T7 审计员（Auditor，原 T5）───────── 审计报告（G0-G13）
-  └─ T9 同行评审（Peer Reviewer，v2.4.0 新增）── 审稿报告（6 维度评分，可选触发）
+  └─ T9 同行评审（Peer Reviewer，v2.4.0 新增）── 审稿报告（6 维度评分，**v2.4.6 按模式默认开启**；**v2.5.0 期刊匹配助手**：学术模式输出 Top 3 推荐期刊 + 综合匹配度）
               ↓
          T8 终检 = 主控亲完成（无独立角色卡，v2.3.0 明确）
 ```
 
-> **T9 同行评审（v2.4.0 新增）**：论文投稿前的「预演审稿人」，借鉴 academic-paper-reviewer。**可选触发**（默认关闭，主人在 Phase 0 拍板）。6 维度评分（原创性/方法论/证据强度/论证结构/写作质量/引文规范，总分 30）→ accept / minor / major / reject 建议。与 T6（攻论证）/T7（核形式）不重叠。详见 [`references/agents/09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md)。
+> **T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启）**：论文投稿前的「预演审稿人」，借鉴 academic-paper-reviewer。**行业分析/学术论文默认开启**，公众号默认关闭（主人可选）。6 维度评分（原创性/方法论/证据强度/论证结构/写作质量/引文规范，总分 30）→ accept / minor / major / reject 建议。**v2.5.0 期刊匹配助手**：基于 T9 评分匹配 25 中文 CSSCI/北大核心 + 12 英文 SSCI 数据库，输出 Top 3 + 综合匹配度（主题契合 50% + 风格匹配 30% + T9 评分 20%）。与 T6（攻论证）/T7（核形式）不重叠。详见 [`references/agents/09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md) + [`references/templates/审稿报告-template.md`](references/templates/审稿报告-template.md)。
 
 > **G14 中文 AI 痕迹深度检测闸（v2.4.0 新增）**：Phase 4.5 触发，T6 并行调用。8 类检测维度（学术模板语/句式同质化/学术套话高频/破折号滥用/三项排比/人称错位/个人辨识度缺失/党报话语堆砌），LLM 推理判定（零 exec）。0-2 类 Pass / 3-4 类 Warning 触发修订 / 5+ 类 Fail 触发 2 轮修订。详见 [`references/gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md)。
 
@@ -126,8 +126,8 @@ Phase 3.6 批判      **T6** 批判伙伴 → analysis/批判报告-vN.md（C1-C
 Phase 4 审计        **T7** 审计员 → audits/审计报告-vN.md（G0-G14，v2.3.0 改 T5→T7，v2.4.0 加 G14）
 Phase 4.2 修订       写手交修订说明 + 修订稿（≤2 轮，v2.2.0 硬约束）
 Phase 4.5 配图       数据图表（Phase 2.5 拍板图位 → 主控 SVG 本地生成）
-Phase 4.5 审稿       **T9** 同行评审（可选）+ **G14** 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）
-Phase 5 终检        **T8** 主控终检 → final/定稿.md + 证据包/ + 交付说明.md（含 AI 使用披露，v2.3.0 改 T7→T8，T8 终检 = 主控亲完成）
+Phase 4.5 审稿       **T9** 同行评审（v2.4.0 新增，**v2.4.6 按模式默认开启**：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度）+ **G14** 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）
+Phase 5 终检        **T8** 主控终检 → final/定稿.md + 证据包/ + 交付说明.md（含 AI 使用披露，v2.3.0 改 T7→T8，T8 终检 = 主控亲完成）+ **v2.5.0 多格式导出**（默认 md，按需 `--format latex/docx/pdf`）
 ```
 
 ---

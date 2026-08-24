@@ -194,8 +194,8 @@ Phase 3.6 批判      T6 批判伙伴（v2.2.2 新增）→ analysis/批判报�
 Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0-G13 + G14，v2.4.0 加 G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（需主人首次确认，默认关闭，失败降级 Google → minimax → SVG）
-Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject）；G14 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail）
-Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md
+Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度，详见 [_shared/期刊数据库.md](references/_shared/期刊数据库.md) + [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)）；G14 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail）
+Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（**v2.5.0 多格式导出**：默认 md，按需选 `--format latex/docx/pdf`，详见 [_shared/format-export.md](references/_shared/format-export.md)；**v2.5.0 中文数据源集成**：可选启用知网/万方/CSSCI 并行补充，详见 [_shared/中文数据源集成.md](references/_shared/中文数据源集成.md)）
 ```
 
 ## 项目目录结构
@@ -279,9 +279,17 @@ run/<项目名>/
 - **9 张角色卡**（主控/文献检索/数据检索/分析/写作/审计/案例检索/批判伙伴/**同行评审**）：`references/agents/`（T3 案例检索员为重量场景可选，T6 批判伙伴 v2.2.2 新增，**T9 同行评审 v2.4.0 新增，可选触发**，轻量档可跳过；**T8 终检无独立角色卡，由 T0 主控亲完成**）
 - 7 类模板（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单，每类含 lite精简版 + full完整版）：`references/templates/`（**v2.4.0 新增 G14检测报告-template.md + 审稿报告-template.md**）
 - 流水线运行手册（含 8 角色完整派发话术 T1/T2/T3/T4/T5/T6/T7/T9 + M 门 + F 模式 + AI 使用披露，T8 终检不 spawn）：`references/pipeline-readme.md`
+- **v2.4.6 / v2.5.0 新增文档**：
+  - 字数判定表（T7+T8 共用，单一真源）：`references/_shared/字数判定表.md`
+  - 退化场景规范（跳过 Phase 3.5）：`references/_shared/degraded-scenarios.md`
+  - 修订说明模板（标准化）：`references/templates/修订说明-template-full.md`
+  - 投稿就绪检查表（推荐期刊+匹配度 / Word-PDF / AI 声明三套）：`references/templates/投稿就绪检查表-template.md`
+  - 期刊数据库（v2.5.0）+ 期刊匹配算法（v2.5.0）：`references/_shared/期刊数据库.md` + `references/_shared/期刊匹配算法.md`
+  - 中文数据源集成（v2.5.0，可选，知网/万方/CSSCI 并行补充层）：`references/_shared/中文数据源集成.md`
+  - 多格式导出（v2.5.0，可选，--format md/latex/docx/pdf）：`references/_shared/format-export.md`
 - 设计文档（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判 详解）：`references/设计文档.md`
 - 实战案例库（商业热点 / 品牌一致性 / 原创性悖论 + 教训沉淀）：`references/case-studies.md`
-- **T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启）**：论文投稿前的「预演审稿人」，6 维度评分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范，每维度 1-5 分，总分 30），26-30 accept / 21-25 minor / 16-20 major / <16 reject。**行业分析/学术论文默认开启，公众号默认关闭（主人可选）**。详见 [`references/agents/09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md) + [`references/templates/审稿报告-template.md`](references/templates/审稿报告-template.md)。
+- **T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启）**：论文投稿前的「预演审稿人」，6 维度评分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范，每维度 1-5 分，总分 30），26-30 accept / 21-25 minor / 16-20 major / <16 reject。**行业分析/学术论文默认开启，公众号默认关闭（主人可选）**。**v2.5.0 期刊匹配助手**：基于 T9 评分 + 主题关键词，从 [_shared/期刊数据库.md](references/_shared/期刊数据库.md)（25 中文 CSSCI/北大核心 + 12 英文 SSCI）+ [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)（主题契合 50% + 风格匹配 30% + T9 评分 20%），输出 Top 3 期刊 + 综合匹配度。详见 [`references/agents/09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md) + [`references/templates/审稿报告-template.md`](references/templates/审稿报告-template.md)。
 - **G14 中文 AI 痕迹深度检测闸（v2.4.0 新增）**：Phase 4.5 触发，T6 批判伙伴并行调用。8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）。0-2 类 Pass / 3-4 类 Warning 触发 T5 修订 1 轮 / 5+ 类 Fail 触发 T5 修订 2 轮。详见 [`references/gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md)。**主人在 Phase 0 可显式关闭 G14**。
 - **方法论实时可见面板（v2.4.0 新增）**：借鉴 deep-research-pro 的方法论透明（论衡化）。在 `status.md` 加「方法论足迹」段，含当前阶段 / 证据强度 / 已触发闸门 / 下一步预测 / 不确定性 / 模型健康度 6 个字段。详见 [`references/templates/status-template.md`](references/templates/status-template.md)「方法论足迹」段。**主人在 Phase 0 可显式关闭方法论足迹**。
 
