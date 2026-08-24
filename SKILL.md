@@ -184,16 +184,16 @@ metadata:
 ## 流水线全景（Phase 0-5）
 
 ```
-Phase 0 定题        与主人确认主题/篇幅/受众/配图需求 → 01-任务简报.md + status.md
+Phase 0 定题        与主人确认主题/篇幅/受众/配图意向（无/要图） → 01-任务简报.md + status.md
 Phase 1 并行检索    T1 文献检索员 ∥ T2 数据检索员 ∥ T3 案例检索员（sessions_spawn 三方真并行，sessions_yield 等待；T3 任何量级必 spawn，含 0 条空卡协议）
 Phase 2 分析        T4 分析员 → analysis/分析大纲.md（论点-论据映射 + 反方论证规划 + 三角验证）
-Phase 2.5 大纲确认  主人过目大纲 → 确认/修改（人在环！改方向成本最低，不可跳过）
+Phase 2.5 大纲确认  主人过目大纲 → 确认/修改 + 拍板 T4 建议图表（图位数量/类型/数据源）（人在环！改方向成本最低，不可跳过）
 Phase 3 写作        T5 写手 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、案例标[Cxx]、AI去味10项）
 Phase 3.5 洞察补充  主人过目初稿 v1 → 主控问主人洞要补 → T5 写手 v2 融入（人在环！v2.1.3 教训 #46）
 Phase 3.6 批判      T6 批判伙伴（v2.2.2 新增）→ analysis/批判报告-vN.md（攻击 v2 不是 v1，轻量档可跳过）
 Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0-G13 + G14，v2.4.0 加 G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
-Phase 4.5 配图      （**默认关闭**，需主人在 Phase 0 同意关卡明确勾选）写手标 [图N：标题] 图位 → 主控程序化生成图表；封面生成需主人首次确认——首次调用 image_generate 前**必须**先询问主人同意。**重要**：**封面调用 image_generate 不是默认行为**，而是「可选行为」，需主人在 Phase 0 同意关卡明确勾选「启用封面生成」才调用。如未勾选，默认用 SVG 矢量风（程序化生成）或主人人工上传。如启用后调用 OpenAI gpt-image-2 失败，按降级顺序自动 fallback（Google gemini-3.1-flash-image-preview → minimax/minimax-image-01 → SVG）。
+Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（需主人首次确认，默认关闭，失败降级 Google → minimax → SVG）
 Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，可选，默认关闭）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject）；G14 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail）
 Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md
 ```
@@ -202,7 +202,7 @@ Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 
 
 ```
 run/<项目名>/
-├── 01-任务简报.md       # Phase 0 产出：子问题拆解 + 字数预算 + 配图需求 + 期刊/风格模板
+├── 01-任务简报.md       # Phase 0 产出：子问题拆解 + 字数预算 + 配图意向 + 期刊/风格模板
 ├── status.md            # 状态机：Inbox→Assigned→In Progress→Review→Done|Failed（角色交接必更新）
 ├── literature/文献卡.md # T1 产出：[L01]... 每条含可信度等级 A/B/C + 关联
 ├── data/数据卡.md       # T2 产出：[D01]... 每条含来源机构+年份+URL+时效🟢🟡🔴
