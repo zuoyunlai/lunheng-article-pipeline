@@ -172,6 +172,14 @@ s = re.sub(r'[^\n]*设计文档\.md[^\n]*\n', '', s)
 # 6. 任务简报模板「详见设计文档 原创性保证 + 」：删引用，保留写手卡
 s = s.replace('（详见设计文档 原创性保证 + 写手卡视角与精度铁律）', '（详见写手卡视角与精度铁律）')
 
+# 7. 剥离「版本一致性检查」的 commit/tag/push release workflow（scanner Context-Inappropriate Capability）
+s = re.sub(
+    r'- \*\*版本一致性检查[^\n]*\*\*：.*?(?=\n- \*\*)',
+    '- **版本一致性检查**：由开发者维护（版本升级时跑机械化自审），使用者无需关心。',
+    s,
+    flags=re.DOTALL
+)
+
 open(path, 'w', encoding='utf-8').write(s)
 PYEOF
 }

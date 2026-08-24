@@ -1,6 +1,6 @@
 # 项目状态机 — run/<项目名>/status.md
 
-> 版本：v2.4.3（自动同步 2026-08-24）
+> 版本：v2.4.4（自动同步 2026-08-24）
 
 > 主控维护，每个角色交接时更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped
 > 失败必须留原因；任一行停留 >8 分钟无进展 → 主控介入。

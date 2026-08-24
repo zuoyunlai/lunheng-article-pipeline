@@ -163,7 +163,7 @@
 
 - 图件统一入 `final/图件/`，命名 `图N_标题.svg`（N 与正文 [图N] 对应）
 - 交付说明 `final/交付说明.md` 列图件清单 + 每图数据来源编号
-- 如需 PNG（公众号排版），主控可用 `image_generate` 或主人用 rsvg-convert 转（注意：PNG 转 SVG 不影响数字精确性）
+- 如需 PNG（公众号排版），**默认主人用 rsvg-convert 本地转换（零外发，符合「零 exec」哲学）**；如主人明确同意调用外部图像服务，主控才可用 `image_generate` 转 PNG（注意：PNG 转 SVG 不影响数字精确性）
 
 ---
 
