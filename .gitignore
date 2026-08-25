@@ -4,3 +4,5 @@ audits/
 docs/
 references/_shared/archive/
 outputs/
+scripts/__pycache__/
+*.pyc

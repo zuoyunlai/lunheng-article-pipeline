@@ -59,48 +59,82 @@ def strip_shell(s: str) -> str:
     lines = s.split('\n')
     out = []
     i = 0
-    in_codeblock = False
-    codeblock_lang = ''
-    codeblock_start = -1
+    # 嵌套代码块深度跟踪（v2.5.2 修复：支持 ````` 外层 + ``` 内层嵌套）
+    codeblock_stack = []  # [(lang, backtick_count), ...]
+
+    def _backtick_count(line: str) -> int:
+        """返回行首反引号数量，若非围栏行返回 0"""
+        stripped = line.strip()
+        m = re.match(r'(`{3,})', stripped)
+        return len(m.group(1)) if m else 0
 
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
+        bt_count = _backtick_count(line)
 
-        # ---- 代码块围栏检测 ----
-        if stripped.startswith('```'):
-            if not in_codeblock:
-                # 进入代码块
-                in_codeblock = True
-                codeblock_lang = stripped[3:].strip()
-                codeblock_start = i
-                if is_shell_codeblock_lang(codeblock_lang):
-                    # shell 代码块：跳过直到结束围栏（不输出）
+        # ---- 代码块围栏检测（支持嵌套）----
+        if bt_count > 0:
+            if not codeblock_stack:
+                # 进入最外层代码块
+                lang = stripped[bt_count:].strip()
+                codeblock_stack.append((lang, bt_count))
+                if is_shell_codeblock_lang(lang):
+                    # shell 代码块：跳过内容直到匹配的结束围栏
                     i += 1
-                    while i < len(lines) and not lines[i].strip().startswith('```'):
+                    while i < len(lines):
+                        end_bt = _backtick_count(lines[i])
+                        if end_bt == bt_count:
+                            break
                         i += 1
                     # 跳过结束围栏
                     i += 1
-                    in_codeblock = False
-                    codeblock_lang = ''
+                    codeblock_stack.pop()
                     continue
                 else:
-                    # 非 shell 代码块（python/json/无标记）：保留围栏
+                    # 非 shell 代码块：保留围栏
                     out.append(line)
                     i += 1
                     continue
             else:
-                # 代码块结束围栏
-                in_codeblock = False
-                codeblock_lang = ''
-                out.append(line)
-                i += 1
-                continue
+                # 嵌套代码块：内层围栏
+                inner_lang = stripped[bt_count:].strip()
+                if bt_count < codeblock_stack[-1][1]:
+                    # 更少的反引号 = 进入内层代码块
+                    codeblock_stack.append((inner_lang, bt_count))
+                    if is_shell_codeblock_lang(inner_lang):
+                        # 内层 shell 代码块：跳过
+                        i += 1
+                        while i < len(lines):
+                            end_bt = _backtick_count(lines[i])
+                            if end_bt == bt_count:
+                                break
+                            i += 1
+                        i += 1  # 跳过结束围栏
+                        codeblock_stack.pop()
+                        continue
+                    else:
+                        out.append(line)
+                        i += 1
+                        continue
+                elif bt_count == codeblock_stack[-1][1]:
+                    # 同层围栏 = 结束当前代码块
+                    codeblock_stack.pop()
+                    out.append(line)
+                    i += 1
+                    # 如果栈非空，继续在外层代码块内
+                    continue
+                else:
+                    # 更多反引号 = 仍然是内容
+                    out.append(line)
+                    i += 1
+                    continue
 
         # ---- 代码块内（非 shell）----
-        if in_codeblock:
-            # 无语言标记的代码块（混合伪代码）内部也做 shell 替换；python/json 原样保留
-            if codeblock_lang == '':
+        if codeblock_stack:
+            lang = codeblock_stack[-1][0]
+            if lang == '' or lang == 'markdown':
+                # 无语言标记或 markdown 代码块：内部仍做 shell 替换
                 out.append(process_inline(line))
             else:
                 out.append(line)
@@ -156,6 +190,10 @@ def process_inline(line: str) -> str:
     # 3. 清理「零 exec 声明」里的具体命令列举 → 「shell 命令」
     line = re.sub(r'（`[^`]*`(?:/`[^`]*`)*\s*等）', '（shell 命令）', line)
     line = re.sub(r'\(`[^`]*`(?:/`[^`]*`)*\s*等\)', '（shell 命令）', line)
+
+    # 4. ~/.openclaw 主机路径 → 泛化（v2.5.2 新增，scanner 命中点）
+    line = re.sub(r'~/\.openclaw[^\s`>}\])]*', '`<OpenClaw数据目录>`', line)
+    line = re.sub(r'`<OpenClaw数据目录>`/[^\s`]*', '`<OpenClaw数据目录>`', line)
 
     return line
 
