@@ -1,5 +1,4 @@
 # 项目状态机 — run/<项目名>/status.md
-
 > 版本：v2.5.1（自动同步 2026-08-24）
 
 > 主控维护，每个角色交接时更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped

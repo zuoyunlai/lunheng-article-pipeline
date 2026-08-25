@@ -67,6 +67,32 @@ CHECKS=(
   "agents/05-写作-writer.md|v$EXPECTED|1"
   "agents/06-批判-critical-companion.md|v$EXPECTED|1"
   "agents/07-审计-auditor.md|v$EXPECTED|1"
+  "agents/09-审稿-peer-reviewer.md|v$EXPECTED|1"
+
+  # 主控扩展职责（v2.5.0 主控卡拆分后新增）
+  "agents/00-主控-扩展职责.md|v$EXPECTED|1"
+
+  # 闸门 + 检测器（v2.4.0 G14 新增）
+  "gates/14-中文AI痕迹-gate.md|v$EXPECTED|1"
+  "checkers/中文AI痕迹-checker.md|v$EXPECTED|1"
+
+  # 扩展 _shared 协议（实战反馈 + v2.5.0/v2.5.1 新增）
+  "_shared/执行韧化协议-v2.1.0.md|v$EXPECTED|1"
+  "_shared/failure-modes.md|v$EXPECTED|1"
+  "_shared/字数判定表.md|v$EXPECTED|1"
+  "_shared/degraded-scenarios.md|v$EXPECTED|1"
+  "_shared/期刊数据库.md|v$EXPECTED|1"
+  "_shared/期刊匹配算法.md|v$EXPECTED|1"
+  "_shared/中文数据源集成.md|v$EXPECTED|1"
+  "_shared/format-export.md|v$EXPECTED|1"
+
+  # 模板（v2.4.6 + v2.5.0 + v2.5.1 新增）
+  "templates/任务简报-template.md|v$EXPECTED|1"
+  "templates/审稿报告-template.md|v$EXPECTED|1"
+  "templates/G14检测报告-template.md|v$EXPECTED|1"
+  "templates/status-template.md|v$EXPECTED|1"
+  "templates/投稿就绪检查表-template.md|v$EXPECTED|1"
+  "templates/修订说明-template-full.md|v$EXPECTED|1"
 
   # 顶层文档（入口，v2.3.6 起纳入；@ = 相对 ENTRY_DIR）
   "@README.md|v$EXPECTED|1"

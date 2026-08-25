@@ -85,7 +85,7 @@ def strip_shell(s: str) -> str:
                     codeblock_lang = ''
                     continue
                 else:
-                    # 非 shell 代码块：保留围栏
+                    # 非 shell 代码块（python/json/无标记）：保留围栏
                     out.append(line)
                     i += 1
                     continue
