@@ -71,10 +71,10 @@ metadata:
 
 ## 启动清单（主控 Phase 0 必走）
 
-1. 读 `references/pipeline-readme.md`（启动清单 / 派发话术 / 模型配置）
+1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）
 2. 读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）
 3. 读 `MEMORY.md` + `memory/YYYY-MM-DD.md`（主人偏好 + 最近关注主题）
-4. **spawn 子代理前必读派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 八个角色的完整派发模板在 `pipeline-readme.md`，不要凭记忆复制（教训 #57）
+4. **spawn 子代理前必读对应派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 各角色的派发模板在 `references/dispatch/`（v2.5.6 拆分成 10 个独立文件，spawn 哪角色读哪文件），不要凭记忆复制（教训 #57）
 5. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md#必查项`（G0-G14）+ `_shared/M-Gate-Algorithm.md`（M 门算法）
 6. **文件修改安全流程**（v2.1.4 F5）：**禁止 `sed -i`**（静默清空文件教训 #48）——用 `edit` 工具精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
 7. **子代理交接五要素缺一不可**，静默超硬卡阈值（按主控卡 §二十二「硬卡阈值表」：T1-T3 10 分钟 / T4 12 分钟 / T5 15 分钟 / T6-T7 12-15 分钟 / G14 8 分钟）主动介入（v2.5.5 P0 硬性化，原 8 分钟统一硬卡已废弃）
@@ -240,22 +240,23 @@ run/<项目名>/
 
 ## 派发话术与审计必查项（v2.2.8 按需加载）
 
-**派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 + G14 检测器的完整派发模板见 [`references/pipeline-readme.md#派发话术`](references/pipeline-readme.md)（T8 终检不 spawn，由主控亲完成）。**主控 spawn 子代理前必读**（不要凭记忆复制 SKILL.md 历史版本，引用 pipeline-readme.md 的最新版，避免双形式同步漂移，教训 #57）。
+**派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 + G14 检测器的完整派发模板见 [`references/dispatch/`](references/dispatch/)（v2.5.6 拆分成 10 个独立文件，T8 终检不 spawn 由主控亲完成）。**主控 spawn 子代理前必读对应角色的 dispatch 文件**（不要凭记忆复制，教训 #57）。
 
 **审计必查项**：G0-G14 十四项审计清单 + M 门算法 + G6/G7/G11/G12/G14 实战子项见 [`references/agents/07-审计-auditor.md#必查项`](references/agents/07-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
 
-**派发话术锚点速查**（v2.5.6 P1-2 修订：删除行号，标题锐点定位）：
-- T9 同行评审（可选）→ `references/pipeline-readme.md#同行评审t9v240-新增可选触发`
-- G14 中文 AI 痕迹检测器 → `references/pipeline-readme.md#g14-中文-ai-痕迹检测器v240-新增`
-- T1 文献检索员 → `references/pipeline-readme.md#文献检索员并行t1`
-- T2 数据检索员 → `references/pipeline-readme.md#数据检索员并行t2`
-- T3 案例检索员 → `references/pipeline-readme.md#案例检索员并行t3v230-重命名原-t6-t3`
-- T4 分析员 → `references/pipeline-readme.md#分析员t4v230-改-t3-t4`
-- T5 写手 → `references/pipeline-readme.md#写手t5v230-改-t4-t5`
-- T6 批判伙伴 → `references/pipeline-readme.md#批判伙伴t6v230-改-t8-t6`
-- T7 审计员 → `references/pipeline-readme.md#审计员t7v230-改-t5-t7`
+**派发话术锚点速查**（v2.5.6 修订：拆分为 dispatch/ 独立文件，按需加载）：
+- T9 同行评审 → [`references/dispatch/T9-同行评审.md`](references/dispatch/T9-同行评审.md)
+- G14 中文 AI 痕迹检测器 → [`references/dispatch/G14-中文AI痕迹检测器.md`](references/dispatch/G14-中文AI痕迹检测器.md)
+- T1 文献检索员 → [`references/dispatch/T1-文献检索.md`](references/dispatch/T1-文献检索.md)
+- T2 数据检索员 → [`references/dispatch/T2-数据检索.md`](references/dispatch/T2-数据检索.md)
+- T3 案例检索员 → [`references/dispatch/T3-案例检索.md`](references/dispatch/T3-案例检索.md)
+- T4 分析员 → [`references/dispatch/T4-分析.md`](references/dispatch/T4-分析.md)
+- T5 写手 → [`references/dispatch/T5-写手.md`](references/dispatch/T5-写手.md)
+- T6 批判伙伴 → [`references/dispatch/T6-批判.md`](references/dispatch/T6-批判.md)
+- T7 审计员 → [`references/dispatch/T7-审计.md`](references/dispatch/T7-审计.md)
+- T8 终检 → [`references/dispatch/T8-终检.md`](references/dispatch/T8-终检.md)
 
-**为什么不绑定行号**（v2.5.6 P1-2 修订原因）：文档一改行号就漂——v2.5.5 实战中 SKILL.md 写 T1 → 行 326，实际 pipeline-readme.md T1 段不在行 326。**改为标题锐点 + 文档内部跳转**——浏览器/GitHub 自动生成锚点，长期稳定。
+**为什么拆分**（v2.5.6 第三方审查建议 #1 token 优化）：原 269 行派发话术全在 pipeline-readme.md，主控 spawn 一个角色要读全部 10 个角色的指令。拆成 dispatch/ 独立文件后，spawn 哪角色读哪文件，避免上下文污染 + 省 token。
 
 **审计锚点速查**：
 - G0-G14 速查表 → `references/_shared/audit-checklist-quickref.md`（全集）+ `references/agents/07-审计-auditor.md#必查项`（说明）
