@@ -12,13 +12,9 @@
 
 ## ⚡ 执行韧化协议（v2.1.0 必读，v2.2.8 精简版）
 
-> **详细协议见** [`_shared/执行韧化协议-v2.1.0.md`](../_shared/执行韧化协议-v2.1.0.md) + [`glossary.md § 执行韧化协议`](../glossary.md#四关键协议)
+> **详细协议见** [`_shared/执行韧化协议-v2.1.0.md`](../_shared/执行韧化协议-v2.1.0.md) + [`glossary.md § 执行韧化协议`](../_shared/关键协议.md)
 
-**4 层防御**（详见词汇表）：
-1. **启动心跳**（30s 内）→ 更新 `status.md` = `🔄 In Progress`
-2. **分阶段 ACK**（3 档）→ <3min 不需要 / 3-8min 中途 1 次 / >8min 多次
-3. **模型健康度预检** → 1-token ping，30s 无响应降级
-4. **8 分钟硬卡** → 6 分警告 / 7 分 partial / 8 分 kill
+**4 层防御**（详见 [`_shared/执行韧化协议-v2.1.0.md`](../_shared/执行韧化协议-v2.1.0.md) §「4 层防御」段，v2.5.6 拆分）：启动心跳 / 分阶段 ACK / 模型健康度预检 / 8 分钟硬卡
 
 **能力档**：分析写作=强推理（候选池见 SKILL.md 模型分工表，v2.3.13 起不再硬编码模型名）
 
@@ -108,7 +104,7 @@ grep -c "## \[D" 数据卡.md        # ≥10
 
 ## F 失败模式分析指引（v2.2.0，教训 #64）
 
-> **完整 F1-F9 定义见** [`glossary.md § F 模式`](../glossary.md#f-模式失败模式清单) + [`_shared/failure-modes.md`](../_shared/failure-modes.md)
+> **完整 F1-F9 定义见** [`glossary.md § F 模式`](../_shared/failure-modes.md) + [`_shared/failure-modes.md`](../_shared/failure-modes.md)
 
 **大纲产出必走 4 项检查**：
 
