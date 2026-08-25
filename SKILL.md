@@ -296,3 +296,11 @@ run/<项目名>/
 ## 实战验证案例
 
 论衡实战案例库见 [`references/case-studies.md`](references/case-studies.md)（含商业热点/品牌一致性/原创性悖论 3 个完整案例 + 教训沉淀）。SKILL.md 不重复维护，案例持续追加。
+
+---
+
+## License
+
+本技能以 **MIT License** 发布 — Copyright (c) 2026 左运来 (zuoyunlai)。
+
+完整文本见 [`LICENSE`](LICENSE)。允许商业使用、修改、分发，需保留版权声明。论衡 v2.5.2 起固化为双视图发布架构（本地真源 + ClawHub 净化包），受 MIT License 约束。

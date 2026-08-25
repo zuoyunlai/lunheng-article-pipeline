@@ -57,6 +57,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/_shared/版本升级自审门-*.md' \
     --exclude 'references/_shared/M-Gate-渐进式验证-*.md' \
     --exclude 'references/templates/README-模板拆分方案.md' \
+    --exclude 'README.md' \
     --exclude 'references/设计文档.md' \
     --exclude 'references/设计文档-架构.md' \
     --exclude 'references/设计文档-哲学.md' \
@@ -73,6 +74,7 @@ else
   rm -f "$OUT_DIR/references/_shared/通用韧化块-v2.1.0.md"
   rm -f "$OUT_DIR/.gitignore"
   rm -f "$OUT_DIR/references/templates/README-模板拆分方案.md"
+  rm -f "$OUT_DIR/README.md"
   rm -f "$OUT_DIR/references/设计文档.md" "$OUT_DIR/references/设计文档-架构.md" "$OUT_DIR/references/设计文档-哲学.md"
   rm -f "$OUT_DIR"/references/_shared/版本升级自审门-*.md
   rm -f "$OUT_DIR"/references/_shared/M-Gate-渐进式验证-*.md
