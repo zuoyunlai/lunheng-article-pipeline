@@ -1,8 +1,8 @@
 ---
 name: lunheng-article-pipeline
 displayName: lunheng-article-pipeline
-version: 2.5.4
-description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 机械化硬门 + F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
+version: 2.5.6
+description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   requires:
     bins: []
@@ -77,7 +77,7 @@ metadata:
 4. **spawn 子代理前必读派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 八个角色的完整派发模板在 `pipeline-readme.md`，不要凭记忆复制（教训 #57）
 5. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md#必查项`（G0-G14）+ `_shared/M-Gate-Algorithm.md`（M 门算法）
 6. **文件修改安全流程**（v2.1.4 F5）：**禁止 `sed -i`**（静默清空文件教训 #48）——用 `edit` 工具精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
-7. **子代理交接五要素缺一不可**，静默超 **8 分钟**主动介入（v2.3 从 10 分钟收紧）
+7. **子代理交接五要素缺一不可**，静默超硬卡阈值（按主控卡 §二十二「硬卡阈值表」：T1-T3 10 分钟 / T4 12 分钟 / T5 15 分钟 / T6-T7 12-15 分钟 / G14 8 分钟）主动介入（v2.5.5 P0 硬性化，原 8 分钟统一硬卡已废弃）
 
 ## 何时使用 + 字数分层（v2.2.7 软化）
 
@@ -104,18 +104,19 @@ metadata:
 
 **对字数分层的理解**：流水线本身有固定成本（三方并行 + 9 角色 + 4 个闸门），字数太少投入产出比低；2000 字以下不是「不能用」，是「不划算」。
 
-**模型分档**（v2.3.12 起抽象为「能力档 + 候选池」，不再硬编码单一模型）：
+**模型分档**（v2.3.12 起抽象为「能力档 + 候选池」，v2.5.6 P1-3 修订：**候选池描述性，不绑定具体模型**）：
 
-| 能力档 | 角色 | 能力需求 | 候选池（按优先级） |
-|--------|------|---------|------------------|
-| 检索 | T1 / T2 / T3 | 便宜快 | deepseek-v4-flash → glm-4-flash → qwen3-coder |
-| 分析写作 | T4 / T5 | 强推理 | deepseek-v4-pro → minimax-m3 |
-| 批判审计 | T6 / T7 | 顶配防漏判 | claude-opus-5 → minimax-m3 → deepseek-v4-pro |
-| 主控 | T0 | 稳定路由 | deepseek-v4-pro → deepseek-v4-flash |
-| 终检 | T8 | 主控亲完成 | 不 spawn 子代理 |
+| 能力档 | 角色 | 能力需求 | 候选池（描述性，不绑定具体 DSH 模型） |
+|--------|------|---------|-------------------------------------------|
+| 检索 | T1 / T2 / T3 | 便宜快（响应快 / token 便宜） | 小参数模型 + 高 token/秒（如 gpt-4o-mini / claude-haiku / 本地 Ollama） |
+| 分析写作 | T4 / T5 | 强推理（逻辑链 / 长上下文） | 中大参数推理模型（如 gpt-4o / claude-sonnet / deepseek-reasoner） |
+| 批判审计 | T6 / T7 | 顶配防漏判（严格审计 / 不放水） | 顶级推理模型（如 claude-opus / gpt-4-turbo） |
+| 主控 | T0 | 稳定路由（多角色协调 / 不崩溃） | 中参数稳定模型（如 gpt-4o / claude-sonnet） |
+| 终检 | T8 | 主控亲完成（不 spawn 子代理） | 不适用 |
 
-**候选池映射规则（v2.3.12 P0-1/P0-2/P0-3）**：
-- **Phase 0 模型自检**：主控启动时扫本机可用模型（`models list`），每个能力档从候选池**按优先级选第一个可用模型**，写入 status.md「本轮可用模型」表
+**候选池映射规则（v2.5.6 P1-3 修订，教训 #176）**：
+- **Phase 0 模型自检**：主控启动时扫本机可用模型（`models list`），每个能力档从候选池描述**按「能力需求」映射到第一个可用模型**，写入 status.md「本轮可用模型」表
+- **候选池不再绑定具体 DSH 模型 ID**——v2.5.6 修订前硬编码 `deepseek-v4-flash / glm-4-flash / qwen3-coder / minimax-m3 / claude-opus-5`（v2.3.13 起遗留），换 OpenClaw runtime（如非 DSH 套餐）路由失败。v2.5.6 后候选池仅描述能力，具体模型由 Phase 0 自检自动映射。
 - **顶配档候选池全不可用** → 显式告知主人「本机无顶配审计模型，审计/批判深度将降级，是否继续」，禁止静默降级
 - **预算闸门**：派发 T6/T7 前查顶配模型余额，< $0.1 直接走候选池下一档并告知主人深度降级；同一项目已发现余额不足 → 后续顶配角色直接降级
 
@@ -243,16 +244,18 @@ run/<项目名>/
 
 **审计必查项**：G0-G14 十四项审计清单 + M 门算法 + G6/G7/G11/G12/G14 实战子项见 [`references/agents/07-审计-auditor.md#必查项`](references/agents/07-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
 
-**派发话术锚点速查**（主控读 pipeline-readme.md 后定位用，v2.4.0 更新行号 + 补 T9/G14）：
-- T9 同行评审（可选）→ pipeline-readme.md 行 273
-- G14 中文 AI 痕迹检测器 → 行 300
-- T1 文献检索员 → 行 326
-- T2 数据检索员 → 行 345
-- T3 案例检索员 → 行 373
-- T4 分析员 → 行 407
-- T5 写手 → 行 427
-- T6 批判伙伴 → 行 449
-- T7 审计员 → 行 475
+**派发话术锚点速查**（v2.5.6 P1-2 修订：删除行号，标题锐点定位）：
+- T9 同行评审（可选）→ `references/pipeline-readme.md#同行评审t9v240-新增可选触发`
+- G14 中文 AI 痕迹检测器 → `references/pipeline-readme.md#g14-中文-ai-痕迹检测器v240-新增`
+- T1 文献检索员 → `references/pipeline-readme.md#文献检索员并行t1`
+- T2 数据检索员 → `references/pipeline-readme.md#数据检索员并行t2`
+- T3 案例检索员 → `references/pipeline-readme.md#案例检索员并行t3v230-重命名原-t6-t3`
+- T4 分析员 → `references/pipeline-readme.md#分析员t4v230-改-t3-t4`
+- T5 写手 → `references/pipeline-readme.md#写手t5v230-改-t4-t5`
+- T6 批判伙伴 → `references/pipeline-readme.md#批判伙伴t6v230-改-t8-t6`
+- T7 审计员 → `references/pipeline-readme.md#审计员t7v230-改-t5-t7`
+
+**为什么不绑定行号**（v2.5.6 P1-2 修订原因）：文档一改行号就漂——v2.5.5 实战中 SKILL.md 写 T1 → 行 326，实际 pipeline-readme.md T1 段不在行 326。**改为标题锐点 + 文档内部跳转**——浏览器/GitHub 自动生成锚点，长期稳定。
 
 **审计锚点速查**：
 - G0-G14 速查表 → `references/_shared/audit-checklist-quickref.md`（全集）+ `references/agents/07-审计-auditor.md#必查项`（说明）

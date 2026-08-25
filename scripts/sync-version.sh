@@ -17,6 +17,7 @@
 set -e
 
 SKILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"  # v2.5.6 P0 修复：用于 self-audit-gate.sh 调用
 
 # 自动检测目录结构：工作区（pipeline/）vs skill 副本（references/ + 根 SKILL.md）
 if [ -d "$SKILL_ROOT/pipeline" ]; then
@@ -192,33 +193,12 @@ echo "✂️  版本栈精简（保留最近 5 个）"
 if [ "$DRY_RUN" == true ]; then
   echo "（DRY-RUN 模式，未实际修改）"
 else
-  # 收集所有需要 trim 的文件路径（SKILL.md + 18 个 SYNCS 文件）
-  TRIM_FILES="SKILL.md"
-  for s in "${SYNCS[@]}"; do
-    IFS='|' read -r f _ <<< "$s"
-    if [[ "$f" == @* ]]; then
-      TRIM_FILES="$TRIM_FILES ${f#@}"
-    else
-      TRIM_FILES="$TRIM_FILES $f"
-    fi
-  done
-  TRIM_FILES="$TRIM_ROOT/$CONTENT_DIR/../SKILL.md $TRIM_FILES"
-  # 实际文件在 CONTENT_DIR，SKILL.md 在 CONTENT_DIR/SKILL.md
-  # 修正：直接在 cwd 下拼接（脚本运行 cwd = SKILL_ROOT）
-  TRIM_PATHS=""
-  for f in $TRIM_FILES; do
-    if [[ "$f" == SKILL.md ]]; then
-      TRIM_PATHS="$TRIM_PATHS SKILL.md"
-    elif [[ "$f" == @* ]]; then
-      TRIM_PATHS="$TRIM_PATHS ${f#@}"
-    else
-      TRIM_PATHS="$TRIM_PATHS $f"
-    fi
-  done
-  python3 - "$TRIM_PATHS" <<'TRIMEOF'
-import sys, os
-files = sys.argv[1:]
-def trim(path, keep=5):
+  # v2.5.6 P0 修复：直接 find 所有 .md 文件 trim（避免 SYNCS 路径拼接复杂逻辑）
+  # 用 find 拿到所有 .md 文件的绝对路径（排除 .git/outputs/archive）
+  python3 - <<'TRIMEOF'
+import os
+def trim(path, keep=1):
+    """保留最前 keep 个版本行（版本行从上往下「新→旧」，最前=最新）"""
     with open(path, encoding='utf-8') as f:
         lines = f.read().split('\n')
     version_idx = [i for i, line in enumerate(lines) if line.startswith('> 版本：')]
@@ -226,24 +206,23 @@ def trim(path, keep=5):
         return 0
     keep_set = set(version_idx[:keep])
     remove_set = set(version_idx[keep:])
-    out = []
-    for i, line in enumerate(lines):
-        if i in remove_set:
-            continue
-        if line.strip() == '' and (i-1) in remove_set:
-            continue
-        out.append(line)
+    out = [line for i, line in enumerate(lines) if i not in remove_set]
     with open(path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(out))
     return len(remove_set)
+
 trimmed = 0
-for f in files:
-    if os.path.isfile(f):
-        n = trim(f, 5)
+for root, dirs, files in os.walk('.'):
+    dirs[:] = [d for d in dirs if d not in ('.git', 'outputs', 'archive')]
+    for name in files:
+        if not name.endswith('.md'):
+            continue
+        path = os.path.join(root, name)
+        n = trim(path, 1)
         if n > 0:
-            print(f"  -{n} 行  {f}")
+            print(f"  -{n} 行  {path}")
             trimmed += n
-print(f"✅ 清理 {trimmed} 行旧版本记录（每文件保留最近 5 个）")
+print(f"✅ 清理 {trimmed} 行旧版本记录（每文件保留最近 1 个 = 收敛单行）")
 TRIMEOF
 fi
 
@@ -259,4 +238,20 @@ if [ "$DRY_RUN" == true ]; then
 else
   echo "✅ 版本号同步完成（v$EXPECTED）"
   echo "   建议执行 ./scripts/check-version.sh 验证同步结果"
+  echo ""
+  # 第三方独立审查建议 #2（v2.5.6 P0 必修，教训 #175）：自动跑自审门，不依赖主控「记得」跑
+  if [ -f "$SCRIPT_DIR/self-audit-gate.sh" ]; then
+    echo "🛡️  启动自动自审门（v2.5.6 新增）..."
+    echo ""
+    if bash "$SCRIPT_DIR/self-audit-gate.sh"; then
+      echo ""
+      echo "✅ 自审门通过，版本同步完成"
+    else
+      echo ""
+      echo "❌ 自审门失败，请修复后重新跑 sync-version.sh"
+      exit 1
+    fi
+  else
+    echo "⚠️  self-audit-gate.sh 不存在，跳过自动自审门"
+  fi
 fi

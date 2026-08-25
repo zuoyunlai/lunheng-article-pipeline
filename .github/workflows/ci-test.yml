@@ -1,0 +1,71 @@
+name: 论衡算法测试 CI（v2.5.6 新增，第三方独立审查建议 #1）
+
+# CI 集成：PR + master push 自动跑 M 门 13 项算法格式测试
+# 用途：拦截「改 A 漏 B」导致的算法字段变更、fixture 失效、M 门误判
+
+on:
+  pull_request:
+    paths:
+      - 'references/_shared/M-Gate-Algorithm.md'
+      - 'references/_shared/audit-checklist-quickref.md'
+      - 'references/_shared/字数判定表.md'
+      - 'references/gates/14-中文AI痕迹-gate.md'
+      - 'references/agents/09-审稿-peer-reviewer.md'
+      - 'tests/**'
+  push:
+    branches: [master]
+
+jobs:
+  test-m-gate-format:
+    runs-on: ubuntu-latest
+    name: M 门 13 项算法格式测试
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests/requirements-test.txt
+      
+      - name: 跑 M 门 13 项测试
+        run: |
+          echo "=========================================="
+          echo "论衡 M 门 13 项算法格式测试"
+          echo "=========================================="
+          python tests/test_m_gate.py
+        env:
+          # 注：当前 v2.5.6 不依赖真实 LLM API key（仅 fixture 格式检查）
+          # v2.6.0 Phase 2 将集成真实 LLM 调用（需 OPENAI_API_KEY）
+          PYTHONPATH: ${{ github.workspace }}
+      
+      - name: 测试结果汇总
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "测试完成（详见上文日志）"
+          echo "=========================================="
+
+  test-version-sync:
+    runs-on: ubuntu-latest
+    name: 版本号同步检查
+    steps:
+      - uses: actions/checkout@v4
+      - name: 跑 check-version.sh
+        run: |
+          chmod +x scripts/check-version.sh
+          bash scripts/check-version.sh
+
+  test-self-audit-gate:
+    runs-on: ubuntu-latest
+    name: 自审门 6 门验证
+    steps:
+      - uses: actions/checkout@v4
+      - name: 跑 self-audit-gate.sh
+        run: |
+          chmod +x scripts/self-audit-gate.sh
+          bash scripts/self-audit-gate.sh

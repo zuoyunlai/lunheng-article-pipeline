@@ -58,6 +58,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/_shared/M-Gate-渐进式验证-*.md' \
     --exclude 'references/templates/README-模板拆分方案.md' \
     --exclude 'README.md' \
+    --exclude 'tests' \
     --exclude 'references/设计文档.md' \
     --exclude 'references/设计文档-架构.md' \
     --exclude 'references/设计文档-哲学.md' \
@@ -67,7 +68,7 @@ else
   cp -a "$SKILL_ROOT/." "$OUT_DIR/"
   # 手动清理
   rm -rf "$OUT_DIR/.git" "$OUT_DIR/outputs" "$OUT_DIR/audits" "$OUT_DIR/scripts" \
-    "$OUT_DIR/.github" "$OUT_DIR/references/_shared/archive" "$OUT_DIR/references/design" \
+    "$OUT_DIR/.github" "$OUT_DIR/tests" "$OUT_DIR/references/_shared/archive" "$OUT_DIR/references/design" \
     "$OUT_DIR/docs" "$OUT_DIR/.bak-20260823-2024-v2.4.0-migrate"
   find "$OUT_DIR" -name '*.bak.*' -delete
   rm -f "$OUT_DIR/references/_shared/m_exist_1_diff.sh" "$OUT_DIR/PERFORMANCE-PROFILE.md"

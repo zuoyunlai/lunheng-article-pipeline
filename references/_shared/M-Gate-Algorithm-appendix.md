@@ -1,4 +1,10 @@
 
+> 版本：v2.5.6（自动同步 2026-08-25）
+
+# M-Gate-Algorithm-appendix（v2.5.4 拆分，按需加载）
+
+> M-Gate 报告输出格式 + 论衡哲学化 + 教训沉淀 + 历史版本归档。**主流程不读**（按需加载），仅 v2.5.4 拆分时从 M-Gate-Algorithm.md 抽出。
+
 ## M-Gate-Report v2.2.4 输出格式（4 版本合并最终版）
 
 主控 T8 执行 M 门后，必须产出 `final/M-Gate-Report-v2.2.12.json`：
