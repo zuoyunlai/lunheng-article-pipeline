@@ -235,7 +235,7 @@ fi
 # ---- 5. 汇总 ----
 echo ""
 echo "✅ 净化发布包已生成：$OUT_DIR"
-echo "   文件数：$(find "$OUT_DIR" -type f | wc -l | tr -d ' ')（对比真源 $(find "$SKILL_ROOT" -type f -not -path '*/.git/*' | wc -l | tr -d ' ')）"
+echo "   文件数：$(find "$OUT_DIR" -type f | wc -l | tr -d ' ')（对比真源 $(find "$SKILL_ROOT" -type f -not -path '*/.git/*' -not -path '*/outputs/*' -not -name '*.bak.*' | wc -l | tr -d ' ')，排除 .git/ 与 .bak.* 备份与 outputs/ 产物）"
 echo ""
 echo "下一步（手动执行）："
 echo "  clawhub publish $OUT_DIR --slug lunheng-article-pipeline --version $VERSION"

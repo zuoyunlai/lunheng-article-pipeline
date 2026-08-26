@@ -40,18 +40,6 @@ if [ "$1" == "--dry-run" ]; then
   echo ""
 fi
 
-# 清理上一批 .bak 备份（v2.5.11 补，回应第三方全量审计 P1-1）
-# 每次 sync 前清掉旧备份，避免 .bak 无限堆积污染 grep 自查（教训 #118 系列重演）
-# 保留「当轮 cp 备份」的回滚能力（git 已提供版本控制，cp 备份是额外保险）
-if [ "$DRY_RUN" != true ]; then
-  BAK_COUNT=$(find "$SKILL_ROOT" -name '*.bak.*' -not -path '*/.git/*' 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$BAK_COUNT" -gt 0 ]; then
-    find "$SKILL_ROOT" -name '*.bak.*' -not -path '*/.git/*' -delete 2>/dev/null || true
-    echo "🧹 清理旧 .bak 备份（$BAK_COUNT 个）"
-    echo ""
-  fi
-fi
-
 # 从 SKILL.md frontmatter 读取版本号（单一真源）
 EXPECTED=$(grep -E '^version:' "$SKILL_MD" | head -1 | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 
@@ -281,5 +269,20 @@ else
     fi
   else
     echo "⚠️  self-audit-gate.sh 不存在，跳过自动自审门"
+  fi
+fi
+
+# 清理 .bak 备份（v2.5.21 自审门审查发现，修复 v2.5.11 设计漏洞）
+# v2.5.11 设计漏洞：清理逻辑在脚本开头（sync 跑前清旧）→ 但 sync 本身用 cp 创建 .bak 备份
+# → 本轮新 .bak 在 sync 跑完后才生成，永远不会被本次 sync 清掉，每次 sync 累积一份（实测堆积 98 个）
+# v2.5.21 修复：清理逻辑移到 sync 末尾（自审门通过后）→ 语义 =「同步成功才清、失败保留」
+# → sync 失败 / 自审门失败会 exit 1，.bak 保留供回滚；成功才清掉所有 .bak（含本轮临时备份）
+# 设计依据：git 已提供版本控制（真源），cp 备份只是 sync 过程的临时保险，成功即清
+if [ "$DRY_RUN" != true ]; then
+  BAK_COUNT=$(find "$SKILL_ROOT" -name '*.bak.*' -not -path '*/.git/*' 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$BAK_COUNT" -gt 0 ]; then
+    find "$SKILL_ROOT" -name '*.bak.*' -not -path '*/.git/*' -delete 2>/dev/null || true
+    echo ""
+    echo "🧹 清理 .bak 备份（$BAK_COUNT 个，同步成功才清，失败时保留供回滚）"
   fi
 fi
