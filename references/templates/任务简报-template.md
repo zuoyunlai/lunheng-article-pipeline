@@ -1,4 +1,5 @@
-> 版本：v2.5.7（自动同步 2026-08-25）
+> 版本：v2.5.8（自动同步 2026-08-26）
+
 
 
 
@@ -71,7 +72,7 @@
 - **v2.5.0 可选项**（**v2.5.5 修订**：默认全部关闭/最小化，但**主控 Phase 0 必在对话中主动呈现这 3 个选项**，不依赖主人看文档发现）：
   - **启用期刊匹配**（学术论文模式才需）：T9 评审后自动匹配 Top 3 推荐期刊（25 中文 CSSCI + 12 英文 SSCI 数据库，主题契合 50% + 风格匹配 30% + T9 评分 20%）。勾选后 T9 评审报告自动含「期刊投稿建议 Top 3」
   - **启用中文数据源集成**（**v2.5.5 主控必呈现 + 实战可生效**，教训 #173 主人实测反馈「没地方选」+ #174 补上派发话术）：检索环节（T1/T2/T3）**主控 prompt 加中文数据源派发**，启用后 T1/T2/T3 用 web_fetch 拉 OpenAlex + Crossref API 补中文文献元数据（被引频次 / DOI 标准化 / 概念标签），实战中文文献元数据完整性 80% → 95%+。**3 梯队可选**：
-    - ✅ **第一梯队（默认推荐，无需 Key）**：LLM 推理模拟 OpenAlex API（4.7 亿+ 元数据）+ Crossref API（DOI 元数据），主控 prompt 触发 web_fetch 拉 openalex.org + api.crossref.org JSON
+    - ✅ **第一梯队（默认推荐，无需 Key）**：LLM 推理模拟 OpenAlex API（4.7 亿+ 元数据）+ Crossref API（DOI 元数据）——**只读公开学术元数据 API，仅发送检索关键词**，主控 prompt 触发 web_fetch 拉 openalex.org + api.crossref.org JSON
     - □ **第二梯队（需 API key + 申请）**：万方开放平台（X-Ca-AppKey + APPCODE，申请付费）/ 科情数据（中科院，需机构审批）/ NSTL（需机构审批）— 需主人在 OpenClaw 环境变量配置
     - □ **第三梯队（Firecrawl 抓取）**：中国科技论文在线 paper.edu.cn（110 万+ OA 论文）— 需主人在 OpenClaw 配置 firecrawl_api_key
     - **默认 = 不勾选**（默认层 web_search + tavily 已覆盖中英文 80%）；勾选「启用中文数据源集成」= 启用第一梯队（默认）+ 主控 prompt 加 LLM 推理模拟 OpenAlex/Crossref 派发话术

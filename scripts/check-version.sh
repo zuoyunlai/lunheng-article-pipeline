@@ -53,9 +53,13 @@ CHECKS=(
   "设计文档-架构.md|v$EXPECTED|1"
   "设计文档-哲学.md|v$EXPECTED|1"
   "deliverables.md|v$EXPECTED|1"
+  "case-studies.md|v$EXPECTED|1"
+  "operations.md|v$EXPECTED|1"
+  "errors.md|v$EXPECTED|1"
 
   # 共享协议
   "_shared/M-Gate-Algorithm.md|v$EXPECTED|1"
+  "_shared/M-Gate-Algorithm-appendix.md|v$EXPECTED|1"
   "_shared/audit-checklist-quickref.md|v$EXPECTED|1"
 
   # 8 个角色卡（顶部必须含版本号）

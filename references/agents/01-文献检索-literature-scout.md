@@ -1,4 +1,5 @@
-> 版本：v2.5.7（自动同步 2026-08-25）
+> 版本：v2.5.8（自动同步 2026-08-26）
+
 
 
 
@@ -86,13 +87,13 @@
   - **预期收益**（v2.5.5 实战 口腔 AI 综述）：D12 FDA 44 款 + D13 ADA 2-5% 使用率两条 🔴 → 🟢，T9 证据强度维度从 3/5 升 4/5。
   - **为什么独立子任务**：T1/T2/T3 是三方并行检索，未定据点（无法针对特定 Dxx 精检索）；T1b 是定向检索（只对特定 Dxx 回查）。
 
-- **中文数据源集成派发（v2.5.5 P1 新增，教训 #174 主人实测反馈）**：主控 prompt 含以下指令（任务简报勾选「启用中文数据源集成」时）：
-  1. **LLM 推理模拟 OpenAlex API（默认启用，第一梯队，v2.5.5 新增）**：
-     - LLM 推理调用：web_fetch 拉 `https://api.openalex.org/works?search={关键词}&per_page=20`
+- **中文数据源集成派发（v2.5.5 P1 新增，教训 #174 主人实测反馈）**：主控 prompt 含以下指令（任务简报勾选「启用中文数据源集成」时）。**完整 URL / 梯队说明见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md)（单一真源，勿在此复制 URL，教训 #60）**：
+  1. **LLM 推理模拟 OpenAlex API（默认启用，第一梯队，v2.5.5 新增，只读公开 API 无需 Key）**：
+     - LLM 推理调用：web_fetch 拉 OpenAlex API（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
      - LLM 解析 JSON 提取 [Lxx] 元数据：`id / doi / title / publication_date / authorships[].author.display_name / cited_by_count / concepts[].display_name`
      - **实战 60-70% 真实 API 效果**（LLM 解析 JSON 偶有错误，大文档 20+ 篇时建议分批）
-  2. **LLM 推理模拟 Crossref API（默认启用，第一梯队）**：
-     - LLM 推理调用：web_fetch 拉 `https://api.crossref.org/works?query={关键词}&rows=20`
+  2. **LLM 推理模拟 Crossref API（默认启用，第一梯队，只读公开 API 无需 Key）**：
+     - LLM 推理调用：web_fetch 拉 Crossref API（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
      - LLM 解析 JSON 提取元数据（DOI / 标题 / 作者 / 期刊）
   3. **去重合并**：DOI 相同 / URL 相同 / 标题编辑距离 < 10% 三选一即合并（合并后保留 OpenAlex 元数据更全）
   4. **文献卡输出格式**（v2.5.5 新增字段）：
@@ -105,8 +106,8 @@
        ├ 数据源：web_search + OpenAlex（合并去重，第一梯队）
        └ 时效评级：🟢 ≤2年 / 🟡 2-5年 / 🔴 >5年
      ```
-  5. **第二梯队（需 API key）**：任务简报明示启用时，主控根据环境变量（`WANFANG_APP_KEY` / `KQING_APP_KEY` / `NSTL_APP_KEY`）配置后调用，主控 prompt 加「LLM 推理模拟调万方/科情 API（带 key）」。
-  6. **第三梯队（Firecrawl 抓取 paper.edu.cn）**：任务简报明示启用时，主控用 Firecrawl API 抓取（需主人配 `firecrawl_api_key`）。
+  5. **第二梯队（需 API key，可选默认关闭）**：任务简报明示启用时，**主人自配**环境变量（`WANFANG_APP_KEY` / `KQING_APP_KEY` / `NSTL_APP_KEY`），论衡不存储 key；主控 prompt 加「LLM 推理模拟调万方/科情 API（带 key）」。
+  6. **第三梯队（Firecrawl 抓取 paper.edu.cn，可选默认关闭）**：任务简报明示启用时，**主人自配** `firecrawl_api_key`，主控用 Firecrawl API 抓取。
 
   **实战背景**：v2.5.4 以前论衡 T1 仅用 web_search + tavily_search，中文文献元数据完整性约 80%（DOI 标准化、被引频次、概念标签缺失）。v2.5.5 后加 LLM 推理模拟 OpenAlex + Crossref，中文文献元数据完整性提升至 95%+。
 

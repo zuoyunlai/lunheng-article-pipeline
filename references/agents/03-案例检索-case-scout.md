@@ -1,4 +1,5 @@
-> 版本：v2.5.7（自动同步 2026-08-25）
+> 版本：v2.5.8（自动同步 2026-08-26）
+
 
 
 
@@ -97,12 +98,12 @@
 - **二手转引必须标 Lxx 原始出处（v2.2.1 防 F8.3）**：任何 [Cxx] 案例若引用其他文献/报告，必须标注「二手转引」+ 原始 [Lxx] 出处
 - **主人投喂必须标数据包路径（v2.2.1 防 F8.1）**：任何 [Cxx] 案例若来源于主人一手调研（访谈记录/田野调查），必须标注「主人投喂」+ 数据包路径
 - **公开批评未成形诚实声明（v2.3.12 P2-11 新增，反哺沉淀项 6）**：事件若「批评方截至检索截止未成形」，多方说法末加一句「截至 YYYY-MM-DD 检索截止，[Cxx] 案例公开批评尚未成形——学术检验仍待学界参与」。
-- **中文数据源集成派发（v2.5.5 P1 新增，教训 #174）**：任务简报勾选「启用中文数据源集成」时，主控 prompt 自动加：
-  1. **LLM 推理模拟 OpenAlex API**：
-     - web_fetch 拉 `https://api.openalex.org/works?search={关键词}&per_page=20`
+- **中文数据源集成派发（v2.5.5 P1 新增，教训 #174）**：任务简报勾选「启用中文数据源集成」时，主控 prompt 自动加。**完整 URL / 梯队说明见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md)（单一真源，勿在此复制 URL，教训 #60）**：
+  1. **LLM 推理模拟 OpenAlex API（只读公开 API 无需 Key）**：
+     - web_fetch 拉 OpenAlex API（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
      - LLM 解析 JSON 提取中文事件报道（多语言标引）
-  2. **LLM 推理模拟 Crossref API**：
-     - web_fetch 拉 `https://api.crossref.org/works?query={关键词}&rows=20`
+  2. **LLM 推理模拟 Crossref API（只读公开 API 无需 Key）**：
+     - web_fetch 拉 Crossref API（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
   3. **案例卡输出格式**（v2.5.5 新增）：
      ```
      [C03] 事件名 | 时间窗口 | 来源 | URL
@@ -110,7 +111,7 @@
        ├ 概念标签：[企业行为 / 司法案件 / ...]（OpenAlex 补充）
        └ 数据源：web_search + OpenAlex/Crossref（合并去重，第一梯队）
      ```
-  4. **第三梯队 paper.edu.cn**：Firecrawl 抓取中文论文全文，补充事件背景资料。
+  4. **第三梯队 paper.edu.cn（可选默认关闭）**：**主人自配** `firecrawl_api_key` 后，Firecrawl 抓取中文论文全文，补充事件背景资料。详见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二。
 
 ## 与 T2 数据员「互不干涉」铁律（v2.1.8 新增，教训 #56）
 
