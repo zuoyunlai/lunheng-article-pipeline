@@ -135,11 +135,64 @@ def test_G14_3_tiers_consistency():
 
 
 # =============================================================================
+# 字数判定表：双口径 + 三级阈值一致性（v2.5.13 新增，回应审计 P1-3 剩余项）
+# =============================================================================
+WORDCOUNT_TABLE = ROOT / "references" / "_shared" / "字数判定表.md"
+WORDCOUNT_REF_FILES = [
+    ROOT / "references" / "agents" / "07-审计-auditor.md",
+    ROOT / "references" / "templates" / "任务简报-template.md",
+    ROOT / "references" / "设计文档.md",
+    ROOT / "references" / "设计文档-哲学.md",
+    SKILL,
+]
+
+
+def test_wordcount_dual_caliber():
+    """字数判定表：双口径（纯汉字 + 含文末四节）定义齐全"""
+    table = _read(WORDCOUNT_TABLE)
+    # 口径 A = 纯汉字，口径 B = 含文末四节
+    assert "纯汉字" in table, "字数判定表缺口径 A（纯汉字）"
+    assert "含文末四节" in table, "字数判定表缺口径 B（含文末四节）"
+    # 双口径字样必须显式声明
+    assert "双口径" in table, "字数判定表缺「双口径」声明"
+    print(f"  ✓ 字数双口径: 纯汉字 + 含文末四节 齐全")
+
+
+def test_wordcount_3_tiers_consistency():
+    """字数判定三级阈值（≤1% P2 / 1-5% P1 / >5% P0）在真源 + 引用文件间一致"""
+    table = _read(WORDCOUNT_TABLE)
+    # 真源必须含三档
+    assert "≤1%" in table and "P2" in table, "字数判定表缺 ≤1% P2 档"
+    assert "1-5%" in table and "P1" in table, "字数判定表缺 1-5% P1 档"
+    assert ">5%" in table and "P0" in table, "字数判定表缺 >5% P0 档"
+
+    # 引用文件必须与真源三档一致（审计员是权威核验点，任务简报是用户可见入口）
+    auditor = _read(ROOT / "references" / "agents" / "07-审计-auditor.md")
+    assert "≤1%" in auditor and "1-5%" in auditor and ">5%" in auditor, \
+        "07-审计-auditor.md 缺字数三档阈值"
+    brief = _read(ROOT / "references" / "templates" / "任务简报-template.md")
+    assert "≤1%" in brief and "1-5%" in brief and ">5%" in brief, \
+        "任务简报-template.md 缺字数三档阈值"
+    print(f"  ✓ 字数三档阈值: ≤1% P2 / 1-5% P1 / >5% P0 真源+审计员+任务简报一致")
+
+
+def test_wordcount_no_byte_bug():
+    """字数判定表：禁止 [一-龥] 字节 bug 命令（教训 #128 核心）"""
+    table = _read(WORDCOUNT_TABLE)
+    # 真源必须含禁止标注
+    assert "一-龥" in table, "字数判定表缺 [一-龥] 字节 bug 禁止标注"
+    # 审计员卡也必须含禁止标注（它是字数核验执行点）
+    auditor = _read(ROOT / "references" / "agents" / "07-审计-auditor.md")
+    assert "一-龥" in auditor, "07-审计-auditor.md 缺 [一-龥] 字节 bug 禁止标注"
+    print(f"  ✓ 字数口径: 禁止 [一-龥] 字节 bug 命令（教训 #128）")
+
+
+# =============================================================================
 # 主入口
 # =============================================================================
 if __name__ == "__main__":
     print("=" * 60)
-    print("论衡 T9 + G14 规则一致性测试（v2.5.12 新增）")
+    print("论衡 T9 + G14 + 字数规则一致性测试（v2.5.13）")
     print("=" * 60)
     print()
 
@@ -148,6 +201,9 @@ if __name__ == "__main__":
         test_T9_4_tiers_consistency,
         test_G14_8_categories_consistency,
         test_G14_3_tiers_consistency,
+        test_wordcount_dual_caliber,
+        test_wordcount_3_tiers_consistency,
+        test_wordcount_no_byte_bug,
     ]
 
     passed = 0
