@@ -1,21 +1,5 @@
 > 版本：v2.5.22（自动同步 2026-08-26）
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # 论衡配图 + 写作禁做清单 + 成本模型（v2.2.8 抽离）
 
 > **背景**：v2.2.8 Phase D 优化。SKILL.md 中配图生成规范 + 写作禁做清单 + 成本与模型建议三段（共 32 行）抽到本文件，SKILL.md 改为索引形式。
@@ -53,9 +37,3 @@
 | 分析写作 | 分析/写作 | 见 SKILL.md 模型分工表 | 推理与成文质量 |
 | 批判审计 | 批判/审计 | 见 SKILL.md 模型分工表 | 专抓错，必须顶配 |
 | 主控 | 主控 | 见 SKILL.md 模型分工表 | 判断与终检 |
-
-**v2.2.8 论衡模型 fallback 链（实测有效）**：
-- primary: `deepseek/deepseek-v4-pro`
-- fallback 1: `minimax-portal/MiniMax-M3`
-- fallback 2: `deepseek/deepseek-v4-flash`
-- fallback 3: `coding-plan/glm-5.3`（跨供应商最终兜底）
