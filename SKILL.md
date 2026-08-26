@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: lunheng-article-pipeline
-version: 2.5.21
+version: 2.5.22
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -81,7 +81,7 @@ metadata:
 2. 读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）
 3. 读 `MEMORY.md` + `memory/YYYY-MM-DD.md`（主人偏好 + 最近关注主题）
 4. **spawn 子代理前必读对应派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 各角色的派发模板在 `references/dispatch/`（v2.5.6 拆分成 10 个独立文件，spawn 哪角色读哪文件），不要凭记忆复制（教训 #57）
-5. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md#必查项`（G0-G14）+ `_shared/M-Gate-Algorithm.md`（M 门算法）
+5. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）——审计员卡读全文件即可，不设锚点（锚点 slug 依赖渲染平台，维护易错，教训 #60）
 6. **文件修改安全流程**（v2.1.4 F5）：**禁止 `sed -i`**（静默清空文件教训 #48）——用 `edit` 工具精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
 7. **子代理交接五要素缺一不可**，静默超硬卡阈值（按主控卡 §二十二「硬卡阈值表」：T1-T3 10 分钟 / T4 12 分钟 / T5 15 分钟 / T6-T7 12-15 分钟 / G14 8 分钟）主动介入（v2.5.5 P0 硬性化，原 8 分钟统一硬卡已废弃）
 
@@ -175,7 +175,7 @@ metadata:
 
 ## ⚠️ 外部服务与数据流声明（按需加载）
 
-> **完整服务列表 + 4 选 1 同意关卡详见** [`references/glossary.md § 九 外部服务声明`](references/glossary.md#九外部服务声明v212)
+> **完整服务列表 + 4 选 1 同意关卡详见** [`references/glossary.md`](references/glossary.md)「九、外部服务声明」节
 
 **主控 Phase 0 必须给主人 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝），并写入 `01-任务简报.md` 头部作为审计追溯依据。
 
@@ -248,7 +248,7 @@ run/<项目名>/
 
 **派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 + G14 检测器的完整派发模板见 [`references/dispatch/`](references/dispatch/)（v2.5.6 拆分成 10 个独立文件，T8 终检不 spawn 由主控亲完成）。**主控 spawn 子代理前必读对应角色的 dispatch 文件**（不要凭记忆复制，教训 #57）。
 
-**审计必查项**：G0-G14 十四项审计清单 + M 门算法 + G6/G7/G11/G12/G14 实战子项见 [`references/agents/07-审计-auditor.md#必查项`](references/agents/07-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
+**审计必查项**：G0-G14 十四项审计清单 + M 门算法 + G6/G7/G11/G12/G14 实战子项见 [`references/agents/07-审计-auditor.md`](references/agents/07-审计-auditor.md)。SKILL.md 不重复维护，避免文档漂移（教训 #60）。
 
 **派发话术锚点速查**（v2.5.6 修订：拆分为 dispatch/ 独立文件，按需加载）：
 - T9 同行评审 → [`references/dispatch/T9-同行评审.md`](references/dispatch/T9-同行评审.md)
@@ -264,15 +264,15 @@ run/<项目名>/
 
 **为什么拆分**（v2.5.6 第三方审查建议 #1 token 优化）：原 269 行派发话术全在 pipeline-readme.md，主控 spawn 一个角色要读全部 10 个角色的指令。拆成 dispatch/ 独立文件后，spawn 哪角色读哪文件，避免上下文污染 + 省 token。
 
-**审计锚点速查**：
-- G0-G14 速查表 → `references/_shared/audit-checklist-quickref.md`（全集）+ `references/agents/07-审计-auditor.md#必查项`（说明）
-- G6 论据类型自标 → `references/agents/07-审计-auditor.md`
-- G7 原创性审计 → `references/agents/07-审计-auditor.md`
-- G11 时效告警 → `references/_shared/M-Gate-Algorithm.md`
-- G12 数据信任一致性 → `references/_shared/M-Gate-Algorithm.md`
-- G13 AI 使用披露 → `references/agents/07-审计-auditor.md` + `references/pipeline-readme.md#AI 使用披露`
-- **G14 中文 AI 痕迹检测（v2.4.0 新增）** → `references/agents/07-审计-auditor.md` + `references/gates/14-中文AI痕迹-gate.md`
-- M-Form/M-Exist/M-Integrity 三层 → `references/_shared/M-Gate-Algorithm.md`
+**审计锚点速查**（v2.5.22 统一为可点击链接 + 去锚点，防锚点 slug 平台依赖死链）：
+- G0-G14 速查表 → [`references/_shared/audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md)（全集）+ [`references/agents/07-审计-auditor.md`](references/agents/07-审计-auditor.md)（说明）
+- G6 论据类型自标 → [`references/agents/07-审计-auditor.md`](references/agents/07-审计-auditor.md)
+- G7 原创性审计 → [`references/agents/07-审计-auditor.md`](references/agents/07-审计-auditor.md)
+- G11 时效告警 → [`references/_shared/M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)
+- G12 数据信任一致性 → [`references/_shared/M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)
+- G13 AI 使用披露 → [`references/agents/07-审计-auditor.md`](references/agents/07-审计-auditor.md)
+- **G14 中文 AI 痕迹检测（v2.4.0 新增）** → [`references/agents/07-审计-auditor.md`](references/agents/07-审计-auditor.md) + [`references/gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md)
+- M-Form/M-Exist/M-Integrity 三层 → [`references/_shared/M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)
 
 ## 修订回环
 ```
