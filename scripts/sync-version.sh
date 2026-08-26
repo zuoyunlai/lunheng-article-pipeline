@@ -40,6 +40,18 @@ if [ "$1" == "--dry-run" ]; then
   echo ""
 fi
 
+# 清理上一批 .bak 备份（v2.5.11 补，回应第三方全量审计 P1-1）
+# 每次 sync 前清掉旧备份，避免 .bak 无限堆积污染 grep 自查（教训 #118 系列重演）
+# 保留「当轮 cp 备份」的回滚能力（git 已提供版本控制，cp 备份是额外保险）
+if [ "$DRY_RUN" != true ]; then
+  BAK_COUNT=$(find "$SKILL_ROOT" -name '*.bak.*' -not -path '*/.git/*' 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$BAK_COUNT" -gt 0 ]; then
+    find "$SKILL_ROOT" -name '*.bak.*' -not -path '*/.git/*' -delete 2>/dev/null || true
+    echo "🧹 清理旧 .bak 备份（$BAK_COUNT 个）"
+    echo ""
+  fi
+fi
+
 # 从 SKILL.md frontmatter 读取版本号（单一真源）
 EXPECTED=$(grep -E '^version:' "$SKILL_MD" | head -1 | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 
