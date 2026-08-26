@@ -1,4 +1,5 @@
-> 版本：v2.5.17（自动同步 2026-08-26）
+> 版本：v2.5.18（自动同步 2026-08-26）
+
 
 
 
@@ -30,6 +31,8 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
+
+> **宿主配置无关（v2.5.18 明示）**：论衡是**纯 skill，零 exec，不依赖宿主 OpenClaw 的任何特定配置**。唯一的「可选增强」是 token 成本精度——若宿主开启 `messages.responseUsage`（OpenClaw 的 `/status` 成本显示字段），论衡 token 记录是「精确值」；若未开，论衡自动降级为「估算值」或「未配置」，**不影响流水线本身运行**。详见 SKILL.md「执行能力边界 → token 成本统计」段。
 
 ---
 

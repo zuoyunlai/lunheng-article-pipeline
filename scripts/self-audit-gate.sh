@@ -260,6 +260,16 @@ DISPATCH_CHECKS=(
   "references/agents/06-批判-critical-companion.md|references/dispatch/T6-批判.md|C6,C7"
   "references/agents/07-审计-auditor.md|references/dispatch/T7-审计.md|图位,反哺报告"
   "references/agents/09-审稿-peer-reviewer.md|references/dispatch/T9-同行评审.md|扩写清单,建议元数据"
+
+  # v2.5.18 token 消耗三级降级（宿主无关设计，所有角色 dispatch 都要含）
+  "references/agents/01-文献检索-literature-scout.md|references/dispatch/T1-文献检索.md|token 消耗,三级降级"
+  "references/agents/02-数据检索-data-scout.md|references/dispatch/T2-数据检索.md|token 消耗,三级降级"
+  "references/agents/03-案例检索-case-scout.md|references/dispatch/T3-案例检索.md|token 消耗,三级降级"
+  "references/agents/04-分析-analyst.md|references/dispatch/T4-分析.md|token 消耗,三级降级"
+  "references/agents/05-写作-writer.md|references/dispatch/T5-写手.md|token 消耗,三级降级"
+  "references/agents/06-批判-critical-companion.md|references/dispatch/T6-批判.md|token 消耗,三级降级"
+  "references/agents/07-审计-auditor.md|references/dispatch/T7-审计.md|token 消耗,三级降级"
+  "references/agents/09-审稿-peer-reviewer.md|references/dispatch/T9-同行评审.md|token 消耗,三级降级"
 )
 for entry in "${DISPATCH_CHECKS[@]}"; do
   IFS='|' read -r card disp kws <<< "$entry"

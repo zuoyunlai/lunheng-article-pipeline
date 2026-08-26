@@ -1,4 +1,5 @@
-> 版本：v2.5.17（自动同步 2026-08-26）
+> 版本：v2.5.18（自动同步 2026-08-26）
+
 
 
 
@@ -101,7 +102,12 @@
 - 精确值：流水线外用 OpenClaw session_status 查
 ```
 
-**为什么是约数**（v2.5.6 诚实边界）：论衡零 exec + 15 项白名单不含 session_status，拿不到 OpenClaw runtime 的真实 usage 统计。各角色 ack 时填的「token 消耗」是 LLM 回复自报的约数，±5-10% 误差。若主人要精确值，需在流水线外查 session_status。
+**为什么是约数（三级降级，宿主无关）**（v2.5.6 诚实边界 + v2.5.18 三级降级）：论衡零 exec + 15 项白名单不含 session_status，拿不到 OpenClaw runtime 的真实 usage 统计。各角色 ack 时按**三级降级**取 token 值：
+- **一级**（宿主开 `messages.responseUsage`）：LLM 回复含 usage 字段 → 记精确值
+- **二级**（宿主未开）：按输入/输出字符数 × 模型估算系数 → 记「约 N（估算）」，±10% 误差
+- **三级**（拿不到）：记「未配置」，T8 终检提示主人查 session_status
+
+**论衡不因宿主配置差异而失败**——无论宿主怎么设，流水线跑完，只是 token 列精度不同。若主人要精确值，需在流水线外查 session_status。
 
 **待 merge 反哺清单（v2.3.11 P2-10 新增，主人实测）**：交付说明加「待 merge 反哺清单」checklist，固化为 T8 模板动作——列出 T7 反哺报告建议的规则 + merge 目标角色卡，等主人人工 review 后手动 merge（**不自动 commit**）。
 
