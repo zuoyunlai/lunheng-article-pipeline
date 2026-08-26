@@ -337,6 +337,67 @@ else
 fi
 
 # =============================================================================
+# 门 K：dispatch 引用教训编号 vs 对应角色卡（v2.5.22 新增，2026-08-26）
+# -----------------------------------------------------------------------------
+# 背景（门 I 盲区）：门 I 只查「dispatch 漏了角色卡有的关键词」（漏项），不查
+#   「dispatch 引用了角色卡已删铁律的教训编号」（多余引用）。结构性漂移的两个方向：
+#   - 角色卡改了/删了铁律 A → dispatch 还引用 A 的教训编号 = 冻结旧版
+#   - v2.5.21 实战正是「角色卡有 16 项、dispatch 只抄了 9 项」漏项；本门补另一向。
+# 方法：提取每个 dispatch 引用的「教训 #N」编号，检查是否在「对应角色卡」或
+#   「该 dispatch 自身正文」中出现（dispatch 自己也会新增教训）。
+#   dispatch 引用、但角色卡和 dispatch 正文都没有 = 疑似孤儿引用 = fail。
+# 说明：软边界——教训编号可能在「全局文档」（glossary/pipeline-readme/M 门）
+#   而非单角色卡出现，故额外并入全局引用集做白名单，避免误报。
+# =============================================================================
+GATE_K_FAIL=""
+# 先建「全局教训引用集」：所有非 dispatch 文件引用的教训编号（白名单）
+GLOBAL_LESSON_REFS=$(grep -rhoE '教训 #[0-9]+' \
+    --include="*.md" --include="*.sh" \
+    --exclude="*.bak*" \
+    references/agents/ references/_shared/ references/gates/ \
+    references/glossary.md references/pipeline-readme.md references/operations.md \
+    references/design*.md references/设计文档*.md \
+    SKILL.md README.md QUICKSTART.md 2>/dev/null \
+  | grep -oE '[0-9]+' | sort -un | tr '\n' ' ')
+
+for disp in "$SKILL_ROOT"/references/dispatch/*.md; do
+  [ -f "$disp" ] || continue
+  disp_name=$(basename "$disp")
+  # 跳过无对应角色卡的特殊文件（G14 对应 gate，T8 对应主控卡）
+  # 全部 10 个 dispatch 都有权威源注解（v2.5.22 已加），按注解取权威源
+  auth_src=$(grep -m1 '权威源：' "$disp" 2>/dev/null | sed -E 's/.*权威源：([^（(]+).*/\1/' | xargs)
+  # dispatch 引用的教训编号
+  disp_refs=$(grep -oE '教训 #[0-9]+' "$disp" 2>/dev/null | grep -oE '[0-9]+' | sort -un)
+  [ -z "$disp_refs" ] && continue
+  # 权威源（角色卡）的教训编号
+  if [ -n "$auth_src" ] && [ -f "$SKILL_ROOT/$auth_src" ]; then
+    card_refs=$(grep -oE '教训 #[0-9]+' "$SKILL_ROOT/$auth_src" 2>/dev/null | grep -oE '[0-9]+' | sort -un | tr '\n' ' ')
+  else
+    card_refs=""
+  fi
+  orphan=""
+  for n in $disp_refs; do
+    # 在权威源 OR 全局白名单 中 → 合法
+    if echo "$card_refs" | grep -qw "$n"; then
+      continue
+    fi
+    if echo "$GLOBAL_LESSON_REFS" | grep -qw "$n"; then
+      continue
+    fi
+    orphan="$orphan #$n"
+  done
+  if [ -n "$orphan" ]; then
+    GATE_K_FAIL="$GATE_K_FAIL [$disp_name 孤儿教训引用:$orphan]"
+  fi
+done
+
+if [ -z "$GATE_K_FAIL" ]; then
+  pass "门 K: dispatch 教训引用均可在权威源或全局文档溯源（10 文件）"
+else
+  fail "门 K: dispatch 引用孤儿教训编号（角色卡已删/全局无）" "$GATE_K_FAIL"
+fi
+
+# =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit

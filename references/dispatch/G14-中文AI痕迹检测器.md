@@ -1,4 +1,5 @@
 > 版本：v2.5.22（自动同步 2026-08-26）
+> 权威源：references/gates/14-中文AI痕迹-gate.md（本文件为派生视图，冲突以角色卡为准；G14 是闸门，无独立角色卡）
 
 
 > 从 pipeline-readme.md 派发话术段拆出（v2.5.6 token 优化）。主控 spawn G14 中文 AI 痕迹检测器（v2.4.0 新增） 时按需读本文件，避免一次加载全部派发话术。完整角色卡见 references/agents/。
