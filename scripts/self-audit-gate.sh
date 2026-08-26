@@ -293,6 +293,40 @@ else
 fi
 
 # =============================================================================
+# 门 J：M 门 + T6 + T7 核验范围 = 全部产出物类型（v2.5.17 新增，教训 #158 + #183）
+# -----------------------------------------------------------------------------
+# 背景：v2.5.13 实战复盘“93% 补集错误”根因——论衡核验范围默认只覆盖 .md 正文，
+#   SVG / 图件 / 未来新增的产出物类型均被排除在 M 门 + T6 + T7 外。
+#   这正是「检查滞后」根因：流水线产出物演进（v2.0.5 仅 .md → v2.2.8 加 .svg
+#   → v2.5.13 加图件 PDF/PNG），核验规则没同步跟进。
+# 方法：grep M-Gate 算法文档 + T6/T7 dispatch 中是否含「final/图件」「SVG」
+#   等产出物扩展点；未含 = fail。
+# 与门 I 区别：门 I 是「dispatch 写了什么」差集，门 J 是「核验范围覆盖什么」检查。
+# =============================================================================
+VERIFY_SCOPE_FAIL=""
+# 核验范围文件清单：M 门 + T6/T7 dispatch
+VERIFY_SCOPE_FILES=(
+  "references/_shared/M-Gate-Algorithm.md:M-Gate算法"
+  "references/dispatch/T6-批判.md:T6"
+  "references/dispatch/T7-审计.md:T7"
+)
+# 必须含产出物范围扩展关键词（v2.5.17 新增）
+REQUIRED_SCOPE_KEYWORDS="(SVG|图件|内嵌)"
+for entry in "${VERIFY_SCOPE_FILES[@]}"; do
+  IFS=':' read -r path label <<< "$entry"
+  full="$SKILL_ROOT/$path"
+  [ ! -f "$full" ] && continue
+  if ! grep -qE "$REQUIRED_SCOPE_KEYWORDS" "$full" 2>/dev/null; then
+    VERIFY_SCOPE_FAIL="$VERIFY_SCOPE_FAIL [$label 未提及 SVG/图件核验范围]"
+  fi
+done
+if [ -z "$VERIFY_SCOPE_FAIL" ]; then
+  pass "门 J: M 门 + T6 + T7 核验范围含 SVG/图件扩展（v2.5.17 + 教训 #158）"
+else
+  fail "门 J: 核验范围未覆盖 SVG/图件产出物" "$VERIFY_SCOPE_FAIL"
+fi
+
+# =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit

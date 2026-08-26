@@ -1,4 +1,5 @@
-> 版本：v2.5.16（自动同步 2026-08-26）
+> 版本：v2.5.17（自动同步 2026-08-26）
+
 
 
 
@@ -127,29 +128,37 @@ M 门 13 项伪代码是「**主控 LLM 推理模拟执行**」，不是真 shel
 
 ## M-Form 形式合规门（8 项，含 v2.2.1.2 + v2.3.5 + v2.3.7 升级）
 
-### M-Form-1: 引用标注完整性（v2.2.0 原版）
+### M-Form-1: 引用标注完整性（v2.2.0 原版 + v2.5.17 SVG 扩展）
 
 **伪代码**（主控 LLM 推理执行）：
 ```python
-# 读取定稿全文
+# 读取定稿全文 + final/图件/ 内 SVG（v2.5.17 扩展）
 draft_text = read("final/定稿.md")
+svg_texts = []
+for svg_file in glob("final/图件/*.svg"):
+    # 提取 SVG 文本节点：<text>…</text> / <desc>…</desc> / <title>…</title>
+    svg_texts.append(read(svg_file))
 
-# 提取所有引用标注
+# 提取所有引用标注（md 正文 + SVG 内嵌文本 视为事实层，v2.5.17 新增）
+all_text = draft_text + "\n".join(svg_texts)
 import re
-references = re.findall(r'\[(?:D|C|C-主|L|先)\d+\]', draft_text)
+references = re.findall(r'\[(?:D|C|C-主|L|先)\d+\]', all_text)
 references_unique = sorted(set(references))
 
 # 判定
 if len(references_unique) > 0:
-    return {"通过": True, "引用数": len(references_unique)}
-else:
-    return {"通过": False, "失败原因": "正文无任何引用标注"}
+    return {"通过": True, "引用数": len(references_unique), "SVG 文本节点纳入": len(svg_texts)}
+else
+    return {"通过": False, "失败原因": "正文 + SVG 内嵌文本均无任何引用标注"}
 ```
+
+**v2.5.17 关键扩展（教训 #158 实战）**：SVG 内的 `<text>` / `<desc>` / `<title>` / `<tspan>` 节点现视为事实层（M-Gate 核验覆盖），与正文 .md 同等待遇。这是为了防止「正文中正、SVG 中错」的双线不一致（v2.5.13 实战复盘报告：「93% 补集错误在正文修了，SVG 残留 3 处」）。
 
 **人类验证示例**（可选，主人手动复核用）：
 ```bash
 # 在 host shell 执行
 grep -oE '\[(D|C|L|先)\d+\]' final/定稿.md | sort -u | wc -l
+for f in final/图件/*.svg; do grep -oE '\[(D|C|L|先)\d+\]' "$f" | sort -u; done | sort -u | wc -l
 ```
 
 ### M-Form-2: 文末四节存在性（v2.2.0 原版）
@@ -572,7 +581,9 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 **实战背景**（v2.5.5 主人反馈）：原 M-Exist-2 sha256 字段永远占位，浪费交付说明.md 文档版面。重命名为「证据包完整性校验」后，字段实际可用（LLM 能判定）。
 ```
 
-### M-Exist-3: 数据信任级别一致性 diff（v2.2.1.2 双格式升级版，教训 #84）
+### M-Exist-3: 数据信任级别一致性 diff（v2.2.1.2 双格式升级版 + v2.5.17 SVG 扩展）
+
+**v2.5.17 关键扩展（教训 #158 实战）**：SVG 文本节点（`text`/`desc`/`title`/`tspan`）现视为事实层，内嵌的 `[Dxx]` / `[Cxx]` 信任级别与 md 正文同等 diff。防“正文修了 SVG 没修”双线不一致。
 
 **v2.2.1 算法**：grep -oE '\[D[0-9]+\]' final/定稿.md → **不支持表格行 [1.x] 引用**。
 
@@ -583,14 +594,16 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 1. 正文引用提取：
    - 标准格式 [Dxx]：grep -oE '\[D[0-9]+\]' final/定稿.md → set_intext_d
    - 表格格式 [1.x]：grep -oE '\[1\.[0-9]+|\[2\.[0-9]+' final/定稿.md → set_intext_table
+   - **v2.5.17 扩展**：SVG 内嵌文本纳入（final/图件/*.svg 的 text/desc/title/tspan 节点）→ set_svg_d
 
 2. 数据卡条目提取：
    - 标准格式 [Dxx]：grep -oE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md → set_card_d
    - 表格格式 [1.x]：grep -oE '^\| ([0-9]+\.[0-9]+) |' final/证据包/数据卡.md → set_card_table
 
-3. 信任级别一致性 diff：
+3. 信任级别一致性 diff（v2.5.17 三轮 diff：md 表格 + SVG）：
    - 标准格式 diff：comm -23/-13 set_intext_d set_card_d
    - 表格格式 diff：comm -23/-13 set_intext_table set_card_table
+   - SVG 格式 diff（v2.5.17 新增）：comm -23/-13 set_svg_d set_card_d
 
 4. 信任级别空标检查：
    - 标准格式：每条 [Dxx] 对应数据卡信任级别非空
@@ -599,8 +612,12 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 5. 判定：所有 diff 空 + 信任级别全填 → 通过；任一非空 → 失败
 
 伪代码：
-intext_d = sorted(set(re.findall(r'\[D\d+\]', draft_text)))
-intext_table = sorted(set(re.findall(r'\[\d+\.\d+\]', draft_text)))
+# v2.5.17 扩展：SVG 内嵌文本节点视为事实层，纳入 [Dxx] / [Cxx] 提取与 diff
+draft_text = read("final/定稿.md")
+svg_text = extract_text_nodes("final/图件/*.svg")  # text/desc/title/tspan 节点合并
+all_text = draft_text + "\n" + svg_text
+intext_d = sorted(set(re.findall(r'\[D\d+\]', all_text)))
+intext_table = sorted(set(re.findall(r'\[\d+\.\d+\]', draft_text)))  # 表格格式仅在正文，SVG 不支持
 card_d = sorted(set(re.findall(r'^\*\*\[D\d+\]', data_card_text, re.MULTILINE)))
 card_table = sorted(set(re.findall(r'^\| (\d+\.\d+) \|', data_card_text, re.MULTILINE)))
 trust_d = extract_trust_dict_standard(data_card_text)
