@@ -55,6 +55,16 @@ jobs:
             "references/agents/05-写作-writer.md"
             "references/agents/06-批判-critical-companion.md"
             "references/agents/07-审计-auditor.md"
+            "references/dispatch/T1-文献检索.md"
+            "references/dispatch/T2-数据检索.md"
+            "references/dispatch/T3-案例检索.md"
+            "references/dispatch/T4-分析.md"
+            "references/dispatch/T5-写手.md"
+            "references/dispatch/T6-批判.md"
+            "references/dispatch/T7-审计.md"
+            "references/dispatch/T8-终检.md"
+            "references/dispatch/T9-同行评审.md"
+            "references/dispatch/G14-中文AI痕迹检测器.md"
           )
 
           for file in "${FILES[@]}"; do
@@ -103,6 +113,16 @@ jobs:
             "references/agents/05-写作-writer.md"
             "references/agents/06-批判-critical-companion.md"
             "references/agents/07-审计-auditor.md"
+            "references/dispatch/T1-文献检索.md"
+            "references/dispatch/T2-数据检索.md"
+            "references/dispatch/T3-案例检索.md"
+            "references/dispatch/T4-分析.md"
+            "references/dispatch/T5-写手.md"
+            "references/dispatch/T6-批判.md"
+            "references/dispatch/T7-审计.md"
+            "references/dispatch/T8-终检.md"
+            "references/dispatch/T9-同行评审.md"
+            "references/dispatch/G14-中文AI痕迹检测器.md"
           )
 
           for file in "${FILES[@]}"; do
@@ -211,6 +231,16 @@ jobs:
             "references/agents/05-写作-writer.md"
             "references/agents/06-批判-critical-companion.md"
             "references/agents/07-审计-auditor.md"
+            "references/dispatch/T1-文献检索.md"
+            "references/dispatch/T2-数据检索.md"
+            "references/dispatch/T3-案例检索.md"
+            "references/dispatch/T4-分析.md"
+            "references/dispatch/T5-写手.md"
+            "references/dispatch/T6-批判.md"
+            "references/dispatch/T7-审计.md"
+            "references/dispatch/T8-终检.md"
+            "references/dispatch/T9-同行评审.md"
+            "references/dispatch/G14-中文AI痕迹检测器.md"
           )
 
           for file in "${FILES[@]}"; do

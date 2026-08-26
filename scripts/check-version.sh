@@ -76,6 +76,18 @@ CHECKS=(
   # 主控扩展职责（v2.5.0 主控卡拆分后新增）
   "agents/00-主控-扩展职责.md|v$EXPECTED|1"
 
+  # 派发话术（v2.5.6 拆分新增，教训 #183 补入三层清单）
+  "dispatch/T1-文献检索.md|v$EXPECTED|1"
+  "dispatch/T2-数据检索.md|v$EXPECTED|1"
+  "dispatch/T3-案例检索.md|v$EXPECTED|1"
+  "dispatch/T4-分析.md|v$EXPECTED|1"
+  "dispatch/T5-写手.md|v$EXPECTED|1"
+  "dispatch/T6-批判.md|v$EXPECTED|1"
+  "dispatch/T7-审计.md|v$EXPECTED|1"
+  "dispatch/T8-终检.md|v$EXPECTED|1"
+  "dispatch/T9-同行评审.md|v$EXPECTED|1"
+  "dispatch/G14-中文AI痕迹检测器.md|v$EXPECTED|1"
+
   # 闸门 + 检测器（v2.4.0 G14 新增）
   "gates/14-中文AI痕迹-gate.md|v$EXPECTED|1"
   "checkers/中文AI痕迹-checker.md|v$EXPECTED|1"

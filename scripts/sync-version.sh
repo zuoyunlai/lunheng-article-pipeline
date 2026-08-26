@@ -97,6 +97,18 @@ SYNCS=(
   # 主控扩展职责（v2.5.0 主控卡拆分后新增）
   "agents/00-主控-扩展职责.md|header"
 
+  # 派发话术（v2.5.6 拆分新增，教训 #183 补入三层清单）
+  "dispatch/T1-文献检索.md|header"
+  "dispatch/T2-数据检索.md|header"
+  "dispatch/T3-案例检索.md|header"
+  "dispatch/T4-分析.md|header"
+  "dispatch/T5-写手.md|header"
+  "dispatch/T6-批判.md|header"
+  "dispatch/T7-审计.md|header"
+  "dispatch/T8-终检.md|header"
+  "dispatch/T9-同行评审.md|header"
+  "dispatch/G14-中文AI痕迹检测器.md|header"
+
   # 闸门 + 检测器（v2.4.0 G14 新增）
   "gates/14-中文AI痕迹-gate.md|header"
   "checkers/中文AI痕迹-checker.md|header"
