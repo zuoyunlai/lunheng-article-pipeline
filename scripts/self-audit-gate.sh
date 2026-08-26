@@ -237,6 +237,62 @@ else
 fi
 
 # =============================================================================
+# 门 I：dispatch 派发话术 vs 角色卡「产出结构级」差集（v2.5.16 新增，教训 #183 延伸）
+# -----------------------------------------------------------------------------
+# 背景：v2.5.6 把 pipeline-readme 派发话术拆成 dispatch/ 10 文件时，**没做
+#   「派发话术 vs 角色卡」差集校验**，导致过时内容被原样搬进 dispatch，成「冻结旧版」：
+#   - v2.5.14 修图表链路（T4 建议图表 / T5 图位标注 / T7 图位核验）
+#   - v2.5.15 修 T6 C1-C7 七维只写五维 + T1/T2/T3/T9 必填字段漏
+#   根因同一：拆分动作做完，「把新结构登记进 dispatch」的动作忘了。
+# 方法：grep 每个角色卡的「产出结构级」关键词（产出文件/必填字段/维度编号），
+#   检查对应 dispatch 是否含。角色卡有、dispatch 无 = fail。
+#   只检「产出结构级」（改变产物结构的东西），不检铁律细节——
+#   dispatch 是「最小派发话术」，铁律细节靠子代理「先读角色卡」补，但产出结构不能省。
+# =============================================================================
+DISPATCH_CHECK_FAIL=""
+# 格式：角色卡路径|dispatch路径|逗号分隔的产出结构级关键词
+DISPATCH_CHECKS=(
+  "references/agents/01-文献检索-literature-scout.md|references/dispatch/T1-文献检索.md|先行者清单,信任级别,可信度等级"
+  "references/agents/02-数据检索-data-scout.md|references/dispatch/T2-数据检索.md|信任级别,时效评级"
+  "references/agents/03-案例检索-case-scout.md|references/dispatch/T3-案例检索.md|信任级别,多方说法"
+  "references/agents/04-分析-analyst.md|references/dispatch/T4-分析.md|建议图表,原创性"
+  "references/agents/05-写作-writer.md|references/dispatch/T5-写手.md|图位"
+  "references/agents/06-批判-critical-companion.md|references/dispatch/T6-批判.md|C6,C7"
+  "references/agents/07-审计-auditor.md|references/dispatch/T7-审计.md|图位,反哺报告"
+  "references/agents/09-审稿-peer-reviewer.md|references/dispatch/T9-同行评审.md|扩写清单,建议元数据"
+)
+for entry in "${DISPATCH_CHECKS[@]}"; do
+  IFS='|' read -r card disp kws <<< "$entry"
+  card_full="$SKILL_ROOT/$card"
+  disp_full="$SKILL_ROOT/$disp"
+  [ ! -f "$card_full" ] && continue
+  if [ ! -f "$disp_full" ]; then
+    DISPATCH_CHECK_FAIL="$DISPATCH_CHECK_FAIL [缺dispatch文件:$disp]"
+    continue
+  fi
+  card_text=$(cat "$card_full" 2>/dev/null)
+  disp_text=$(cat "$disp_full" 2>/dev/null)
+  IFS=',' read -ra kwarr <<< "$kws"
+  missing_kws=""
+  for kw in "${kwarr[@]}"; do
+    # 角色卡含该关键词，但 dispatch 不含 → 漏项
+    if echo "$card_text" | grep -qF "$kw"; then
+      if ! echo "$disp_text" | grep -qF "$kw"; then
+        missing_kws="$missing_kws $kw"
+      fi
+    fi
+  done
+  if [ -n "$missing_kws" ]; then
+    DISPATCH_CHECK_FAIL="$DISPATCH_CHECK_FAIL [$disp 缺:$missing_kws]"
+  fi
+done
+if [ -z "$DISPATCH_CHECK_FAIL" ]; then
+  pass "门 I: dispatch 派发话术 vs 角色卡「产出结构级」关键词无差集（8 角色）"
+else
+  fail "门 I: dispatch 漏产出结构级关键词" "$DISPATCH_CHECK_FAIL"
+fi
+
+# =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit
