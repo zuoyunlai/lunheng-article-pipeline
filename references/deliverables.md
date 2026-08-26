@@ -130,15 +130,15 @@
 
 **F 体系与 G 体系交叉引用**：详见 [`failure-modes.md`](_shared/failure-modes.md) 与 [`audit-checklist-quickref.md`](_shared/audit-checklist-quickref.md)。
 
-## M 机械化门控段（v2.2.0 + v2.2.1 扩展）
+## M 机械化门控段（v2.2.0 + v2.2.1 扩展，v2.5.22 项数同步）
 
-- **M-Form 形式合规门**（v2.2.0 5 项 + v2.2.1 新增 1 项 = 6 项）：引用标注完整性 / 文末四节存在性 / 临时编号残留 / 角色元数据泄露 / 过程语言残留 / **信任级别标注完整性（M-Form-6，v2.2.1 新增）**
-- **M-Exist 存在性合规门**（v2.2.0 2 项 + v2.2.1 新增 1 项 = 3 项）：文末四节双向 diff（封装在 `_shared/m_exist_1_diff.sh`）/ 证据包文件完整性 sha256 / **信任级别一致性 diff（M-Exist-3，v2.2.1 新增）**
-- **M-Integrity 阶段闸门**（v2.2.1 新增 2 项）：**T2.5（M-Integrity-1，T2 → T4 前主控 checkpoint）+ T7.5（M-Integrity-2，T7 → T8 前主控 checkpoint）**
+- **M-Form 形式合规门**（共 **8 项**，v2.2.0 5 项 + v2.2.1 M-Form-6 + v2.3.5 M-Form-7 + v2.3.7 M-Form-8）：引用标注完整性 / 文末四节存在性 / 临时编号残留 / 角色元数据泄露 / 过程语言残留 / **信任级别标注完整性（M-Form-6，v2.2.1 新增，双格式升级 #83+#84）** / **定稿文末节标题白名单纯净（M-Form-7，v2.3.5 新增，教训 #139，P0 优先级）** / **三角验证覆盖率检查（M-Form-8，v2.3.7 论文三实战升级，P1-4）**
+- **M-Exist 存在性合规门**（共 **3 项**，v2.2.0 2 项 + v2.2.1 新增 1 项）：文末四节双向 diff（封装在 `_shared/m_exist_1_diff.sh`，M-Exist-1）/ **证据包完整性校验（M-Exist-2，v2.5.5 重命名原「证据包文件完整性 sha256」，教训 #169——LLM 推理判定「文件存在+字节数+章节结构」，sha256 改人类可选回填）** / **信任级别一致性 diff（M-Exist-3，v2.2.1 新增）**
+- **M-Integrity 阶段闸门**（v2.2.1 新增 2 项）：**T2.5（M-Integrity-1，T2 → T4 前主控 checkpoint，含 9 步检查——数据条目数、信任级别完整、信任级别一致性、头部计数一致性，**sha256 占位可选** v2.2.17 改）+ T7.5（M-Integrity-2，T7 → T8 前主控 checkpoint，含 8 步检查——审计最新版、P0/P1 清单、M 门全 exit 0、论文 vs 报告隔离、修订轮独立写手，**sha256 占位可选** v2.2.17 改）**
 - **T7 必跑**，exit 0 才能返回
 - 借鉴 vincentjiang06 objective/verify gate 硬约束理念的论衡化实现——「**形式合规 ≠ 存在性合规 ≠ 信任一致**」（v2.2.0 → v2.2.1 M 门三层验证）
 
-**M 门算法完整规约**：[`M-Gate-Algorithm.md`](_shared/M-Gate-Algorithm.md)
+**M 门算法完整规约 + 诚实声明**：[`M-Gate-Algorithm.md`](_shared/M-Gate-Algorithm.md)（含「**M 门 = LLM 推理判定，非机器强制**」诚实声明，v2.5.6 P0-2 修正，教训 #177）。**自审门门 L（v2.5.22 新增）**保证 8+3+2 = 13 项的应用文档描述与算法文档一致；M-Gate-Report JSON schema 在 [`M-Gate-Algorithm-appendix.md`](_shared/M-Gate-Algorithm-appendix.md)。
 
 ## 修订回环 ≤2 轮硬约束（v2.2.0 新增，v2.3.1 定义细化，教训 #64 + #120）
 

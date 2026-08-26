@@ -398,6 +398,88 @@ else
 fi
 
 # =============================================================================
+# 门 L：M 门算法引用完整性 + JSON 产出可执行性（v2.5.22 新增，2026-08-26）
+# -----------------------------------------------------------------------------
+# 背景（v2.5.22 主人核查发现）：
+#   M 门是论衡三大防线之首，13 项规则（M-Form×8 / M-Exist×3 / M-Integrity×2）
+#   描述在 references/_shared/M-Gate-Algorithm.md。但门 F 只检查"LLM 推理诚实
+#   声明"，不检查算法自身一致性也不检查应用文档是否同步。教训 #187 同型。
+#
+#   更严重：M-Gate-Report JSON 产出 = LLM 主动 write，零触发器保证——实战中
+#   「T8 跑完 M 门」等于「主控自陈跑过」（教训 #150/#177 同型）。
+#
+# 查两项：
+#   1. 跨文档 M 门项数一致性：deliverables.md / 主控扩责 等应用文档描述的
+#      「M-Form N 项」必须与算法文档实际定义数匹配。偏差 = fail。
+#   2. 算法文档引用的产出物路径（final/M-Gate-Report-v2.2.12.json）必须
+#      在附录的 schema 中定义，附录文件本身必须存在。
+# 说明：JSON 实战产出检查（检测 run/*/final/M-Gate-Report-v2.2.12.json）
+#   是 optional——只在主流程项目存在时检查（CI 环境无项目 → warn 不 fail）。
+# =============================================================================
+GATE_L_FAIL=""
+
+# --- L.1：算法文档实际定义的 M-Form/M-Exist/M-Integrity 项数 ---
+M_FORM_DEFINED=$(grep -cE '^### M-Form-[0-9]+:' references/_shared/M-Gate-Algorithm.md 2>/dev/null)
+M_EXIST_DEFINED=$(grep -cE '^### M-Exist-[0-9]+:' references/_shared/M-Gate-Algorithm.md 2>/dev/null)
+M_INTEGRITY_DEFINED=$(grep -cE '^### M-Integrity-[0-9]+:' references/_shared/M-Gate-Algorithm.md 2>/dev/null)
+
+# --- L.2：跨文档项数描述一致性（deliverables.md / 主控扩责 / status-template）---
+# 期望表述：「M-Form N 项」「M-Exist N 项」中 N 与算法文档匹配。
+# 仅检测明确「总项数 = N」的表述（如「M-Form 共 6 项」「（6 项）」），不含
+# 「v2.2.0 5 项 + 新增 = 8」这类合法的「原版 N 项 + 新增」拆分表述。
+for doc in references/deliverables.md references/agents/00-主控-扩展职责.md references/templates/status-template.md; do
+  [ -f "$SKILL_ROOT/$doc" ] || continue
+  doc_name=$(basename "$doc")
+  for wrong_count in 5 6 7; do
+    if [ "$wrong_count" -lt "$M_FORM_DEFINED" ] 2>/dev/null; then
+      # 只匹配「共 N 项」「总 N 项」「（N 项）」这类明确表总项数的表述
+      if grep -qE "M-Form.*共 ${wrong_count} 项|M-Form.*总 ${wrong_count} 项|（${wrong_count} 项）" "$SKILL_ROOT/$doc" 2>/dev/null; then
+        GATE_L_FAIL="$GATE_L_FAIL [$doc_name 含过时 M-Form 总项数表述（应 ${M_FORM_DEFINED} 项，非 ${wrong_count} 项）]"
+      fi
+    fi
+  done
+  for wrong_count in 2; do
+    if [ "$wrong_count" -lt "$M_EXIST_DEFINED" ] 2>/dev/null; then
+      if grep -qE "M-Exist.*共 ${wrong_count} 项|M-Exist.*总 ${wrong_count} 项|（${wrong_count} 项）" "$SKILL_ROOT/$doc" 2>/dev/null; then
+        GATE_L_FAIL="$GATE_L_FAIL [$doc_name 含过时 M-Exist 总项数表述（应 ${M_EXIST_DEFINED} 项，非 ${wrong_count} 项）]"
+      fi
+    fi
+  done
+done
+
+# --- L.3：附录 schema 文件存在（JSON 输出格式定义） ---
+if [ ! -f "references/_shared/M-Gate-Algorithm-appendix.md" ]; then
+  GATE_L_FAIL="$GATE_L_FAIL [缺 M-Gate-Algorithm-appendix.md（JSON schema 必要）]"
+fi
+
+# --- L.4：实战 JSON 产出（optional，主流程有 run/* 项目时检查） ---
+PROJECTS_WITH_REPORT=0
+PROJECTS_TOTAL=0
+for proj in "$SKILL_ROOT"/run/*/; do
+  [ -d "$proj" ] || continue
+  PROJECTS_TOTAL=$((PROJECTS_TOTAL+1))
+  report_file="$proj/final/M-Gate-Report-v2.2.12.json"
+  if [ -f "$report_file" ]; then
+    PROJECTS_WITH_REPORT=$((PROJECTS_WITH_REPORT+1))
+    # 检查 JSON 含 13 项 M 门字段（粗略检查：用 jq 或 grep）
+    if ! grep -qE 'M-Form-[1-8]|M-Exist-[1-3]|M-Integrity-[1-2]' "$report_file"; then
+      GATE_L_FAIL="$GATE_L_FAIL [$(basename $proj) M-Gate-Report JSON 缺全部 13 项字段]"
+    fi
+  fi
+done
+
+# 报告实战覆盖率（warn 级别，不阻塞 commit）
+if [ "$PROJECTS_TOTAL" -gt 0 ] && [ "$PROJECTS_WITH_REPORT" -lt "$PROJECTS_TOTAL" ]; then
+  warn "门 L: $PROJECTS_TOTAL 个实战项目中 $PROJECTS_WITH_REPORT 个产出 M-Gate-Report JSON（缺 $((PROJECTS_TOTAL-PROJECTS_WITH_REPORT)) 个，主控 T8 未主动 write）"
+fi
+
+if [ -z "$GATE_L_FAIL" ]; then
+  pass "门 L: M 门算法引用完整（${M_FORM_DEFINED} Form + ${M_EXIST_DEFINED} Exist + ${M_INTEGRITY_DEFINED} Integrity = $((M_FORM_DEFINED+M_EXIST_DEFINED+M_INTEGRITY_DEFINED)) 项，附录 JSON schema 存在）"
+else
+  fail "门 L: M 门算法引用或 JSON schema 不一致" "$GATE_L_FAIL"
+fi
+
+# =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit

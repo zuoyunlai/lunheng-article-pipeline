@@ -680,7 +680,7 @@ return (all_pass, fail_reasons, sha256_pending)
    - 证据：status.md 修订回环记录写明「spawn 独立写手 vN 执行」
    - 若发现主控代执行 → 打回修订轮，强制 spawn 独立写手
    - 例外：主控直接 edit 定点修复（<5 处纯校对类，v2.1.3 允许）不视为违反
-9. 判定：7 项全通过 → T7.5 ✅ 派发 T8；任一失败 → T7.5 ❌ 不派发 T8
+9. 判定：1-6 + 8 项全通过（步骤 7 为「v2.3.3 删主人签字」元说明，非检查项）→ T7.5 ✅ 派发 T8；任一失败 → T7.5 ❌ 不派发 T8
 
 伪代码：
 audit_latest = get_latest_audit_report('audits/')
