@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# self-audit-gate.sh — 论衡自审门自动化执行脚本（v2.5.6 新增，教训 #175）
+# self-audit-gate.sh — 论衡自审门自动化执行脚本（v2.5.6 新增，教训 #175；v2.5.9 加门 H，教训 #180）
 # =============================================================================
 # 背景（教训 #175）：v2.5.5 发布前自审门 22 门**没真跑**（仅文档描述），导致
 #   P0-1 #2 8 分钟硬卡散落 / P0-1 #3 T7 派发话术硬编码 / P0-2 M 门「机械化」名不副实 等
@@ -185,6 +185,49 @@ if [ -z "$M_GATE_MISSING" ]; then
   pass "门 F: M 门「机械化」诚实声明（v2.5.6 P0-2 修正）"
 else
   fail "门 F: M 门缺诚实声明" "$M_GATE_MISSING"
+fi
+
+# =============================================================================
+# 门 H：教训编号引用 vs 主真源实有差集（v2.5.9 新增，2026-08-26）
+# -----------------------------------------------------------------------------
+# 背景：论衡侧角色卡/脚本/模板一路编到 #178，主真源 memory/lessons.md 停在 #136，
+#   造成 36 条教训「有引用无定义」。2026-08-26 清理时靠手写 python 才扫出。
+#   文档层漏改会死链报错，**编号层漏写不报错**——只是查不到，比死链更隐蔽。
+#   同型于教训 #150「自审工具假绿灯」在记忆层的映射。
+# 说明：主真源不在 skill 仓库内（教训 #143 双视图原则），所以本门是**软门**：
+#   真源不可达时 warn 不 fail（净化包/CI 环境不应因主工作区缺失而挂）。
+# =============================================================================
+LESSONS_SRC="${LESSONS_SRC:-$HOME/.openclaw/workspace/memory/lessons.md}"
+
+if [ -f "$LESSONS_SRC" ]; then
+  # 采集论衡侧所有「教训 #N」引用编号（排除 .bak / 净化包输出）
+  REFS=$(grep -rhoE '教训 #[0-9]+' \
+           --include="*.md" --include="*.sh" --include="*.py" \
+           --exclude="*.bak*" \
+           references/ scripts/ SKILL.md README.md QUICKSTART.md 2>/dev/null \
+         | grep -oE '[0-9]+' | sort -un)
+
+  # 采集主真源实有编号（任意标题层级，兼容「## #N」与「## 教训 #N」两种书写）
+  HAVE=$(grep -oE '^#{2,4} (教训 )?#[0-9]+' "$LESSONS_SRC" \
+         | grep -oE '[0-9]+$' | sort -un)
+
+  # 差集：仅检 >=115（#1-#114 已归档到 memory/archive/，不在 lessons.md 主体）
+  MISSING_LESSONS=""
+  for n in $REFS; do
+    [ "$n" -lt 115 ] && continue
+    if ! echo "$HAVE" | grep -qx "$n"; then
+      MISSING_LESSONS="$MISSING_LESSONS #$n"
+    fi
+  done
+
+  if [ -z "$MISSING_LESSONS" ]; then
+    REF_COUNT=$(echo "$REFS" | wc -w)
+    pass "门 H: 教训编号引用全部在主真源有定义（引用 $REF_COUNT 个编号）"
+  else
+    fail "门 H: 教训编号引用在主真源缺定义" "$MISSING_LESSONS —— 请补录到 $LESSONS_SRC"
+  fi
+else
+  warn "门 H: 主真源不可达（$LESSONS_SRC），跳过教训编号差集检查"
 fi
 
 # =============================================================================
