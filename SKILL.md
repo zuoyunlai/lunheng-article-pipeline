@@ -149,6 +149,11 @@ metadata:
 - `memory_get` / `memory_search` / `memory_recall` — **默认关闭**，主控在 Phase 0 问「是否读主控工作区记忆」答「是」才开；T6/T7 调 `memory_recall` 仍需主控在 spawn 时**额外传** toolsAllow（不在分档基线内）
 - 解锁方式：主控在 status.md「Phase 0 同意记录」段填写 `opt_in: [image_generate: yes, memory: yes]`，凭此记录而非凭 prompt 调阅
 
+**行为授权（非工具，Phase 0 预授权记录，默认全部关闭，v2.6.6 新增回应 T05/G14 审计）**：
+- **配额耗尽预授权**：主人预勾选「配额耗尽时授权 X（换 provider 重试 / 白名单接力）」后，配额事件发生时主控按预授权选项直接执行并事后通报；**未勾选 = 必须暂停等主人拍板**（fail-closed）。预授权仅限白名单工具路径，**永不覆盖 exec/process 等永久拒绝**
+- **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
+- 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
+
 **禁用（`metadata.tools.denied`）— 13 项永久**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / memory_forget / sessions_search / sessions_send
 
 **Workspace 路径收口（v2.6.5 新增，回应 SkillSpector 「非声明主机访问」）**：
@@ -280,6 +285,8 @@ metadata:
 仅以上警告项主人独立同意后，主控 T0 才可调用。
 
 ## ⚠️ 外部服务与数据流声明（按需加载）
+
+> **隐私后果警告（v2.6.6 新增，回应审计知情同意 finding）**：同意外发 = 未公开草稿全文 / 专有研究 / 访谈材料的实质内容**离开本机**，发往的第三方 provider（Tavily / OpenAI / Google / 模型厂商）可能按其隐私政策留存、加工这些内容，发出后不可撤回。敏感稿拿不准 → 选脱敏/本地选项。完整警告见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md) 4 选 1 前置警告。
 
 > **完整服务列表 + 4 选 1 同意关卡详见** [`references/glossary.md`](references/glossary.md)「九、外部服务声明」节
 
