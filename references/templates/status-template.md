@@ -1,4 +1,5 @@
-> 版本：v2.6.1（自动同步 2026-09-06）
+> 版本：v2.6.2（自动同步 2026-09-06）
+
 
 
 
@@ -53,14 +54,14 @@
 - **T4 分析**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, analysis/分析大纲.md）
 - **Phase 2.5 大纲确认**: ⬜ Inbox → 🔄 In Progress → ✅ Done（主人确认日期, 拍板图位 N）
 - **T5 写作**: ⬜ Inbox → 🔄 In Progress → ✅ Done v1/v2/v3（YYYY-MM-DD HH:MM, 初稿-v3.md, M 字数）
-- **Phase 3.5 洞察补充**: ⬜ Inbox → 🔄 In Progress → ✅ Done（主人确认日期, 3 具体问题选项）
+- **Phase 3.5 洞察补充**: ⬜ Inbox → 🔄 In Progress → ✅ Done（主人确认日期, 洞察内容或「无补充」决策）
 - **T6 批判伙伴**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, C1-C7 报告）
 - **Phase 1.5 定向回查**: ⬜ Inbox → 🔄 In Progress → ✅ Done（v2.5.5 P1 新增, T1b 回查报告）
 - **G14 中文 AI 痕迹闸**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 8 类检测, Pass/Warning/Fail）
 - **T7 审计**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 审计报告-vN.md + 反哺报告-vN.md）
 - **修订回环**（≤2 轮）: ⬜ Inbox → 🔄 第 1 轮 → ✅ Done / 🔄 第 2 轮 → ✅ Done / 🔒 Acknowledged Limitations 模式
 - **T7.5 完整性门**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 主控 checkpoint）
-- **T8 终检**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, final/定稿.md）
+- **T8 终检**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, final/定稿.md + 主人验收决策）
 - **T9 同行评审**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 6 维度评分 XX/30 + Top 3 期刊）
 
 ## 三、闸门清单（checklist）
