@@ -1,4 +1,5 @@
-> 版本：v2.6.3（自动同步 2026-09-06）
+> 版本：v2.6.4（自动同步 2026-09-06）
+
 
 
 
@@ -108,8 +109,8 @@
        ├ 数据源：web_search + OpenAlex（合并去重，第一梯队）
        └ 时效评级：🟢 ≤2年 / 🟡 2-5年 / 🔴 >5年
      ```
-  5. **第二梯队（需 API key，可选默认关闭）**：任务简报明示启用时，**主人自配**环境变量（`WANFANG_APP_KEY` / `KQING_APP_KEY` / `NSTL_APP_KEY`），论衡不存储 key；主控 prompt 加「LLM 推理模拟调万方/科情 API（带 key）」。
-  6. **第三梯队（Firecrawl 抓取 paper.edu.cn，可选默认关闭）**：任务简报明示启用时，**主人自配** `firecrawl_api_key`，主控用 Firecrawl API 抓取。
+  5. **第二梯队（需 API key，可选默认关闭）**：任务简报明示启用时，**主人自配**环境变量（`WANFANG_APP_KEY` / `KQING_APP_KEY` / `NSTL_APP_KEY`），论衡不存储 key。key **永不进入任何 prompt / 会话记录 / 日志 / 卡片**（论衡零 exec，无法代跑带鉴权请求；第二梯队仅在主人于宿主环境配置 key 并自行调用后，把**不含 key 的结果**投喂给 T1 时使用——即论衡只消费脱敏结果，不触碰 key 本身）。
+  6. **第三梯队（Firecrawl 抓取 paper.edu.cn，可选默认关闭）**：任务简报明示启用时，**主人自配** `firecrawl_api_key` 在宿主环境自行调用，把不含 key 的抓取结果投喂给主控；论衡不存储 key，key **永不进入 prompt / 会话 / 日志**。
 
   **实战背景**：v2.5.4 以前论衡 T1 仅用 web_search + tavily_search，中文文献元数据完整性约 80%（DOI 标准化、被引频次、概念标签缺失）。v2.5.5 后加 LLM 推理模拟 OpenAlex + Crossref，中文文献元数据完整性提升至 95%+。
 

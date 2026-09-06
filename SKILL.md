@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: lunheng-article-pipeline
-version: 2.6.3
+version: 2.6.4
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -16,8 +16,6 @@ metadata:
       - "sessions_yield"
       - "sessions_history"
       - "sessions_list"
-      - "sessions_search"
-      - "sessions_send"
       - "web_search"
       - "web_fetch"
       - "tavily_search"
@@ -25,7 +23,6 @@ metadata:
       - "memory_get"
       - "memory_search"
       - "memory_recall"
-      - "memory_forget"
       - "session_status"
       - "progress_card"
       - "image_generate"
@@ -40,6 +37,9 @@ metadata:
       - "tts"
       - "memory_store"
       - "skill_workshop"
+      - "memory_forget"
+      - "sessions_search"
+      - "sessions_send"
   # v2.6.1 适配 OpenClaw 2026.9.1：子代理工具白名单（主控 spawn 时必传 toolsAllow）
   subagent_tools_allow:
     - "read"
@@ -82,9 +82,9 @@ metadata:
 
 ## ⚠️ 执行能力边界（先读这一段）
 
-**论衡技能的工具边界（v2.6.1 适配 OpenClaw 2026.9.1）**：
-- ✅ **可调用**：read / write / edit / web_search / tavily_search / memory_search / memory_recall / memory_forget / sessions_search / sessions_send / session_status 等 **20 项工具**（见上方 `metadata.tools.declared`）
-- ❌ **禁用**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop（**10 项**，见 `metadata.tools.denied`）
+**论衡技能的工具边界（v2.6.4 最小权限收窄，回应 ClawHub T05）**：
+- ✅ **可调用**：read / write / edit / web_search / tavily_search / memory_search / memory_recall / session_status / sessions_spawn / sessions_yield / sessions_history / sessions_list 等 **17 项工具**（见上方 `metadata.tools.declared`）
+- ❌ **禁用**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / memory_forget / sessions_search / sessions_send（**13 项**，见 `metadata.tools.denied`）——其中 memory_forget（可删记忆）/ sessions_search（可读其他会话）/ sessions_send（可跨会话发消息）于 v2.6.4 从 declared 移入 denied：论衡文档从未使用这三项，属过度授权，遵循最小权限
 - 🔒 **子代理工具白名单**（v2.6.1 适配 P0-1，教训：主会话 deny 不传给子会话）：主控 spawn 子代理时**必须**传 `toolsAllow` 参数（**16 项**白名单，见 `metadata.subagent_tools_allow`）。**子代理默认不能跑 exec/process/browser**，即使主控误 spawn 也保持「零 exec」哲学。
 - 🧠 **memory_recall 已解封**（v2.6.1 P0-2）：T6 批判伙伴 + T7 审计员需要召回历史教训加固。**前提**：仅 `metadata.tools.declared` 已声明的 agent 可调用；T6/T7 角色卡明确要求 spawn 时传 `toolsAllow: [..., "memory_recall", ...]`。
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，**不执行实际 shell 命令**——算法文档中的 bash 示例是给人类主人手动复核的参考命令，不是 agent 执行代码
@@ -116,7 +116,7 @@ metadata:
 
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）
 2. 读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）
-3. 读**主控 Agent 工作区的记忆文件**（主人偏好 + 最近关注主题）——路径以主控工作区根为准，常见为 `MEMORY.md`（偏好索引）+ `memory/YYYY-MM-DD.md`（最近日志）。这两份是「主控侧记忆」，**不在本 skill 目录内**：加载论衡的主控 Agent 各自指向自己的工作区记忆，不引用论衡发布者的私有文件（skill 可移植性）
+3. 读**主控 Agent 工作区的记忆文件**（主人偏好 + 最近关注主题）——**可选，opt-in**（回应 ClawHub 最小权限审计）：仅当主人在 Phase 0 同意「读取主控工作区记忆」时才读，主人未同意则跳过此步，改用任务简报内嵌的「写作偏好」字段（默认路径 MEMORY.md + memory/YYYY-MM-DD.md，不在本 skill 目录内，不引用发布者私有文件）
 4. **spawn 子代理前必读对应派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 各角色的派发模板在 `references/dispatch/`（v2.5.6 拆分成 10 个独立文件，spawn 哪角色读哪文件），不要凭记忆复制（教训 #57）
 5. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）——审计员卡读全文件即可，不设锚点（锚点 slug 依赖渲染平台，维护易错，教训 #60）
 6. **文件修改安全流程**（v2.1.4 F5）：**禁止 `sed -i`**（静默清空文件教训 #48）——用 `edit` 工具精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
@@ -215,7 +215,7 @@ metadata:
 
 > **完整服务列表 + 4 选 1 同意关卡详见** [`references/glossary.md`](references/glossary.md)「九、外部服务声明」节
 
-**主控 Phase 0 必须给主人 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝），并写入 `01-任务简报.md` 头部作为审计追溯依据。
+**主控 Phase 0 必须给主人 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**，选项定义见 [`_shared/关键协议.md`](_shared/关键协议.md)），并写入 `01-任务简报.md` 的「外部服务同意记录」段作为审计追溯依据（v2.6.4 起 full/lite 两版任务简报模板均含该强制段）。
 
 **主人拒绝任一外发项** → 主控调整方案并重做 Phase 0 确认。
 
