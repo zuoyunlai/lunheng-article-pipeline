@@ -63,6 +63,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/设计文档-架构.md' \
     --exclude 'references/设计文档-哲学.md' \
     --exclude 'PERFORMANCE-PROFILE.md' \
+    --exclude 'references/_shared/教训索引.md' \
     "$SKILL_ROOT/" "$OUT_DIR/"
 else
   cp -a "$SKILL_ROOT/." "$OUT_DIR/"
@@ -72,6 +73,7 @@ else
     "$OUT_DIR/docs" "$OUT_DIR/.bak-20260823-2024-v2.4.0-migrate"
   find "$OUT_DIR" -name '*.bak.*' -delete
   rm -f "$OUT_DIR/references/_shared/m_exist_1_diff.sh" "$OUT_DIR/PERFORMANCE-PROFILE.md"
+  rm -f "$OUT_DIR/references/_shared/教训索引.md"
   rm -f "$OUT_DIR/references/_shared/通用韧化块-v2.1.0.md"
   rm -f "$OUT_DIR/.gitignore"
   rm -f "$OUT_DIR/references/templates/README-模板拆分方案.md"
@@ -127,14 +129,17 @@ PYEOF
   sed -i -E 's/M-Gate-渐进式验证-v2\.2\.15\.md/M-Gate-Algorithm.md/g' "$f"
 
   # 3f. 主控卡「反哺报告处理」整段替换为净化版（彻底消除跨项目共享状态写入表述，回应 Finding 3）
-  if [[ "$(basename "$f")" == "00-主控-coordinator.md" ]]; then
+  if [[ "$(basename "$f")" == "00-主控-扩展职责.md" ]]; then
+  # 修复（v2.6.0）：旧版匹配 00-主控-coordinator.md，但「反哺报告处理」段在
+  # 扩展职责卡 §二十（教训 #192 同型：改 A 漏 A 漏——重命名文件后 sed 目标未跟）
     python3 - "$f" <<'PYEOF'
 import sys, re
 path = sys.argv[1]
 s = open(path, encoding='utf-8').read()
-# 定位「## 反哺报告处理」到「## 边界」之间的整段，替换为净化版
-pattern = re.compile(r'## 反哺报告处理.*?(?=\n## 边界)', re.DOTALL)
-replacement = '''## 反哺报告处理（发布版简化）
+# 定位「## 二十、反哺报告处理」到「## 二十一、」之间的整段，替换为净化版
+# （v2.6.0 修正：旧模式 ## 反哺报告处理→## 边界 是 coordinator 老卡格式，永不匹配）
+pattern = re.compile(r'## 二十、反哺报告处理.*?(?=\n## 二十一、)', re.DOTALL)
+replacement = '''## 二十、反哺报告处理（发布版简化，v2.6.0）
 
 主控会话结束时（Phase 5 终检后）执行：
 
@@ -143,7 +148,8 @@ replacement = '''## 反哺报告处理（发布版简化）
 3. **不自动修改任何角色卡或共享状态文件**——等主人人工 review 后手动 merge
 4. **项目内教训记录**：本次实战发现写入 `run/<项目>/audit-lessons.md`（**项目内文件**，非跨项目共享状态）；跨项目教训沉淀仅存在于论衡开发版（含跨项目 lessons 同步机制），见 GitHub 仓库：https://github.com/zuoyunlai/lunheng-article-pipeline
 
-如反哺报告为空（无新增问题），主控写「本轮反哺报告：T7 未发现可沉淀新增问题」，避免机制被跳过。'''
+如反哺报告为空（无新增问题），主控写「本轮反哺报告：T7 未发现可沉淀新增问题」，避免机制被跳过。
+'''
 s, n = pattern.subn(replacement, s)
 open(path, 'w', encoding='utf-8').write(s)
 print(f'✅ 主控卡反哺段净化完成（替换 {n} 处）')

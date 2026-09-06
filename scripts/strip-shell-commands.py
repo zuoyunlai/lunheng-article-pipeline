@@ -43,6 +43,32 @@ def is_shell_codeblock_lang(lang: str) -> bool:
     return lang.strip().lower() in ('bash', 'sh', 'shell', 'zsh', 'fish')
 
 
+def looks_like_shell(content: str) -> bool:
+    """判定反引号内容是否为 shell 命令（v2.6.0 重写，教训 #192）
+
+    旧版把 '<' / '>' 出现即判为 shell，导致 `run/<项目>/x.md`、
+    `<br>`、`[ack 0%] <一句话进度>` 等纯文本被误吞成裸「（检查）」。
+    新规则：只有出现 shell 动词 / 管道 / 重定向串 / /tmp/ 路径才算命令。
+    """
+    if re.search(
+        r'\b(grep|awk|sed|comm|sort|uniq|diff|stat|find|xargs|chmod|'
+        r'sha256sum|md5sum|head|tail|pandoc|rsvg-convert|cat|ls|cp|mv|rm|wc)\b',
+        content,
+    ):
+        return True
+    if '|' in content:
+        return True
+    if '2>&1' in content or '/tmp/' in content:
+        return True
+    return False
+
+
+def block_is_user_facing(block_lines: list) -> bool:
+    """shell 代码块里若含用户安装/触发命令（非 host 验证命令），保留（教训 #192）"""
+    joined = '\n'.join(block_lines)
+    return 'openclaw skills install' in joined or 'clawhub skills install' in joined
+
+
 def strip_shell(s: str) -> str:
     # ---- 0. 删除「跨平台等价命令」类表格（人类验证命令参考，agent 用不上）----
     s = re.sub(
@@ -81,12 +107,22 @@ def strip_shell(s: str) -> str:
                 codeblock_stack.append((lang, bt_count))
                 if is_shell_codeblock_lang(lang):
                     # shell 代码块：跳过内容直到匹配的结束围栏
+                    # （用户安装命令除外——那是使用说明，不是 host 验证命令）
                     i += 1
+                    block = []
                     while i < len(lines):
                         end_bt = _backtick_count(lines[i])
                         if end_bt == bt_count:
                             break
+                        block.append(lines[i])
                         i += 1
+                    if block_is_user_facing(block):
+                        out.append(line)  # 保留开始围栏
+                        out.extend(block)
+                        out.append(lines[i] if i < len(lines) else '')
+                        i += 1
+                        codeblock_stack.pop()
+                        continue
                     # 跳过结束围栏
                     i += 1
                     codeblock_stack.pop()
@@ -105,11 +141,20 @@ def strip_shell(s: str) -> str:
                     if is_shell_codeblock_lang(inner_lang):
                         # 内层 shell 代码块：跳过
                         i += 1
+                        block = []
                         while i < len(lines):
                             end_bt = _backtick_count(lines[i])
                             if end_bt == bt_count:
                                 break
+                            block.append(lines[i])
                             i += 1
+                        if block_is_user_facing(block):
+                            out.append(line)
+                            out.extend(block)
+                            out.append(lines[i] if i < len(lines) else '')
+                            i += 1
+                            codeblock_stack.pop()
+                            continue
                         i += 1  # 跳过结束围栏
                         codeblock_stack.pop()
                         continue
@@ -155,21 +200,21 @@ def process_inline(line: str) -> str:
     # 1. 反引号内的 shell 命令 → 自然语言
     def replace_backtick(m):
         content = m.group(1)
-        is_shell = (
-            '|' in content or '>' in content or '<' in content
-            or '/tmp/' in content
-            or re.search(r'\b(grep|awk|sed|comm|cp|sha256sum|md5sum|wc|sort|uniq|diff|ls|cat|mv|chmod|rm)\b', content)
-        )
-        if not is_shell:
+        if not looks_like_shell(content):
             return m.group(0)  # 非 shell 命令，保留
         # 提取检测对象（编号模式或文件路径）
         num = re.search(r'\[(?:D|C|C-主|L|先)\d+\]', content)
         if num:
             return f'（检查 {num.group(0)}）'
-        fpath = re.search(r'(?:drafts/|final/|literature/|data/|cases/|analysis/|audits/|run/)[^\s`|>]*\.md', content)
+        fpath = re.search(r'(?:drafts/|final/|literature/|data/|cases/|analysis/|audits/|run/)[^\s`|><]*\.md', content)
         if fpath:
             return f'（检查 {fpath.group(0)}）'
-        return '（检查）'
+        # 兜底（v2.6.0，教训 #192）：动词换成自然语言、保留宾语，
+        # 不再吞成裸「（检查）」（2.5.22-2.5.24 三版 101 处句子残缺的根因）
+        replaced = content
+        for pat, repl in VERB_PATTERNS:
+            replaced = re.sub(pat, repl, replaced)
+        return f'`{replaced}`'
 
     line = re.sub(r'`([^`]*)`', replace_backtick, line)
 

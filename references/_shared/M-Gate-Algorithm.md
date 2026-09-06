@@ -1,4 +1,5 @@
-> 版本：v2.5.24（自动同步 2026-09-06）
+> 版本：v2.6.0（自动同步 2026-09-06）
+
 
 
 
@@ -702,9 +703,9 @@ return (all_pass, fail_reasons)
 
 以下 4 段（输出格式 / 论衡哲学化 / 教训沉淀 / 历史版本）已抽出到独立文档，按需加载：
 
-- **M-Gate-Report v2.2.4 输出格式**（JSON schema）：[`references/_shared/M-Gate-Algorithm-appendix.md §1`](M-Gate-Algorithm-appendix.md#1-m-gate-report-v224-输出格式4-版本合并最终版)
-- **论衡哲学化**（4 版本合并）：[`references/_shared/M-Gate-Algorithm-appendix.md §2`](M-Gate-Algorithm-appendix.md#2-论衡哲学化4-版本合并)
-- **教训沉淀（v2.2.0 ~ v2.2.4）**：[`references/_shared/M-Gate-Algorithm-appendix.md §3`](M-Gate-Algorithm-appendix.md#3-教训沉淀v220--v224-全部)
+- **M-Gate-Report v2.2.4 输出格式**（JSON schema）：[`references/_shared/M-Gate-Algorithm-appendix.md §1`](M-Gate-Algorithm-appendix.md)
+- **论衡哲学化**（4 版本合并）：[`references/_shared/M-Gate-Algorithm-appendix.md §2`](M-Gate-Algorithm-appendix.md)
+- **教训沉淀（v2.2.0 ~ v2.2.4）**：[`references/_shared/M-Gate-Algorithm-appendix.md §3`](M-Gate-Algorithm-appendix.md)
 - **历史版本归档（v2.2.8 Phase D-1）**：3 文件已归档到 `_shared/archive/M-Gate-Algorithm-legacy/`（README 已说明）。**主流程只读本完整版**，归档版仅做版本演进参考。
 
 > **拆分理由（v2.5.2）**：主文件从 780 行降至 635 行（-19%），超 PERF-SIZE-004 800 行临界 145 行的缓冲。附录按需加载，主流程只读「13 个 M门规则 + 触发条件 + 伪代码」。

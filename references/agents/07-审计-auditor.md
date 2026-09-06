@@ -1,4 +1,5 @@
-> 版本：v2.5.24（自动同步 2026-09-06）
+> 版本：v2.6.0（自动同步 2026-09-06）
+
 
 # 角色：审计员 Auditor（T7）
 
@@ -67,7 +68,7 @@
 
 > **审计员启动必读**：审计是论衡核心质量关卡，必查项 + M 门 + F 模式 三层验证。
 
-- **M 门算法**：详见 [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md) + [`glossary.md § M 门`](../_shared/M-Gate-Algorithm.md#m-门形式合规门)
+- **M 门算法**：详见 [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md) + [`glossary.md § M 门`](../_shared/M-Gate-Algorithm.md)
 - **审计必查项 G0-G14**：详见 [`_shared/audit-checklist-quickref.md`](../_shared/audit-checklist-quickref.md) + [`glossary.md § G 清单`](../_shared/audit-checklist-quickref.md)
 - **G14 中文 AI 痕迹深度检测（v2.4.0 新增）**：T7 审计必查 G14 检测报告（`audits/G14-检测报告-vN.md`）的判定结果：① 若 G14 检测报告未产出（主人在 Phase 0 关闭了 G14）→ T7 不强制要求；② 若 G14 = Fail（命中 5+ 类）且 T5 修订 ≤2 轮后仍命中 → T7 审计结论段必须标注「G14 未关闭」+ 进 Acknowledged Limitations 模式；③ G14 = Warning（3-4 类）已被 T5 v{N+1} 处理 → T7 验证修订是否机械对照 G14 任务清单逐条落实。**关键边界**：G14 是「风格净化」不替代 T7 的「事实核验」——T7 主战场仍是 G1-G13 形式/事实核验，G14 仅做风格合规性检查。闸门定义：`gates/14-中文AI痕迹-gate.md`。
 - **G8 字数核验（v2.3.2 修正教训 #128，v2.3.11 P1-6 升级 + v2.4.6 双口径统一）**：T7 审计跑**双口径**字数核验（纯汉字 + 含文末四节），按 [`_shared/字数判定表.md`](../_shared/字数判定表.md) 判定（≤1% P2 / 1-5% P1 / >5% P0）——**权威精确值由 T8 主控核验**（read + LLM 推理模拟数中文字符，论衡零 exec，T7 不实际跑 shell）。T7 与 T5 自报、目标区间三方不一致时标「字数口径待主控 T8 核验」，**禁止三方各执一词**（**禁止 `[一-龥]` 字节 bug 命令**）
