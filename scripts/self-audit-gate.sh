@@ -111,6 +111,16 @@ VERSION_FILES=(
   "references/templates/status-template.md"
   "references/templates/投稿就绪检查表-template.md"
   "references/templates/修订说明-template-full.md"
+  "references/templates/案例卡-template.md"
+  "references/templates/数据卡-template.md"
+  "references/templates/文献卡-template.md"
+  "references/templates/先行者清单-template.md"
+  "references/templates/交接报告-template.md"
+  "references/templates/图表-SVG-template.md"
+  "references/_shared/工具能力边界.md"
+  "references/_shared/关键协议.md"
+  "references/_shared/教训索引.md"
+  "references/_shared/模型候选池.md"
 )
 VERSION_MISSING=""
 for f in "${VERSION_FILES[@]}"; do

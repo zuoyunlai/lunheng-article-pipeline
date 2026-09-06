@@ -111,13 +111,25 @@ SYNCS=(
   "_shared/中文数据源集成.md|header"
   "_shared/format-export.md|header"
 
-  # 模板（v2.4.6 + v2.5.0 + v2.5.1 新增）
+  # _shared 协议（v2.5.6 第三方独立审查建议 #5，教训 #175 防漏改）
+  "_shared/工具能力边界.md|header"
+  "_shared/关键协议.md|header"
+  "_shared/教训索引.md|header"
+  "_shared/模型候选池.md|header"
+
+  # 模板（v2.4.6 + v2.5.0 + v2.5.1 + v2.6.4 补全，教训 #175 防漏改）
   "templates/任务简报-template.md|header"
   "templates/审稿报告-template.md|header"
   "templates/G14检测报告-template.md|header"
   "templates/status-template.md|header"
   "templates/投稿就绪检查表-template.md|header"
   "templates/修订说明-template-full.md|header"
+  "templates/案例卡-template.md|header"
+  "templates/数据卡-template.md|header"
+  "templates/文献卡-template.md|header"
+  "templates/先行者清单-template.md|header"
+  "templates/交接报告-template.md|header"
+  "templates/图表-SVG-template.md|header"
 
   # 顶层文档（入口，v2.3.6 起纳入；@ = 相对 ENTRY_DIR）
   "@README.md|header"
