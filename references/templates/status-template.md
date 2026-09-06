@@ -1,4 +1,4 @@
-> 版本：v2.6.2（自动同步 2026-09-06）
+> 版本：v2.6.3（自动同步 2026-09-06）
 
 
 
@@ -21,11 +21,12 @@
 
 
 
-# 项目状态机 — run/<项目名>/status.md（v2.5.5 结构化重写）
+
+# 项目状态机 — run/<项目名>/status.md（v2.6.3）
 
 > **v2.5.5 重写**（教训 #166，主控实测反馈）：原 markdown 表格 7 列 + 主控 edit 频繁失败（空格漂移 / old_string 不匹配 / 重复行 bug）。**改为「4 段结构化纯文本」+ key:value 字段**，主控用 `**当前**: X` → `**当前**: Y` 替换策略，零空格漂移、零编辑摩擦。
 >
-> 主控维护，每个角色交接时更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped
+> 主控维护，每个角色交接时更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
 > 失败必须留原因；任一行停留 >8 分钟无进展 → 主控介入（按主控卡 §二十二 硬卡阈值表）。
 > **T3 案例检索任何量级必 spawn**（v2.1.8 起，教训 #56，v2.3.0 改 T6→T3）——含 0 条场景走空卡协议；T2 不再兼带案例，状态独立行。
 
@@ -41,7 +42,20 @@
   - 全外发：默认 web_search + tavily_search 检索，主人不投喂一手数据
   - 混合：部分一手（主人投喂 / 限定检索） + 部分 LLM 检索
   - 全人工：所有数据均为主人一手，LLM 不检索
-**G14 状态**: 启用 / 项目级关闭（v2.6.1 修订，Phase 0 拍板后全程不变）
+**G14 状态**: enabled / disabled_by_owner（Phase 0 决定后全项目不变）
+**当前稿件**: draft_id=<唯一标识> / draft_version=v1 / 来源=T5
+**审计修订轮**: 0 / 上限=2
+**T8 技术终检**: ⬜ 未完成 / ✅ 完成
+**Phase 5 主人验收**: ⬜ 未决策 / ✅ accepted / 🔁 revision_requested / ↩ restart_phase / ⏸ deferred
+
+## 人在环决策记录（四节点，缺一不可）
+
+- **Phase 0 定题**: decision=<start|补充信息|暂停|拒绝> / owner_confirmed_at=<时间> / evidence=01-任务简报.md
+- **Phase 2.5 大纲**: decision=<approved|revision_requested> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md
+- **Phase 3.5 洞察**: decision=<insight|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md
+- **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md
+
+> 仅有材料、主控代判、子代理声称已确认，均不构成决策；`no_insight` 是明确决策，不是跳过。
 
 ## 二、角色状态（key:value 替换，每角色一行）
 
@@ -50,18 +64,19 @@
 - **T1 文献检索**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, N 文献卡）
 - **T2 数据检索**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, N 数据卡 + M 缺口）
 - **T2.5 完整性门**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 主控 checkpoint）
-- **T3 案例检索**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, N 案例卡, 含 0 条空卡）
+- **T3 案例检索**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, result=required|empty_card|waived, N 案例卡）
 - **T4 分析**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, analysis/分析大纲.md）
 - **Phase 2.5 大纲确认**: ⬜ Inbox → 🔄 In Progress → ✅ Done（主人确认日期, 拍板图位 N）
 - **T5 写作**: ⬜ Inbox → 🔄 In Progress → ✅ Done v1/v2/v3（YYYY-MM-DD HH:MM, 初稿-v3.md, M 字数）
 - **Phase 3.5 洞察补充**: ⬜ Inbox → 🔄 In Progress → ✅ Done（主人确认日期, 洞察内容或「无补充」决策）
 - **T6 批判伙伴**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, C1-C7 报告）
-- **Phase 1.5 定向回查**: ⬜ Inbox → 🔄 In Progress → ✅ Done（v2.5.5 P1 新增, T1b 回查报告）
+- **Phase 1.5 定向回查**: ⬜ not_triggered（必须写未触发依据）→ 🔄 triggered → ✅ Done（YYYY-MM-DD HH:MM, T1b 回查报告 + T2.5 重跑）
 - **G14 中文 AI 痕迹闸**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 8 类检测, Pass/Warning/Fail）
 - **T7 审计**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 审计报告-vN.md + 反哺报告-vN.md）
 - **修订回环**（≤2 轮）: ⬜ Inbox → 🔄 第 1 轮 → ✅ Done / 🔄 第 2 轮 → ✅ Done / 🔒 Acknowledged Limitations 模式
 - **T7.5 完整性门**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 主控 checkpoint）
-- **T8 终检**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, final/定稿.md + 主人验收决策）
+- **T8 技术终检**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, final/定稿.md 技术检查）
+- **Phase 5 主人验收**: ⬜ 未决策 → 🔄 In Progress → ✅ accepted / 🔁 revision_requested / ↩ restart_phase / ⏸ deferred
 - **T9 同行评审**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 6 维度评分 XX/30 + Top 3 期刊）
 
 ## 三、闸门清单（checklist）

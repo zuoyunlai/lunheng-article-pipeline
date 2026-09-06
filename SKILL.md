@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: lunheng-article-pipeline
-version: 2.6.2
+version: 2.6.3
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -64,16 +64,16 @@ metadata:
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
-## 🧭 默认工作目录（v2.6.1 适配 OpenClaw 2026.9.1 agents.defaults.cwd）
+## 🧭 默认工作目录提示（v2.6.3）
 
 > **默认 cwd**: `/home/zuoyunlai/.openclaw/workspace/run`（对应 `metadata.cwd_default`）
 >
-> **为何**：论衡项目按 `run/<项目名>/` 隔离。**不设默认 cwd = 主控 LLM 可能误操其他项目或主仓库**。9.1 新增 `agents.defaults.cwd` 配后，主控 spawn 子代理、子代理 file 操作 均限定在此目录下。
+> 这是路径提示，不是宿主沙箱或权限保证；主控必须在 Phase 0 显式确认实际项目目录。
 >
 > **主控项目目录操作铁律**：
-> 1. **启动时** `cd ~/.openclaw/workspace/run/<项目名>` 后方可 spawn T1/T2/T3
-> 2. **跨项目不混**：同一轮对话不同时摸多个项目目录
-> 3. **子代理 cwd 继承父**：spawn 不传 cwd = 继承主会话 cwd
+> 1. Phase 0 确认项目名和实际项目目录后，主控才可 spawn T1/T2/T3。
+> 2. 同一轮对话不同时处理多个项目目录。
+> 3. 子代理 cwd 的继承由宿主决定，主控不得把 `cwd_default` 当作隔离保证。
 
 > **核心概念**：[`references/glossary.md`](references/glossary.md)（单一真源：9 张角色卡 + T8 终检由主控亲完成 / 三层防御体系 / 数据信任 3 档 / 关键协议 / 工具边界 / 版本号管理）。
 > **快速开始**：[`QUICKSTART.md`](QUICKSTART.md)。**5 分钟上手。**
@@ -90,9 +90,9 @@ metadata:
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，**不执行实际 shell 命令**——算法文档中的 bash 示例是给人类主人手动复核的参考命令，不是 agent 执行代码
 - ℹ️  **建议运行环境**：禁用 exec 的 agent（保持论衡「零 exec」哲学）
 - ℹ️  **token 成本统计（v2.6.1 重写，精确机制）**：OpenClaw 9.1 提供 `sessions_spawn` 返回值 stats（含 `tokens.in/out` + `prompt/cache` 字段） + `session_status` 工具（可查任意 session 精确 token 数）。**论衡 token 统计走精确路径**：
-  - **子代理**：主控 spawn 时已拿到精确 stats → 子代理交接报告原样回传，主控 T8 终检汇总
+  - **子代理**：若宿主在 spawn 回执提供精确 stats，主控记录并在交接报告中回传；未提供时记录 `unavailable`
   - **主控自身**：T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）
-  - **无三级降级、无估算、无「未配置」**——拿不到精确值就是流程错误，不取拿不准的数据
+  - **成本统计是可观测性字段，不是交付闸门**：禁止估算；宿主未提供精确值时记录 `unavailable`，不阻断交付
   - **v2.6.1 取代**：v2.5.18 三级降级机制（教训 #192 实证不必要：OpenClaw 9.1 已提供精确 API）
 
 **外部内容处理原则（v2.4.0 新增，第三方独立审计 P2-3）**：

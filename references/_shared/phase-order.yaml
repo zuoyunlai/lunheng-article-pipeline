@@ -1,0 +1,86 @@
+# 论衡阶段真源 v2.6.3
+# 这是流程顺序与阻断关系的开发者维护真源；运行时仍由主控使用 read/write/edit 执行。
+version: 2.6.3
+owner_checkpoints:
+  - phase0_definition
+  - phase2_5_outline
+  - phase3_5_insight
+  - phase5_acceptance
+pipeline:
+  - id: phase0_definition
+    kind: owner_checkpoint
+    output: 01-任务简报.md
+    next: retrieval
+  - id: retrieval
+    kind: parallel_agents
+    agents: [T1, T2, T3]
+    next: phase1_5_targeted_review
+  - id: phase1_5_targeted_review
+    kind: conditional_review_window
+    owner_visible: true
+    blocking: false
+    trigger_conditions:
+      - task_brief_marks_Dxx_for_review
+      - unresolved_red_second_hand_data
+      - t9_evidence_score_low
+    decisions: [triggered, not_triggered]
+    output_if_triggered: literature/回查报告-vN.md
+    required_record: status.md
+    after_trigger: rerun_t2_5_integrity
+    next: t2_5_integrity
+  - id: t2_5_integrity
+    kind: mechanical_checkpoint
+    next: t4_analysis
+  - id: t4_analysis
+    kind: agent
+    agent: T4
+    output: analysis/分析大纲.md
+    next: phase2_5_outline
+  - id: phase2_5_outline
+    kind: owner_checkpoint
+    next: t5_draft_v1
+  - id: t5_draft_v1
+    kind: agent
+    agent: T5
+    output: drafts/初稿-v1.md
+    next: phase3_5_insight
+  - id: phase3_5_insight
+    kind: owner_checkpoint
+    decisions: [insight, no_insight]
+    next: t6_g14
+  - id: t6_g14
+    kind: parallel_agents
+    agents: [T6, G14]
+    input: current_draft
+    next: t5_feedback_revision
+  - id: t5_feedback_revision
+    kind: conditional_agent
+    condition: T6_or_G14_requires_revision
+    next: t7_audit
+  - id: t7_audit
+    kind: agent
+    agent: T7
+    input: current_draft
+    next: audit_revision
+  - id: audit_revision
+    kind: bounded_loop
+    max_rounds: 2
+    condition: T7_P0_or_P1
+    after_each: [rerun_g14_if_enabled, rerun_t7]
+    next: t7_5_integrity
+  - id: t7_5_integrity
+    kind: mechanical_checkpoint
+    next: t9_review
+  - id: t9_review
+    kind: advisory_agent
+    condition: mode_default_or_owner_enabled
+    blocking: false
+    next: t8_technical_final
+  - id: t8_technical_final
+    kind: owner_agent
+    agent: T8
+    next: phase5_acceptance
+  - id: phase5_acceptance
+    kind: owner_checkpoint
+    decisions: [accepted, revision_requested, restart_phase, deferred]
+    terminal: accepted
