@@ -1,4 +1,5 @@
-> 版本：v2.6.0（自动同步）
+> 版本：v2.6.1（自动同步 2026-09-06）
+
 
 # 论衡快速开始指南（v2.6.0）
 
@@ -17,7 +18,36 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
-> **宿主配置无关（v2.5.18 明示）**：论衡是**纯 skill，零 exec，不依赖宿主 OpenClaw 的任何特定配置**。唯一的「可选增强」是 token 成本精度——若宿主开启 `messages.responseUsage`（OpenClaw 的 `/status` 成本显示字段），论衡 token 记录是「精确值」；若未开，论衡自动降级为「估算值」或「未配置」，**不影响流水线本身运行**。详见 SKILL.md「执行能力边界 → token 成本统计」段。
+> **宿主配置无关（v2.6.1 明示）**：论衡是**纯 skill，零 exec，不依赖宿主 OpenClaw 的任何特定配置**。唯一的「可选增强」是统计精度——OpenClaw 9.1 起，论衡 token 统计走精确路径（sessions_spawn 返回值 stats + session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界 → token 成本统计」段。
+
+---
+
+## 🆕 v2.6.1 OpenClaw 2026.9.1 适配（本轮新增）
+
+论衡 v2.6.1 适配 OpenClaw 2026.9.1（ad6fe23）。**升级后请检查以下 4 点**：
+
+1. **子代理工具白名单生效**：
+   - 论衡主控 spawn T1-T9 + G14 子代理时必须传 `toolsAllow` 参数（16 项白名单）
+   - 不传 = 子代理继承全部 28 项 OpenClaw 工具（含 exec / process / browser） = **违背论衡「零 exec」哲学**
+   - 所有 10 个 `references/dispatch/T*.md` 顶部已增「子代理工具白名单」段
+   - 核查：随机打开任一 dispatch 文件，确认头部含 `toolsAllow` 字段
+
+2. **memory_recall 解封**：
+   - v2.6.0 前 `memory_recall` 在 denied 列表；T6/T7 需要召回历史教训加固
+   - v2.6.1 解封到 declared 列表；仅 T6/T7 需调用，其他角色默认不传
+   - 核查：SKILL.md frontmatter 应看到 `memory_recall` 在 `declared` 而非 `denied`
+
+3. **默认 cwd 配置**：
+   - v2.6.1 frontmatter 加 `cwd_default: /home/zuoyunlai/.openclaw/workspace/run`
+   - 论衡项目在 `run/<项目名>/` 隔离；跨项目不混
+   - 核查：打开 SKILL.md frontmatter 看到 `cwd_default` 字段
+
+4. **token 精确统计**：
+   - v2.6.1 起 token 统计走精确路径（sessions_spawn 返回值 + session_status 工具）
+   - 取代 v2.5.18 三级降级机制（教训 #192：设计前提错——OpenClaw 9.1 已提供精确 API）
+   - 核查：deliverables.md「成本指标」字段填精确值（无估算/未配置占位）
+
+**未知问题以 self-audit-gate 为主**：bash scripts/self-audit-gate.sh（应 11/11 PASS）。
 
 ---
 

@@ -1,4 +1,5 @@
-> 版本：v2.6.0（自动同步 2026-09-06）
+> 版本：v2.6.1（自动同步 2026-09-06）
+
 
 
 
@@ -35,6 +36,11 @@
 **当前活动**: <一句话描述>
 **最后更新**: YYYY-MM-DD HH:MM
 **M 门**: v2.2.12 / v2.5.x
+**数据信任档**: 全外发 / 混合 / 全人工（v2.6.1 新增，教训 #191 拓展，Phase 0 拍板）
+  - 全外发：默认 web_search + tavily_search 检索，主人不投喂一手数据
+  - 混合：部分一手（主人投喂 / 限定检索） + 部分 LLM 检索
+  - 全人工：所有数据均为主人一手，LLM 不检索
+**G14 状态**: 启用 / 项目级关闭（v2.6.1 修订，Phase 0 拍板后全程不变）
 
 ## 二、角色状态（key:value 替换，每角色一行）
 
@@ -151,44 +157,40 @@
 
 **降级提示**：若顶配档（批判审计）候选池全不可用 → 主控**必须显式告知主人**「本机无顶配审计模型，审计/批判深度将降级，是否继续」——禁止静默降级。
 
-### 4.7 token 消耗记录（v2.5.6 新增，终审成本显示；v2.5.18 三级降级，宿主无关）
+### 4.7 token 消耗记录（v2.6.1 重写，精确机制）
 
 > **用途**：T8 终检时汇总「token 总成本」呈现给主人（deliverables.md 成本指标字段的落地）。
-> **零 exec 边界**：论衡拿不到 OpenClaw runtime 的精确 usage，只能用「各角色 LLM 回复自报的约数」——**±5-10% 误差**，精确值由主人在流水线外用 `session_status` 查。
+> **v2.6.1 重写根因**（教训 #192）：OpenClaw 9.1 提供 sessions_spawn 返回值 stats（含 tokens.in/out + prompt/cache） + session_status 工具，**无需三级降级**。v2.5.18「宿主无关」隐含「拿不到精确值」错误前提已清除。
 >
-> **⚠️ 三级降级机制（v2.5.18，宿主无关，不因宿主配置差异而失败）**：
-> - **一级（宿主已开 `messages.responseUsage`）**：LLM 回复里有 usage 字段 → 记**精确 token 数**
-> - **二级（宿主未开 usage 字段）**：LLM 回复无 usage → 按「输入/输出字符数 × 模型估算系数」粗算 → 记「约 N（估算）」
-> - **三级（完全拿不到）**：token 列填「**未配置**」，不瞎填数
+> **精确机制**（取代三级降级）：
+> - **子代理**：主控 spawn 时已拿精确 stats → 子代理交接报告原样回传
+> - **主控自身**：T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）
+> - **拿不到精确值 = 流程错误**（不是填「未配置」）
 
-**各角色 ack 时填**（按上面三级降级取值，拿不到就记「未配置」）：
+**各角色 ack 时填**（按 sessions_spawn 返回值精确 token 数）：
 
-| 角色 | token 消耗 | 模型 | 记录人 |
-|------|-----------|------|--------|
-| T1 文献 | `<N / 约 N（估算） / 未配置>` | `<model>` | T1 ack |
-| T2 数据 | `<N / 约 N（估算） / 未配置>` | `<model>` | T2 ack |
-| T3 案例 | `<N / 约 N（估算） / 未配置>` | `<model>` | T3 ack |
-| T4 分析 | `<N / 约 N（估算） / 未配置>` | `<model>` | T4 ack |
-| T5 写手 | `<N / 约 N（估算） / 未配置>` | `<model>` | T5 ack |
-| T6 批判 | `<N / 约 N（估算） / 未配置>` | `<model>` | T6 ack |
-| T7 审计 | `<N / 约 N（估算） / 未配置>` | `<model>` | T7 ack |
-| T9 评审 | `<N / 约 N（估算） / 未配置>` | `<model>` | T9 ack |
-| G14 检测 | `<N / 约 N（估算） / 未配置>` | `<model>` | G14 ack |
+| 角色 | token 消耗（in / out） | 模型 | 记录人 |
+|------|------------------------|------|--------|
+| T1 文献 | `<tokens.in> / <tokens.out>` | `<model>` | T1 ack（来自 spawn stats） |
+| T2 数据 | `<tokens.in> / <tokens.out>` | `<model>` | T2 ack（来自 spawn stats） |
+| T3 案例 | `<tokens.in> / <tokens.out>` | `<model>` | T3 ack（来自 spawn stats） |
+| T4 分析 | `<tokens.in> / <tokens.out>` | `<model>` | T4 ack（来自 spawn stats） |
+| T5 写手 | `<tokens.in> / <tokens.out>` | `<model>` | T5 ack（来自 spawn stats） |
+| T6 批判 | `<tokens.in> / <tokens.out>` | `<model>` | T6 ack（来自 spawn stats） |
+| T7 审计 | `<tokens.in> / <tokens.out>` | `<model>` | T7 ack（来自 spawn stats） |
+| T9 评审 | `<tokens.in> / <tokens.out>` | `<model>` | T9 ack（来自 spawn stats） |
+| G14 检测 | `<tokens.in> / <tokens.out>` | `<model>` | G14 ack（来自 spawn stats） |
+| **主控自身** | `<session_status 查 main>` | `<model>` | T8 汇总 |
 | **总计** | `<Σ>` | — | T8 汇总 |
 
-**T8 终检汇总规则**（v2.5.6 + v2.5.18 兜底）：Phase 5 终检时主控把上表 Σ 填入 `final/交付说明.md`「成本指标」字段，并在对话中向主人呈现：
+**T8 终检汇总规则**（v2.6.1 精确）：Phase 5 终检时主控把上表 Σ + session_status 主会话值 Σ 填入 `final/交付说明.md`「成本指标」字段，并在对话中向主人呈现：
 ```
-## 本轮 token 成本（约）
-- 总计：~<Σ> tokens（±5-10% 误差，论衡零 exec 拿不到精确 usage）
+## 本轮 token 成本（精确）
+- 总计：<Σ> tokens（in <N> / out <M>）
+- 子代理 Σ：<Σ_sub> tokens（含 prompt/cache）
+- 主控自身：<session_status 主会话值> tokens + $<cost> cost
 - 主要消耗：T5 写手 <N> / T7 审计 <N> / T9 评审 <N>
-- 精确值：流水线外用 OpenClaw session_status 查
-```
-
-**⚠️ 若整表全是「未配置」（宿主未开 usage 字段且角色估算失败）**：主控 T8 终检**必须**在对话中额外提示主人：
-```
-⚠️ 宿主未启用 messages.responseUsage，本轮 token 列无法记录。
-   如需 token 成本，请：① 在 OpenClaw 配置开启 messages.responseUsage = "tokens"；
-   或 ② 流水线外手动查 session_status。论衡不因宿主配置差异而失败。
+- 数据源：sessions_spawn 返回值 stats + session_status 工具（OpenClaw 9.1+）
 ```
 
 ---

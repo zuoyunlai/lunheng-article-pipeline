@@ -1,4 +1,5 @@
-> 版本：v2.6.0（自动同步 2026-09-06）
+> 版本：v2.6.1（自动同步 2026-09-06）
+
 
 
 
@@ -6,6 +7,15 @@
 
 
 > 从 pipeline-readme.md 派发话术段拆出（v2.5.6 token 优化）。主控 spawn G14 中文 AI 痕迹检测器（v2.4.0 新增） 时按需读本文件，避免一次加载全部派发话术。完整角色卡见 references/agents/。
+
+> **v2.6.1 子代理工具白名单（主控 spawn 必传 toolsAllow，OpenClaw 9.1 适配）**：
+> ```json
+> ["read","write","edit","sessions_spawn","sessions_yield","sessions_history","web_search","web_fetch","tavily_search","tavily_extract","memory_get","memory_search","memory_recall","session_status","progress_card","image_generate"]
+> ```
+> **共 16 项**（含 session_status——子代理可查自身会话精确 token）。**禁止**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / sessions_send / sessions_search / memory_forget（T8 必传 toolsAllow 全空 `[]` — T8 是主控亲完成不 spawn 子代理，但 dispatch 模板仍统一）。
+> **作用**：论衡「零 exec」哲学护栏 + OpenClaw 9.1 子代理工具继承机制修复。**主控 spawn 任何 T 角色必须传 toolsAllow**，不传 = 子代理继承全部 28 项默认工具（含 exec / process / browser） = **违背论衡「零 exec」哲学**（教训 #191 同型机制）。
+> **token 统计**：子代理 stats 由 sessions_spawn 返回值提供（v2.6.1 精确机制，取代 v2.5.18 三级降级）。
+
 
 ### G14 中文 AI 痕迹检测器（v2.4.0 新增）
 
@@ -30,6 +40,6 @@ H. 党报话语堆砌（重要讲话精神等，全文 ≥3 处，政治学科�
 - 修订建议（按类别给改写示例）
 
 【铁律】LLM 推理判定（零 exec）；中文特化；不做事实核验（那是 T7 的活）；检测结果仅供告警。
-【交接报告】做了什么（8 类判定 + verdict）/ 产物路径 / 怎么验证 / 已知问题 / 下一步（Pass 继续 / Warning 触发修订 / Fail 强制修订）/ **token 消耗**（v2.5.18 三级降级：LLM 回复有 usage = 精确值；无 usage = 按字符数估算「约 N（估算）」；拿不到 = 「未配置」）
+【交接报告】做了什么（8 类判定 + verdict）/ 产物路径 / 怎么验证 / 已知问题 / 下一步（Pass 继续 / Warning 触发修订 / Fail 强制修订）/ **token 消耗**（v2.6.1 重写：sessions_spawn 返回值 stats 含精确 tokens.in/out，原样回传即精确值——无需估算/降级）
 ```
 
