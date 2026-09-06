@@ -84,24 +84,12 @@ metadata:
     - "read"            # 只读，不调网络/记忆/写盘
     - "session_status"
     - "progress_card"
-  # v2.6.4 fallback（保留旧发布包兼容，新 spawn 必须用分档列表）
+  # v2.6.7 fallback（deny-by-default，回应 T05：旧兼容列表过权）
+  # 仅当宿主读不到分档列表时的最小基线；正常 spawn 一律走 5 档分档 toolsAllow
   subagent_tools_allow:
     - "read"
-    - "write"
-    - "edit"
-    - "sessions_spawn"
-    - "sessions_yield"
-    - "sessions_history"
-    - "web_search"
-    - "web_fetch"
-    - "tavily_search"
-    - "tavily_extract"
-    - "memory_get"
-    - "memory_search"
-    - "memory_recall"
     - "session_status"
     - "progress_card"
-    - "image_generate"
   # v2.6.1 适配 OpenClaw 2026.9.1：默认 cwd（论衡项目隔离）
   cwd_default: "/home/zuoyunlai/.openclaw/workspace/run"
 ---
