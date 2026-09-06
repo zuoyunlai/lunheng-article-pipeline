@@ -4,7 +4,7 @@
 
 
 
-# 论衡快速开始指南（v2.6.3）
+# 论衡快速开始指南
 
 >
 > 适用对象：首次使用论衡技能的主人
@@ -25,32 +25,12 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 ---
 
-## 🆕 v2.6.1 OpenClaw 2026.9.1 适配（本轮新增）
+## 🔧 宿主适配要点（v2.6.1 起）
 
-论衡 v2.6.3 适配零 exec 运行模型。**启动前请检查以下 4 点**：
-
-1. **子代理工具白名单生效**：
-   - 论衡主控 spawn T1-T9 + G14 子代理时必须传 `toolsAllow` 参数（16 项白名单）
-   - 不传 = 子代理继承全部 28 项 OpenClaw 工具（含 exec / process / browser） = **违背论衡「零 exec」哲学**
-   - 所有 10 个 `references/dispatch/T*.md` 顶部已增「子代理工具白名单」段
-   - 核查：随机打开任一 dispatch 文件，确认头部含 `toolsAllow` 字段
-
-2. **memory_recall 解封**：
-   - v2.6.0 前 `memory_recall` 在 denied 列表；T6/T7 需要召回历史教训加固
-   - v2.6.1 解封到 declared 列表；仅 T6/T7 需调用，其他角色默认不传
-   - 核查：SKILL.md frontmatter 应看到 `memory_recall` 在 `declared` 而非 `denied`
-
-3. **默认 cwd 提示**：
-   - v2.6.1 frontmatter 加 `cwd_default: /home/zuoyunlai/.openclaw/workspace/run`
-   - 论衡项目建议在 `run/<项目名>/` 管理；`cwd_default` 只是路径提示，不是宿主沙箱保证
-   - 核查：打开 SKILL.md frontmatter 看到 `cwd_default` 字段
-
-4. **token 统计诚实化**：
-   - v2.6.1 起 token 统计走精确路径（sessions_spawn 返回值 + session_status 工具）
-   - 宿主提供精确值则记录；未提供则记录 `unavailable`，不估算、不阻断交付
-   - 核查：deliverables.md「成本指标」字段填精确值（无估算/未配置占位）
-
-**未知问题以 self-audit-gate 为主**：bash scripts/self-audit-gate.sh（应 11/11 PASS）。
+- 主控 spawn 子代理必传 `toolsAllow`（16 项白名单，定义见 SKILL.md frontmatter）；不传则子代理继承宿主全部工具（含 exec / process / browser），违背零 exec 哲学
+- 默认项目目录 `run/<项目名>/`（`cwd_default` 仅是路径提示，非沙箱保证）
+- token 统计走精确路径（sessions_spawn 返回值 stats + `session_status`）；拿不到精确值记 `unavailable`，不估算
+- 维护自检：`bash scripts/self-audit-gate.sh`（应 11/11 PASS）
 
 ---
 
@@ -62,7 +42,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 - **Web 检索外发**：检索关键词 + 目标 URL 会发送到外部服务（web_search / tavily_search / web_fetch / tavily_extract）
 - **可选手动 sha256 验证**：主控会发占位符 `[SHA256-PENDING:HOST-VERIFY]`，如需真实 hash 需主人在 host shell 手动计算后回填
 - **可选封面外发**（**默认关闭**）：如启用，会向 OpenAI / Google / minimax 发送 prompt
-- **本地记忆系统**：`memory_search` 仅访问本地 OpenViking（不外发）
+- **记忆检索**：`memory_search` / `memory_recall` 访问 OpenViking 记忆库（无 LLM vendor 外发）
 
 **v2.2.17 明确**：以上副作用会在 Phase 0 同意关卡（4 选 1）中由你主动选择。如不愿接受任何外发，选 ④全部拒绝（改纯本地 Ollama 推理）。
 
@@ -126,8 +106,8 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 1. **Phase 0 两个「4 选 1」同意关卡**：
    - **1a. 定题确认 4 选 1**（Phase 0 启动前）：开工 / 补充信息 / 暂停 / 拒绝（**是否启动流水线**）
-   - **1b. 外部服务同意 4 选 1**（主控启动后）：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝（**外发数据范围**，详见 SKILL.md L173）
-2. **Phase 1 检索派发**：自动 spawn **T1∥T2∥T3**三个独立检索员，三方真并行
+   - **1b. 外部服务同意 4 选 1**（主控启动后）：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝（**外发数据范围**，详见 SKILL.md「外部服务与数据流声明」段）
+2. **Phase 1 检索派发**：自动 spawn **T1∥T2∥T3**三个独立检索员，三方真并行（Phase 1.5 定向回查：条件触发——任务简报标 [Dxx 待复核] / 🔴 二手转引未回溯 / T9 证据强度低；触发则 spawn T1b 回查，未触发须记录 `not_triggered`，不可静默跳过）
 3. **Phase 2 分析派发**：自动派 **T4** 分析员生成大纲
 4. **Phase 2.5 主人确认**：主人过目大纲
 5. **Phase 3 写作派发**：自动派 **T5** 写手写 v1
@@ -135,7 +115,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 7. **Phase 3.6 批判派发**（v2.3.0 新增独立节点）：自动派 **T6** 批判伙伴攻击 v2（含主人洞察）
 8. **Phase 4 审计派发**：自动派 **T7** 审计员
 9. **Phase 4.5 可选派发**（**默认关闭**，Phase 0 明确勾选才走）：
-   - **T9 同行评审**（按模式触发）：行业分析/学术论文默认开启，公众号可选关闭；6 维度评分 → accept/minor/major/reject。T9 结果必须在对话中呈现给主人
+   - **T9 同行评审**（按模式触发）：行业分析/学术论文默认开启，公众号默认关闭（主人可选开启）；6 维度评分 → accept/minor/major/reject。T9 结果必须在对话中呈现给主人
    - **G14 中文 AI 痕迹闸**（项目级可关闭）：Phase 0 关闭后全程不跑；未关闭则必跑，8 类检测，0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail
    - **方法论足迹面板**（可选）：status.md 加方法论可见段（借鉴 deep-research-pro）
 10. **Phase 5 终检**：主控 **T8** 主控终检交付
@@ -182,7 +162,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | **T6 批判伙伴** | 从反方攻击论证（C1-C7） | Phase 3.6（T5 v2 后，攻击 v2 含主人洞察） |
 | **T7 审计员** | 质量检查 + 修订任务书 | Phase 4 |
 | **T8 主控终检** | 交付物完整性 + AI 使用披露 | Phase 5（无独立角色卡，主控代） |
-| **T9 同行评审** | 预演期刊审稿（6 维度评分 → accept/minor/major/reject） | Phase 4.5（行业分析/学术默认开启；公众号可选关闭） |
+| **T9 同行评审** | 预演期刊审稿（6 维度评分 → accept/minor/major/reject） | Phase 4.5（行业分析/学术默认开启；公众号默认关闭，主人可选） |
 
 > **G14 中文 AI 痕迹闸（v2.4.0 新增）**：Phase 4.5 触发，与 T6 并行。8 类检测（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning 触发修订 / 5+ 类 Fail 强制修订。
 

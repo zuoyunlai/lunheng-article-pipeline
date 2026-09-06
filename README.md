@@ -27,7 +27,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.6.3**（2026-09-06，当前版本）— [ClawHub 已上架](https://clawhub.ai/zuoyunlai/skills/lunheng-article-pipeline) / [MIT License](LICENSE) / 真源 [226 文件 / 34,370 行]。H1 标题修复 + security-audit Clean + vetter 净化包 0 findings。
+**v2.6.4**（2026-09-06，当前版本）— [ClawHub 已上架](https://clawhub.ai/zuoyunlai/skills/lunheng-article-pipeline) / [MIT License](LICENSE)。人在环四节点决策记录硬约束 + T3 三态协议 + Phase 1.5 显式回查 + 最小权限收窄（ClawHub 安全审计修复）+ H1 标题修复。
 
 论衡把一篇深度长文 / 论文的生产拆成 **9 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检由主控亲完成，**T9 同行评审 v2.4.0 新增**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（v2.4.4 澄清中文特化为设计定位，非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -56,10 +56,10 @@
 | `image_generate`（封面，可选默认关闭） | **OpenAI gpt-image-2**（默认）→ Google gemini / minimax-image / SVG 本地 | 主题 + 品牌 prompt |
 | **数据图表 SVG** | **本地内置**（主控 `write` 手写 SVG，零外发） | — |
 | 大模型推理 | 当前模型 provider | 文献/数据/案例/草稿/大纲全文 |
-| `memory_get` / `memory_search` | 仅本地 OpenViking（**不外发**） | 检索关键词 |
+| `memory_get` / `memory_search` | OpenViking 记忆库（无 LLM vendor 外发） | 检索关键词 |
 
 **主控 agent 能力边界**（**不**会做的事）：
-- ❌ 不调用 `exec` / `process` 工具（15 项白名单 + 11 项 denied）
+- ❌ 不调用 `exec` / `process` 工具（17 项可用 + 13 项 denied，以 SKILL.md frontmatter 为准）
 - ❌ 不读取运行时内部路径（`~/.openclaw/agents/<agent>/sessions/*.trajectory.jsonl` 等）
 - ❌ 不直接计算 sha256（需要时由主人在 host shell 手动跑后回填）
 - ❌ 不主动采集一手数据（实验/调查/访谈）—— 主人投喂后使用
@@ -135,6 +135,7 @@
 ```
 Phase 0  定题       →  01-任务简报.md + status.md
 Phase 1  T1∥T2∥T3 三方真并行检索（文献/数据/案例）
+Phase 1.5 定向回查（条件触发：[Dxx 待复核]/🔴 二手转引未回溯/T9 证据强度低；未触发须记录 not_triggered，不可静默跳过）
 Phase 2  T4 分析   →  analysis/分析大纲.md（三角验证 + 原创性声明）
 Phase 2.5 主人在环：确认大纲 + 拍板图表
 Phase 3  T5 写作   →  drafts/初稿-v{N}.md
@@ -198,9 +199,10 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | v2.4.3 | 2026-08-24 | 净化包极简 | 12 findings → 0（strip-shell + 嵌套代码块） |
 | v2.5.0 | 2026-08-24 | 可选项 | 期刊匹配（25 中文 + 12 英文）+ 中文数据源 3 梯队 + 多格式导出 |
 | v2.5.1 | 2026-08-24 | 数据源 | OpenAlex/Crossref 第一梯队默认推荐（无需 Key） |
-| **v2.5.4** | **2026-08-25** | **当前** | **H1 标题修复（publish --name）+ security-audit Clean + vetter 净化包 0 findings + 中文 AI 痕迹闸坦诚披露 + 36 项 sync/check 双向同步（教训 #118.1 升级）** |
+| v2.5.4 | 2026-08-25 | 版本治理 | sync-version.sh 与 check-version.sh 双向同步 36 项（教训 #118.1 升级）|
+| **v2.6.4** | **2026-09-06** | **当前** | **人在环四节点决策记录硬约束 + T3 三态协议（required/empty_card/waived）+ Phase 1.5 显式回查 + phase-order.yaml 阶段真源 + 最小权限收窄（ClawHub 安全审计修复）+ H1 标题修复 |
 
-完整 changelog 见 [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases)。教训沉淀 144+ 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
+完整 changelog 见 [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases)。教训沉淀 190+ 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
 
 ---
 

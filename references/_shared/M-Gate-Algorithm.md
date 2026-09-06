@@ -92,7 +92,7 @@ M 门 13 项伪代码是「**主控 LLM 推理模拟执行**」，不是真 shel
 
 ## 背景（v2.2.0 原版）
 
-论衡 agent 的 15 项白名单不含 `exec`，M 门由 LLM 推理执行，不引入新代码风险。
+论衡 agent 的工具白名单（`metadata.tools`）不含 `exec`，M 门由 LLM 推理执行，不引入新代码风险。
 
 **设计哲学**：算法规约 100% 由论衡主控可读懂的伪代码构成，零 shell 依赖。
 
@@ -567,7 +567,7 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 | **Python（任意平台）** | `hashlib.sha256(open(file,'rb').read()).hexdigest()` |
 
 **v2.5.5 能力边界澄清**（v2.2.11 保持 + v2.5.5 修订）：
-- 论衡 agent **不能** 直接计算 sha256（不在 15 项白名单内）
+- 论衡 agent **不能** 直接计算 sha256（不在工具白名单内）
 - 主控 LLM 能用 `read` 读全文做「文件非空/章节结构/数据卡格式」验证（**这是 LLM 推理，不是 sha256**）
 - 真正 sha256 由人类主人在 host shell **手动计算后回填**到「证据包指纹」段（v2.5.5 改为可选）
 - 本算法的「exit code」判定仅指「5 项 LLM 推理判定通过」，不包括 sha256 完整性验证（sha256 是人类补填项）

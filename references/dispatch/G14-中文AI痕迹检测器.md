@@ -16,7 +16,7 @@
 > ["read","write","edit","sessions_spawn","sessions_yield","sessions_history","web_search","web_fetch","tavily_search","tavily_extract","memory_get","memory_search","memory_recall","session_status","progress_card","image_generate"]
 > ```
 > **共 16 项**（含 session_status——子代理可查自身会话精确 token）。**禁止**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / sessions_send / sessions_search / memory_forget（T8 必传 toolsAllow 全空 `[]` — T8 是主控亲完成不 spawn 子代理，但 dispatch 模板仍统一）。
-> **作用**：论衡「零 exec」哲学护栏 + OpenClaw 9.1 子代理工具继承机制修复。**主控 spawn 任何 T 角色必须传 toolsAllow**，不传 = 子代理继承全部 28 项默认工具（含 exec / process / browser） = **违背论衡「零 exec」哲学**（教训 #191 同型机制）。
+> **作用**：论衡「零 exec」哲学护栏 + OpenClaw 9.1 子代理工具继承机制修复。**主控 spawn 任何 T 角色必须传 toolsAllow**，不传 = 子代理继承宿主全部默认工具（含 exec / process / browser） = **违背论衡「零 exec」哲学**。
 > **token 统计**：子代理 stats 由 sessions_spawn 返回值提供（v2.6.1 精确机制，取代 v2.5.18 三级降级）。
 
 

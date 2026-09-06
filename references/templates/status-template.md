@@ -177,7 +177,7 @@
 ### 4.7 token 消耗记录（v2.6.1 重写，精确机制）
 
 > **用途**：T8 终检时汇总「token 总成本」呈现给主人（deliverables.md 成本指标字段的落地）。
-> **v2.6.1 重写根因**（教训 #192）：OpenClaw 9.1 提供 sessions_spawn 返回值 stats（含 tokens.in/out + prompt/cache） + session_status 工具，**无需三级降级**。v2.5.18「宿主无关」隐含「拿不到精确值」错误前提已清除。
+> **v2.6.1 重写根因**（教训 #194）：OpenClaw 9.1 提供 sessions_spawn 返回值 stats（含 tokens.in/out + prompt/cache） + session_status 工具，**无需三级降级**。v2.5.18「宿主无关」隐含「拿不到精确值」错误前提已清除。
 >
 > **精确机制**（取代三级降级）：
 > - **子代理**：主控 spawn 时已拿精确 stats → 子代理交接报告原样回传
