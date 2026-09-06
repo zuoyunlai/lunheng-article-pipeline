@@ -526,6 +526,46 @@ else
   fail "门 M: 发现 denied 工具授权语句（metadata.tools.denied vs 正文矛盾）" "$GATE_M_FAIL"
 fi
 
+# --- M.3：跨项目状态写入强制语句（v2.6.9 新增，回应 T02 + Missing User Warnings）---
+# 任何「主控/agent 必须自动写回跨项目共享文件（lessons.md / 案例库 / skill 自身文件）」的强制语句 = 红；
+# 允许「项目内 audit-lessons.md 草稿 + 待主人 review / 人工 merge」表述。
+M_CROSS_HITS=""
+while IFS= read -r md_file; do
+  hits=$(grep -nE '(必须|自动).{0,20}(写回|追加到|merge 到|同步到).{0,20}(lessons\.md|case-studies|案例库)|(教训反向回写)' "$md_file" 2>/dev/null \
+    | grep -vE '不自动|不得自动|禁止自动|不执行|待主人|人工 merge|review 后|audit-lessons|草稿|run/<')
+  if [ -n "$hits" ]; then
+    M_CROSS_HITS="$M_CROSS_HITS [${md_file#$SKILL_ROOT/}: $(echo "$hits" | head -1 | cut -c1-70)]"
+  fi
+done < <(find "$SKILL_ROOT" -name '*.md' \
+    -not -path '*/outputs/*' -not -path '*/.git/*' \
+    -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
+    -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
+    -not -name '*.bak*' 2>/dev/null)
+if [ -z "$M_CROSS_HITS" ]; then
+  pass "门 M.3: 跨项目状态写入零强制语句（教训只进项目内草稿，共享文件需主人人工 merge）"
+else
+  fail "门 M.3: 发现跨项目状态强制写入语句（与 SKILL.md 写入边界矛盾）" "$M_CROSS_HITS"
+fi
+
+# --- M.4：models list 残留（v2.6.9 新增，回应 Intent-Code Divergence）---
+# 「扫本机可用模型（models list）」类表述 = 与零 exec 冲突；只允许否定语境（不得假设可调用）。
+M_ML_HITS=""
+while IFS= read -r md_file; do
+  hits=$(grep -n 'models list' "$md_file" 2>/dev/null | grep -vE '不得假设|不是 agent|指控|改走')
+  if [ -n "$hits" ]; then
+    M_ML_HITS="$M_ML_HITS [${md_file#$SKILL_ROOT/}: $(echo "$hits" | head -1 | cut -c1-70)]"
+  fi
+done < <(find "$SKILL_ROOT" -name '*.md' \
+    -not -path '*/outputs/*' -not -path '*/.git/*' \
+    -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
+    -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
+    -not -name '*.bak*' 2>/dev/null)
+if [ -z "$M_ML_HITS" ]; then
+  pass "门 M.4: models list 零授权残留（模型自检统一 session_status 只读口径）"
+else
+  fail "门 M.4: 发现 models list 授权表述（与零 exec 冲突）" "$M_ML_HITS"
+fi
+
 # =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================

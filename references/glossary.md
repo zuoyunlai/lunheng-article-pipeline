@@ -1,4 +1,5 @@
-> 版本：v2.6.8（自动同步 2026-09-06）
+> 版本：v2.6.9（自动同步 2026-09-06）
+
 
 
 
@@ -233,9 +234,8 @@
 > **v2.4.0 更新**：原「5 层」→「4 层」——skill 化（v2.3.13）后论衡不再依赖 OpenClaw 配置（openclaw.json），原第 3 层取消。
 
 ### 第 1 层：Git（真源版本控制）
-- **Commit**：`git commit -m "..."`（skill 副本仓库）
-- **Tag**：`git tag vX.Y.Z`
-- **Push**：`git push origin master --tags`
+
+> ⚠️ **v2.6.9 澄清（回应 SkillSpector Context-Inappropriate Capability）**：以下命令是**人类维护者（技能作者）发布新版本时手工执行的维护流程**，不是技能运行时指令——论衡 agent 在文章写作流水线中不执行任何 git 写操作（commit/tag/push），git 仅限项目本地版本快照。
 
 ### 第 2 层：技能文档（18 文件版本号同步）
 - `SKILL.md` frontmatter `version: X.Y.Z`（版本号单一真源）
@@ -243,12 +243,12 @@
 - `scripts/check-version.sh` 验证一致性
 
 ### 第 3 层：GitHub（Release + description）
-- **GitHub Releases**：每版必建 `gh release create`（教训：v2.3.11 曾漏建）
-- repo description：`gh repo edit`（含版本号）
+- **GitHub Releases**：每版必建 `gh release create`（教训：v2.3.11 曾漏建；维护者手工执行）
+- repo description：`gh repo edit`（含版本号；维护者手工执行）
 
 ### 第 4 层：ClawHub（净化包 + 扫描）
-- `scripts/build-clawhub-release.sh` 生成净化包
-- `clawhub publish` 上传 + security scan
+- `scripts/build-clawhub-release.sh` 生成净化包（维护者手工执行）
+- `clawhub publish` 上传 + security scan（维护者手工执行）
 
 ---
 
