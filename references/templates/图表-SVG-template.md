@@ -163,7 +163,23 @@
 
 - 图件统一入 `final/图件/`，命名 `图N_标题.svg`（N 与正文 [图N] 对应）
 - 交付说明 `final/交付说明.md` 列图件清单 + 每图数据来源编号
-- 如需 PNG（公众号排版），**默认主人用 rsvg-convert 本地转换（零外发，符合「零 exec」哲学）**；如主人明确同意调用外部图像服务，主控才可用 `image_generate` 转 PNG（注意：PNG 转 SVG 不影响数字精确性）
+
+### 6.1 PNG 转换的 exec 边界（v2.5.23 P0 强化，回应 ClawHub SDI-4 MEDIUM）
+
+> **关键澄清**：`rsvg-convert` **是外部可执行程序**，**违反论衡「零 exec」安全模型**——「零 exec」仅指论衡 agent 在生成 SVG 时不调用 shell 执行（用 `write` 工具纯文本输出），**SVG → PNG 转换必然执行外部 binary**，不属于「零 exec」范畴。需明确分级处理：
+
+| 转换方式 | exec 性质 | 触发条件 | 谁来执行 |
+|---------|---------|---------|---------|
+| **SVG → PNG（公众号排版）** | ⚠️ **外部可执行** | 主人 Phase 0 显式批准 | 主人本地跑（手工命令）或主控走 Phase 0 同意后的 `exec`（**需主控明示 exec 风险**） |
+| 主人用 `rsvg-convert` 本地转换 | 本地 exec | 同上 | **主人本人**（不在 agent 流程内，零 agent-side exec 风险） |
+| `image_generate` 转 PNG | 远端 API 调用 + 模型推理 | 主人明确批准 | 主控走 `image_generate` 工具调用 |
+| SVG 矢量直接发布 | 零 exec | 默认 | 主控 `write` 工具 |
+
+**触发门（v2.5.23 新增）**：
+- Phase 0 启动问句需新增：「PNG 转换需求？ ① 无（SVG 矢量直接发布）/ ② 本地用 rsvg-convert / ③ 主控调用 image_generate 转 PNG」
+- 选 ② → 主人本人手工跑命令，agent 不执行；选 ③ → Phase 0 同意后主控可调 `image_generate`
+- **禁止**主控自动跑 rsvg-convert / ImageMagick / 任何 PNG 转换 binary（即使 SVG 文件已落盘）
+- PNG 转 SVG 不影响数字精确性（SVG 是文本，主控可重写）
 
 ---
 

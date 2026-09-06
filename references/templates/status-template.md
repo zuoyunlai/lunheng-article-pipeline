@@ -1,4 +1,5 @@
-> 版本：v2.5.22（自动同步 2026-08-26）
+> 版本：v2.5.23（自动同步 2026-09-06）
+
 
 
 
@@ -228,9 +229,18 @@
   - 第 1 轮 G14 = Warning（3-4 类）→ 写手修订 1 轮
   - 第 2 轮 G14 = Fail（5+ 类）→ 写手修订 2 轮；第 2 轮仍命中 → 报告主人
 
-### 5.8 Archive 清理记录（v2.5.5 P2 新增）
+### 5.8 Archive 清理记录（v2.5.5 P2 新增，v2.5.23 P0 强化安全边界，回应 ClawHub SQP-2 MEDIUM）
 
-- `[archive HH:MM] 按 {keep_last_2 / keep_final / keep_all} 清理 drafts/archive/，保留 N 文件，删 M 文件`
+> **安全边界（v2.5.23 强制）**：archive cleanup 涉及文件删除，**禁止自动执行**。必须满足以下全部条件：
+>
+> 1. **Phase 0 显式同意**：主人 Phase 0 启动问句必须包含 archive 清理策略选项（keep_last_N / keep_final / keep_all / 永不清理）
+> 2. **dry-run 预览**：主控执行清理前**必须**先跑 `dry-run` 输出「将保留 N 文件 + 将删除 M 文件清单」到 `final/交付说明.md`，**主人点头后才执行**
+> 3. **保护路径**：`final/`、`audits/`、`literature/`、`analysis/` 下任何文件**永不删除**（即使在 cleanup 范围）；只清理 `drafts/archive/`（v2/v3 中间稿）与 `runs/` 过期项目
+> 4. **trash 替代 `rm`**：删除走 `trash` 命令（回收站，可恢复），**禁止** `rm -rf` / `rm -f`；路径包含 final/audits/literature/analysis 一律拒绝（即使有路径通配）
+> 5. **失败回滚**：cleanup 中途任何错误 → 立刻 stop，保留所有文件，下次跑重新走 dry-run
+
+- `[archive HH:MM] 按 {策略} 清理 <范围>，dry-run 预览 N 文件 → 主人批准 → trash 删除 M 文件，保留 K 文件`
+- `[archive-fail HH:MM] cleanup 中途失败，保留全部文件，等待重跑`
 
 ---
 
