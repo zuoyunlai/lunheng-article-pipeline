@@ -490,6 +490,43 @@ else
 fi
 
 # =============================================================================
+# 门 M：发布包 exec/process 授权语句一致性（v2.6.8 新增，回应 ClawHub T05 三连击）
+# =============================================================================
+# 背景：v2.6.6 修协议、v2.6.7 修兜底列表，但模板里仍残留「主控可 exec」授权表述
+# （图表-SVG-template 6.1 节）——同类问题三次「修 A 漏 B」。本门机械化扫全部发布范围
+# md，任何「主控/子代理可用 denied 工具」的授权语句 = 红。
+# 语义：只扫发布包会携带的文件（排除 archive/design/outputs/.git）；
+# 含明确拒绝语境（禁止/不得/never/denied…）的行不算授权。
+GATE_M_FAIL=""
+
+# --- M.1：从 SKILL.md metadata.tools.denied 动态提取永久拒绝清单 ---
+DENIED_TOOLS=$(sed -n '/^  denied:/,/^[^ ]/p' "$SKILL_ROOT/SKILL.md" 2>/dev/null | grep -oE '"[a-z_]+"' | tr -d '"' | sort -u)
+[ -z "$DENIED_TOOLS" ] && DENIED_TOOLS="exec process"
+
+# --- M.2：逐工具扫描授权语句（排除拒绝语境） ---
+M_SCAN_FILES=0
+for tool in $DENIED_TOOLS; do
+  while IFS= read -r md_file; do
+    M_SCAN_FILES=$((M_SCAN_FILES+1))
+    hits=$(grep -nE "主控.{0,40}(\\\`?${tool}\\\`?)|(\\\`?${tool}\\\`?.{0,12}兜底)|(同意后的.{0,12}\\\`?${tool})|子代理.{0,20}(使用|调用|可用).{0,8}${tool}" "$md_file" 2>/dev/null \
+      | grep -vE '禁止|不得|不能|永不|绝不|不调用|不使用|不执行|不碰|不自动|never|must not|denied|永久拒绝|零 exec|zero-exec|不包含|无法|拒绝')
+    if [ -n "$hits" ]; then
+      GATE_M_FAIL="$GATE_M_FAIL [${md_file#$SKILL_ROOT/} 含 ${tool} 授权残留: $(echo "$hits" | head -1 | cut -c1-80)]"
+    fi
+  done < <(find "$SKILL_ROOT" -name '*.md' \
+      -not -path '*/outputs/*' -not -path '*/.git/*' \
+      -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
+      -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
+      -not -name '*.bak*' 2>/dev/null)
+done
+
+if [ -z "$GATE_M_FAIL" ]; then
+  pass "门 M: denied 工具授权语句一致性（扫描 ${M_SCAN_FILES} 处文件 x $(echo "$DENIED_TOOLS" | tr '\n' ' ')，零授权残留）"
+else
+  fail "门 M: 发现 denied 工具授权语句（metadata.tools.denied vs 正文矛盾）" "$GATE_M_FAIL"
+fi
+
+# =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit

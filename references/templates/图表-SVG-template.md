@@ -1,4 +1,5 @@
-> 版本：v2.6.5（自动同步 2026-09-06）
+> 版本：v2.6.8（自动同步 2026-09-06）
+
 
 
 # 数据图表 SVG 模板（Phase 4.5 配图专用，v2.3.1 新增）
@@ -168,21 +169,21 @@
 - 图件统一入 `final/图件/`，命名 `图N_标题.svg`（N 与正文 [图N] 对应）
 - 交付说明 `final/交付说明.md` 列图件清单 + 每图数据来源编号
 
-### 6.1 PNG 转换的 exec 边界（v2.5.23 P0 强化，回应 ClawHub SDI-4 MEDIUM）
+### 6.1 PNG 转换的执行边界（v2.5.23 P0 强化；v2.6.8 修订回应 T05：主控一律不碰 exec）
 
-> **关键澄清**：`rsvg-convert` **是外部可执行程序**，**违反论衡「零 exec」安全模型**——「零 exec」仅指论衡 agent 在生成 SVG 时不调用 shell 执行（用 `write` 工具纯文本输出），**SVG → PNG 转换必然执行外部 binary**，不属于「零 exec」范畴。需明确分级处理：
+> **关键澄清（v2.6.8）**：`rsvg-convert` 是外部可执行程序。论衡「零 exec」承诺 = 论衡 agent（主控 + 全部子代理）**任何情况下都不调用** `exec`/`process` 等 shell 执行工具（对应 `metadata.tools.denied` 永久拒绝，Phase 0 同意也不能豁免）。SVG 文件一律由主控用 `write` 工具纯文本产出；SVG → PNG 的本地转换只由**主人本人手工执行**（在 agent 流程之外），或由主控经 opt-in 调用 `image_generate`（远端推理，非本地执行）。
 
-| 转换方式 | exec 性质 | 触发条件 | 谁来执行 |
+| 转换方式 | 执行性质 | 触发条件 | 谁来执行 |
 |---------|---------|---------|---------|
-| **SVG → PNG（公众号排版）** | ⚠️ **外部可执行** | 主人 Phase 0 显式批准 | 主人本地跑（手工命令）或主控走 Phase 0 同意后的 `exec`（**需主控明示 exec 风险**） |
-| 主人用 `rsvg-convert` 本地转换 | 本地 exec | 同上 | **主人本人**（不在 agent 流程内，零 agent-side exec 风险） |
-| `image_generate` 转 PNG | 远端 API 调用 + 模型推理 | 主人明确批准 | 主控走 `image_generate` 工具调用 |
-| SVG 矢量直接发布 | 零 exec | 默认 | 主控 `write` 工具 |
+| **SVG → PNG（公众号排版）** | 外部可执行程序（仅限人工操作） | 主人 Phase 0 显式批准 | **主人本人**本地手工跑命令；主控不执行任何转换 binary |
+| 主人用 `rsvg-convert` 本地转换 | 本地手工执行 | 同上 | **主人本人**（不在 agent 流程内） |
+| `image_generate` 转 PNG | 远端 API 调用 + 模型推理 | 主人明确批准（opt-in） | 主控走 `image_generate` 工具调用 |
+| SVG 矢量直接发布 | 零执行 | 默认 | 主控 `write` 工具 |
 
-**触发门（v2.5.23 新增）**：
-- Phase 0 启动问句需新增：「PNG 转换需求？ ① 无（SVG 矢量直接发布）/ ② 本地用 rsvg-convert / ③ 主控调用 image_generate 转 PNG」
+**触发门（v2.5.23 新增；v2.6.8 收紧）**：
+- Phase 0 启动问句：「PNG 转换需求？ ① 无（SVG 矢量直接发布）/ ② 主人本地手工 rsvg-convert / ③ 主控调用 image_generate 转 PNG」
 - 选 ② → 主人本人手工跑命令，agent 不执行；选 ③ → Phase 0 同意后主控可调 `image_generate`
-- **禁止**主控自动跑 rsvg-convert / ImageMagick / 任何 PNG 转换 binary（即使 SVG 文件已落盘）
+- **永久禁止**主控/子代理运行 rsvg-convert / ImageMagick / 任何转换 binary 或 shell 命令——此禁止不可被 Phase 0 同意、进度压力或任何理由豁免（与 `metadata.tools.denied` 一致）
 - PNG 转 SVG 不影响数字精确性（SVG 是文本，主控可重写）
 
 ---
