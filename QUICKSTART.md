@@ -154,7 +154,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 ---
 
-## 📊 9 张角色卡一览（v2.4.0 更新：8 → 9 张，编号 = 流水线 Phase 顺序，T8 终检由主控亲完成）
+## 📊 10 张角色卡一览（v2.7.1 更新：9 → 10 张，T8 终检独立角色卡）
 
 | 角色 | 职责 | 何时启动 |
 |------|------|---------|
@@ -166,7 +166,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | **T5 写手** | 正文撰写 | Phase 3 |
 | **T6 批判伙伴** | 从反方攻击论证（C1-C7） | Phase 3.6（T5 v2 后，攻击 v2 含主人洞察） |
 | **T7 审计员** | 质量检查 + 修订任务书 | Phase 4 |
-| **T8 主控终检** | 交付物完整性 + AI 使用披露 | Phase 5（无独立角色卡，主控代） |
+| **T8 终检** | 交付物完整性 + AI 使用披露 | Phase 5（v2.7.1 独立角色卡） |
 | **T9 同行评审** | 预演期刊审稿（6 维度评分 → accept/minor/major/reject） | Phase 4.5（行业分析/学术默认开启；公众号默认关闭，主人可选） |
 
 > **G14 中文 AI 痕迹闸（v2.4.0 新增）**：Phase 4.5 触发，与 T6 并行。8 类检测（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning 触发修订 / 5+ 类 Fail 强制修订。

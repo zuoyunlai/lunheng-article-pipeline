@@ -320,7 +320,7 @@ Phase 5 终检      **T8** 主控终检 → final/定稿.md + 图件/（如有�
 
 > **v2.5.6 拆分**（第三方审查建议 #1 token 优化）：原 269 行派发话术段拆成 10 个独立文件 `references/dispatch/`，主控 spawn 哪个角色才读哪个，避免一次加载 23.6K tokens 的全部派发话术。
 >
-> **使用说明**：完整角色职责/铁律在 `references/agents/0X-*.md`（9 张卡），`references/dispatch/` 只列「主控复制即用」的最小派发话术。优先级：完整角色卡 > 派发话术。
+> **使用说明**：完整角色职责/铁律在 `references/agents/0X-*.md`（10 张卡），`references/dispatch/` 只列「主控复制即用」的最小派发话术。优先级：完整角色卡 > 派发话术。
 
 ### 派发话术索引（主控按需读）
 
