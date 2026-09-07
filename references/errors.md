@@ -1,4 +1,5 @@
-> 版本：v2.7.10（自动同步 2026-09-07）
+> 版本：v2.7.11（自动同步 2026-09-07）
+
 
 
 
@@ -81,7 +82,7 @@ M-Form-3 failed: temp_id pattern detected in output
 | | |
 | **触发** | M-Form-6 检测数据卡缺少信任级别标注 |
 | **原报错** | `M-Form-6 failed: trust_level field missing in D05` |
-| **友好版** | `❌ 数据卡 D05 缺少信任级别<br>【发生了什么】D05 没有标注「🟢/🟡/🔴」数据来源<br>【为什么】v2.2.1 起所有数据必须标信任级别（防 F8.4）<br>【怎么解决】1) 确认 D05 是「已发布/主人投喂/二手转引」哪类  2) 在 D05 头部加 🟢/🟡/🔴 标注  3) 详见 glossary.md § 三 数据信任级别` |
+| **友好版** | `❌ 数据卡 D05 缺少信任级别<br>【发生了什么】D05 没有标注「🟢/🟡/🔴」数据来源<br>【为什么】v2.2.1 起所有数据必须标信任级别（防 F8.4）<br>【怎么解决】1) 确认 D05 是「已发布/主人投喂/二手转引」哪类  2) 在 D05 头部加 🟢/🟡/🔴 标注  3) 详见 _shared/glossary-full.md § 三 数据信任级别` |
 
 #### E04：M-Integrity-1 时序矛盾
 
@@ -211,11 +212,11 @@ M-Form-3 failed: temp_id pattern detected in output
 
 ---
 
-## 四、与 glossary.md / failure-modes.md 的关系
+## 四、与 _shared/glossary-full.md / failure-modes.md 的关系
 
 | 文档 | 职责 |
 |------|------|
-| `glossary.md § 五 工具能力边界` | 工具能做/不能做 |
+| `_shared/glossary-full.md § 五 工具能力边界` | 工具能做/不能做 |
 | `failure-modes.md` | 失败模式定义（F1-F9） |
 | `本文` | 错误信息友好化（12 类） |
 
@@ -239,7 +240,7 @@ M-Form-3 failed: temp_id pattern detected in output
 【怎么解决】
    ✅ 确认 D05 是「已发布/主人投喂/二手转引」哪类
    ✅ 在 D05 头部加 🟢/🟡/🔴 标注
-   ✅ 详见 glossary.md § 三 数据信任级别
+   ✅ 详见 _shared/glossary-full.md § 三 数据信任级别
 
 需要我帮你自动修复吗？
 ```

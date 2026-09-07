@@ -1,4 +1,5 @@
-> 版本：v2.7.10（自动同步 2026-09-07）
+> 版本：v2.7.11（自动同步 2026-09-07）
+
 
 
 
@@ -140,7 +141,7 @@
 
 **常规修订 ≤2 轮硬约束**（v2.2.0；例外通道须主人拍板，v2.7.9 口径）：第 3 轮 / 例外通道触发 → Acknowledged Limitations 模式（未关闭 P0/P1 搬入 `final/局限性.md`，论文正常交付不假装完美）。
 
-完整定义：详见 [`references/glossary.md`](references/glossary.md)。
+完整定义：详见 [`references/_shared/glossary-full.md`](references/_shared/glossary-full.md)。
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.7.10
+version: 2.7.11
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。使用前需 Phase 0 同意关卡；可选封面图像生成默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -108,7 +108,7 @@ metadata:
 > 2. 同一轮对话不同时处理多个项目目录。
 > 3. 子代理 cwd 的继承由宿主决定，主控不得把 `cwd_default` 当作隔离保证。
 
-> **核心概念**：[`references/glossary.md`](references/glossary.md)（单一真源：10 张角色卡 + T8 终检由主控亲完成 / 三层防御体系 / 数据信任 3 档 / 关键协议 / 工具边界 / 版本号管理）。
+> **核心概念**：[`references/_shared/glossary-full.md`](references/_shared/glossary-full.md)（单一真源：10 张角色卡 + T8 终检由主控亲完成 / 三层防御体系 / 数据信任 3 档 / 关键协议 / 工具边界 / 版本号管理）。**精简核心版（子代理必读 2.5K）见** [`references/_shared/glossary-core.md`](references/_shared/glossary-core.md)。
 > **快速开始**：[`QUICKSTART.md`](QUICKSTART.md)。**5 分钟上手。**
 
 ---
@@ -280,7 +280,7 @@ metadata:
 
 > **隐私后果警告（v2.6.6 新增，回应审计知情同意 finding）**：同意外发 = 未公开草稿全文 / 专有研究 / 访谈材料的实质内容**离开本机**，发往的第三方 provider（Tavily / OpenAI / Google / 模型厂商）可能按其隐私政策留存、加工这些内容，发出后不可撤回。敏感稿拿不准 → 选脱敏/本地选项。完整警告见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md) 4 选 1 前置警告。
 
-> **完整服务列表 + 4 选 1 同意关卡详见** [`references/glossary.md`](references/glossary.md)「九、外部服务声明」节
+> **完整服务列表 + 4 选 1 同意关卡详见** [`references/_shared/glossary-full.md`](references/_shared/glossary-full.md)「九、外部服务声明」节
 
 **主控 Phase 0 必须给主人 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**，选项定义见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md)），并写入 `01-任务简报.md` 的「外部服务同意记录」段作为审计追溯依据（v2.6.4 起 full/lite 两版任务简报模板均含该强制段）。
 

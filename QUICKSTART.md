@@ -1,4 +1,5 @@
-> 版本：v2.7.10（自动同步 2026-09-07）
+> 版本：v2.7.11（自动同步 2026-09-07）
+
 
 
 
@@ -180,7 +181,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 > **G14 中文 AI 痕迹闸（v2.4.0 新增）**：Phase 3.6 与 T6 同批并行（v2.7.2 统一）。8 类检测（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning 触发修订 / 5+ 类 Fail 强制修订。
 
-完整角色定义：详见 [`glossary.md § 一 核心角色`](references/glossary.md)
+完整角色定义：详见 [`glossary-full.md § 一 核心角色`](references/_shared/glossary-full.md)
 
 ---
 
@@ -192,7 +193,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | **F 模式**（失败模式） | 面向用户的叙事 | 解释"为什么要这么做" |
 | **G 清单**（质量审计） | 面向审计员 | G0-G14 共 15 项检查 |
 
-完整定义：详见 [`glossary.md § 二 三层防御体系`](references/glossary.md)
+完整定义：详见 [`glossary-full.md § 二 三层防御体系`](references/_shared/glossary-full.md)
 
 ---
 
@@ -219,7 +220,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 - ✅ 写：「[C-主01] 类型：理论贡献，内容：XX 框架」
 - ❌ 写：「我有个想法」
 
-类型决定后续如何处理（观点来源 vs 理论贡献，详见 glossary.md § 一 T4 分析员 / T5 写手）。
+类型决定后续如何处理（观点来源 vs 理论贡献，详见 glossary-full.md § 一 T4 分析员 / T5 写手）。
 
 ---
 
@@ -240,7 +241,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | 用途 | 路径 |
 |------|------|
 | 完整使用手册 | `references/pipeline-readme.md` |
-| 核心概念 | `references/glossary.md` |
+| 核心概念 | `references/_shared/glossary-full.md`（精简核心版 `references/_shared/glossary-core.md`） |
 | 角色卡 | `references/agents/` |
 | M 门算法 | `references/_shared/M-Gate-Algorithm.md` |
 | F 模式防御 | `references/_shared/failure-modes.md` |
@@ -260,7 +261,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 ### Q2：数据来源可以是二手转引吗？
 
-**答：可以但严格限制。** 详见 [`glossary.md § 三 数据信任级别`](references/glossary.md)。**🟢🟡🔴 是「信任级别」标识**（v2.2.1 起），**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`audit-checklist-quickref.md § G11`](references/_shared/audit-checklist-quickref.md)）：
+**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/glossary-full.md)。**🟢🟡🔴 是「信任级别」标识**（v2.2.1 起），**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`audit-checklist-quickref.md § G11`](references/_shared/audit-checklist-quickref.md)）：
 - 🟢 已发布公开数据（最高信任）
 - 🟡 主人投喂数据（中信任）
 - 🔴 二手转引（低信任，必须回溯一次文献 + 顶部标注）
@@ -286,7 +287,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 ## 📞 获取帮助
 
-- **文档问题**：先读 `references/glossary.md`（核心概念单一真源）
+- **文档问题**：先读 `references/_shared/glossary-full.md`（核心概念单一真源；子代理精简版 `references/_shared/glossary-core.md`）
 - **流程问题**：先读 `references/pipeline-readme.md`（运行手册）
 - **实战参考**：先读 `references/case-studies.md`（5 个完整实战案例）
 - **质量问题**：先读 `references/_shared/failure-modes.md`（F 模式防御）

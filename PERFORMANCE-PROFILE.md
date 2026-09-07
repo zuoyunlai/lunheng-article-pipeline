@@ -166,7 +166,7 @@
 | 4 | references/pipeline-readme.md（含派发话术 T1-T8） | 25.7KB | ~5,700 | 核心文档（v2.3.0 +147 行派发话术） |
 | 5 | SKILL.md | 20.8KB | 4,626 | OpenClaw 入口 |
 | 6 | references/agents/05-写作-writer.md（原 04）| 12.3KB | 2,646 | 角色卡 |
-| 7 | references/glossary.md | 12.3KB | 2,731 | 核心文档 |
+| 7 | references/glossary.md → v2.7.10 拆分 references/_shared/glossary-core.md（~2.5K，子代理精简） + references/_shared/glossary-full.md（~21K，完整真源） | 12.3KB → 23.5KB | 2,731 | 核心文档（v2.7.10 起拆双版本） |
 | 8 | references/case-studies.md | 10.3KB | 2,300 | 核心文档 |
 | 9 | references/errors.md | 10.3KB | 2,305 | 核心文档 |
 | 10 | references/_shared/执行韧化协议-v2.1.0.md | 9.9KB | 2,237 | 共享协议 |
@@ -220,7 +220,7 @@
 | 文件 | 原因 |
 |------|------|
 | M-Gate-Algorithm.md（30.2KB） | 算法规约，无法再压缩 |
-| glossary.md（12.3KB） | 单一真源，已是核心 |
+| glossary.md（12.3KB，v2.7.10 起拆分：glossary-core.md 2.5K 子代理精简 + glossary-full.md 21K 完整真源） | 单一真源，已是核心 |
 | errors.md（10.3KB） | 12 类错误，已按需 |
 | 派发话术（如果拆出） | 8 角色完整派发（T1/T2/T3/T4/T5/T6/T7/T9，T8 不 spawn），按需加载 |
 
@@ -299,3 +299,13 @@ python3 suggest_optimizations.py > profile-optimize.txt
 
 > 结论：v2.3.0 实战项目总 tokens ~103K（含 Phase 3.6 + 文档扩容）；v2.2.15 优化路线全部完成
 > 下一步：v2.3.1 候选 on-demand 加载机制（派发话术按需、设计文档再拆、SKILL.md 按需）
+---
+
+## 六、v2.7.10 路径迁移说明（追加）
+
+v2.7.10 起，`references/glossary.md`（单一文件 ~12.3KB / 2,731 tokens）拆分为两份：
+
+- **`references/_shared/glossary-full.md`**（~21KB）—— 完整真源，原 `glossary.md` 内容完整搬迁（含 10 张角色卡 / 三层防御 / 数据信任 / 关键协议 / 工具边界 / 版本号管理 / 外部服务声明 等全部章节）。SKILL.md / QUICKSTART.md / README.md / 设计文档 / pipeline-readme.md / errors.md 的"完整真源"引用全部切到此路径。
+- **`references/_shared/glossary-core.md`**（~2.5K tokens）—— 子代理精简核心版。10 张角色卡卡的"核心概念定义见 ../_shared/glossary-core.md"全部保持，子代理 spawn 后只读 2.5K 即可获取概念。
+
+**本表中"glossary.md | 2,731 tokens"等历史快照数据保留原样**，描述的是 v2.2.12 ~ v2.7.10 期间的实际文件命名与 token 消耗——属于历史 snapshot，不失真。读此表的读者请按表中标注的"v2.7.10 拆分"备注理解当前真实路径。
