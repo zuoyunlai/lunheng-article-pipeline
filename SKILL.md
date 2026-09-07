@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.7.6
+version: 2.7.7
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -9,7 +9,7 @@ metadata:
       bins: []
   tools:
     # v2.6.5 起重写为分层最小权限：
-    # - declared：主控在论衡文档中会调用的工具（基线 12 项）
+    # - declared：技能在论衡文档中会调用的工具声明面（基线 13 项）
     # - subagent_allow_*：按 5 档角色分级的子代理工具白名单（v2.6.5 新增）
     # - opt_in：默认禁止、Phase 0 主人明确同意后才解锁的工具（v2.6.5 新增）
     # - denied：永不开放（无论主控/子代理）
@@ -24,6 +24,7 @@ metadata:
       - "web_search"          # 主控可调，优先给 T1-T3 检索角色
       - "tavily_search"
       - "tavily_extract"
+      - "web_fetch"          # v2.7.7 声明补全：T1-T3 检索子代理中文数据源第一梯队（OpenAlex/Crossref）拉 JSON 用，与 allow_research 对齐（SkillSpector Description-Behavior Mismatch）
       - "session_status"
       - "progress_card"
     opt_in:  # Phase 0 主人明确同意后才解锁
@@ -116,10 +117,10 @@ metadata:
 
 **论衡技能的工具边界（v2.6.5 分层最小权限，回应 ClawHub A.I.G T05 + SkillSpector 6 findings）**：
 
-**主控 documented（`metadata.tools.declared`）— 12 项**：
+**主控 documented（`metadata.tools.declared`）— 13 项**：
 - read / write / edit（项目文件 I/O）
 - sessions_spawn / sessions_yield / sessions_history / sessions_list（子代理编排）
-- web_search / tavily_search / tavily_extract（检索，T1-T3 子代理共享）
+- web_search / web_fetch / tavily_search / tavily_extract（检索，T1-T3 子代理共享；v2.7.7 声明补全 web_fetch——中文数据源第一梯队 OpenAlex/Crossref 拉 JSON 用，与 allow_research 一致）
 - session_status / progress_card（可观测性）
 
 **子代理 5 档分级白名单（v2.6.5 新增，`metadata.subagent_tools_allow_*`）**：
