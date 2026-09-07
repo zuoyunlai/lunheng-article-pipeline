@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.7.7
+version: 2.7.8
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -19,8 +19,8 @@ metadata:
       - "edit"
       - "sessions_spawn"      # 主控独家，spawn 子代理
       - "sessions_yield"      # 主控独家，等待子代理回执
-      - "sessions_history"    # 主控独家，查子代理会话历史
-      - "sessions_list"       # 主控独家，列可见会话
+      - "sessions_history"    # 主控独家，读本技能 spawn 的子代理会话历史（仅限 self-spawn，v2.7.8 限定）
+      - "subagents"          # v2.7.8 替代 sessions_list：宿主强制的 self-spawn 子代理列表，编排监控不枚举宿主可见会话（回应 A.I.G T05）
       - "web_search"          # 主控可调，优先给 T1-T3 检索角色
       - "tavily_search"
       - "tavily_extract"
@@ -119,7 +119,7 @@ metadata:
 
 **主控 documented（`metadata.tools.declared`）— 13 项**：
 - read / write / edit（项目文件 I/O）
-- sessions_spawn / sessions_yield / sessions_history / sessions_list（子代理编排）
+- sessions_spawn / sessions_yield / sessions_history（子代理编排）+ subagents（v2.7.8 起替代 sessions_list：宿主强制 self-spawn 列表，仅看本技能 spawn 的子代理，不枚举宿主可见会话）
 - web_search / web_fetch / tavily_search / tavily_extract（检索，T1-T3 子代理共享；v2.7.7 声明补全 web_fetch——中文数据源第一梯队 OpenAlex/Crossref 拉 JSON 用，与 allow_research 一致）
 - session_status / progress_card（可观测性）
 

@@ -1,4 +1,5 @@
-> 版本：v2.7.7（自动同步 2026-09-07）
+> 版本：v2.7.8（自动同步 2026-09-07）
+
 
 
 
@@ -150,7 +151,7 @@ if not subagents_has_active(run.runId):
 ```
 
 #### 4.2 yield watchdog 超时自查（必做）
-`sessions_yield` 后超过 N 分钟（推荐 **3 分钟**，可根据 Phase 调整）仍无完成事件 → 主控**不再静默等**，自查 `subagents list` + `sessions_list`：
+`sessions_yield` 后超过 N 分钟（推荐 **3 分钟**，可根据 Phase 调整）仍无完成事件 → 主控**不再静默等**，自查 `subagents(action=list)`（宿主强制 self-spawn 列表；v2.7.8 起不再用 sessions_list——那是枚举宿主可见会话，超出最小权限，回应 A.I.G T05）：
 - 预期角色仍在 active runs + 最近有 status.md 心跳 → 子代理真在跑，继续 yield（但记录已等待 X 分钟，下次超阈值重判定）
 - 预期角色不在 active runs（subagent 已结束但没投递完成事件）或重复投递同一子代理的完成事件 ≥2 次 → **duplicate 事件嫌疑**，立即补 spawn：
 ```python
@@ -208,7 +209,7 @@ spawn 任何子代理后，主控**不能只等完成事件**：
 
 > **一句话**：本协议区分两类诊断能力，边界不可混：
 > - 🔒 **仅人类主人诊断**：读 OpenClaw runtime 内部会话轨迹文件 / 执行 shell 命令（exec/process）——**agent 零 exec，永不调用**
-> - ✅ **主流程诊断**：用白名单工具（subagents / sessions_list / sessions_history / progress_card）看**论衡自己 spawn 的子代理**——**仅限 self-spawn 的子代理，不跨会话抓取**
+> - ✅ **主流程诊断**：用白名单工具（subagents / sessions_history / progress_card）看**论衡自己 spawn 的子代理**——**仅限 self-spawn 的子代理，不跨会话抓取**（v2.7.8：sessions_list 移出白名单，其发现职责由宿主强制的 subagents 列表承担，不枚举宿主可见会话）
 
 #### 🔒 仅人类主人诊断（agent 零 exec，主流程永不调用）
 
@@ -224,9 +225,8 @@ spawn 任何子代理后，主控**不能只等完成事件**：
 #### ✅ 主流程诊断（v2.2.11 新增，白名单工具，仅限 self-spawn 子代理）
 
 **论衡主流程实际能跑的诊断**（用 read 工具推理 / 用 progress_card 打钩，全部是 `metadata.tools.declared` 白名单工具）：
-- `subagents(action=list)` —— 看当前 session 有没有真的 spawn 出子代理、runId 在不在 active
-- `sessions_list` —— 列出可见 sessions（子代理是 `subagent:xxx` sessionKey）
-- `sessions_history(sessionKey=...)` —— **仅限查看论衡自己 spawn 的子代理会话产物**（`subagent:xxx` sessionKey），**不跨会话读取、不抓取其他 session 的隐藏状态**
+- `subagents(action=list)` —— 看当前 session 有没有真的 spawn 出子代理、runId / sessionKey 在不在 active（宿主强制 self-spawn 列表，v2.7.8 起替代 sessions_list 的发现职责）
+- `sessions_history(sessionKey=...)` —— **仅限查看论衡自己 spawn 的子代理会话产物**（`subagent:xxx` sessionKey，来自 spawn 返回或 subagents 列表），**不跨会话读取、不抓取其他 session 的隐藏状态**
 - `progress_card` 打钩「§ 4.1 spawn 验证」「§ 4.2 watchdog 自查」「§ 4.3 幂等检查」
 
 **论衡 agent 不调用的**：exec / process / 读 OpenClaw runtime 内部路径 / sha256 直接计算（这些是**人类主人**的能力，不在 agent 范围内）。
