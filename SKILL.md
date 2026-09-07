@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: lunheng-article-pipeline
-version: 2.6.9
+version: 2.7.0
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -292,19 +292,19 @@ metadata:
 ## 流水线全景（Phase 0-5）
 
 ```
-Phase 0 定题        与主人确认主题/篇幅/受众/配图意向（无/要图） → 01-任务简报.md + status.md
+Phase 0 定题        与主人确认主题/篇幅/受众/配图意向（无/要图） → 01-任务简报.md + status.md；**到达时按 checkpoint-card-template.md 骨架呈现（v2.7.0）**
 Phase 1 并行检索    T1 文献检索员 ∥ T2 数据检索员 ∥ T3 案例检索员（sessions_spawn 三方真并行，sessions_yield 等待；T3 任何量级必 spawn，含 0 条空卡协议）
 Phase 1.5 定向回查  条件触发的显式回查窗口（触发：任务简报标 [Dxx 待复核] / 🔴 二手转引未回溯 / T9 证据强度低；触发则 spawn T1b 定向回查 → 更新数据卡 → 重跑 T2.5 闸门；未触发必须记录 not_triggered + 依据，禁止静默跳过）
 Phase 2 分析        T4 分析员 → analysis/分析大纲.md（论点-论据映射 + 反方论证规划 + 三角验证）
-Phase 2.5 大纲确认  主人过目大纲 → 确认/修改 + 拍板 T4 建议图表（图位数量/类型/数据源）（人在环！改方向成本最低，不可跳过）
+Phase 2.5 大纲确认  主人过目大纲 → 确认/修改 + 拍板 T4 建议图表（图位数量/类型/数据源）（人在环！改方向成本最低，不可跳过）；**按 checkpoint-card-template.md 骨架呈现（v2.7.0）**
 Phase 3 写作        T5 写手 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、案例标[Cxx]、AI去味10项）
-Phase 3.5 洞察补充  主人过目初稿 v1 → 主控问主人洞要补 → T5 写手 v2 融入（人在环！v2.1.3 教训 #46）
+Phase 3.5 洞察补充  主人过目初稿 v1 → 主控问主人洞要补 → T5 写手 v2 融入（人在环！v2.1.3 教训 #46）；**按 checkpoint-card-template.md 骨架呈现（v2.7.0）**
 Phase 3.6 批判      T6 批判伙伴（v2.2.2 新增）→ analysis/批判报告-vN.md（攻击 v2 不是 v1，轻量档可跳过）
 Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0-G14，v2.4.0 加 G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（需主人首次确认，默认关闭，失败降级 Google → minimax → SVG）
 Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度，详见 [_shared/期刊数据库.md](references/_shared/期刊数据库.md) + [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)）；G14 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail）
-Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（**v2.5.0 多格式导出**：默认 md，按需选 `--format latex/docx/pdf`，详见 [_shared/format-export.md](references/_shared/format-export.md)；**v2.5.1 中文数据源集成**（OpenAlex/Crossref 第一梯队默认推荐，无需 Key，详见 [_shared/中文数据源集成.md](references/_shared/中文数据源集成.md)））
+Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（**v2.5.0 多格式导出**：默认 md，按需选 `--format latex/docx/pdf`，详见 [_shared/format-export.md](references/_shared/format-export.md)；**v2.5.1 中文数据源集成**（OpenAlex/Crossref 第一梯队默认推荐，无需 Key，详见 [_shared/中文数据源集成.md](references/_shared/中文数据源集成.md)）；**按 checkpoint-card-template.md 骨架呈现（v2.7.0）**）
 ```
 
 ## 项目目录结构
