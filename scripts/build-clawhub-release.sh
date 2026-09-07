@@ -64,14 +64,20 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/设计文档-哲学.md' \
     --exclude 'PERFORMANCE-PROFILE.md' \
     --exclude 'references/_shared/教训索引.md' \
+    --exclude '.pytest_cache' \
+    --exclude '__pycache__' \
+    --exclude '*.pyc' \
     "$SKILL_ROOT/" "$OUT_DIR/"
 else
   cp -a "$SKILL_ROOT/." "$OUT_DIR/"
   # 手动清理
   rm -rf "$OUT_DIR/.git" "$OUT_DIR/outputs" "$OUT_DIR/audits" "$OUT_DIR/scripts" \
     "$OUT_DIR/.github" "$OUT_DIR/tests" "$OUT_DIR/references/_shared/archive" "$OUT_DIR/references/design" \
-    "$OUT_DIR/docs" "$OUT_DIR/.bak-20260823-2024-v2.4.0-migrate"
+    "$OUT_DIR/docs" "$OUT_DIR/.bak-20260823-2024-v2.4.0-migrate" \
+    "$OUT_DIR/.pytest_cache"
   find "$OUT_DIR" -name '*.bak.*' -delete
+  find "$OUT_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
+  find "$OUT_DIR" -name '*.pyc' -delete
   rm -f "$OUT_DIR/references/_shared/m_exist_1_diff.sh" "$OUT_DIR/PERFORMANCE-PROFILE.md"
   rm -f "$OUT_DIR/references/_shared/教训索引.md"
   rm -f "$OUT_DIR/references/_shared/通用韧化块-v2.1.0.md"

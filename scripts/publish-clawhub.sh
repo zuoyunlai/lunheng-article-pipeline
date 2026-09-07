@@ -35,7 +35,7 @@ if [[ -z "$VERSION" ]]; then
 fi
 [[ -z "$VERSION" ]] && { echo "❌ 无法确定版本号（传参或 SKILL.md frontmatter）" >&2; exit 1; }
 
-OUT_DIR="$OUT_ROOT/$VERSION"
+OUT_DIR="$(cd "$OUT_ROOT/$VERSION" && pwd)"  # 转绝对路径（clawhub publish 不接受相对路径）
 
 # ---- 1. 净化包存在性（缺则现场构建） ----
 if [[ ! -f "$OUT_DIR/SKILL.md" ]]; then
