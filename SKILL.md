@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: lunheng-article-pipeline
-version: 2.7.0
+version: 2.7.1
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -107,7 +107,7 @@ metadata:
 > 2. 同一轮对话不同时处理多个项目目录。
 > 3. 子代理 cwd 的继承由宿主决定，主控不得把 `cwd_default` 当作隔离保证。
 
-> **核心概念**：[`references/glossary.md`](references/glossary.md)（单一真源：9 张角色卡 + T8 终检由主控亲完成 / 三层防御体系 / 数据信任 3 档 / 关键协议 / 工具边界 / 版本号管理）。
+> **核心概念**：[`references/glossary.md`](references/glossary.md)（单一真源：10 张角色卡 + T8 终检由主控亲完成 / 三层防御体系 / 数据信任 3 档 / 关键协议 / 工具边界 / 版本号管理）。
 > **快速开始**：[`QUICKSTART.md`](QUICKSTART.md)。**5 分钟上手。**
 
 ---
@@ -388,7 +388,7 @@ run/<项目名>/
 
 ## 角色卡与模板（完整版）
 
-- **9 张角色卡**（主控/文献检索/数据检索/分析/写作/审计/案例检索/批判伙伴/**同行评审**）：`references/agents/`（T6 批判伙伴 v2.2.2 新增，**T9 同行评审 v2.4.0 新增，可选触发**，轻量档可跳过；T3 案例检索任何量级必 spawn，0 条场景走空卡协议；**T8 终检无独立角色卡，由 T0 主控亲完成**）
+- **10 张角色卡**（主控/文献检索/数据检索/分析/写作/审计/案例检索/批判伙伴/**同行评审**）：`references/agents/`（T6 批判伙伴 v2.2.2 新增，**T9 同行评审 v2.4.0 新增，可选触发**，轻量档可跳过；T3 案例检索任何量级必 spawn，0 条场景走空卡协议；**T8 终检由主控亲完成（v2.7.0 起有独立角色卡 `08-终检-final-inspector.md`，不 spawn 子代理）**）
 - 7 类模板（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单，每类含 lite精简版 + full完整版）：`references/templates/`（**v2.4.0 新增 G14检测报告-template.md + 审稿报告-template.md**）
 - 流水线运行手册（含 8 角色完整派发话术 T1/T2/T3/T4/T5/T6/T7/T9 + M 门 + F 模式 + AI 使用披露，T8 终检不 spawn）：`references/pipeline-readme.md`
 - **v2.4.6 / v2.5.0 新增文档**：

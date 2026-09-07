@@ -80,6 +80,7 @@ SYNCS=(
   "agents/05-写作-writer.md|header"
   "agents/06-批判-critical-companion.md|header"
   "agents/07-审计-auditor.md|header"
+  "agents/08-终检-final-inspector.md|header"
   "agents/09-审稿-peer-reviewer.md|header"
 
   # 主控扩展职责（v2.5.0 主控卡拆分后新增）

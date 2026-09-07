@@ -38,9 +38,9 @@ warn() { echo -e "${YELLOW}⚠${NC} $1"; }
 cd "$SKILL_ROOT"
 
 # =============================================================================
-# 门 A：角色卡完整性（v2.5.5 实测 10 张卡：8 张原版 + 00-主控-扩展职责 + 09 同行评审）
+# 门 A：角色卡完整性（v2.7.0 实测 11 张卡：8 张原版 + 08-终检 + 00-主控-扩展职责 + 09 同行评审）
 # =============================================================================
-EXPECTED_AGENTS=("00-主控-coordinator.md" "01-文献检索-literature-scout.md" "02-数据检索-data-scout.md" "03-案例检索-case-scout.md" "04-分析-analyst.md" "05-写作-writer.md" "06-批判-critical-companion.md" "07-审计-auditor.md" "09-审稿-peer-reviewer.md")
+EXPECTED_AGENTS=("00-主控-coordinator.md" "01-文献检索-literature-scout.md" "02-数据检索-data-scout.md" "03-案例检索-case-scout.md" "04-分析-analyst.md" "05-写作-writer.md" "06-批判-critical-companion.md" "07-审计-auditor.md" "08-终检-final-inspector.md" "09-审稿-peer-reviewer.md")
 ACTUAL_AGENTS=$(ls references/agents/ 2>/dev/null | grep -E '^0[0-9]-' | sort)
 MISSING=()
 for exp in "${EXPECTED_AGENTS[@]}"; do
@@ -49,15 +49,15 @@ for exp in "${EXPECTED_AGENTS[@]}"; do
   fi
 done
 if [ ${#MISSING[@]} -eq 0 ]; then
-  pass "门 A: 角色卡完整性（9 张 + 扩展职责 = 10 文件）"
+  pass "门 A: 角色卡完整性（10 张 + 扩展职责 = 11 文件）"
 else
   fail "门 A: 角色卡完整性" "缺失: ${MISSING[*]}"
 fi
 
 # =============================================================================
-# 门 B：9 角色编号在 3 处文档全覆盖（README / SKILL / pipeline-readme）
+# 门 B：10 角色编号在 3 处文档全覆盖（README / SKILL / pipeline-readme）
 # =============================================================================
-ROLE_NUMS=("T1" "T2" "T3" "T4" "T5" "T6" "T7" "T9")
+ROLE_NUMS=("T1" "T2" "T3" "T4" "T5" "T6" "T7" "T8" "T9")
 ROLE_MISSING=""
 for r in "${ROLE_NUMS[@]}"; do
   IN_README=$(grep -c "$r" README.md 2>/dev/null || echo 0)
@@ -68,7 +68,7 @@ for r in "${ROLE_NUMS[@]}"; do
   fi
 done
 if [ -z "$ROLE_MISSING" ]; then
-  pass "门 B: 9 角色编号 README/SKILL/pipeline 三处覆盖"
+  pass "门 B: 10 角色编号 README/SKILL/pipeline 三处覆盖"
 else
   fail "门 B: 角色编号覆盖不全" "$ROLE_MISSING"
 fi
@@ -91,6 +91,7 @@ VERSION_FILES=(
   "references/agents/05-写作-writer.md"
   "references/agents/06-批判-critical-companion.md"
   "references/agents/07-审计-auditor.md"
+  "references/agents/08-终检-final-inspector.md"
   "references/agents/09-审稿-peer-reviewer.md"
   "references/_shared/M-Gate-Algorithm.md"
   "references/_shared/M-Gate-Algorithm-appendix.md"
