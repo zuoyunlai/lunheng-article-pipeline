@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.7.12
+version: 2.7.13
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。使用前需 Phase 0 同意关卡；可选封面图像生成默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -147,7 +147,7 @@ metadata:
 - 实操：主控 spawn 时 `cwd: run/<项目名>/`；子代理拒绝改 cwd；产出写盘必须落在 `run/<项目名>/<子目录>/` 内
 
 **其他约束**：
-- 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数（v2.7.12 修正 v2.6.1 旧表述）**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证）。子代理工具面由三层决定：① 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_list`/`sessions_history`/`sessions_spawn`）② **捕获主控有效工具策略快照**（主控未被剥的工具，子代理同样继承——主控若持有 exec 而宿主不加约束，子代理也可能继承 exec，**无法**保证零 exec）③ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**运行论衡的宿主必须**在 config 层收紧子代理工具面（建议 `tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`，或按 5 档声明配 allow 最小集），否则「零 exec」哲学无法落地。5 档分档（`metadata.subagent_tools_allow_*`）是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。
+- 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数（v2.7.12 修正 v2.6.1 旧表述；v2.7.13 软化为建议口径）**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证）。子代理工具面由三层决定：① 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_list`/`sessions_history`/`sessions_spawn`）② **捕获主控有效工具策略快照**（主控未被剥的工具，子代理同样继承——主控若持有 exec 而宿主不加约束，子代理也可能继承 exec，**无法**机械保证零 exec）③ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**建议运行论衡的宿主**在 config 层收紧子代理工具面（`tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`，或按 5 档声明配 allow 最小集）以获得机械保证；**不收紧时论衡照常运行**，零 exec 退化为**软保障**（纪律层：全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则），非机械强制。5 档分档（`metadata.subagent_tools_allow_*`）是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，**不执行实际 shell 命令**——算法文档中的 bash 示例是给人类主人手动复核的参考命令，**不是 agent 执行代码**（回应 SkillSpector 「models list 命令执行」指控，v2.6.5 改走 `session_status` / `read` 元数据自查）
 - ℹ️  **零 exec ≠ 零核验（v2.7.9 明示）**：论衡所有「检查/计数/比对/核验」动作都由 agent 用 `read` 读取文件 + LLM 逐项判定完成；文档中出现的命令式短句（检查/计数/求差集/校验哈希等）是**检查规则的速记**，等价动作一律走 read/write/edit 工具，任何角色都不执行也不「模拟」shell 命令——宿主工具策略（config `tools.subagents` / profile / deny）才是真实权限边界
 - ℹ️  **建议运行环境**：禁用 exec 的 agent（保持论衡「零 exec」哲学）

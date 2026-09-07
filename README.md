@@ -1,4 +1,5 @@
-> 版本：v2.7.12（自动同步 2026-09-07）
+> 版本：v2.7.13（自动同步 2026-09-07）
+
 
 
 
@@ -43,7 +44,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.7.12**（2026-09-07，当前版本）— [ClawHub 已上架](https://clawhub.ai/zuoyunlai/skills/lunheng-article-pipeline) / [MIT License](LICENSE)。人在环检查点呈现模板（v2.7.0）+ T8 终检独立角色卡（v2.7.1）+ 全面审计修复线：v2.7.2 只读档报告回传 / G14 时序统一 / 死链修复，v2.7.3 ECS 复盘 20 条改进落地，v2.7.5 token 优化（glossary 拆 core/full + dispatch 抽公共头），v2.7.6–v2.7.9 ClawHub 安全审计收敛（T05 记忆授权集中制 + 白名单收窄），v2.7.10 H1 显示修复（教训 #200），v2.7.11 路径迁移补完 + 净化包路径同步，**v2.7.12 OpenClaw 2026.9.x 适配修正（spawn toolsAllow 已废弃 → 子代理权限边界改写为宿主 config `tools.subagents` + 平台硬性剥除口径；子代理档位表去 session_status/progress_card，只读档回归纯 read）**。
+**v2.7.13**（2026-09-07，当前版本）— [ClawHub 已上架](https://clawhub.ai/zuoyunlai/skills/lunheng-article-pipeline) / [MIT License](LICENSE)。人在环检查点呈现模板（v2.7.0）+ T8 终检独立角色卡（v2.7.1）+ 全面审计修复线：v2.7.2 只读档报告回传 / G14 时序统一 / 死链修复，v2.7.3 ECS 复盘 20 条改进落地，v2.7.5 token 优化（glossary 拆 core/full + dispatch 抽公共头），v2.7.6–v2.7.9 ClawHub 安全审计收敛（T05 记忆授权集中制 + 白名单收窄），v2.7.10 H1 显示修复（教训 #200），v2.7.11 路径迁移补完 + 净化包路径同步，v2.7.12 OpenClaw 2026.9.x 适配修正（spawn toolsAllow 已废弃 → 子代理权限边界改写为宿主 config `tools.subagents` + 平台硬性剥除口径；子代理档位表去 session_status/progress_card，只读档回归纯 read），**v2.7.13 权限表述软化为建议口径（宿主 config 收紧从「必须」降为「建议」——不收紧时论衡照常运行，零 exec 为纪律层软保障非机械强制，与「纯 skill 任意配置可用」定位一致）**。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检 v2.7.1 独立角色卡，**T9 同行评审 v2.4.0 新增**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（v2.4.4 澄清中文特化为设计定位，非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -224,7 +225,8 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | v2.7.5 | 2026-09-07 | token 优化 | 韧化协议拆 exec/design + glossary 拆 core/full + dispatch 抽公共头 + 自审门扫描优化 |
 | v2.7.9 | 2026-09-07 | 安全收敛 | ClawHub 审计线清零：T05 记忆授权集中制 + SkillSpector 9 项口径统一（v2.7.6–v2.7.9）；白名单收窄（sessions_list 换 subagents）+ declared 对齐 |
 | v2.7.11 | 2026-09-07 | 审计修复 | 路径迁移补完（角色卡/_shared 旧路径→新结构）+ 自审门历史快照路径修正 + build 脚本净化包路径同步 + H1 显示修复（v2.7.4/2.7.10，教训 #200） |
-| **v2.7.12** | **2026-09-07** | **当前** | **OpenClaw 2026.9.x 适配修正（教训 #202）：spawn toolsAllow 参数已废弃 → 子代理权限边界改写为「平台硬性剥除 + 主控策略快照 + 宿主 config tools.subagents」口径；5 档降为最小工具集声明（去 session_status/progress_card），只读档回归纯 read；QUICKSTART/glossary/dispatch 同步** |
+| **v2.7.13** | **2026-09-07** | **当前** | **权限表述软化为建议口径（接教训 #202）：宿主 config 收紧从「必须」降为「建议」——不收紧时论衡照常运行，零 exec 为纪律层软保障（全文档零授权 + M 门扫描 + 外部内容不可信）非机械强制，与「纯 skill 任意配置可用」定位一致；SKILL/QUICKSTART/dispatch 三处同步** |
+| v2.7.12 | 2026-09-07 | 适配修正 | OpenClaw 2026.9.x 适配修正（教训 #202）：spawn toolsAllow 参数已废弃 → 子代理权限边界改写为「平台硬性剥除 + 主控策略快照 + 宿主 config tools.subagents」口径；5 档降为最小工具集声明（去 session_status/progress_card），只读档回归纯 read；QUICKSTART/glossary/dispatch 同步 |
 
 完整 changelog 见 [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases)。教训沉淀 190+ 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
 
