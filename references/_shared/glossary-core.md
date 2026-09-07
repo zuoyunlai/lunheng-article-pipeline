@@ -1,4 +1,5 @@
-> 版本：v2.7.11（自动同步 2026-09-07）
+> 版本：v2.7.12（自动同步 2026-09-07）
+
 
 
 
@@ -42,15 +43,17 @@
 - **Phase 3.6（Phase 4 修订回环内的反方攻击）**：T6 与 G14 同批对 current_draft 出报告，主人 Phase 5 签字是闭环终点
 - **零 exec**：所有子代理不允许 `exec` / `process` / `browser` / `apply_patch` 等
 
-## 工具边界（5 档子代理白名单 v2.6.5）
+## 工具边界（5 档子代理最小工具集声明，v2.7.12 修正）
 
-| 档 | 角色 | 工具集 |
+| 档 | 角色 | 工具集（声明） |
 |---|---|---|
-| allow_research | T1/T2/T3 | read + write + edit + web_* + tavily_* + session_status + progress_card |
-| allow_analysis | T4 | read + write + edit + session_status + progress_card |
-| allow_writing | T5 | read + write + edit + session_status + progress_card |
-| allow_audit | T6/T7 | **read + session_status + progress_card（只读）** |
-| allow_review | T9/G14 | **read + session_status + progress_card（只读）** |
+| allow_research | T1/T2/T3 | read + write + edit + web_* + tavily_* |
+| allow_analysis | T4 | read + write + edit |
+| allow_writing | T5 | read + write + edit |
+| allow_audit | T6/T7 | **read（只读）** |
+| allow_review | T9/G14 | **read（只读）** |
+
+> v2.7.12：以上为声明/部署建议，不是 spawn 传参——OpenClaw 2026.9.x 的 `sessions_spawn` 已无 toolsAllow 参数，子代理实际权限 = 平台硬性剥除（含 session_status，子代理不可持有）+ 主控策略快照 + 宿主 config `tools.subagents`（详见 SKILL.md「执行能力边界」）。
 
 > image_generate / memory_get 系列 / exec 等均在 denied；T8 由主控亲完成不 spawn。
 

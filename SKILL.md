@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.7.11
+version: 2.7.12
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。使用前需 Phase 0 同意关卡；可选封面图像生成默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -47,14 +47,18 @@ metadata:
       - "sessions_search"
       - "sessions_send"
   # v2.6.5 修订：子代理工具白名单拆为 5 档最小权限（回应 ClawHub A.I.G T05 + SkillSpector 6 findings）
-  # 档位说明（主控 spawn 时按角色传对应的 allow_xxx 列表）：
-  #   1. allow_research  → T1/T2/T3 检索：read + write + edit + web_search 系列 + memory_recall opt-in
-  #   2. allow_analysis  → T4 分析：read + write + edit + session_status（不出网、不调记忆）
-  #   3. allow_writing   → T5 写作：read + write + edit + session_status（纯本地写盘）
-  #   4. allow_audit     → T6/T7 批判/审计：read + session_status + memory_recall opt-in（**不写不改**，仅读 + 召唤 M 门）
-  #   5. allow_review    → T9 同行评审 + G14 风格闸：read + session_status（**不调网络/记忆/写盘**）
+  # v2.7.12 修正：以下 5 档是「各角色最小工具集声明」（ClawHub 审计白名单 + 部署建议），不再声称 spawn 传参：
+  #   OpenClaw 2026.9.x 的 sessions_spawn 已无 toolsAllow 参数 —— 子代理实际权限 = 平台硬性剥除
+  #   （gateway/agents_list/session_status/cron/message/sessions_send/conversations_*；叶子另剥 sessions 系列）
+  #   + 主控有效工具策略快照 + 宿主 config tools.subagents（见正文「执行能力边界」段）
+  # 档位说明（session_status 属平台硬性剥除，子代理不可持有，已从各档移除）：
+  #   1. allow_research  → T1/T2/T3 检索：read + write + edit + web_search 系列（检索是本职）
+  #   2. allow_analysis  → T4 分析：read + write + edit（不出网、不调记忆）
+  #   3. allow_writing   → T5 写作：read + write + edit（纯本地写盘）
+  #   4. allow_audit     → T6/T7 批判/审计：read（**不写不改**，仅读 + 召唤 M 门）
+  #   5. allow_review    → T9 同行评审 + G14 风格闸：read（**不调网络/记忆/写盘**）
   #   T8 终检由主控亲完成，不 spawn 子代理 → 对应 allow 列表全空 []
-  # v2.6.4 单一 allow 保留作 fallback（兼容旧发布包），v2.6.5 起以分档为准
+  # v2.6.4 单一 allow 保留作 fallback（兼容旧发布包），v2.7.12 起降为纯声明：检索类子代理需 web 时由宿主 config 按档放行
   subagent_tools_allow_research:
     - "read"
     - "write"
@@ -63,34 +67,22 @@ metadata:
     - "web_fetch"
     - "tavily_search"
     - "tavily_extract"
-    - "session_status"
-    - "progress_card"
   subagent_tools_allow_analysis:
     - "read"
     - "write"
     - "edit"
-    - "session_status"
-    - "progress_card"
   subagent_tools_allow_writing:
     - "read"
     - "write"
     - "edit"
-    - "session_status"
-    - "progress_card"
   subagent_tools_allow_audit:
     - "read"            # 唯一 I/O：只读
-    - "session_status"
-    - "progress_card"
   subagent_tools_allow_review:
     - "read"            # 只读，不调网络/记忆/写盘
-    - "session_status"
-    - "progress_card"
   # v2.6.7 fallback（deny-by-default，回应 T05：旧兼容列表过权）
-  # 仅当宿主读不到分档列表时的最小基线；正常 spawn 一律走 5 档分档 toolsAllow
+  # 仅当宿主读不到分档列表时的最小基线；检索类子代理需 web 时由宿主 config 按档放行
   subagent_tools_allow:
     - "read"
-    - "session_status"
-    - "progress_card"
   # v2.6.1 适配 OpenClaw 2026.9.1：默认 cwd（论衡项目隔离）
   # v2.7.11（审计 P2-1）：去硬编码个人绝对路径 → 相对 workspace 提示；使用者可按本机布局改
   cwd_default: "run"
@@ -124,19 +116,21 @@ metadata:
 - web_search / web_fetch / tavily_search / tavily_extract（检索，T1-T3 子代理共享；v2.7.7 声明补全 web_fetch——中文数据源第一梯队 OpenAlex/Crossref 拉 JSON 用，与 allow_research 一致）
 - session_status / progress_card（可观测性）
 
-**子代理 5 档分级白名单（v2.6.5 新增，`metadata.subagent_tools_allow_*`）**：
-| 档位 | 适用角色 | 工具集（最小权限） | 凭什么调网络/记忆 |
+**子代理 5 档分级白名单（v2.6.5 新增；v2.7.12 起定位为「各角色最小工具集声明」，`metadata.subagent_tools_allow_*`）**：
+| 档位 | 适用角色 | 工具集（最小权限声明） | 凭什么调网络/记忆 |
 |---|---|---|---|
-| `allow_research` | T1/T2/T3 文献/数据/案例检索 | read + write + edit + web_* + tavily_* + session_status + progress_card | 检索是本职 |
-| `allow_analysis` | T4 分析 | read + write + edit + session_status + progress_card | 不出网，仅本地读产物 |
-| `allow_writing` | T5 写手 | read + write + edit + session_status + progress_card | 纯本地写盘，不出网 |
-| `allow_audit` | T6/T7 批判/审计 | **read + session_status + progress_card**（不写/不改/不出网/不调记忆） | 只读审阅，不干预产物；报告经交接回传、主控代写盘（v2.7.2） |
-| `allow_review` | T9 同行评审 / G14 风格闸 | **read + session_status + progress_card**（同 audit） | 只读评分，不干预产物；报告经交接回传、主控代写盘（v2.7.2） |
+| `allow_research` | T1/T2/T3 文献/数据/案例检索 | read + write + edit + web_* + tavily_* | 检索是本职 |
+| `allow_analysis` | T4 分析 | read + write + edit | 不出网，仅本地读产物 |
+| `allow_writing` | T5 写手 | read + write + edit | 纯本地写盘，不出网 |
+| `allow_audit` | T6/T7 批判/审计 | **read**（只读） | 只读审阅，不干预产物；报告经交接回传、主控代写盘（v2.7.2） |
+| `allow_review` | T9 同行评审 / G14 风格闸 | **read**（只读） | 只读评分，不干预产物；报告经交接回传、主控代写盘（v2.7.2） |
 | （空） | T8 终检 | [] | T8 由主控亲完成，不 spawn 子代理 |
+
+> ⚠️ **执行层真源（v2.7.12）**：OpenClaw 2026.9.x 的 `sessions_spawn` **无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证），上表是**声明/部署建议**，不是可传参数。子代理实际工具面 = 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_*`）− 主控有效工具策略快照 + 宿主 config `tools.subagents.tools.allow/deny`（全局，无法按 spawn 逐档）。档位间差异在工具层不可逐子表达时，以 prompt 约束 + 只读路径约束兜底。`session_status`/`progress_card` 是**主控侧**可观测性工具，不给子代理。
 
 **Opt-in（默认禁止，Phase 0 主人明确同意才解锁，`metadata.tools.opt_in`）**：
 - `image_generate` — 封面生成专用，**默认关闭**，主控在 Phase 0 问「是否需要生成封面」答「是」才开
-- `memory_get` / `memory_search` / `memory_recall` — **默认关闭**（v2.7.9 集中授权制）：**默认工作流不读任何 Agent 工作区记忆文件**，写作偏好一律由主人 Phase 0 写入任务简报「写作偏好」字段；仅当主人在 Phase 0 显式勾选「启用记忆辅助」并点名允许读取的文件/用途时才解锁，且须记入 status.md「Phase 0 同意记录」；T6/T7 调 `memory_recall` 仍需主控在 spawn 时**额外传** toolsAllow（不在分档基线内）
+- `memory_get` / `memory_search` / `memory_recall` — **默认关闭**（v2.7.9 集中授权制）：**默认工作流不读任何 Agent 工作区记忆文件**，写作偏好一律由主人 Phase 0 写入任务简报「写作偏好」字段；仅当主人在 Phase 0 显式勾选「启用记忆辅助」并点名允许读取的文件/用途时才解锁，且须记入 status.md「Phase 0 同意记录」；T6/T7 调 `memory_recall` 需宿主在 config 层为其子代理临时放行（v2.7.12：OpenClaw 2026.9.x spawn 无 per-run 工具参数；不放行则主控代查回传）
 - 解锁方式：主控在 status.md「Phase 0 同意记录」段填写 `opt_in: [image_generate: yes, memory: yes]`，凭此记录而非凭 prompt 调阅
 
 **行为授权（非工具，Phase 0 预授权记录，默认全部关闭，v2.6.6 新增回应 T05/G14 审计）**：
@@ -153,9 +147,9 @@ metadata:
 - 实操：主控 spawn 时 `cwd: run/<项目名>/`；子代理拒绝改 cwd；产出写盘必须落在 `run/<项目名>/<子目录>/` 内
 
 **其他约束**：
-- 🔒 **主控 spawn 子代理必传 toolsAllow**（OpenClaw 9.1 适配 P0-1，教训：主会话 deny 不传给子会话）：**不传 = 子代理继承宿主全部默认工具（含 exec/process/browser）** = **违背论衡「零 exec」哲学**。必须传 5 档分档之一。
+- 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数（v2.7.12 修正 v2.6.1 旧表述）**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证）。子代理工具面由三层决定：① 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_list`/`sessions_history`/`sessions_spawn`）② **捕获主控有效工具策略快照**（主控未被剥的工具，子代理同样继承——主控若持有 exec 而宿主不加约束，子代理也可能继承 exec，**无法**保证零 exec）③ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**运行论衡的宿主必须**在 config 层收紧子代理工具面（建议 `tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`，或按 5 档声明配 allow 最小集），否则「零 exec」哲学无法落地。5 档分档（`metadata.subagent_tools_allow_*`）是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，**不执行实际 shell 命令**——算法文档中的 bash 示例是给人类主人手动复核的参考命令，**不是 agent 执行代码**（回应 SkillSpector 「models list 命令执行」指控，v2.6.5 改走 `session_status` / `read` 元数据自查）
-- ℹ️  **零 exec ≠ 零核验（v2.7.9 明示）**：论衡所有「检查/计数/比对/核验」动作都由 agent 用 `read` 读取文件 + LLM 逐项判定完成；文档中出现的命令式短句（检查/计数/求差集/校验哈希等）是**检查规则的速记**，等价动作一律走 read/write/edit 工具，任何角色都不执行也不「模拟」shell 命令——宿主 toolsAllow 才是真实权限边界
+- ℹ️  **零 exec ≠ 零核验（v2.7.9 明示）**：论衡所有「检查/计数/比对/核验」动作都由 agent 用 `read` 读取文件 + LLM 逐项判定完成；文档中出现的命令式短句（检查/计数/求差集/校验哈希等）是**检查规则的速记**，等价动作一律走 read/write/edit 工具，任何角色都不执行也不「模拟」shell 命令——宿主工具策略（config `tools.subagents` / profile / deny）才是真实权限边界
 - ℹ️  **建议运行环境**：禁用 exec 的 agent（保持论衡「零 exec」哲学）
 - ℹ️  **token 成本统计（v2.6.1 重写，精确机制）**：OpenClaw 9.1 提供 `sessions_spawn` 返回值 stats（含 `tokens.in/out` + `prompt/cache` 字段） + `session_status` 工具。**子代理**：若宿主在 spawn 回执提供精确 stats，主控记录并在交接报告中回传；未提供时记录 `unavailable`。**主控自身**：T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）。**成本统计是可观测性字段，不是交付闸门**：禁止估算
 

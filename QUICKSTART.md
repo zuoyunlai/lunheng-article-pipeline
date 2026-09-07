@@ -1,4 +1,5 @@
-> 版本：v2.7.11（自动同步 2026-09-07）
+> 版本：v2.7.12（自动同步 2026-09-07）
+
 
 
 
@@ -36,16 +37,16 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
-> **宿主配置无关（v2.6.3 明示）**：论衡是**纯 skill，零 exec，不依赖宿主 OpenClaw 的任何特定配置**。唯一的「可选增强」是统计精度——OpenClaw 9.1 起，论衡 token 统计走精确路径（sessions_spawn 返回值 stats + session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界 → token 成本统计」段。
+> **宿主配置要求（v2.7.12 修正 v2.6.3 旧表述）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），但「零 exec」哲学的落地**依赖宿主对子代理工具面的收紧**——OpenClaw 2026.9.x 的 `sessions_spawn` 已无 toolsAllow 参数，子代理会继承主控未剥工具。宿主须在 openclaw.json 配置 `tools.subagents.tools.deny`（至少 exec/process/browser/apply_patch）或 allow 最小集，否则子代理可能拿到 exec。token 统计走精确路径（sessions_spawn 返回值 stats + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
 
 ---
 
 ## 🔧 宿主适配要点（v2.6.1 起）
 
-- 主控 spawn 子代理必传 `toolsAllow`（16 项白名单，定义见 SKILL.md frontmatter）；不传则子代理继承宿主全部工具（含 exec / process / browser），违背零 exec 哲学
+- 子代理权限边界 = 宿主 config（v2.7.12 修正）：OpenClaw 2026.9.x 的 `sessions_spawn` **无 `toolsAllow` 参数**，5 档白名单（SKILL.md frontmatter）是**声明/部署建议**而非传参。实际子代理工具 = 主控策略快照 − 平台硬性剥除（含 session_status），宿主须加 `tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`（或 allow 最小集），否则子代理继承主控未剥工具、违背零 exec 哲学
 - 默认项目目录 `run/<项目名>/`（`cwd_default` 仅是路径提示，非沙箱保证）
 - token 统计走精确路径（sessions_spawn 返回值 stats + `session_status`）；拿不到精确值记 `unavailable`，不估算
-- 维护自检：`bash scripts/self-audit-gate.sh`（应 11/11 PASS）
+- 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 15/15 PASS，含门 G 正常态）
 
 ---
 
