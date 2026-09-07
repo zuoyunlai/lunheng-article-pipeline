@@ -162,7 +162,7 @@ for f in SKILL.md references/pipeline-readme.md references/agents/00-主控-coor
   fi
 done
 if [ -z "$STALE_8MIN" ]; then
-  pass "门 D: 8 分钟硬卡散落检查（v2.5.5 P0-1 #2 修订）"
+  pass "门 D: 超时硬卡阈值表述一致性（v2.5.5 分级化，v2.7.2 文案对齐）"
 else
   fail "门 D: 8 分钟硬卡散落" "需诚实化文档:$STALE_8MIN"
 fi

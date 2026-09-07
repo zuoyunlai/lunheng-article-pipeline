@@ -1,4 +1,5 @@
-> 版本：v2.7.1（自动同步 2026-09-07）
+> 版本：v2.7.2（自动同步 2026-09-07）
+
 
 
 
@@ -243,9 +244,9 @@ Phase 4.5 配图     仅当 Phase 2.5 拍板有图位：写手已在正文标 [�
 ```
 
 **为什么必汇报**：T9 评分是**给主人看的**（是否可投稿），不是给 T7 审计员的。主控如只在文件里写、不在对话中呈现 = 主人需手动开文件看 = 人在环节点失效（主人反馈：v2.5.5 口腔 AI 实战 T9 评分未在对话中呈现）。
-[🔒 **G14 中文 AI 痕迹闸** v2.4.0 新增，**v2.5.5 时序澄清，教训 #165**]：**实际串行，不是并行**——T6 在 Phase 3.6 跑 v2 → G14 在 Phase 4.5 跑 v2 → T7 审计。原描述「与 T6 并行调用」是文档 bug。修正后路径：
-- Phase 3.6：T6 攻击 v2（论证 C1-C7）
-- Phase 4.5：G14 检测 v2（8 类 AI 痕迹）
+[🔒 **G14 中文 AI 痕迹闸** v2.4.0 新增，**v2.7.2 时序统一（真源 phase-order.yaml）**]：G14 与 T6 **同批并行**——Phase 3.6 对同一 `current_draft` 同批 spawn T6 + G14，双方报告绑定同一 `draft_id/draft_version`，全部通过后进 T7 审计。历史沿革：v2.4.0 首提「并行」→ v2.5.5 改「串行」（教训 #165）→ v2.6.3 phase-order.yaml 定稿 `t6_g14` 同批并行 → v2.7.2 前文档残留两派表述，现全部统一到真源。修订轮约束不变：
+- Phase 3.6：T6 攻击 v2（论证 C1-C7）∥ G14 检测 v2（8 类 AI 痕迹），对同一 current_draft 同批
+- 修订产生新版本 → 两闸对新版本重新触发（v2.6.3 报告头 draft_id/draft_version 绑定）
 - **真正可优化**（v2.6.0 候选）：G14 前移到 Phase 3.6，与 T6 同批 spawn = 真并行，但需重审 T6 攻击对象（现在 v2 没 G14 信号 = T6 可能误判 AI 味 = 仍待修）
 - 0-2 类 Pass / 3-4 类 Warning 触发 T5 修订 1 轮 / 5+ 类 Fail 触发 T5 修订 2 轮 → 输出 audits/G14-检测报告-vN.md
 
@@ -327,13 +328,13 @@ Phase 5 终检      **T8** 主控终检 → final/定稿.md + 图件/（如有�
 | 角色 | 派发话术文件 | spawn 时机 |
 |------|------------|-----------|
 | T9 同行评审 | `references/dispatch/T9-同行评审.md` | Phase 4.5（可选）|
-| G14 中文 AI 痕迹检测 | `references/dispatch/G14-中文AI痕迹检测器.md` | Phase 4.5（与 T6 并行）|
+| G14 中文 AI 痕迹检测 | `references/dispatch/G14-中文AI痕迹检测器.md` | Phase 3.6（与 T6 同批并行，v2.7.2 统一）|
 | T1 文献检索 | `references/dispatch/T1-文献检索.md` | Phase 1（并行①）|
 | T2 数据检索 | `references/dispatch/T2-数据检索.md` | Phase 1（并行②）|
 | T3 案例检索 | `references/dispatch/T3-案例检索.md` | Phase 1（并行③）|
 | T4 分析 | `references/dispatch/T4-分析.md` | Phase 2 |
 | T5 写手 | `references/dispatch/T5-写手.md` | Phase 3 |
-| T6 批判 | `references/dispatch/T6-批判.md` | Phase 3.6 |
+| T6 批判 | `references/dispatch/T6-批判.md` | Phase 3.6（G14 同批）|
 | T7 审计 | `references/dispatch/T7-审计.md` | Phase 4 |
 | T8 终检 | `references/dispatch/T8-终检.md` | Phase 5（主控亲完成）|
 

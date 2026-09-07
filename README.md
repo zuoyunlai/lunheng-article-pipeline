@@ -1,4 +1,5 @@
-> 版本：v2.7.1（自动同步 2026-09-07）
+> 版本：v2.7.2（自动同步 2026-09-07）
+
 
 
 
@@ -32,7 +33,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.6.4**（2026-09-06，当前版本）— [ClawHub 已上架](https://clawhub.ai/zuoyunlai/skills/lunheng-article-pipeline) / [MIT License](LICENSE)。人在环四节点决策记录硬约束 + T3 三态协议 + Phase 1.5 显式回查 + 最小权限收窄（ClawHub 安全审计修复）+ H1 标题修复。
+**v2.7.2**（2026-09-07，当前版本）— [ClawHub 已上架](https://clawhub.ai/zuoyunlai/skills/lunheng-article-pipeline) / [MIT License](LICENSE)。人在环检查点呈现模板（v2.7.0）+ T8 终检独立角色卡（v2.7.1）+ 只读档报告回传机制 / G14 时序统一 / 死链修复（v2.7.2 全面审计修复）。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检 v2.7.1 独立角色卡，**T9 同行评审 v2.4.0 新增**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（v2.4.4 澄清中文特化为设计定位，非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -148,7 +149,7 @@ Phase 3.5 主人在环：呈现 v1 → 主人补充洞察或选择「无补充�
 Phase 3.6 T6 批判  →  analysis/批判报告（攻击 v2，C1-C7 反方论证）
 Phase 4  T7 审计   →  audits/审计报告（G0-G14）
 Phase 4.2 修订回环   写手修订稿 ≤2 轮（v2.2.0 硬约束）
-Phase 4.5 配图 + T9 审稿 + G14 检测（与 T6 并行）
+Phase 4.5 配图 + T9 审稿（G14 已于 Phase 3.6 与 T6 同批，v2.7.2）
 Phase 5  T8 主控亲终检 → final/定稿.md + 证据包/ + 交付说明.md
 ```
 
@@ -205,7 +206,10 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline
 | v2.5.0 | 2026-08-24 | 可选项 | 期刊匹配（25 中文 + 12 英文）+ 中文数据源 3 梯队 + 多格式导出 |
 | v2.5.1 | 2026-08-24 | 数据源 | OpenAlex/Crossref 第一梯队默认推荐（无需 Key） |
 | v2.5.4 | 2026-08-25 | 版本治理 | sync-version.sh 与 check-version.sh 双向同步 36 项（教训 #118.1 升级）|
-| **v2.6.4** | **2026-09-06** | **当前** | **人在环四节点决策记录硬约束 + T3 三态协议（required/empty_card/waived）+ Phase 1.5 显式回查 + phase-order.yaml 阶段真源 + 最小权限收窄（ClawHub 安全审计修复）+ H1 标题修复 |
+| v2.6.4 | 2026-09-06 | 基础 | 人在环四节点决策记录硬约束 + T3 三态协议（required/empty_card/waived）+ Phase 1.5 显式回查 + phase-order.yaml 阶段真源 + 最小权限收窄（ClawHub 安全审计修复）+ H1 标题修复 |
+| v2.7.0 | 2026-09-07 | 人在环 | Checkpoint Card 呈现模板（结构固定/内容自由/选项枚举）|
+| v2.7.1 | 2026-09-07 | 角色卡 | T8 终检独立角色卡，10 张角色卡，门 A/B 计数更新 |
+| **v2.7.2** | **2026-09-07** | **当前** | **全面独立审计修复：只读档报告回传机制（P0）/ G14 时序统一到 phase-order.yaml（P0）/ 死链 + 表述漂移清理（P1/P2）** |
 
 完整 changelog 见 [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases)。教训沉淀 190+ 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
 

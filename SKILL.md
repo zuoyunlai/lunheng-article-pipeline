@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: lunheng-article-pipeline
-version: 2.7.1
+version: 2.7.2
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -9,7 +9,7 @@ metadata:
       bins: []
   tools:
     # v2.6.5 起重写为分层最小权限：
-    # - declared：主控在论衡文档中会调用的工具（基线 11 项）
+    # - declared：主控在论衡文档中会调用的工具（基线 12 项）
     # - subagent_allow_*：按 5 档角色分级的子代理工具白名单（v2.6.5 新增）
     # - opt_in：默认禁止、Phase 0 主人明确同意后才解锁的工具（v2.6.5 新增）
     # - denied：永不开放（无论主控/子代理）
@@ -128,8 +128,8 @@ metadata:
 | `allow_research` | T1/T2/T3 文献/数据/案例检索 | read + write + edit + web_* + tavily_* + session_status + progress_card | 检索是本职 |
 | `allow_analysis` | T4 分析 | read + write + edit + session_status + progress_card | 不出网，仅本地读产物 |
 | `allow_writing` | T5 写手 | read + write + edit + session_status + progress_card | 纯本地写盘，不出网 |
-| `allow_audit` | T6/T7 批判/审计 | **read + session_status + progress_card**（不写/不改/不出网/不调记忆） | 只读审阅，不干预产物 |
-| `allow_review` | T9 同行评审 / G14 风格闸 | **read + session_status + progress_card**（同 audit） | 只读评分，不干预产物 |
+| `allow_audit` | T6/T7 批判/审计 | **read + session_status + progress_card**（不写/不改/不出网/不调记忆） | 只读审阅，不干预产物；报告经交接回传、主控代写盘（v2.7.2） |
+| `allow_review` | T9 同行评审 / G14 风格闸 | **read + session_status + progress_card**（同 audit） | 只读评分，不干预产物；报告经交接回传、主控代写盘（v2.7.2） |
 | （空） | T8 终检 | [] | T8 由主控亲完成，不 spawn 子代理 |
 
 **Opt-in（默认禁止，Phase 0 主人明确同意才解锁，`metadata.tools.opt_in`）**：
@@ -201,12 +201,12 @@ metadata:
 
 | 字数 | 流水线建议 | 配置差异 |
 |---|---|---|
-| **≥5000 字** | 强烈推荐全量流水线 | 全套 9 角色 + 三方并行 + T6 批判 + T7 审计 + T9 可选修订 ≤2 轮 |
-| **3000-5000 字** | 推荐全量流水线 | 标准 9 角色，T3 什么量级必 spawn（0 条出空卡），T6 视论证强度可选，T9 行业分析/学术默认开启 |
+| **≥5000 字** | 强烈推荐全量流水线 | 全套 10 角色（T1-T7 + T8 终检 + T9，T8 主控亲完成不 spawn）+ 三方并行 + T6 批判 + T7 审计 + T9 可选修订 ≤2 轮 |
+| **3000-5000 字** | 推荐全量流水线 | 标准 10 角色（T8 主控亲完成），T3 什么量级必 spawn（0 条出空卡），T6 视论证强度可选，T9 行业分析/学术默认开启 |
 | **2000-3000 字** | 可走轻量档 | T1/T2 必跑，T3 0 条空卡协议，T6 必跳，T4 大纲可省 |
 | **<2000 字** | 流水线偏重，建议简化 | 主控+写手两角色直写更快 |
 
-**对字数分层的理解**：流水线本身有固定成本（三方并行 + 9 角色 + 4 个闸门），字数太少投入产出比低；2000 字以下不是「不能用」，是「不划算」。
+**对字数分层的理解**：流水线本身有固定成本（三方并行 + 10 角色 + 4 个闸门；T8 主控亲完成不 spawn），字数太少投入产出比低；2000 字以下不是「不能用」，是「不划算」。
 
 **轻量化建议**（字数 <2000 字时）：
 
@@ -299,11 +299,11 @@ Phase 2 分析        T4 分析员 → analysis/分析大纲.md（论点-论据�
 Phase 2.5 大纲确认  主人过目大纲 → 确认/修改 + 拍板 T4 建议图表（图位数量/类型/数据源）（人在环！改方向成本最低，不可跳过）；**按 checkpoint-card-template.md 骨架呈现（v2.7.0）**
 Phase 3 写作        T5 写手 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、案例标[Cxx]、AI去味10项）
 Phase 3.5 洞察补充  主人过目初稿 v1 → 主控问主人洞要补 → T5 写手 v2 融入（人在环！v2.1.3 教训 #46）；**按 checkpoint-card-template.md 骨架呈现（v2.7.0）**
-Phase 3.6 批判      T6 批判伙伴（v2.2.2 新增）→ analysis/批判报告-vN.md（攻击 v2 不是 v1，轻量档可跳过）
+Phase 3.6 批判      T6 批判伙伴（v2.2.2 新增）→ analysis/批判报告-vN.md（攻击 v2 不是 v1，轻量档可跳过）；G14 中文 AI 痕迹闸同批并行（v2.6.3 起与 T6 对同一 current_draft 同批 spawn，v2.7.2 前文档误标 Phase 4.5）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail）
 Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0-G14，v2.4.0 加 G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（需主人首次确认，默认关闭，失败降级 Google → minimax → SVG）
-Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度，详见 [_shared/期刊数据库.md](references/_shared/期刊数据库.md) + [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)）；G14 中文 AI 痕迹闸（v2.4.0 新增，与 T6 并行）→ audits/G14-检测报告-vN.md（0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail）
+Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度，详见 [_shared/期刊数据库.md](references/_shared/期刊数据库.md) + [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)）
 Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（**v2.5.0 多格式导出**：默认 md，按需选 `--format latex/docx/pdf`，详见 [_shared/format-export.md](references/_shared/format-export.md)；**v2.5.1 中文数据源集成**（OpenAlex/Crossref 第一梯队默认推荐，无需 Key，详见 [_shared/中文数据源集成.md](references/_shared/中文数据源集成.md)）；**按 checkpoint-card-template.md 骨架呈现（v2.7.0）**）
 ```
 

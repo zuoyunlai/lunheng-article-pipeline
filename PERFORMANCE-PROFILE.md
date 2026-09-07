@@ -98,7 +98,7 @@
 | failure-modes.md | 1,229 |
 | audit-checklist-quickref.md | 1,306 |
 | glossary.md | 2,731 |
-| M-Gate-渐进式验证 | 1,878 |
+| M-Gate-Algorithm-appendix | 4,473 |
 | **合计** | **~16K** |
 
 ### 2.6 场景六：T6 批判派发（Phase 3.6，v2.3.0 新增）
@@ -123,12 +123,12 @@
 | SKILL.md | 4,626 |
 | glossary.md | 2,731 |
 | M-Gate-Algorithm.md | 6,942 |
-| M-Gate-渐进式验证 | 1,878 |
+| M-Gate-Algorithm-appendix | 4,473 |
 | failure-modes.md | 1,229 |
 | audit-checklist-quickref.md | 1,306 |
 | **合计** | **~19K** |
 
-✅ 已优化（v2.2.15）：M 门渐进式，T8 只需复跑兜底
+✅ 已优化（v2.2.15）：M 门渐进式（现行载体 = M-Gate-Algorithm-appendix.md），T8 只需复跑兜底
 
 ### 2.8 场景八：T9 同行评审 + G14 中文 AI 痕迹闸（Phase 4.5，v2.4.0 新增）
 
@@ -197,7 +197,7 @@
 | v2.2.8（按需加载） | ~95K | -21% |
 | v2.2.12（glossary.md） | ~85K | -29% |
 | v2.2.14（模板拆分） | ~75K | -38% |
-| v2.2.15（M 门渐进式） | ~68K | -43% |
+| v2.2.15（M 门渐进式，现 appendix） | ~68K | -43% |
 | **v2.3.0（+Phase 3.6 批判 + 文档扩容）** | **~103K** | -14% |
 
 > ⚠️ v2.3.0 因 Phase 3.6 新增 +3K + 文档扩容（pipeline-readme.md +147 行派发话术 / 设计文档 / glossary 升级等）+32K，整体比 v2.2.15 增 ~35K。可优化空间：精简 pipeline-readme.md 派发话术段到独立文件（按需加载）。
