@@ -38,7 +38,7 @@ _detect_workspace() {
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
-    # 优先级 1: 当前 cwd 已经是 workspace 根（论衡工作区 /home/zuoyunlai/.openclaw/workspace-paperwriter）
+    # 优先级 1: 当前 cwd 已经是 workspace 根（论衡工作区根，含 run/ 目录）
     if [[ -d "run" ]]; then
         echo "."
         return 0
@@ -70,7 +70,7 @@ _detect_workspace() {
 WORKSPACE_ROOT="$(_detect_workspace || true)"
 if [[ -z "$WORKSPACE_ROOT" ]]; then
     echo "ERROR: 无法定位 workspace 根目录（找不到 run/ 目录）" >&2
-    echo "请在论衡工作区根目录（/home/zuoyunlai/.openclaw/workspace-paperwriter）或 pipeline/_shared/ 目录下运行" >&2
+    echo "请在论衡工作区根目录（含 run/ 目录，如 ~/.openclaw/workspace）或其 references/_shared/ 子目录下运行" >&2
     exit 2
 fi
 

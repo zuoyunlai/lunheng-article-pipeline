@@ -298,11 +298,9 @@
 1. **Tavily API**：web_search / tavily_search / tavily_extract
 2. **OpenAlex API**（中文数据源第一梯队，**只读公开学术元数据 API，无需 Key**）：web_fetch 拉取文献/数据元数据，**仅发送检索关键词**，不发送个人信息/机密数据
 3. **Crossref API**（中文数据源第一梯队，**只读 DOI 元数据，无需 Key**）：同上，仅发送检索关键词
-4. **OpenAI API**：image_generate（gpt-image-2，**封面生成**）
-5. **Google Gemini**：image_generate fallback
-6. **MiniMax API**：image_generate 最终 fallback
-7. **大模型推理 provider**（当前模型，如 deepseek / MiniMax / Anthropic / GLM 等）：各角色卡调用 LLM 时，将**文献卡/数据卡/案例卡/草稿/分析大纲全文**发送给模型 provider
-8. **（可选，默认关闭）中文数据源第二/三梯队**：万方开放平台（`WANFANG_APP_KEY`+`WANFANG_APPCODE`）/ 科情数据（`KQING_APP_KEY`）/ NSTL（`NSTL_APP_KEY`）/ Firecrawl（`firecrawl_api_key`，抓取 paper.edu.cn）——**均需主人显式启用 + 自配 API key**，论衡不存储 key，未启用时零调用
+4. **图像生成 provider（封面，可选默认关闭）**：image_generate 调用**宿主配置的默认图像 provider**（可能为 OpenAI / Google / MiniMax 等，以宿主 OpenClaw 配置为准；论衡文档不规定 vendor 路由 / 失败降级链，详见 SKILL.md「封面图像生成与数据外发披露」）
+5. **大模型推理 provider**（当前模型，如 deepseek / MiniMax / Anthropic / GLM 等）：各角色卡调用 LLM 时，将**文献卡/数据卡/案例卡/草稿/分析大纲全文**发送给模型 provider
+6. **（可选，默认关闭）中文数据源第二/三梯队**：万方开放平台（`WANFANG_APP_KEY`+`WANFANG_APPCODE`）/ 科情数据（`KQING_APP_KEY`）/ NSTL（`NSTL_APP_KEY`）/ Firecrawl（`firecrawl_api_key`，抓取 paper.edu.cn）——**均需主人显式启用 + 自配 API key**，论衡不存储 key，未启用时零调用
 
 > **术语澄清（回应 ClawHub 安全审计）**：「零 exec」= 不执行 shell 命令（`exec` 工具禁用），是**执行能力边界**；「零外发」= 不向外部发送数据，是**数据传输边界**。两者**不是一回事**。
 >

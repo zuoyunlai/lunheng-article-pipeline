@@ -43,7 +43,8 @@ jobs:
 
           # v2.3.0 角色卡路径（教训 #116：原 T6 案例检索 → T3，原 T8 批判 → T6，原 T5 审计 → T7，原 T7 终检 → T8 由主控亲完成无独立卡）
           FILES=(
-            "references/glossary.md"
+            "references/_shared/glossary-full.md"
+            "references/_shared/glossary-core.md"
             "references/pipeline-readme.md"
             "references/设计文档.md"
             "references/_shared/M-Gate-Algorithm.md"
@@ -101,7 +102,8 @@ jobs:
           echo "=== 文件顶部版本号检查（前 5 行）==="
 
           FILES=(
-            "references/glossary.md"
+            "references/_shared/glossary-full.md"
+            "references/_shared/glossary-core.md"
             "references/pipeline-readme.md"
             "references/设计文档.md"
             "references/_shared/M-Gate-Algorithm.md"
@@ -170,7 +172,8 @@ jobs:
           )
 
           FILES=(
-            "references/glossary.md"
+            "references/_shared/glossary-full.md"
+            "references/_shared/glossary-core.md"
             "references/pipeline-readme.md"
             "README.md"
             "SKILL.md"
@@ -219,7 +222,8 @@ jobs:
           echo "|------|---------------|------|" >> $GITHUB_STEP_SUMMARY
 
           FILES=(
-            "references/glossary.md"
+            "references/_shared/glossary-full.md"
+            "references/_shared/glossary-core.md"
             "references/pipeline-readme.md"
             "references/设计文档.md"
             "references/_shared/M-Gate-Algorithm.md"

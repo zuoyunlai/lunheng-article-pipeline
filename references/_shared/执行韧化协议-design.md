@@ -86,11 +86,11 @@
 ```
 
 ### 3. LLM 可用性初判（v2.3 已有，v2.1.0 强化 + v2.5.18 配额预警；v2.7.6 由「模型健康度预检」更名）
-- **每个角色启动时**用论衡 agent `model.fallbacks` 链：
-  - primary: `deepseek/deepseek-v4-pro`
-  - fallback 1: `minimax-portal/MiniMax-M3`（已验证 fallback 成功 T4 实战）
-  - fallback 2: `deepseek/deepseek-v4-flash`（便宜快）
-  - fallback 3: `coding-plan/glm-5.3`（跨供应商最终兜底）
+- **每个角色启动时**依赖宿主 agent 的 `model.fallbacks` 配置链（**宿主维护项，论衡不绑定模型 ID，v2.5.6 口径**；以下为本机开发示例，实际以宿主 OpenClaw 配置为准）：
+  - primary: `deepseek/deepseek-v4-pro`（本机开发示例）
+  - fallback 1: `minimax-portal/MiniMax-M3`（本机开发示例，曾验证 fallback 成功 T4 实战）
+  - fallback 2: `deepseek/deepseek-v4-flash`（本机开发示例，便宜快）
+  - fallback 3: `coding-plan/glm-5.3`（本机开发示例，跨供应商最终兜底）
 - **预检方法**：每个角色 session 第一次 LLM 调用前，先发一个 1-token ping（"ok"），若 30 秒内无响应则降级到下一档
 - **降级日志**：在 status.md 阶段行末尾写 `[降级 HH:MM] primary→fallback1, 原因=ping超时`
 
