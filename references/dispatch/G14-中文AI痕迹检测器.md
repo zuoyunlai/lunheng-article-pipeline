@@ -1,16 +1,4 @@
-> 版本：v2.7.4（自动同步 2026-09-07）
-
-
-
-
-
-
-
-
-
-
-
-
+> 版本：v2.7.5（自动同步 2026-09-07）
 
 
 
@@ -19,14 +7,7 @@
 
 > 从 pipeline-readme.md 派发话术段拆出（v2.5.6 token 优化）。主控 spawn G14 中文 AI 痕迹检测器（v2.4.0 新增） 时按需读本文件，避免一次加载全部派发话术。完整角色卡见 references/agents/。
 
-> **v2.6.5 子代理工具白名单（主控 spawn 必传 toolsAllow，5 档分档：allow_review）**：
-> ```json
-> ["read","session_status","progress_card"]
-> ```
-> **allow_review 档 = 只读**：不写 / 不改 / 不出网 / 不调记忆 / 不调图像 / 不 spawn 子会话。**禁止**：除上表 3 项（read / session_status / progress_card）外的全部工具（含 sessions_spawn / write / edit / memory_* / image_generate）。
-> **降级自报（v2.7.3）**：遇 provider 401 / 配额耗尽，在 final message 返回 `{"status": "degraded", "reason": "<错误摘要>"}` 后立即结束，**禁止 0 tokens 静默退出**（主控凭此触发 fallback 标注，ECS 实战三子代理静默教训）。
-> **作用**：论衡「零 exec」哲学护栏 + OpenClaw 9.1 子代理工具继承机制修复。**主控 spawn 任何 T 角色必须传 toolsAllow**，不传 = 子代理继承宿主全部默认工具（含 exec / process / browser） = **违背论衡「零 exec」哲学**。
-> **token 统计**：子代理 stats 由 sessions_spawn 返回值提供（v2.6.1 精确机制，取代 v2.5.18 三级降级）。
+> 公共工具白名单 / 零 exec / 降级自报 / token 统计：见 [`_shared/dispatch-header.md`](../_shared/dispatch-header.md)
 
 
 ### G14 中文 AI 痕迹检测器（v2.4.0 新增）

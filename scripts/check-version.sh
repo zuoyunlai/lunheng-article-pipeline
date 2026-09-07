@@ -47,7 +47,8 @@ echo ""
 # 路径规则：内容文件相对 CONTENT_DIR；入口文件（README/QUICKSTART）用 @ 前缀，相对 ENTRY_DIR
 CHECKS=(
   # 核心文档
-  "glossary.md|v$EXPECTED|1"
+  "_shared/glossary-full.md|v$EXPECTED|1"
+  "_shared/glossary-core.md|v$EXPECTED|1"
   "pipeline-readme.md|v$EXPECTED|1"
   "设计文档.md|v$EXPECTED|1"
   "设计文档-架构.md|v$EXPECTED|1"
@@ -93,7 +94,8 @@ CHECKS=(
   "checkers/中文AI痕迹-checker.md|v$EXPECTED|1"
 
   # 扩展 _shared 协议（实战反馈 + v2.5.0/v2.5.1 新增）
-  "_shared/执行韧化协议-v2.1.0.md|v$EXPECTED|1"
+  "_shared/执行韧化协议-exec.md|v$EXPECTED|1"
+  "_shared/执行韧化协议-design.md|v$EXPECTED|1"
   "_shared/failure-modes.md|v$EXPECTED|1"
   "_shared/字数判定表.md|v$EXPECTED|1"
   "_shared/degraded-scenarios.md|v$EXPECTED|1"

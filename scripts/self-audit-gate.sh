@@ -79,7 +79,7 @@ fi
 EXPECTED_VERSION=$(grep -m1 '^version:' SKILL.md | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 VERSION_FILES=(
   "SKILL.md" "README.md" "QUICKSTART.md"
-  "references/glossary.md" "references/pipeline-readme.md"
+  "references/_shared/glossary-full.md" "references/pipeline-readme.md"
   "references/deliverables.md" "references/case-studies.md"
   "references/operations.md" "references/errors.md"
   "references/agents/00-主控-coordinator.md"
@@ -103,7 +103,8 @@ VERSION_FILES=(
   "references/_shared/期刊匹配算法.md"
   "references/_shared/中文数据源集成.md"
   "references/_shared/format-export.md"
-  "references/_shared/执行韧化协议-v2.1.0.md"
+  "references/_shared/执行韧化协议-exec.md"
+  "references/_shared/执行韧化协议-design.md"
   "references/gates/14-中文AI痕迹-gate.md"
   "references/checkers/中文AI痕迹-checker.md"
   "references/templates/任务简报-template.md"
@@ -366,7 +367,7 @@ GLOBAL_LESSON_REFS=$(grep -rhoE '教训 #[0-9]+' \
     --include="*.md" --include="*.sh" \
     --exclude="*.bak*" \
     references/agents/ references/_shared/ references/gates/ \
-    references/glossary.md references/pipeline-readme.md references/operations.md \
+    references/_shared/glossary-full.md references/_shared/glossary-core.md references/pipeline-readme.md references/operations.md \
     references/design*.md references/设计文档*.md \
     SKILL.md README.md QUICKSTART.md 2>/dev/null \
   | grep -oE '[0-9]+' | sort -un | tr '\n' ' ')
@@ -575,7 +576,7 @@ fi
 PURIFY_DIR="$SKILL_ROOT/outputs/clawhub-release/$EXPECTED_VERSION"
 if [ -d "$PURIFY_DIR" ]; then
   # 仅检查关键文件 md5
-  KEY_FILES=("SKILL.md" "QUICKSTART.md" "references/glossary.md")
+  KEY_FILES=("SKILL.md" "QUICKSTART.md" "references/_shared/glossary-full.md")
   MD5_MISMATCH=""
   for kf in "${KEY_FILES[@]}"; do
     [ ! -f "$kf" ] && continue

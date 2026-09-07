@@ -56,7 +56,8 @@ echo ""
 # 路径规则：内容文件（glossary/agents 等）相对 CONTENT_DIR；入口文件（README/QUICKSTART）用 @ 前缀，相对 ENTRY_DIR
 SYNCS=(
   # 核心文档（顶部插入版本号）
-  "glossary.md|header"
+  "_shared/glossary-full.md|header"
+  "_shared/glossary-core.md|header"
   "pipeline-readme.md|header"
   "设计文档.md|header"
   "设计文档-架构.md|header"
@@ -103,7 +104,8 @@ SYNCS=(
   "checkers/中文AI痕迹-checker.md|header"
 
   # 扩展 _shared 协议（实战反馈 + v2.5.0/v2.5.1 新增）
-  "_shared/执行韧化协议-v2.1.0.md|header"
+  "_shared/执行韧化协议-exec.md|header"
+  "_shared/执行韧化协议-design.md|header"
   "_shared/failure-modes.md|header"
   "_shared/字数判定表.md|header"
   "_shared/degraded-scenarios.md|header"

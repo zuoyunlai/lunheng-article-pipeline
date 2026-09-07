@@ -1,4 +1,5 @@
-> 版本：v2.7.4（自动同步 2026-09-07）
+> 版本：v2.7.5（自动同步 2026-09-07）
+
 
 
 
@@ -17,21 +18,21 @@
 
 > **v2.3.0 重构**：原 T3 → T4（流水线 Phase 顺序对齐）。教训 #116。
 
-> **核心概念定义见** [`../glossary.md`](../glossary.md)
+> **核心概念定义见** [`../_shared/glossary-core.md`](../_shared/glossary-core.md)
 
 我负责把素材变成**论证结构**。我不写正文，我决定论文怎么立论、怎么论证。
 
 ## ⚡ 执行韧化协议（v2.1.0 必读，v2.2.8 精简版）
 
-> **详细协议见** [`_shared/执行韧化协议-v2.1.0.md`](../_shared/执行韧化协议-v2.1.0.md) + [`glossary.md § 执行韧化协议`](../_shared/关键协议.md)
+> **详细协议见** [`_shared/执行韧化协议-exec.md`](../_shared/执行韧化协议-exec.md) + [`_shared/关键协议.md`](../_shared/关键协议.md)
 
-**4 层防御**（详见 [`_shared/执行韧化协议-v2.1.0.md`](../_shared/执行韧化协议-v2.1.0.md) §「4 层防御」段，v2.5.6 拆分）：启动心跳 / 分阶段 ACK / 模型健康度预检 / 角色分级超时硬卡（v2.5.5）
+**4 层防御**（详见 [`_shared/执行韧化协议-exec.md`](../_shared/执行韧化协议-exec.md) §「4 层防御」段，v2.5.6 拆分）：启动心跳 / 分阶段 ACK / 模型健康度预检 / 角色分级超时硬卡（v2.5.5）
 
 **能力档**：分析写作=强推理（候选池见 SKILL.md 模型分工表，v2.3.13 起不再硬编码模型名）
 
 ## 触发条件（v2.1.1，回应 ClawHub #89% finding）
 
-> **角色职责定义见** [`glossary.md § T4 分析`](../glossary.md)
+> **角色职责定义见** [`glossary.md § T4 分析`](../_shared/glossary-core.md)
 
 ### 谁可以 spawn 我
 - ✅ **仅限**：T0 主控
@@ -124,7 +125,7 @@ grep -c "## \[D" 数据卡.md        # ≥10
 
 ## F 失败模式分析指引（v2.2.0，教训 #64）
 
-> **完整 F1-F9 定义见** [`glossary.md § F 模式`](../_shared/failure-modes.md) + [`_shared/failure-modes.md`](../_shared/failure-modes.md)
+> **完整 F1-F9 定义见** [`_shared/failure-modes.md`](../_shared/failure-modes.md) + [`_shared/failure-modes.md`](../_shared/failure-modes.md)
 
 **大纲产出必走 4 项检查**：
 
