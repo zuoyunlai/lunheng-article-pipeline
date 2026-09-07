@@ -1,4 +1,5 @@
-> 版本：v2.7.2（自动同步 2026-09-07）
+> 版本：v2.7.3（自动同步 2026-09-07）
+
 
 
 
@@ -22,6 +23,7 @@
 > ["read","session_status","progress_card"]
 > ```
 > **allow_review 档 = 只读**：不写 / 不改 / 不出网 / 不调记忆 / 不调图像 / 不 spawn 子会话。**禁止**：除上表 3 项（read / session_status / progress_card）外的全部工具（含 sessions_spawn / write / edit / memory_* / image_generate）。
+> **降级自报（v2.7.3）**：遇 provider 401 / 配额耗尽，在 final message 返回 `{"status": "degraded", "reason": "<错误摘要>"}` 后立即结束，**禁止 0 tokens 静默退出**（主控凭此触发 fallback 标注，ECS 实战三子代理静默教训）。
 > **作用**：论衡「零 exec」哲学护栏 + OpenClaw 9.1 子代理工具继承机制修复。**主控 spawn 任何 T 角色必须传 toolsAllow**，不传 = 子代理继承宿主全部默认工具（含 exec / process / browser） = **违背论衡「零 exec」哲学**。
 > **token 统计**：子代理 stats 由 sessions_spawn 返回值提供（v2.6.1 精确机制，取代 v2.5.18 三级降级）。
 
@@ -43,7 +45,7 @@ F. 人称错位（「我」字频 >1%）
 G. 个人辨识度缺失（LLM 自评风格相似度 >80%）
 H. 党报话语堆砌（重要讲话精神等，全文 ≥3 处，政治学科特化）
 
-【输出】audits/G14-检测报告-v{N}.md（报告头必须写 `draft_id` / `draft_version` / `g14_status`；**报告回传机制（v2.7.2，配合只读档白名单）**：报告全文置于交接回传（final message），不自行写盘；主控收到后 `write` 落盘并走「读盘确认铁律」核验。）：
+【输出】audits/G14-检测报告-v{N}.md（若本报告为主控 fallback 亲出：头部强制标注 `[主控 fallback 产物 / <实际模型> / <日期>]`，v2.7.3）（报告头必须写 `draft_id` / `draft_version` / `g14_status`；**报告回传机制（v2.7.2，配合只读档白名单）**：报告全文置于交接回传（final message），不自行写盘；主控收到后 `write` 落盘并走「读盘确认铁律」核验。）：
 - 8 类逐项判定（命中数 + 阈值 + 原文示例 + 位置）
 - 整体判定：0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail
 - 修订建议（按类别给改写示例）

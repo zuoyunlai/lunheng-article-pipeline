@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: lunheng-article-pipeline
-version: 2.7.2
+version: 2.7.3
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化判定）+ F 失败模式防御 + 数据信任 3 档 + 修订回环 ≤2 轮。使用前需 Phase 0 同意关卡。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
@@ -281,6 +281,19 @@ metadata:
 **主控 Phase 0 必须给主人 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**，选项定义见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md)），并写入 `01-任务简报.md` 的「外部服务同意记录」段作为审计追溯依据（v2.6.4 起 full/lite 两版任务简报模板均含该强制段）。
 
 **主人拒绝任一外发项** → 主控调整方案并重做 Phase 0 确认。
+
+## 修订回环仲裁规则（v2.7.3 新增，ECS 实战：规则散在主控经验里导致误判）
+
+| 轮次 | 内容 | 计数 |
+|---|---|---|
+| v1 | T5 初稿（Phase 3 产出） | 0 轮 |
+| v1 → v2 | 主控洞察轮（Phase 3.5 主人补充 + T6/G14 反馈融入） | 1 轮 |
+| v2 → v3 | 批判反馈轮（T7 打回 / G14 Warning+ 修订）或 T8 亲修 | 2 轮 |
+| v3 之后 minor cosmetic（≤5% 字 / 引用格式 / 拼写） | **T8 inline 亲修，不计新轮** | — |
+| v3 之后 P0 / 结构性 P1（A/B/C） | **必须 spawn T5 v4 独立写手 + 启动 Acknowledged Limitations 模式** | 3 轮（例外通道，须主人拍板） |
+
+- T7 / T9 / G14 报告头部显式写 `修订回环 = N/2`；T8 终检按此表仲裁「还能不能改」（不再靠主控 memory 经验推断）
+- T9 minor 建议默认由 T8 inline 处置；T9 major / 扩写建议 → 呈主人拍板是否启 v4（T9 是建议元数据，不自动触发，v2.4.0 定位）
 
 ## 交付边界 + F 失败模式 + M 门 + 修订回环 + 阶段闸门（v2.2.8 按需加载）
 
