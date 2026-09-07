@@ -492,6 +492,14 @@ else
 fi
 
 # =============================================================================
+# 共享：M 门族扫描文件集（一次 find，M.2/M.3/M.4 复用；v2.7.5 批3 优化）
+MD_SCAN_FILES=$(find "$SKILL_ROOT" -name '*.md' \
+    -not -path '*/outputs/*' -not -path '*/.git/*' \
+    -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
+    -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
+    -not -name '*.bak*' 2>/dev/null)
+MD_SCAN_COUNT=$(echo "$MD_SCAN_FILES" | grep -c . || true)
+
 # 门 M：发布包 exec/process 授权语句一致性（v2.6.8 新增，回应 ClawHub T05 三连击）
 # =============================================================================
 # 背景：v2.6.6 修协议、v2.6.7 修兜底列表，但模板里仍残留「主控可 exec」授权表述
@@ -509,21 +517,16 @@ DENIED_TOOLS=$(sed -n '/^  denied:/,/^[^ ]/p' "$SKILL_ROOT/SKILL.md" 2>/dev/null
 M_SCAN_FILES=0
 for tool in $DENIED_TOOLS; do
   while IFS= read -r md_file; do
-    M_SCAN_FILES=$((M_SCAN_FILES+1))
     hits=$(grep -nE "主控.{0,40}(\\\`?${tool}\\\`?)|(\\\`?${tool}\\\`?.{0,12}兜底)|(同意后的.{0,12}\\\`?${tool})|子代理.{0,20}(使用|调用|可用).{0,8}${tool}" "$md_file" 2>/dev/null \
       | grep -vE '禁止|不得|不能|永不|绝不|不调用|不使用|不执行|不碰|不自动|never|must not|denied|永久拒绝|零 exec|zero-exec|不包含|无法|拒绝')
     if [ -n "$hits" ]; then
       GATE_M_FAIL="$GATE_M_FAIL [${md_file#$SKILL_ROOT/} 含 ${tool} 授权残留: $(echo "$hits" | head -1 | cut -c1-80)]"
     fi
-  done < <(find "$SKILL_ROOT" -name '*.md' \
-      -not -path '*/outputs/*' -not -path '*/.git/*' \
-      -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
-      -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
-      -not -name '*.bak*' 2>/dev/null)
+  done < <(echo "$MD_SCAN_FILES")
 done
 
 if [ -z "$GATE_M_FAIL" ]; then
-  pass "门 M: denied 工具授权语句一致性（扫描 ${M_SCAN_FILES} 处文件 x $(echo "$DENIED_TOOLS" | tr '\n' ' ')，零授权残留）"
+  pass "门 M: denied 工具授权语句一致性（扫描 ${MD_SCAN_COUNT} 处文件 x $(echo "$DENIED_TOOLS" | tr '\n' ' ')，零授权残留）"
 else
   fail "门 M: 发现 denied 工具授权语句（metadata.tools.denied vs 正文矛盾）" "$GATE_M_FAIL"
 fi
@@ -538,11 +541,7 @@ while IFS= read -r md_file; do
   if [ -n "$hits" ]; then
     M_CROSS_HITS="$M_CROSS_HITS [${md_file#$SKILL_ROOT/}: $(echo "$hits" | head -1 | cut -c1-70)]"
   fi
-done < <(find "$SKILL_ROOT" -name '*.md' \
-    -not -path '*/outputs/*' -not -path '*/.git/*' \
-    -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
-    -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
-    -not -name '*.bak*' 2>/dev/null)
+done < <(echo "$MD_SCAN_FILES")
 if [ -z "$M_CROSS_HITS" ]; then
   pass "门 M.3: 跨项目状态写入零强制语句（教训只进项目内草稿，共享文件需主人人工 merge）"
 else
@@ -557,11 +556,7 @@ while IFS= read -r md_file; do
   if [ -n "$hits" ]; then
     M_ML_HITS="$M_ML_HITS [${md_file#$SKILL_ROOT/}: $(echo "$hits" | head -1 | cut -c1-70)]"
   fi
-done < <(find "$SKILL_ROOT" -name '*.md' \
-    -not -path '*/outputs/*' -not -path '*/.git/*' \
-    -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
-    -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
-    -not -name '*.bak*' 2>/dev/null)
+done < <(echo "$MD_SCAN_FILES")
 if [ -z "$M_ML_HITS" ]; then
   pass "门 M.4: models list 零授权残留（模型自检统一 session_status 只读口径）"
 else
@@ -593,7 +588,7 @@ if [ -d "$PURIFY_DIR" ]; then
     warn "门 G: 净化包 md5 不一致:$MD5_MISMATCH（净化包正常做 sed/pip 替换，不一致属预期）"
   fi
 else
-  warn "门 G: 净化包未生成（outputs/clawhub-release/$EXPECTED_VERSION 不存在）"
+  pass "门 G: 净化包未生成（commit 阶段正常态，发布时 build-clawhub-release.sh 后自动生成）"
 fi
 
 # =============================================================================
