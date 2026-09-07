@@ -1,4 +1,5 @@
-> 版本：v2.7.8（自动同步 2026-09-07）
+> 版本：v2.7.9（自动同步 2026-09-07）
+
 
 
 
@@ -27,7 +28,7 @@
 - T1 文献检索员的职责与边界
 - 三检索员并行协议（T1∥T2∥T3）
 - 数据信任级别（3 档）
-- 执行韧化协议（心跳/ack/健康度预检/超时硬卡）
+- 执行韧化协议（心跳/ack/LLM 可用性初判/超时硬卡）
 
 本文档是 T1 特有的操作细节，不重复概念定义。
 
@@ -37,7 +38,7 @@
 
 > **详细协议见** [`_shared/执行韧化协议-exec.md`](../_shared/执行韧化协议-exec.md)（含三检索员并行监控补充 v2.1.8 + 编排防空转 v2.2.8 教训 #102 + 模型 fallback 链）。
 
-1. **启动心跳**（30 秒内必做）：**只读** `status.md` 看当前状态 + 写自己的心跳文件 `run/<项目>/.tmp/01-文献检索-heartbeat.md`（或通过子代理心跳文件通知），写明「启动时间 + 当前模型 + 状态=检索中」；主控收到信号后**独占写** `status.md`（v2.3.11 P1-5 教训 #60 文档漂移修复：子代理**不得**直接 write/edit status.md）。
+1. **启动心跳**（30 秒内必做）：**只读** `status.md` 看当前状态 + 写自己的心跳文件 `run/<项目>/.tmp/01-文献检索-heartbeat.md`（写明「启动时间 + 当前模型 + 状态=检索中」）；主控按心跳节奏**独占写** `status.md`（v2.3.11 P1-5 教训 #60 文档漂移修复：子代理**不得**直接 write/edit status.md）。
 2. **分阶段 ack**：<2 分钟启动 ack 即可；2-5 分钟启动+完成；5-15 分钟五段 ack；>15 分钟**禁止**（必须拆任务）。
 3. **LLM 可用性初判**：子代理观察首次 LLM 调用的响应时间与首 token 延迟；30 秒内无首字节返回 → 降级 fallback 链。
 4. **超时硬卡 10 分钟**（角色分级，v2.5.5；**墙钟**含 OpenClaw 调度 + 子会话启动；runtime 通常 1-3 分钟）：8 分警告 → 9 分 partial output → 10 分被主控 kill。
@@ -96,12 +97,12 @@
   - **为什么独立子任务**：T1/T2/T3 是三方并行检索，未定据点（无法针对特定 Dxx 精检索）；T1b 是定向检索（只对特定 Dxx 回查）。
 
 - **中文数据源集成派发（v2.5.5 P1 新增，教训 #174 主人实测反馈）**：主控 prompt 含以下指令（任务简报勾选「启用中文数据源集成」时）。**完整 URL / 梯队说明见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md)（单一真源，勿在此复制 URL，教训 #60）**：
-  1. **LLM 推理模拟 OpenAlex API（默认启用，第一梯队，v2.5.5 新增，只读公开 API 无需 Key）**：
-     - LLM 推理调用：web_fetch 拉 OpenAlex API（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
+  1. **OpenAlex API（默认启用，第一梯队，v2.5.5 新增，只读公开 API 无需 Key）**：
+     - 调用方式：`web_fetch` 真拉 OpenAlex JSON（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
      - LLM 解析 JSON 提取 [Lxx] 元数据：`id / doi / title / publication_date / authorships[].author.display_name / cited_by_count / concepts[].display_name`
      - **实战 60-70% 真实 API 效果**（LLM 解析 JSON 偶有错误，大文档 20+ 篇时建议分批）
-  2. **LLM 推理模拟 Crossref API（默认启用，第一梯队，只读公开 API 无需 Key）**：
-     - LLM 推理调用：web_fetch 拉 Crossref API（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
+  2. **Crossref API（默认启用，第一梯队，只读公开 API 无需 Key）**：
+     - 调用方式：`web_fetch` 真拉 Crossref JSON（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
      - LLM 解析 JSON 提取元数据（DOI / 标题 / 作者 / 期刊）
   3. **去重合并**：DOI 相同 / URL 相同 / 标题编辑距离 < 10% 三选一即合并（合并后保留 OpenAlex 元数据更全）
   4. **文献卡输出格式**（v2.5.5 新增字段）：
@@ -117,10 +118,10 @@
   5. **第二梯队（需 API key，可选默认关闭）**：任务简报明示启用时，**主人自配**环境变量（`WANFANG_APP_KEY` / `KQING_APP_KEY` / `NSTL_APP_KEY`），论衡不存储 key。key **永不进入任何 prompt / 会话记录 / 日志 / 卡片**（论衡零 exec，无法代跑带鉴权请求；第二梯队仅在主人于宿主环境配置 key 并自行调用后，把**不含 key 的结果**投喂给 T1 时使用——即论衡只消费脱敏结果，不触碰 key 本身）。
   6. **第三梯队（Firecrawl 抓取 paper.edu.cn，可选默认关闭）**：任务简报明示启用时，**主人自配** `firecrawl_api_key` 在宿主环境自行调用，把不含 key 的抓取结果投喂给主控；论衡不存储 key，key **永不进入 prompt / 会话 / 日志**。
 
-  **实战背景**：v2.5.4 以前论衡 T1 仅用 web_search + tavily_search，中文文献元数据完整性约 80%（DOI 标准化、被引频次、概念标签缺失）。v2.5.5 后加 LLM 推理模拟 OpenAlex + Crossref，中文文献元数据完整性提升至 95%+。
+  **实战背景**：v2.5.4 以前论衡 T1 仅用 web_search + tavily_search，中文文献元数据完整性约 80%（DOI 标准化、被引频次、概念标签缺失）。v2.5.5 后加 web_fetch 直拉 OpenAlex + Crossref（LLM 解析），中文文献元数据完整性提升至 95%+。
 
   **限制**（v2.5.5 设计透明）：
-  - LLM 推理模拟 ≠ 真 HTTP 调用，但 OpenAlex API 是公开的，web_fetch 可获取完整 JSON
+  - 调用 = web_fetch 真拉 JSON + LLM 解析；解析偶有错误（非网络失败），大文档建议分批
   - 大文档（20+ 篇）LLM 解析偶有错误——主控建议分批（每批 10 篇）
   - 实测实战效果约 60-70% 真 API 等效（够用，但非 100%）
 
