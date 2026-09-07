@@ -1,4 +1,5 @@
-> 版本：v2.7.13（自动同步 2026-09-07）
+> 版本：v2.7.14（自动同步 2026-09-07）
+
 
 
 
@@ -33,12 +34,14 @@
 论衡是纯 skill，无需创建独立 agent：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.7.14  # pin 审计版本（回应 ClawHub T08 供应链审计，v2.7.14）
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
 > **宿主配置建议（v2.7.12 修正 v2.6.3 旧表述；v2.7.13 软化为建议）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），任何 OpenClaw 配置均可直接运行；「零 exec」的**机械保证依赖宿主收紧**子代理工具面——OpenClaw 2026.9.x 的 `sessions_spawn` 已无 toolsAllow 参数，子代理会继承主控未剥工具。**建议**宿主在 openclaw.json 配置 `tools.subagents.tools.deny`（至少 exec/process/browser/apply_patch）或 allow 最小集；未收紧时子代理可能持有 exec，零 exec 退化为纪律层软保障（全文档零授权 + 角色卡约束），非机械强制。token 统计走精确路径（sessions_spawn 返回值 stats + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
+
+> **运行前软保障自检（v2.7.14 新增）**：首次运行 Phase 0 时主控会先自查工具面——若主控自身持有 exec/process/browser/apply_patch 且宿主未在 config 机械 deny，主控向主人呈现三态确认（已 deny / 未 deny / 不确定），结果记入 status.md `**软保障**: mechanical / prompt-level`。软保障运行**不拒绝、不降级**：零 exec 靠纪律层（全文档零授权 + 角色卡约束），config 收紧是宿主的可选机械加固。详见 SKILL.md「运行前软保障自检」。
 
 ---
 

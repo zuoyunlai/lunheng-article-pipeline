@@ -1,4 +1,5 @@
-> 版本：v2.7.13（自动同步 2026-09-07）
+> 版本：v2.7.14（自动同步 2026-09-07）
+
 
 
 
@@ -57,6 +58,7 @@
 **当前阶段**: Phase 0 / Phase 1 / Phase 1.5 / Phase 2 / Phase 2.5 / Phase 3 / Phase 3.5 / Phase 3.6 / Phase 4 / Phase 4.2 / Phase 4.5 / Phase 5
 **当前活动**: <一句话描述>
 **最后更新**: YYYY-MM-DD HH:MM
+**软保障**: mechanical / prompt-level（v2.7.14 运行前自检，Phase 0 确认：mechanical = 主控无特权工具；prompt-level = 宿主未机械 deny、主人已确认软保障运行）
 **M 门**: v2.2.12 / v2.5.x
 **数据信任档**: 全外发 / 混合 / 全人工（v2.6.1 新增，教训 #191 拓展，Phase 0 拍板）
   - 全外发：默认 web_search + tavily_search 检索，主人不投喂一手数据
