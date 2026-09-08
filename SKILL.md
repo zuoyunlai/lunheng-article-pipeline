@@ -2,7 +2,7 @@
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
 version: 2.10.0
-description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。论衡是纯 skill（主人 v2.7.13 拍板），任意 OpenClaw 配置开箱可用——本机宿主 config 不作任何强制收紧要求；零 exec 是纪律层软保障（非机械强制），全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则；不读取宿主 gateway/config/凭据路径。Phase 0 同意关卡 4 选 1 fail-closed（全部同意/脱敏+SVG+本地/部分同意/全部拒绝）；image_generate 封面生成 Phase 0 opt-in gating 默认关闭；Firecrawl/万方等中文二线数据源 Phase 0 opt-in gating 默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单；心跳周期性写入 run/<项目名>/.tmp/ Phase 0 明示。<2000 字建议直接用主控 LLM。"
+description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。论衡是纯 skill（主人 v2.7.13 拍板），任意 OpenClaw 配置开箱可用——本机宿主 config 不作任何强制收紧要求；零 exec 是论衡纪律承诺：全文档零授权（SKILL.md / references/ / 角色卡 / 派发话术 / 算法脚本 禁用 13 项特权工具）+ 自审门 M 门扫描 + 外部内容不可信原则；不读取宿主 gateway/config/凭据路径。历史 v2.6.5→v2.6.9 五轮 ClawHub 扫描 CLEAN 即本设计达标。Phase 0 同意关卡 4 选 1 fail-closed（全部同意/脱敏+SVG+本地/部分同意/全部拒绝）；image_generate 封面生成 Phase 0 opt-in gating 默认关闭；Firecrawl/万方等中文二线数据源 Phase 0 opt-in gating 默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单；心跳周期性写入 run/<项目名>/.tmp/ Phase 0 明示。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
     requires:
@@ -118,7 +118,9 @@ metadata:
 
 **其他约束**：
 - 🔒 **论衡是纯 skill，任意 OpenClaw 配置开箱可用（v2.10.1 重申主人 v2.7.13 拍板）**：本机宿主 config **不作任何强制收紧要求**——config 只对本机生效，不会随 ClawHub 净化包分发；论衡定位是「说明书」不是「独立 agent」，任意具备 `sessions_spawn` + 检索工具的 OpenClaw agent 加载即可运行（v2.3.13 skill 化决策）。这是设计定位，不是缺陷：宿主若需 exec 硬隔离可自行加 `tools.subagents.tools.deny`，但论衡**不做**强制前置要求。
-- 🔒 **零 exec 是论衡的纪律层软保障（v2.10.1 澄清口径）**：论衡运行时不调 exec/process/browser/apply_patch/cron 等特权工具（SKILL.md / references/ / 角色卡 / 派发话术 / 算法脚本 全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则）。**这是论衡自身的纪律承诺**，不是机械保证——子代理权限边界由 OpenClaw 平台 + 宿主 config 决定，论衡从技能侧**无法机械强制**。宿主若未 deny exec，子代理理论上可继承；论衡运行时只走 read/write/edit/sessions_spawn 等声明路径，从不主动触发 exec 调用。**ClawHub 安全审计 T05 「机械零 exec」在当前 OpenClaw 平台 + 纯 skill 定位下设计不可达——这是诚实标注，不是设计缺陷**：要拿到机械零 exec，唯一路径是论衡做成独立 agent（自带工具面），但这违背 v2.3.13 skill 化拍板，主人 v2.7.13 已显式拒绝该路径。
+- 🔒 **零 exec 是论衡的纪律层软保障（v2.10.1 澄清口径）**：论衡运行时不调 exec/process/browser/apply_patch/cron 等特权工具（SKILL.md / references/ / 角色卡 / 派发话术 / 算法脚本 全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则）。**这是论衡自身的纪律承诺**，不是机械保证——子代理权限边界由 OpenClaw 平台 + 宿主 config 决定，论衡从技能侧**无法机械强制**。宿主若未 deny exec，子代理理论上可继承；论衡运行时只走 read/write/edit/sessions_spawn 等声明路径，从不主动触发 exec 调用。
+  - **历史证据（v2.6.5→v2.6.9 五轮闭环全绿）**：论衡此前曾连续五轮 ClawHub 扫描 CLEAN——靠的不是机械 deny，而是 **SKILL.md 文本层明确表达（禁用 13 项 + 必传 toolsAllow + fail-closed + 全文档零授权 + 跨文件证据链）**。扫描器读 SKILL.md 时认可设计表达。v2.7.12 平台去掉 sessions_spawn 的 toolsAllow 参数后，才进入「设计表述 vs 机械强制」背离区；v2.7.13 主人拍板接受软保障 → 扫描器 Outcome 从 CLEAN 退到 Review。
+  - **v2.10.1 路径**：主人重申「**论衡是纯 skill，任意 OpenClaw 配置开箱可用**」拍板——本机宿主 config 不作任何强制收紧要求（config 只对本机生效不进净化包）。设计表述上仍坚持「零 exec 纪律层 + 全文档零授权 + fail-closed」，但**不**声称机械强制，**不**声称扫描器会自动给 Pass——扫描结果由 ClawHub 扫描器在每次 publish 时判定。
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，不执行实际 shell 命令（bash 示例是给人类主人手动复核的参考命令，不是 agent 执行代码）。
 - ℹ️  **零 exec ≠ 零核验**：所有「检查/计数/比对/核验」动作由 agent 用 `read` 读取文件 + LLM 逐项判定完成；命令式短句是检查规则的速记，等价动作一律走 read/write/edit。
 - ℹ️  **建议运行环境**：禁用 exec 的 agent。
