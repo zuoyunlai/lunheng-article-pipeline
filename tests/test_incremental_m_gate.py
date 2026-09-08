@@ -14,7 +14,11 @@ import json
 # 添加脚本目录到路径
 sys.path.insert(0, str(Path(__file__).parent.parent / 'scripts'))
 
-from incremental_m_gate import ChangeDetector, IncrementalMGateValidator
+from incremental_m_gate import (
+    ChangeDetector,
+    SectionChangeDetector,
+    IncrementalMGateValidator,
+)
 
 
 class TestChangeDetector(unittest.TestCase):
@@ -252,6 +256,181 @@ class TestIncrementalMGateValidator(unittest.TestCase):
         self.assertEqual(results1, results2)
 
 
+class TestSectionChangeDetector(unittest.TestCase):
+    """章节级变更检测器测试（v2.10.0 新增）"""
+
+    def setUp(self):
+        self.temp_dir = Path(tempfile.mkdtemp())
+        self.cache_file = self.temp_dir / ".test_section_cache.json"
+        self.detector = SectionChangeDetector(self.cache_file)
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
+    def _make_md(self, name, sections):
+        """创建含章节的 Markdown 文件，sections = [(标题, 内容), ...]"""
+        f = self.temp_dir / name
+        lines = ['# 文档标题', '']
+        for title, content in sections:
+            lines.append(f'## {title}')
+            lines.append(content)
+        f.write_text('\n'.join(lines), encoding='utf-8')
+        return f
+
+    def test_split_sections(self):
+        """测试章节拆分"""
+        f = self._make_md('test.md', [
+            ('第一章', '内容A'),
+            ('第二章', '内容B'),
+            ('第三章', '内容C'),
+        ])
+
+        sections = self.detector.split_sections(f)
+        titles = [t for t, _ in sections]
+
+        self.assertIn('（前言）', titles)
+        self.assertIn('第一章', titles)
+        self.assertIn('第二章', titles)
+        self.assertIn('第三章', titles)
+
+    def test_get_changed_sections_new_file(self):
+        """测试新文件：所有章节都标记为新增"""
+        f = self._make_md('new.md', [
+            ('第一章', '内容A'),
+            ('第二章', '内容B'),
+        ])
+
+        changed = self.detector.get_changed_sections(f)
+
+        # 新文件所有章节都应标记为 [新增]
+        self.assertTrue(any('[新增] 第一章' in c for c in changed))
+        self.assertTrue(any('[新增] 第二章' in c for c in changed))
+
+        # 第二次检测：无变更
+        changed2 = self.detector.get_changed_sections(f)
+        self.assertEqual(changed2, [])
+
+    def test_get_changed_sections_modified(self):
+        """测试修改单个章节：只标记该章节"""
+        f = self._make_md('modified.md', [
+            ('第一章', '内容A'),
+            ('第二章', '内容B'),
+        ])
+
+        # 首次检测（初始化缓存）
+        self.detector.get_changed_sections(f)
+
+        # 只修改第二章
+        f.write_text(
+            '# 文档标题\n\n## 第一章\n内容A\n## 第二章\n内容B已修改',
+            encoding='utf-8'
+        )
+
+        changed = self.detector.get_changed_sections(f)
+
+        # 只有第二章被标记（不带 [新增]/[删除] 前缀）
+        self.assertIn('第二章', changed)
+        self.assertNotIn('第一章', changed)
+        self.assertFalse(any('第二章' in c and '[新增]' in c for c in changed))
+
+    def test_get_changed_sections_added(self):
+        """测试新增章节：标记为 [新增]"""
+        f = self._make_md('added.md', [
+            ('第一章', '内容A'),
+        ])
+
+        self.detector.get_changed_sections(f)
+
+        # 新增第二章
+        f.write_text(
+            '# 文档标题\n\n## 第一章\n内容A\n## 第二章\n内容B',
+            encoding='utf-8'
+        )
+
+        changed = self.detector.get_changed_sections(f)
+
+        self.assertTrue(any('[新增] 第二章' in c for c in changed))
+        self.assertNotIn('第一章', changed)
+
+    def test_get_changed_sections_deleted(self):
+        """测试删除章节：标记为 [删除]"""
+        f = self._make_md('deleted.md', [
+            ('第一章', '内容A'),
+            ('第二章', '内容B'),
+        ])
+
+        self.detector.get_changed_sections(f)
+
+        # 删除第二章
+        f.write_text(
+            '# 文档标题\n\n## 第一章\n内容A',
+            encoding='utf-8'
+        )
+
+        changed = self.detector.get_changed_sections(f)
+
+        self.assertTrue(any('[删除] 第二章' in c for c in changed))
+
+    def test_cache_persistence_section(self):
+        """测试章节缓存持久化"""
+        f = self._make_md('persist.md', [
+            ('第一章', '内容A'),
+        ])
+
+        self.detector.get_changed_sections(f)
+
+        # 创建新检测器，加载缓存
+        detector2 = SectionChangeDetector(self.cache_file)
+        changed = detector2.get_changed_sections(f)
+
+        # 未修改，无变更
+        self.assertEqual(changed, [])
+
+
+class TestSectionLevelValidation(unittest.TestCase):
+    """章节级增量验证集成测试（v2.10.0 新增）"""
+
+    def setUp(self):
+        self.temp_dir = Path(tempfile.mkdtemp())
+        (self.temp_dir / "drafts").mkdir()
+
+        # 创建含章节的草稿
+        draft = self.temp_dir / "drafts/初稿-v1.md"
+        draft.write_text(
+            '# 初稿\n\n## 引言\n内容1 [L01]\n## 第一章\n内容2 [D01]',
+            encoding='utf-8'
+        )
+
+        self.validator = IncrementalMGateValidator(self.temp_dir)
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
+    def test_section_changes_detected(self):
+        """测试章节级变更被检测"""
+        # 首次验证
+        self.validator.validate_incremental('phase_4')
+
+        # 只修改第一章
+        draft = self.temp_dir / "drafts/初稿-v1.md"
+        draft.write_text(
+            '# 初稿\n\n## 引言\n内容1 [L01]\n## 第一章\n修改后的内容2 [D01]',
+            encoding='utf-8'
+        )
+
+        # 检测变更文件
+        changed_files = [draft]
+        section_changes = self.validator.get_changed_sections_for_files(
+            changed_files
+        )
+
+        # 应该检测到章节级变更
+        self.assertIn('drafts/初稿-v1.md', section_changes)
+        sections = section_changes['drafts/初稿-v1.md']
+        self.assertIn('第一章', sections)
+        self.assertNotIn('引言', sections)
+
+
 def run_tests():
     """运行所有测试"""
     loader = unittest.TestLoader()
@@ -259,6 +438,8 @@ def run_tests():
     
     suite.addTests(loader.loadTestsFromTestCase(TestChangeDetector))
     suite.addTests(loader.loadTestsFromTestCase(TestIncrementalMGateValidator))
+    suite.addTests(loader.loadTestsFromTestCase(TestSectionChangeDetector))
+    suite.addTests(loader.loadTestsFromTestCase(TestSectionLevelValidation))
     
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

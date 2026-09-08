@@ -1,6 +1,7 @@
 # M 门依赖关系配置
-# 版本: v2.9.0
+# 版本: v2.10.0
 # 用途: 定义每个 M 门检查的依赖文件，用于增量验证
+# v2.10.0: 配合章节级变更检测（scripts/incremental_m_gate.py SectionChangeDetector）
 
 M-Form-1:
   name: 引用完整性
