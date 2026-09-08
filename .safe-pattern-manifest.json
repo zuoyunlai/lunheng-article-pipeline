@@ -5,7 +5,7 @@
       "file": "references/permissions.md",
       "reason": "doc-example",
       "lines": "42",
-      "note": "「拒绝访问清单」文本中包含 /etc/passwd / ~/.ssh 路径示例，路径在「拒绝」上下文里非真实访问意图（v2.10.1 SEC-CRED-005 误报豁免）"
+      "note": "「拒绝访问清单」文本中包含 /etc/passwd / ~/.ssh 路径示例，路径在「拒绝」上下文里非真实访问意图（v2.10.1 创建（SEC-CRED-005 误报豁免）；v2.10.3 复审（仍有效））"
     }
   ]
 }
