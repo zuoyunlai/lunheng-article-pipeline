@@ -104,13 +104,13 @@ metadata:
 
 **Opt-in（默认禁止，Phase 0 主人明确同意才解锁，`metadata.tools.opt_in`）**：
 - `image_generate` — 封面生成专用，**默认关闭**，Phase 0 问「是否需要生成封面」答「是」才开
-- `memory_get` / `memory_search` / `memory_recall` — **默认关闭**（v2.7.9 集中授权制）：默认工作流不读任何 Agent 工作区记忆文件，写作偏好由主人 Phase 0 写入任务简报「写作偏好」字段；仅当主人 Phase 0 显式勾选「启用记忆辅助」并点名允许的文件/用途才解锁，记入 status.md「Phase 0 同意记录」；T6/T7 调 `memory_recall` 需宿主 config 层临时放行（不放行则主控代查回传）
-- 解锁方式：status.md「Phase 0 同意记录」段填写 `opt_in: [image_generate: yes, memory: yes]`，凭记录而非凭 prompt 调阅
+- `memory_get` / `memory_search` / `memory_recall` — **默认关闭**（v2.7.9 集中授权制）：默认工作流不读任何 Agent 工作区记忆文件，写作偏好由主人 Phase 0 写入任务简报「写作偏好」字段；仅当主人 Phase 0 显式勾选「启用记忆辅助」并点名允许的文件/用途才解锁，记入 `run/<项目名>/status.md`「Phase 0 同意记录」；T6/T7 调 `memory_recall` 需宿主 config 层临时放行（不放行则主控代查回传）
+- 解锁方式：`run/<项目名>/status.md`「Phase 0 同意记录」段填写 `opt_in: [image_generate: yes, memory: yes]`，凭记录而非凭 prompt 调阅
 
 **行为授权（非工具，Phase 0 预授权记录，默认全关，v2.6.6 新增回应 T05/G14 审计）**：
 - **配额耗尽预授权**：未勾选 = 暂停等主人拍板（fail-closed）；预授权仅限白名单工具路径，**永不覆盖 exec/process 等永久拒绝**
 - **G14 Warning 预授权**：未勾选 = 暂停等主人 3 选 1
-- 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`
+- 记录位置：`run/<项目名>/status.md`「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`
 
 **禁用（`metadata.tools.denied`）— 13 项永久**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / memory_forget / sessions_search / sessions_send
 
@@ -118,7 +118,7 @@ metadata:
 
 **其他约束**：
 - 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数（v2.7.12/v2.7.13 软化为建议口径）**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**。子代理工具面由三层决定：① 平台**硬性剥除**（gateway/agents_list/session_status/cron/message/sessions_send/conversations_*；叶子另剥 subagents/sessions_*）② **捕获主控有效工具策略快照** ③ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**建议宿主**在 config 层收紧子代理工具面以获得机械保证；不收紧时零 exec 退化为**软保障**（纪律层），非机械强制。5 档分档是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。
-- 🔒 **运行前软保障自检（v2.7.14，回应 ClawHub v2.7.13 审计 T05）**：Phase 0 派发第一批子代理前，主控执行一次软保障判定并请主人确认，结果记入 status.md「项目元数据」`**软保障**: mechanical / prompt-level`：① 主控自身不含 `exec/process/browser/apply_patch` → 子代理继承面必不含这些特权工具（教训 #202）→ 记 `mechanical`；② 主控持有 → 向主人呈现三态（宿主已 deny/未 deny/不确定）；③ 未 deny 或不确定 → 主人确认后记 `prompt-level`（软保障运行，**不拒绝运行**——纯 skill 定位，config 收紧是宿主可选机械加固而非运行前置）；④ 每次 spawn 前复核该标记。
+- 🔒 **运行前软保障自检（v2.7.14，回应 ClawHub v2.7.13 审计 T05）**：Phase 0 派发第一批子代理前，主控执行一次软保障判定并请主人确认，结果记入 `run/<项目名>/status.md`「项目元数据」`**软保障**: mechanical / prompt-level`：① 主控自身不含 `exec/process/browser/apply_patch` → 子代理继承面必不含这些特权工具（教训 #202）→ 记 `mechanical`；② 主控持有 → 向主人呈现三态（宿主已 deny/未 deny/不确定）；③ 未 deny 或不确定 → 主人确认后记 `prompt-level`（软保障运行，**不拒绝运行**——纯 skill 定位，config 收紧是宿主可选机械加固而非运行前置）；④ 每次 spawn 前复核该标记。
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，不执行实际 shell 命令（bash 示例是给人类主人手动复核的参考命令，不是 agent 执行代码）。
 - ℹ️  **零 exec ≠ 零核验**：所有「检查/计数/比对/核验」动作由 agent 用 `read` 读取文件 + LLM 逐项判定完成；命令式短句是检查规则的速记，等价动作一律走 read/write/edit。
 - ℹ️  **建议运行环境**：禁用 exec 的 agent。
@@ -148,7 +148,7 @@ metadata:
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）
 2. 读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）
 3. **语言与受众确认（v2.7.9 显式语言选择步）**：默认中文写作。**Phase 0 先向主人确认目标语言**（中文 / English / 中英混 / 其他，写入任务简报）；本技能的同意提示、隐私披露、流程关卡均以中文呈现并面向中文写作者——使用者不熟悉中文时须在此步声明，主控为其提供关键提示的英文摘要后再征求同意，避免无效同意
-4. **记忆辅助（可选，集中授权制，v2.7.9 收紧）**：**默认不读任何 Agent 工作区记忆文件**——写作偏好/风格基线一律由主人在 Phase 0 写入 `01-任务简报.md`「写作偏好」字段，作为唯一默认依据。仅当主人 Phase 0 显式勾选「启用记忆辅助」并**指明允许读取的文件与用途**时，主控才可用 `memory_get`/`memory_search`/`memory_recall`（opt_in 工具，非 `read`）读取主人点名范围；同意记录写入 status.md「Phase 0 同意记录」段，T7 审计按记录核验。未获授权的记忆文件（含本 skill 目录外的 MEMORY.md / memory/YYYY-MM-DD.md / 风格基线文件）一律不读
+4. **记忆辅助（可选，集中授权制，v2.7.9 收紧）**：**默认不读任何 Agent 工作区记忆文件**——写作偏好/风格基线一律由主人在 Phase 0 写入 `01-任务简报.md`「写作偏好」字段，作为唯一默认依据。仅当主人 Phase 0 显式勾选「启用记忆辅助」并**指明允许读取的文件与用途**时，主控才可用 `memory_get`/`memory_search`/`memory_recall`（opt_in 工具，非 `read`）读取主人点名范围；同意记录写入 `run/<项目名>/status.md`「Phase 0 同意记录」段，T7 审计按记录核验。未获授权的记忆文件（含本 skill 目录外的 MEMORY.md / memory/YYYY-MM-DD.md / 风格基线文件）一律不读
 5. **spawn 子代理前必读对应派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 各角色的派发模板在 `references/dispatch/`（v2.5.6 拆分成 10 个独立文件，spawn 哪角色读哪文件），不要凭记忆复制（教训 #57）
 6. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）——审计员卡读全文件即可，不设锚点（锚点 slug 依赖渲染平台，维护易错，教训 #60）
 7. **文件修改安全流程**（v2.1.4 F5）：**禁止 `sed -i`**（静默清空文件教训 #48）——用 `edit` 工具精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
@@ -190,7 +190,7 @@ metadata:
 
 **5 档能力映射**：检索（T1-T3，便宜快）/ 分析写作（T4-T5，强推理）/ 批判审计（T6-T7，顶配防漏判）/ 主控（T0，稳定路由）/ 终检（T8，主控亲完成，不 spawn）。
 
-**映射规则（v2.5.6 P1-3 修订，教训 #176）**：Phase 0 模型自检（`session_status` 只读扫宿主可见模型）→ 每档按「能力需求」映射第一个可用模型，写入 status.md「本轮可用模型」表；候选池不绑定具体模型 ID。**顶配档全不可用 → 显式告知主人禁止静默降级**；派发 T6/T7 前查余额 < $0.1 → 走下一档并告知深度降级。
+**映射规则（v2.5.6 P1-3 修订，教训 #176）**：Phase 0 模型自检（`session_status` 只读扫宿主可见模型）→ 每档按「能力需求」映射第一个可用模型，写入 `run/<项目名>/status.md`「本轮可用模型」表；候选池不绑定具体模型 ID。**顶配档全不可用 → 显式告知主人禁止静默降级**；派发 T6/T7 前查余额 < $0.1 → 走下一档并告知深度降级。
 
 > 📚 **完整候选池描述（5 档 × 能力需求 × 候选池示例）见** [`references/model-assignment.md`](references/model-assignment.md)。
 
@@ -206,8 +206,8 @@ metadata:
 
 **⚠️ 文件写入警告（运行本 skill 会写盘）**：
 
-- 本流水线运行时会**创建和修改文件**——主控与各子代理会写入 `status.md` 状态机、`run/<项目名>/` 项目文件树（01-任务简报 / 文献卡 / 数据卡 / 案例卡 / 分析大纲 / 草稿 / 审计报告 / 定稿 / 图件 / 证据包 / 交付说明）以及各子代理的心跳文件，共约 15-25 个文件
-- **心跳周期性写入警告（v2.7.9 明示）**：运行期间各子代理按心跳协议（启动 + 每约 5 分钟）**仅写入自己的心跳文件** `run/<项目名>/.tmp/<角色>-heartbeat.md`（轻量进度行，供主控监控）；`status.md` **由主控独占写入**，子代理不直接写。所有心跳/状态写入均限于 `run/<项目名>/` 内且已列入下方 Phase 0 文件清单——运行中不产生清单外写入
+- 本流水线运行时会**创建和修改文件**——主控与各子代理会写入 `run/<项目名>/status.md` 状态机、`run/<项目名>/` 项目文件树（01-任务简报 / 文献卡 / 数据卡 / 案例卡 / 分析大纲 / 草稿 / 审计报告 / 定稿 / 图件 / 证据包 / 交付说明）以及各子代理的心跳文件，共约 15-25 个文件
+- **心跳周期性写入警告（v2.7.9 明示）**：运行期间各子代理按心跳协议（启动 + 每约 5 分钟）**仅写入自己的心跳文件** `run/<项目名>/.tmp/<角色>-heartbeat.md`（轻量进度行，供主控监控）；`run/<项目名>/status.md` **由主控独占写入**，子代理不直接写。所有心跳/状态写入均限于 `run/<项目名>/` 内且已列入下方 Phase 0 文件清单——运行中不产生清单外写入。**主人 Phase 0 同意记录已含「接受心跳周期性写入」明示条款**（回应 SkillSpector Missing User Warnings）
 - **仅写入当前 workspace 根目录**，不写 workspace 外
 - **<项目名> 由主人 Phase 0 显式确认**（不接受 LLM 自动命名），且必须满足：`[\w\-一-鿿]{1,32}`（无路径分隔符，无 `..`，无绝对路径前缀）
 - **Phase 0 必须先列出将创建的全部文件清单让主人确认**，主人同意后才开始 Phase 1（写盘）
@@ -258,7 +258,7 @@ metadata:
 ## 流水线全景（Phase 0-5）
 
 ```
-Phase 0 定题        与主人确认主题/篇幅/受众/配图意向（无/要图） → 01-任务简报.md + status.md；**到达时按 checkpoint-card-template.md 骨架呈现（v2.7.0）**
+Phase 0 定题        与主人确认主题/篇幅/受众/配图意向（无/要图） → `run/<项目名>/01-任务简报.md` + `run/<项目名>/status.md`；**到达时按 checkpoint-card-template.md 骨架呈现（v2.7.0）**
 Phase 1 并行检索    T1 文献检索员 ∥ T2 数据检索员 ∥ T3 案例检索员（sessions_spawn 三方真并行，sessions_yield 等待；T3 任何量级必 spawn，含 0 条空卡协议）
 Phase 1.5 定向回查  条件触发的显式回查窗口（触发：任务简报标 [Dxx 待复核] / 🔴 二手转引未回溯 / T9 证据强度低；触发则 spawn T1b 定向回查 → 更新数据卡 → 重跑 T2.5 闸门；未触发必须记录 not_triggered + 依据，禁止静默跳过）
 Phase 2 分析        T4 分析员 → analysis/分析大纲.md（论点-论据映射 + 反方论证规划 + 三角验证）
@@ -280,7 +280,7 @@ Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 
 ```
 run/<项目名>/
 ├── 01-任务简报.md       # Phase 0 产出：子问题拆解 + 字数预算 + 配图意向 + 期刊/风格模板
-├── status.md            # 状态机：Inbox→Assigned→In Progress→Review→Done|Failed（角色交接必更新）
+├── status.md            # `run/<项目名>/status.md` 状态机：Inbox→Assigned→In Progress→Review→Done|Failed（角色交接必更新）
 ├── literature/文献卡.md # T1 产出：[L01]... 每条含可信度等级 A/B/C + 关联
 ├── data/数据卡.md       # T2 产出：[D01]... 每条含来源机构+年份+URL+时效🟢🟡🔴
 ├── cases/案例卡.md      # T3 产出：[C01]... 每条含事件/主体/时间窗口/多方说法/≥2来源
@@ -363,7 +363,7 @@ run/<项目名>/
 - 实战案例库（商业热点 / 品牌一致性 / 原创性悖论 + 教训沉淀）：`references/case-studies.md`
 - **T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启）**：论文投稿前的「预演审稿人」，6 维度评分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范，每维度 1-5 分，总分 30），26-30 accept / 21-25 minor / 16-20 major / <16 reject。**行业分析/学术论文默认开启，公众号默认关闭（主人可选）**。**v2.5.0 期刊匹配助手**：基于 T9 评分 + 主题关键词，从 [references/_shared/期刊数据库.md](references/_shared/期刊数据库.md)（25 中文 CSSCI/北大核心 + 12 英文 SSCI）+ [references/_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)（主题契合 50% + 风格匹配 30% + T9 评分 20%），输出 Top 3 期刊 + 综合匹配度。详见 [`references/agents/09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md) + [`references/templates/审稿报告-template.md`](references/templates/审稿报告-template.md)。
 - **G14 中文 AI 痕迹深度检测闸（v2.4.0 新增）**：Phase 4.5 触发，T6 批判伙伴并行调用。8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）。0-2 类 Pass / 3-4 类 Warning 触发 T5 修订 1 轮 / 5+ 类 Fail 触发 T5 修订 2 轮。详见 [`references/gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md)。**主人在 Phase 0 可显式关闭 G14**。
-- **方法论实时可见面板（v2.4.0 新增）**：借鉴 deep-research-pro 的方法论透明（论衡化）。在 `status.md` 加「方法论足迹」段，含当前阶段 / 证据强度 / 已触发闸门 / 下一步预测 / 不确定性 / 模型健康度 6 个字段。详见 [`references/templates/status-template.md`](references/templates/status-template.md)「方法论足迹」段。**主人在 Phase 0 可显式关闭方法论足迹**。
+- **方法论实时可见面板（v2.4.0 新增）**：借鉴 deep-research-pro 的方法论透明（论衡化）。在 `run/<项目名>/status.md` 加「方法论足迹」段，含当前阶段 / 证据强度 / 已触发闸门 / 下一步预测 / 不确定性 / 模型健康度 6 个字段。详见 [`references/templates/status-template.md`](references/templates/status-template.md)「方法论足迹」段。**主人在 Phase 0 可显式关闭方法论足迹**。
 
 ## 实战验证案例
 
