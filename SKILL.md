@@ -2,7 +2,7 @@
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
 version: 2.10.0
-description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。使用前需 Phase 0 同意关卡；可选封面图像生成默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单。<2000 字建议直接用主控 LLM。"
+description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。零 exec 是纪律层软保障（主人 v2.7.13 拍板）：论衡运行时不调 exec/process/browser/apply_patch 等特权工具——仅走 read/write/edit/sessions_spawn/web_search/web_fetch/tavily/session_status/progress_card 等声明路径；宿主未 deny exec 时子代理理论上可继承，论衡从技能侧无法机械强制（v2.7.12 限定）。建议宿主在 config 层 deny 子代理 exec 以获机械保证；不收紧时论衡照常运行（软保障：全文档零授权 + M 门扫描 + 外部内容不可信原则）。Phase 0 同意关卡 4 选 1 fail-closed（全部同意/脱敏+SVG+本地/部分同意/全部拒绝）；image_generate 封面生成 Phase 0 opt-in gating 默认关闭；Firecrawl/万方等中文二线数据源 Phase 0 opt-in gating 默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单；心跳周期性写入 run/<项目名>/.tmp/ Phase 0 明示；不读取宿主 gateway/config/凭据路径。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
     requires:
@@ -117,8 +117,8 @@ metadata:
 **Workspace 路径收口（v2.6.5，回应 SkillSpector）**：read/write/edit 仅允许 `run/<项目名>/` 子树；**拒绝**绝对路径、父路径穿越（`..`）、symlink 逃逸、工作区外访问。cwd_default 是路径提示**不是沙箱保证**——spawn 时必须显式传 `cwd: run/<项目名>/`，子代理首句必读 `references/_shared/关键协议.md` §workspace 边界。
 
 **其他约束**：
-- 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数（v2.7.12/v2.7.13 软化为建议口径）**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**。子代理工具面由三层决定：① 平台**硬性剥除**（gateway/agents_list/session_status/cron/message/sessions_send/conversations_*；叶子另剥 subagents/sessions_*）② **捕获主控有效工具策略快照** ③ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**建议宿主**在 config 层收紧子代理工具面以获得机械保证；不收紧时零 exec 退化为**软保障**（纪律层），非机械强制。5 档分档是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。
-- 🔒 **运行前软保障自检（v2.7.14，回应 ClawHub v2.7.13 审计 T05）**：Phase 0 派发第一批子代理前，主控执行一次软保障判定并请主人确认，结果记入 `run/<项目名>/status.md`「项目元数据」`**软保障**: mechanical / prompt-level`：① 主控自身不含 `exec/process/browser/apply_patch` → 子代理继承面必不含这些特权工具（教训 #202）→ 记 `mechanical`；② 主控持有 → 向主人呈现三态（宿主已 deny/未 deny/不确定）；③ 未 deny 或不确定 → 主人确认后记 `prompt-level`（软保障运行，**不拒绝运行**——纯 skill 定位，config 收紧是宿主可选机械加固而非运行前置）；④ 每次 spawn 前复核该标记。
+- 🔒 **零 exec 是论衡的纪律层软保障（v2.10.1 澄清口径，回应 ClawHub T05 + Intent-Code；主人 v2.7.13 拍板接受软保障）**：论衡运行时不调 exec/process/browser/apply_patch/cron 等特权工具（SKILL.md / references/ / 角色卡 / 派发话术 / 算法脚本 全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则）。这不是机械保证——子代理权限边界由 OpenClaw 平台 + 宿主 config 决定，论衡从技能侧**无法机械强制**。宿主若未 deny exec，子代理理论上可继承；论衡运行时只走 read/write/edit/sessions_spawn 等声明路径，从不主动触发 exec 调用。这与「运行前软保障自检」段互不矛盾：自检判断的是「宿主是否机械保证」，论衡纪律保证的是「论衡自身不调」。
+- 🔒 **运行前软保障自检（v2.7.14，主人拍板：v2.10.1 沿用）**：Phase 0 派发第一批子代理前，主控执行一次软保障判定，结果记入 `run/<项目名>/status.md`「项目元数据」`**软保障**: mechanical / prompt-level`：① 主控自身不含 `exec/process/browser/apply_patch` → 子代理继承面必不含这些特权工具（教训 #202）→ 记 `mechanical`；② 主控持有 → 向主人呈现三态（宿主已 deny / 未 deny / 不确定）；③ 主人确认后无论哪一态均记 `mechanical` / `prompt-level`，**不拒绝运行**——论衡是纯 skill，配置收紧是宿主可选机械加固，不是运行前置条件（主人 v2.7.13 拍板接受软保障）。④ 每次 spawn 前复核该标记。
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，不执行实际 shell 命令（bash 示例是给人类主人手动复核的参考命令，不是 agent 执行代码）。
 - ℹ️  **零 exec ≠ 零核验**：所有「检查/计数/比对/核验」动作由 agent 用 `read` 读取文件 + LLM 逐项判定完成；命令式短句是检查规则的速记，等价动作一律走 read/write/edit。
 - ℹ️  **建议运行环境**：禁用 exec 的 agent。
@@ -207,7 +207,10 @@ metadata:
 **⚠️ 文件写入警告（运行本 skill 会写盘）**：
 
 - 本流水线运行时会**创建和修改文件**——主控与各子代理会写入 `run/<项目名>/status.md` 状态机、`run/<项目名>/` 项目文件树（01-任务简报 / 文献卡 / 数据卡 / 案例卡 / 分析大纲 / 草稿 / 审计报告 / 定稿 / 图件 / 证据包 / 交付说明）以及各子代理的心跳文件，共约 15-25 个文件
-- **心跳周期性写入警告（v2.7.9 明示）**：运行期间各子代理按心跳协议（启动 + 每约 5 分钟）**仅写入自己的心跳文件** `run/<项目名>/.tmp/<角色>-heartbeat.md`（轻量进度行，供主控监控）；`run/<项目名>/status.md` **由主控独占写入**，子代理不直接写。所有心跳/状态写入均限于 `run/<项目名>/` 内且已列入下方 Phase 0 文件清单——运行中不产生清单外写入。**主人 Phase 0 同意记录已含「接受心跳周期性写入」明示条款**（回应 SkillSpector Missing User Warnings）
+- **🔔 心跳周期性写入明示警告（v2.10.1 强化）**：运行期间各子代理按心跳协议（启动 + 每约 5 分钟）**仅写入自己的心跳文件** `run/<项目名>/.tmp/<角色>-heartbeat.md`（轻量进度行，供主控监控）。`run/<项目名>/status.md` **由主控独占写入**，子代理不直接写。
+  - **本项明示同意（v2.10.1，回应 SkillSpector Missing User Warnings）**：运行本 skill 即表示主人已**明示接受**心跳周期性写入；心跳是论衡运行可观测性必需，非可选副作用。
+  - 心跳写入限于 `run/<项目名>/.tmp/`，**不会写项目外任何路径**；`status.md` 由主控独占，子代理心跳不包含项目机密数据，仅含进度行 + 心跳时间戳。
+  - Phase 0 同意记录已含「接受心跳周期性写入」明示条款。
 - **仅写入当前 workspace 根目录**，不写 workspace 外
 - **<项目名> 由主人 Phase 0 显式确认**（不接受 LLM 自动命名），且必须满足：`[\w\-一-鿿]{1,32}`（无路径分隔符，无 `..`，无绝对路径前缀）
 - **Phase 0 必须先列出将创建的全部文件清单让主人确认**，主人同意后才开始 Phase 1（写盘）
@@ -230,6 +233,10 @@ metadata:
 > **完整服务列表 + 4 选 1 同意关卡详见** [`references/_shared/glossary-full.md`](references/_shared/glossary-full.md)「九、外部服务声明」节
 
 **主控 Phase 0 必须给主人 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**，选项定义见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md)），并写入 `01-任务简报.md` 的「外部服务同意记录」段作为审计追溯依据（v2.6.4 起 full/lite 两版任务简报模板均含该强制段）。
+
+> **🔒 第二三梯队中文数据源明示（v2.10.1 新增，回应 SkillSpector Firecrawl 范围 finding）**：默认启用检索层 = 仅第一梯队 **OpenAlex / Crossref**（公开学术元数据 API，只发检索关键词）+ **web_search（OpenClaw 内置）+ tavily_search**（全局化），不调 Firecrawl、不调万方 / 科情 / NSTL API。第二三梯队（万方 / 科情 / NSTL API + Firecrawl 抓取 paper.edu.cn）**默认全部关闭**，需主人在 Phase 0 显式勾选启用并自配 API key——论衡不存储、不传递、不读取 `firecrawl_api_key` 等任何凭据值。详见 [`references/_shared/中文数据源集成.md`](references/_shared/中文数据源集成.md)。
+
+> **🔒 不读取宿主网关配置（v2.10.1 新增，回应 SkillSpector Context-Inappropriate Capability）**：论衡运行不调用 `gateway` / `config` / 任何宿主配置读取工具——主控 documented 工具集为 read / write / edit + sessions_spawn + sessions_yield + sessions_history + subagents + web_search / web_fetch / tavily_search / tavily_extract + session_status / progress_card，无 gateway / config / agents_list / cron / message 类工具。论衡运行时无权读取宿主平台安全配置、模型 provider 配置、或代理设置。宿主可单独配置 gateway 限权访问，与论衡运行无关。
 
 **主人拒绝任一外发项** → 主控调整方案并重做 Phase 0 确认。
 
