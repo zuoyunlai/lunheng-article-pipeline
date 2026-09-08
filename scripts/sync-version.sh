@@ -137,6 +137,14 @@ SYNCS=(
   # 顶层文档（入口，v2.3.6 起纳入；@ = 相对 ENTRY_DIR）
   "@README.md|header"
   "@QUICKSTART.md|header"
+
+  # v2.10.0 SKILL.md 外置文件（v2.10.0 P1-3 拆分新增，教训 #198 补入防漏改）
+  "model-assignment.md|header"
+  "permissions.md|header"
+  "_shared/phase-1-details.md|header"
+  "_shared/phase-2-details.md|header"
+  "_shared/phase-3-details.md|header"
+  "_shared/dispatch-header.md|header"
 )
 
 UPDATED=0
