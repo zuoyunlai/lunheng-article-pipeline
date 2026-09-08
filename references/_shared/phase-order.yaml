@@ -1,5 +1,6 @@
 # 论衡阶段真源 v2.6.3
 # 这是流程顺序与阻断关系的开发者维护真源；运行时仍由主控使用 read/write/edit 执行。
+# v2.7.15：agent 报告节点增加 output_chars_max（报告回传长度硬上限，回应实测 #4；超限走分块协议，见 执行韧化协议-design.md § 报告长度上限与分块协议）
 version: 2.6.3
 owner_checkpoints:
   - phase0_definition
@@ -35,6 +36,7 @@ pipeline:
     kind: agent
     agent: T4
     output: analysis/分析大纲.md
+    output_chars_max: 12000
     next: phase2_5_outline
   - id: phase2_5_outline
     kind: owner_checkpoint
@@ -52,6 +54,9 @@ pipeline:
     kind: parallel_agents
     agents: [T6, G14]
     input: current_draft
+    output_chars_max:
+      T6: 12000   # 批判报告（回应实测 #4：T6 v1 16k 超外化阈值被截）
+      G14: 6000   # AI 痕迹检测报告
     next: t5_feedback_revision
   - id: t5_feedback_revision
     kind: conditional_agent
@@ -61,6 +66,7 @@ pipeline:
     kind: agent
     agent: T7
     input: current_draft
+    output_chars_max: 10000
     next: audit_revision
   - id: audit_revision
     kind: bounded_loop
@@ -75,10 +81,12 @@ pipeline:
     kind: advisory_agent
     condition: mode_default_or_owner_enabled
     blocking: false
+    output_chars_max: 15000
     next: t8_technical_final
   - id: t8_technical_final
     kind: owner_agent
     agent: T8
+    output_chars_max: 10000
     next: phase5_acceptance
   - id: phase5_acceptance
     kind: owner_checkpoint
