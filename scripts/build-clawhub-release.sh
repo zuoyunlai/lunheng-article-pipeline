@@ -85,6 +85,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude '.pytest_cache' \
     --exclude '__pycache__' \
     --exclude '*.pyc' \
+    --exclude 'RELEASE-*.md' \
     "$SKILL_ROOT/" "$OUT_DIR/"
 else
   cp -a "$SKILL_ROOT/." "$OUT_DIR/"
@@ -103,6 +104,7 @@ else
   rm -f "$OUT_DIR/references/templates/README-模板拆分方案.md"
   rm -f "$OUT_DIR/README.md"
   rm -f "$OUT_DIR/references/设计文档.md" "$OUT_DIR/references/设计文档-架构.md" "$OUT_DIR/references/设计文档-哲学.md"
+  rm -f "$OUT_DIR"/RELEASE-*.md
   rm -f "$OUT_DIR"/references/_shared/版本升级自审门-*.md
   rm -f "$OUT_DIR"/references/_shared/M-Gate-渐进式验证-*.md
   # 剥离开发者工具文件（教训 #212）
