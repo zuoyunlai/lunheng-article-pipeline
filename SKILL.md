@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.10.1
+version: 2.10.2
 description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill（主人v2.7.13拍板），任意OpenClaw配置开箱可用；零exec是纪律层软保障（13项特权工具禁用+全文档零授权+M门扫描+外部内容不可信），不读宿主gateway/config。v2.6.5→v2.6.9五轮扫描CLEAN。Phase 0 4选1 fail-closed；image_generate/Firecrawl/二线中文源默认关闭Phase 0 opt-in；写入限run/<项目名>/。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
