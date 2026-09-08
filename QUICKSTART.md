@@ -1,4 +1,4 @@
-> 版本：v2.10.2（自动同步 2026-09-08）
+> 版本：v2.10.3（自动同步 2026-09-08）
 
 
 
@@ -41,7 +41,7 @@
 论衡是纯 skill，无需创建独立 agent：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.1  # pin 审计版本（LZ Pro 0 findings 全绿，v2.10.1）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计版本（v2.10.3 修复 ECS audit Review + 主人 v2.7.13 立场强化）
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
