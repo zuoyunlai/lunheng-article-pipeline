@@ -1,0 +1,91 @@
+---
+name: lunheng-article-pipeline
+displayName: 论衡 — 严肃长文流水线
+version: 2.9.0
+description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。使用前需 Phase 0 同意关卡；可选封面图像生成默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单。<2000 字建议直接用主控 LLM。"
+metadata:
+  openclaw:
+    requires:
+      bins: []
+  tools:
+    # v2.9.0 精简重构（P1-3）：引用式声明，去重复，分层清晰
+    # 基础工具（主控 + 所有子代理共享）
+    base:
+      - "read"
+      - "write"
+      - "edit"
+    
+    # 主控独占工具
+    coordinator_only:
+      - "sessions_spawn"
+      - "sessions_yield"
+      - "sessions_history"
+      - "subagents"
+      - "session_status"
+      - "progress_card"
+    
+    # 检索增强工具（T1-T3）
+    research_extra:
+      - "web_search"
+      - "web_fetch"
+      - "tavily_search"
+      - "tavily_extract"
+    
+    # 需主人同意才解锁（默认禁止）
+    opt_in:
+      - "image_generate"
+      - "memory_get"
+      - "memory_search"
+      - "memory_recall"
+    
+    # 永不开放
+    denied:
+      - "exec"
+      - "process"
+      - "browser"
+      - "apply_patch"
+      - "cron"
+      - "video_generate"
+      - "music_generate"
+      - "tts"
+      - "memory_store"
+      - "skill_workshop"
+      - "memory_forget"
+      - "sessions_search"
+      - "sessions_send"
+  
+  # 子代理 5 档权限（引用上面定义的列表）
+  # v2.9.0：精简为引用式，去除重复声明
+  subagent_tiers:
+    research:   ["base", "research_extra"]  # T1-T3: base + 网络检索
+    analysis:   ["base"]                     # T4: base only
+    writing:    ["base"]                     # T5: base only
+    audit:      ["read"]                     # T6-T7: read only
+    review:     ["read"]                     # T9+G14: read only
+  
+  # v2.9.0 保留旧格式作兼容层（展开引用）
+  subagent_tools_allow_research:
+    - "read"
+    - "write"
+    - "edit"
+    - "web_search"
+    - "web_fetch"
+    - "tavily_search"
+    - "tavily_extract"
+  subagent_tools_allow_analysis:
+    - "read"
+    - "write"
+    - "edit"
+  subagent_tools_allow_writing:
+    - "read"
+    - "write"
+    - "edit"
+  subagent_tools_allow_audit:
+    - "read"
+  subagent_tools_allow_review:
+    - "read"
+  subagent_tools_allow:
+    - "read"
+  
+  cwd_default: "run"
+---

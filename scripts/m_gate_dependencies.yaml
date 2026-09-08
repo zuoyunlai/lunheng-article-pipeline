@@ -1,0 +1,89 @@
+# M 门依赖关系配置
+# 版本: v2.9.0
+# 用途: 定义每个 M 门检查的依赖文件，用于增量验证
+
+M-Form-1:
+  name: 引用完整性
+  depends_on:
+    - "drafts/*.md"
+    - "literature/*.md"
+  scope: citations
+
+M-Form-2:
+  name: 结构完整性
+  depends_on:
+    - "drafts/*.md"
+  scope: structure
+
+M-Form-3:
+  name: 无临时编号
+  depends_on:
+    - "drafts/*.md"
+  scope: citations
+
+M-Form-4:
+  name: 无角色元信息
+  depends_on:
+    - "drafts/*.md"
+  scope: content
+
+M-Form-5:
+  name: 无过程性语言
+  depends_on:
+    - "drafts/*.md"
+  scope: content
+
+M-Form-6:
+  name: 信任度标注
+  depends_on:
+    - "data/*.md"
+    - "drafts/*.md"
+  scope: data
+
+M-Form-7:
+  name: 章节白名单
+  depends_on:
+    - "drafts/*.md"
+  scope: structure
+
+M-Form-8:
+  name: 三角验证覆盖
+  depends_on:
+    - "drafts/*.md"
+  scope: evidence
+
+M-Exist-1:
+  name: 引用证据存在性
+  depends_on:
+    - "drafts/*.md"
+    - "literature/*.md"
+    - "data/*.md"
+    - "cases/*.md"
+  scope: citations
+
+M-Exist-2:
+  name: 证据完整性
+  depends_on:
+    - "literature/*.md"
+    - "data/*.md"
+    - "cases/*.md"
+  scope: evidence
+
+M-Exist-3:
+  name: 信任度一致性
+  depends_on:
+    - "data/*.md"
+    - "drafts/*.md"
+  scope: data
+
+M-Integrity-1:
+  name: T2数据源5要素
+  depends_on:
+    - "data/*.md"
+  scope: data
+
+M-Integrity-2:
+  name: T7审计报告完整性
+  depends_on:
+    - "audits/审计报告-*.md"
+  scope: audit

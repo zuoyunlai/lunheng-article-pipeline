@@ -1,37 +1,44 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.8.1
+version: 2.9.0
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。使用前需 Phase 0 同意关卡；可选封面图像生成默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:
     requires:
       bins: []
   tools:
-    # v2.6.5 起重写为分层最小权限：
-    # - declared：技能在论衡文档中会调用的工具声明面（基线 13 项）
-    # - subagent_allow_*：按 5 档角色分级的子代理工具白名单（v2.6.5 新增）
-    # - opt_in：默认禁止、Phase 0 主人明确同意后才解锁的工具（v2.6.5 新增）
-    # - denied：永不开放（无论主控/子代理）
-    declared:
+    # v2.9.0 精简重构（P1-3）：引用式声明，去重复，分层清晰
+    # 基础工具（主控 + 所有子代理共享）
+    base:
       - "read"
       - "write"
       - "edit"
-      - "sessions_spawn"      # 主控独家，spawn 子代理
-      - "sessions_yield"      # 主控独家，等待子代理回执
-      - "sessions_history"    # 主控独家，读本技能 spawn 的子代理会话历史（仅限 self-spawn，v2.7.8 限定）
-      - "subagents"          # v2.7.8 替代 sessions_list：宿主强制的 self-spawn 子代理列表，编排监控不枚举宿主可见会话（回应 A.I.G T05）
-      - "web_search"          # 主控可调，优先给 T1-T3 检索角色
-      - "tavily_search"
-      - "tavily_extract"
-      - "web_fetch"          # v2.7.7 声明补全：T1-T3 检索子代理中文数据源第一梯队（OpenAlex/Crossref）拉 JSON 用，与 allow_research 对齐（SkillSpector Description-Behavior Mismatch）
+    
+    # 主控独占工具
+    coordinator_only:
+      - "sessions_spawn"
+      - "sessions_yield"
+      - "sessions_history"
+      - "subagents"
       - "session_status"
       - "progress_card"
-    opt_in:  # Phase 0 主人明确同意后才解锁
-      - "image_generate"      # v2.6.5 从 declared 移到 opt_in：默认关闭，封面生成才开
-      - "memory_get"          # v2.6.5 opt-in：默认禁，主人同意读记忆才开
+    
+    # 检索增强工具（T1-T3）
+    research_extra:
+      - "web_search"
+      - "web_fetch"
+      - "tavily_search"
+      - "tavily_extract"
+    
+    # 需主人同意才解锁（默认禁止）
+    opt_in:
+      - "image_generate"
+      - "memory_get"
       - "memory_search"
       - "memory_recall"
+    
+    # 永不开放
     denied:
       - "exec"
       - "process"
@@ -46,19 +53,17 @@ metadata:
       - "memory_forget"
       - "sessions_search"
       - "sessions_send"
-  # v2.6.5 修订：子代理工具白名单拆为 5 档最小权限（回应 ClawHub A.I.G T05 + SkillSpector 6 findings）
-  # v2.7.12 修正：以下 5 档是「各角色最小工具集声明」（ClawHub 审计白名单 + 部署建议），不再声称 spawn 传参：
-  #   OpenClaw 2026.9.x 的 sessions_spawn 已无 toolsAllow 参数 —— 子代理实际权限 = 平台硬性剥除
-  #   （gateway/agents_list/session_status/cron/message/sessions_send/conversations_*；叶子另剥 sessions 系列）
-  #   + 主控有效工具策略快照 + 宿主 config tools.subagents（见正文「执行能力边界」段）
-  # 档位说明（session_status 属平台硬性剥除，子代理不可持有，已从各档移除）：
-  #   1. allow_research  → T1/T2/T3 检索：read + write + edit + web_search 系列（检索是本职）
-  #   2. allow_analysis  → T4 分析：read + write + edit（不出网、不调记忆）
-  #   3. allow_writing   → T5 写作：read + write + edit（纯本地写盘）
-  #   4. allow_audit     → T6/T7 批判/审计：read（**不写不改**，仅读 + 召唤 M 门）
-  #   5. allow_review    → T9 同行评审 + G14 风格闸：read（**不调网络/记忆/写盘**）
-  #   T8 终检由主控亲完成，不 spawn 子代理 → 对应 allow 列表全空 []
-  # v2.6.4 单一 allow 保留作 fallback（兼容旧发布包），v2.7.12 起降为纯声明：检索类子代理需 web 时由宿主 config 按档放行
+  
+  # 子代理 5 档权限（引用上面定义的列表）
+  # v2.9.0：精简为引用式，去除重复声明
+  subagent_tiers:
+    research:   ["base", "research_extra"]  # T1-T3: base + 网络检索
+    analysis:   ["base"]                     # T4: base only
+    writing:    ["base"]                     # T5: base only
+    audit:      ["read"]                     # T6-T7: read only
+    review:     ["read"]                     # T9+G14: read only
+  
+  # v2.9.0 保留旧格式作兼容层（展开引用）
   subagent_tools_allow_research:
     - "read"
     - "write"
@@ -76,15 +81,12 @@ metadata:
     - "write"
     - "edit"
   subagent_tools_allow_audit:
-    - "read"            # 唯一 I/O：只读
+    - "read"
   subagent_tools_allow_review:
-    - "read"            # 只读，不调网络/记忆/写盘
-  # v2.6.7 fallback（deny-by-default，回应 T05：旧兼容列表过权）
-  # 仅当宿主读不到分档列表时的最小基线；检索类子代理需 web 时由宿主 config 按档放行
+    - "read"
   subagent_tools_allow:
     - "read"
-  # v2.6.1 适配 OpenClaw 2026.9.1：默认 cwd（论衡项目隔离）
-  # v2.7.11（审计 P2-1）：去硬编码个人绝对路径 → 相对 workspace 提示；使用者可按本机布局改
+  
   cwd_default: "run"
 ---
 
