@@ -63,30 +63,6 @@ metadata:
     audit:      ["read"]                     # T6-T7: read only
     review:     ["read"]                     # T9+G14: read only
   
-  # v2.9.0 保留旧格式作兼容层（展开引用）
-  subagent_tools_allow_research:
-    - "read"
-    - "write"
-    - "edit"
-    - "web_search"
-    - "web_fetch"
-    - "tavily_search"
-    - "tavily_extract"
-  subagent_tools_allow_analysis:
-    - "read"
-    - "write"
-    - "edit"
-  subagent_tools_allow_writing:
-    - "read"
-    - "write"
-    - "edit"
-  subagent_tools_allow_audit:
-    - "read"
-  subagent_tools_allow_review:
-    - "read"
-  subagent_tools_allow:
-    - "read"
-  
   cwd_default: "run"
 ---
 

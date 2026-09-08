@@ -13,7 +13,7 @@
 - web_search / web_fetch / tavily_search / tavily_extract（检索，T1-T3 子代理共享；v2.7.7 声明补全 web_fetch——中文数据源第一梯队 OpenAlex/Crossref 拉 JSON 用，与 allow_research 一致）
 - session_status / progress_card（可观测性）
 
-**子代理 5 档分级白名单（v2.6.5 新增；v2.7.12 起定位为「各角色最小工具集声明」，`metadata.subagent_tools_allow_*`）**：
+**子代理 5 档分级白名单（v2.6.5 新增；v2.7.12 起定位为「各角色最小工具集声明」，`metadata.subagent_tiers`）**：
 | 档位 | 适用角色 | 工具集（最小权限声明） | 凭什么调网络/记忆 |
 |---|---|---|---|
 | `allow_research` | T1/T2/T3 文献/数据/案例检索 | read + write + edit + web_* + tavily_* | 检索是本职 |
@@ -44,7 +44,7 @@
 - 实操：主控 spawn 时 `cwd: run/<项目名>/`；子代理拒绝改 cwd；产出写盘必须落在 `run/<项目名>/<子目录>/` 内
 
 **其他约束**：
-- 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数（v2.7.12 修正 v2.6.1 旧表述；v2.7.13 软化为建议口径）**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证）。子代理工具面由三层决定：① 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_list`/`sessions_history`/`sessions_spawn`）② **捕获主控有效工具策略快照**（主控未被剥的工具，子代理同样继承——主控若持有 exec 而宿主不加约束，子代理也可能继承 exec，**无法**机械保证零 exec）③ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**建议运行论衡的宿主**在 config 层收紧子代理工具面（`tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`，或按 5 档声明配 allow 最小集）以获得机械保证；**不收紧时论衡照常运行**，零 exec 退化为**软保障**（纪律层：全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则），非机械强制。5 档分档（`metadata.subagent_tools_allow_*`）是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。
+- 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数（v2.7.12 修正 v2.6.1 旧表述；v2.7.13 软化为建议口径）**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证）。子代理工具面由三层决定：① 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_list`/`sessions_history`/`sessions_spawn`）② **捕获主控有效工具策略快照**（主控未被剥的工具，子代理同样继承——主控若持有 exec 而宿主不加约束，子代理也可能继承 exec，**无法**机械保证零 exec）③ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**建议运行论衡的宿主**在 config 层收紧子代理工具面（`tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`，或按 5 档声明配 allow 最小集）以获得机械保证；**不收紧时论衡照常运行**，零 exec 退化为**软保障**（纪律层：全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则），非机械强制。5 档分档（`metadata.subagent_tiers`）是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。
 - 🔒 **运行前软保障自检（v2.7.14 新增，回应 ClawHub v2.7.13 审计 T05）**：Phase 0 派发第一批子代理前，主控执行一次软保障判定并请主人确认，结果记入 status.md「项目元数据」`**软保障**: mechanical / prompt-level`：
   1. **自查主控工具面**：主控自身不含 `exec/process/browser/apply_patch`（已被宿主策略剥除/deny）→ 子代理继承面必不含这些特权工具（教训 #202：子代理工具面 = 平台硬剥 + 主控策略快照 − 宿主 config deny），机械层成立 → 记 `mechanical`，无需额外确认。
   2. 主控自身持有上述特权工具 → 子代理是否被宿主 `tools.subagents.tools.deny` 机械拦截**无法从技能侧证明**（技能无宿主 config 读取面）→ 向主人呈现三态：宿主已 deny / 未 deny / 不确定。
