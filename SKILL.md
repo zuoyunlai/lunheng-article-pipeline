@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.7.16
+version: 2.8.0
 description: "严肃长文流水线（学术论文/商业评论/行业分析/公众号深度长文）——多 Agent 子代理编排。三角验证（文献/数据/案例）+ M 门（LLM 结构化自评，非机器强制）+ F 失败模式防御 + 数据信任 3 档 + 常规修订 ≤2 轮（minor 修补与 P0 例外通道显式登记，须主人拍板）。使用前需 Phase 0 同意关卡；可选封面图像生成默认关闭；所有写入限 run/<项目名>/ 且列入 Phase 0 文件清单。<2000 字建议直接用主控 LLM。"
 metadata:
   openclaw:

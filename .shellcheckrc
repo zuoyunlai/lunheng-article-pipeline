@@ -1,0 +1,16 @@
+# ShellCheck 配置（P1-5 修订 2026-09-08）
+
+# 禁用规则（保留论衡特定风格）
+disable=SC2086  # 双引号包裹变量（论衡脚本部分场景需要词拆分）
+disable=SC2181  # 直接检查命令退出码（论衡使用 || echo 0 模式）
+disable=SC1091  # 无法跟随 source（论衡不依赖外部 source）
+
+# 启用规则
+enable=all
+
+# Shell 方言
+shell=bash
+
+# 排除文件
+exclude=SC1090  # 无法跟随非常量 source
+exclude=SC2034  # 未使用变量（某些变量供调试用）

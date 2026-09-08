@@ -1,0 +1,49 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  lint:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+          severity: warning
+      
+      - name: Run pytest
+        run: |
+          cd tests
+          pytest -v --tb=short --cov=. --cov-report=term-missing
+      
+      - name: Run self-audit gate
+        run: |
+          bash scripts/self-audit-gate.sh
+      
+      - name: Check version consistency
+        run: |
+          bash scripts/check-version.sh
+      
+      - name: Validate Python syntax
+        run: |
+          python -m py_compile scripts/*.py tests/*.py

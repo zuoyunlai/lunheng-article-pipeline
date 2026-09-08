@@ -564,6 +564,29 @@ else
 fi
 
 # =============================================================================
+# 门 N：依赖版本锁定（v2.8.0 新增，P0-1 修订 2026-09-08）
+# =============================================================================
+# 检查 requirements.txt 和 tests/requirements-test.txt 是否锁定版本
+REQ_FILES=("requirements.txt" "tests/requirements-test.txt")
+REQ_MISSING=""
+for req_file in "${REQ_FILES[@]}"; do
+  if [ ! -f "$req_file" ]; then
+    REQ_MISSING="$REQ_MISSING [missing:$req_file]"
+    continue
+  fi
+  # 检查是否有未锁定版本的行（包含包名但没有 ==）
+  unpinned=$(grep -vE '^#|^$' "$req_file" | grep -vE '==.*')
+  if [ -n "$unpinned" ]; then
+    REQ_MISSING="$REQ_MISSING [$req_file: $(echo "$unpinned" | head -1)]"
+  fi
+done
+if [ -z "$REQ_MISSING" ]; then
+  pass "门 N: 依赖版本锁定（requirements.txt + tests/requirements-test.txt）"
+else
+  fail "门 N: 依赖版本未锁定" "$REQ_MISSING"
+fi
+
+# =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit

@@ -1,0 +1,12 @@
+# 论衡核心依赖（版本锁定，P0-1 修订 2026-09-08）
+# 用于脚本和工具，非 OpenClaw 运行时依赖
+
+# Token 计数（用于 SKILL.md token 统计）
+tiktoken==0.5.2
+
+# YAML 解析（用于 phase-order.yaml 等配置读取）
+pyyaml==6.0.1
+
+# 测试框架
+pytest==7.4.4
+pytest-cov==4.1.0
