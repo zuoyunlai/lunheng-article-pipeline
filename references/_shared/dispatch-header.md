@@ -4,7 +4,7 @@
 
 > **零 exec 哲学护栏**：论衡 agent 全部禁 `exec` / `process` / `browser` / `apply_patch` / `cron` / `video_generate` / `music_generate` / `tts` / `memory_store` / `skill_workshop` / `memory_forget` / `sessions_search` / `sessions_send`（永久拒绝，Phase 0 同意不能豁免）。
 
-> **子代理工具白名单（5 档角色最小工具集声明，v2.7.12 修正；v2.7.13 软化为建议）**：OpenClaw 2026.9.x 的 `sessions_spawn` **无 toolsAllow 参数**——子代理实际工具 = 主控有效工具策略快照 − 平台硬性剥除（gateway/agents_list/session_status/cron/message/sessions_send/conversations_*；叶子另剥 sessions 系列）。**建议宿主**用 config `tools.subagents.tools.allow/deny` 收紧（至少 deny exec/process/browser/apply_patch）以获得机械保证；未收紧时零 exec 为纪律层软保障（本文件 + 角色卡零授权约束），非机械强制。档位差异在工具层不可逐子表达时，以 prompt + 只读路径约束兜底。
+> **子代理工具白名单（5 档角色最小工具集声明，v2.7.12 修正；v2.10.1 对齐主人 v2.7.13 拍板）**：OpenClaw 2026.9.x 的 `sessions_spawn` **无 toolsAllow 参数**——子代理实际工具 = 主控有效工具策略快照 − 平台硬性剥除（gateway/agents_list/session_status/cron/message/sessions_send/conversations_*；叶子另剥 sessions 系列）。论衡是**纯 skill，任意 OpenClaw 配置开箱可用**，本机宿主 config **不作强制收紧要求**；零 exec 是纪律层软保障（本文件 + 角色卡零授权约束 + M 门扫描 + 外部内容不可信原则），**非机械强制**。宿主若需 exec 硬隔离可**自行**加 config `tools.subagents.tools.deny`（至少 exec/process/browser/apply_patch）作为**可选机械加固**（非前置要求）。档位差异在工具层不可逐子表达时，以 prompt + 只读路径约束兜底。
 > - `allow_research`（T1/T2/T3）: `["read","write","edit","web_search","web_fetch","tavily_search","tavily_extract"]`
 > - `allow_analysis`（T4）: `["read","write","edit"]`
 > - `allow_writing`（T5）: `["read","write","edit"]`

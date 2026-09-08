@@ -40,20 +40,20 @@
 论衡是纯 skill，无需创建独立 agent：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.7.15  # pin 审计版本（回应 ClawHub T08 供应链审计，v2.7.14）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.1  # pin 审计版本（LZ Pro 0 findings 全绿，v2.10.1）
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
-> **宿主配置建议（v2.7.12 修正 v2.6.3 旧表述；v2.7.13 软化为建议）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），任何 OpenClaw 配置均可直接运行；「零 exec」的**机械保证依赖宿主收紧**子代理工具面——OpenClaw 2026.9.x 的 `sessions_spawn` 已无 toolsAllow 参数，子代理会继承主控未剥工具。**建议**宿主在 openclaw.json 配置 `tools.subagents.tools.deny`（至少 exec/process/browser/apply_patch）或 allow 最小集；未收紧时子代理可能持有 exec，零 exec 退化为纪律层软保障（全文档零授权 + 角色卡约束），非机械强制。token 统计走精确路径（sessions_spawn 返回值 stats + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
+> **宿主配置（v2.7.12 修正 v2.6.3 旧表述；v2.10.1 对齐主人 v2.7.13 拍板）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**——本机宿主 config **不作任何强制收紧要求**（config 只对本机生效，不会随净化包分发）。「零 exec」是**纪律层软保障**（全文档零授权 + 角色卡约束 + M 门扫描 + 外部内容不可信原则），**非机械强制**：OpenClaw 2026.9.x 的 `sessions_spawn` 已无 toolsAllow 参数，子代理会继承主控未剥工具，技能侧无法机械保证零 exec。宿主若需 exec 硬隔离，**可自行**加 `tools.subagents.tools.deny`（`[exec, process, browser, apply_patch, ...]` 或 allow 最小集）作为**可选机械加固**，但论衡**不做**强制前置要求。token 统计走精确路径（sessions_spawn 返回值 stats + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
 
-> **运行前软保障自检（v2.7.14 新增）**：首次运行 Phase 0 时主控会先自查工具面——若主控自身持有 exec/process/browser/apply_patch 且宿主未在 config 机械 deny，主控向主人呈现三态确认（已 deny / 未 deny / 不确定），结果记入 status.md `**软保障**: mechanical / prompt-level`。软保障运行**不拒绝、不降级**：零 exec 靠纪律层（全文档零授权 + 角色卡约束），config 收紧是宿主的可选机械加固。详见 SKILL.md「运行前软保障自检」。
+> **运行前软保障自检（v2.7.14 新增，v2.10.1 移除三态确认流程——主人 v2.7.13 拍板：不拒绝运行 + 任意配置可用）**：首次运行 Phase 0 时主控自查工具面，结果记入 status.md `**软保障**: mechanical / prompt-level`：主控自身不含 exec/process/browser/apply_patch → 记 `mechanical`；主控持有上述特权工具或不确定宿主是否 deny → 记 `prompt-level`（纪律层软保障）。**不拒绝、不降级**：零 exec 靠纪律层（全文档零授权 + 角色卡约束 + M 门扫描 + 外部内容不可信原则），config 收紧是宿主的可选机械加固。详见 SKILL.md「运行前软保障自检」。
 
 ---
 
 ## 🔧 宿主适配要点（v2.6.1 起）
 
-- 子代理权限边界 = 宿主 config（v2.7.12 修正）：OpenClaw 2026.9.x 的 `sessions_spawn` **无 `toolsAllow` 参数**，5 档白名单（SKILL.md frontmatter）是**声明/部署建议**而非传参。实际子代理工具 = 主控策略快照 − 平台硬性剥除（含 session_status），宿主须加 `tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`（或 allow 最小集），否则子代理继承主控未剥工具、违背零 exec 哲学
+- 子代理权限边界 = 宿主 config（v2.7.12 修正，v2.10.1 对齐主人 v2.7.13 拍板）：OpenClaw 2026.9.x 的 `sessions_spawn` **无 `toolsAllow` 参数**，5 档白名单（SKILL.md frontmatter）是**声明/部署建议**而非传参。实际子代理工具 = 主控策略快照 − 平台硬性剥除（含 session_status）。论衡是纯 skill，任意配置开箱可用，**本机 config 不作强制收紧**；宿主若需 exec 硬隔离可**自行**加 `tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`（可选机械加固，非前置要求）
 - 默认项目目录 `run/<项目名>/`（`cwd_default` 仅是路径提示，非沙箱保证）
 - token 统计走精确路径（sessions_spawn 返回值 stats + `session_status`）；拿不到精确值记 `unavailable`，不估算
 - 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 15/15 PASS，含门 G 正常态）
