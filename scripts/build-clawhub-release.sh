@@ -47,6 +47,20 @@ rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
 
 # ---- 2. 复制真源（用 rsync 若可用，否则 cp -a）----
+# 开发者工具文件清单（v2.9.0 起净化包必剥离，教训 #212）：
+#   pyproject.toml / requirements.txt — Python 项目元数据，终端用户无需
+#   Makefile / .shellcheckrc — 构建工具与开发者静态检查，终端用户无需
+#   docs/ — CI/CD 设计文档，仅开发者用
+#   tests/ — 测试代码，仅开发者用
+#   scripts/ — 开发者维护脚本（含 self-audit-gate / 增量 M 门 / 版本同步）
+#   .github/ — CI 工作流，仅开发者用
+DEV_TOOL_FILES=(
+  'pyproject.toml'
+  'requirements.txt'
+  'Makefile'
+  '.shellcheckrc'
+)
+
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --exclude '.git' --exclude 'outputs' --exclude '*.bak.*' \
     --exclude '.bak-*' --exclude 'docs' --exclude '.gitignore' \
@@ -64,6 +78,10 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/设计文档-哲学.md' \
     --exclude 'PERFORMANCE-PROFILE.md' \
     --exclude 'references/_shared/教训索引.md' \
+    --exclude 'pyproject.toml' \
+    --exclude 'requirements.txt' \
+    --exclude 'Makefile' \
+    --exclude '.shellcheckrc' \
     --exclude '.pytest_cache' \
     --exclude '__pycache__' \
     --exclude '*.pyc' \
@@ -87,6 +105,10 @@ else
   rm -f "$OUT_DIR/references/设计文档.md" "$OUT_DIR/references/设计文档-架构.md" "$OUT_DIR/references/设计文档-哲学.md"
   rm -f "$OUT_DIR"/references/_shared/版本升级自审门-*.md
   rm -f "$OUT_DIR"/references/_shared/M-Gate-渐进式验证-*.md
+  # 剥离开发者工具文件（教训 #212）
+  for f in "${DEV_TOOL_FILES[@]}"; do
+    rm -f "$OUT_DIR/$f"
+  done
 fi
 
 # ---- 3. 文档净化（sed 替换，剥离「开发者维护」表述）----
@@ -132,6 +154,8 @@ PYEOF
   # 3d. 版本升级自审门（开发者自指工具）→ 弱化引用
   sed -i -E 's/版本升级自审门/版本一致性检查/g' "$f"
   sed -i -E 's/`_shared\/版本一致性检查-v2\.3\.0\.md`[^））]*）//g' "$f"
+  # 文件路径引用：原始命名（开发者视图）→ 描述性措辞（使用者视图）
+  sed -i -E 's/_shared\/版本一致性检查-v2\.3\.0\.md/论衡内部的版本一致性检查（脚本已剥离，使用者无需关心）/g' "$f"
   sed -i -E 's/M-Gate-渐进式验证-v2\.2\.15\.md/M-Gate-Algorithm.md/g' "$f"
 
   # 3f. 主控卡「反哺报告处理」整段替换为净化版（彻底消除跨项目共享状态写入表述，回应 Finding 3）
@@ -290,6 +314,43 @@ PYEOF
 echo "🔧 剥离 shell 命令（保持极简纯净）..."
 find "$OUT_DIR" -name '*.md' -print0 | xargs -0 python3 "$SCRIPT_DIR/strip-shell-commands.py"
 
+# ---- 3h. 净化残留自检（教训 #205 / #213，前置到此处避开 exec timeout）----
+# 注：必须在 SKILL.md 顶部补声明之前，否则该 cat 追加的「使用者发布版」段不会受扫描影响
+echo "🔍 净化残留扫描（前置，教训 #213）..." >&2
+RESIDUAL_HITS=0
+for f in "${DEV_TOOL_FILES[@]}"; do
+  if [[ -f "$OUT_DIR/$f" ]]; then
+    echo "  ❌ 开发者工具残留：$f"
+    RESIDUAL_HITS=$((RESIDUAL_HITS + 1))
+  fi
+done
+RESIDUAL_PATTERNS=(
+  'git commit'
+  'git push'
+  'git tag'
+  '实战教训自动沉淀'
+  'M-Gate-渐进式验证-v2'
+  '版本升级自审门'
+  '版本一致性检查-v2'
+  '需主人提供 API key'
+  'shellcheckrc'
+)
+for pat in "${RESIDUAL_PATTERNS[@]}"; do
+  # grep 无命中时返回 1；在 pipefail 下需显式吞掉该正常状态。
+  hits=$({ grep -rE "$pat" --include='*.md' --include='*.txt' --include='*.toml' "$OUT_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+  if [[ "$hits" -gt 0 ]]; then
+    echo "  ⚠️ 净化表述残留：$pat（$hits 处）"
+    RESIDUAL_HITS=$((RESIDUAL_HITS + 1))
+  fi
+done
+if [[ "$RESIDUAL_HITS" -gt 0 ]]; then
+  echo ""
+  echo "❌ 净化残留扫描未通过：$RESIDUAL_HITS 项"
+  echo "   请检查 build-clawhub-release.sh 的净化规则是否过期（教训 #205：脚本需与真源同步演进）"
+  exit 1
+fi
+echo "  ✅ 净化残留扫描通过"
+
 # ---- 4. 补「使用者视角」声明到 SKILL.md 顶部（回应 scanner 的 scope 疑虑）----
 SKILL_OUT="$OUT_DIR/SKILL.md"
 if [[ -f "$SKILL_OUT" ]]; then
@@ -305,6 +366,8 @@ if [[ -f "$SKILL_OUT" ]]; then
 > - 论衡完整设计（含自我维护机制）见 GitHub 仓库：https://github.com/zuoyunlai/lunheng-article-pipeline
 EOF
 fi
+
+# 净化残留扫描已完成（前置到 #3h，教训 #213），以下为汇总段（可被 exec timeout SIGTERM 不影响产物）
 
 # ---- 5. 汇总 ----
 echo ""
