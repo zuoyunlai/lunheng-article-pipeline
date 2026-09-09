@@ -70,6 +70,16 @@ def block_is_user_facing(block_lines: list) -> bool:
 
 
 def strip_shell(s: str) -> str:
+    # ---- -1. v2.12.0: 论衡开发者门表文件内的 python 代码块也要剥（教训 #252）
+    # 这些文件的代码块仅供本地开发者 python3 执行；净化版使用者侧无脚本，靠 LLM 推理 + 口诀
+    # 实现：检测 "def check_" + "检查器" 标识，若匹配，把 python 围栏块替换为口诀+表格引导
+    s = re.sub(
+        r'```python\n(?:def check_\w+\(.*?\n)+.*?\n```',
+        '**【本地开发者脚本见 `scripts/论文可发表性检查脚本.py`，净化版无】** —— LLM 推理口诀 + 三列表已在上方。',
+        s,
+        flags=re.DOTALL,
+    )
+
     # ---- 0. 删除「跨平台等价命令」类表格（人类验证命令参考，agent 用不上）----
     s = re.sub(
         r'\*\*跨平台等价命令\*\*.*?(?=\n\n\*\*|\n###|\Z)',
@@ -227,6 +237,9 @@ def process_inline(line: str) -> str:
     line = re.sub(r'(?<!`)\bm_exist_1_diff\.sh\b(?!`)', 'shell 脚本', line)
     line = re.sub(r'\b(sync-version|check-version|build-clawhub-release)\.sh\b', '版本维护脚本', line)
     line = re.sub(r'（shell 版）|（shell 脚本）', '（脚本版）', line)
+
+    # 2b+. 论衡开发者脚本引用脱钩（v2.12.0，教训 #252）
+    line = re.sub(r'`?paper-ready-check\.(sh|py)`?', '论衡开发者脚本', line)
 
     # 2c. sha256 占位符 → 泛化
     line = line.replace('[SHA256-PENDING:HOST-VERIFY]', '[哈希校验待主人回填]')
