@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.10.3
+version: 2.11.0
 description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill（主人v2.7.13拍板），任意OpenClaw配置开箱可用；零exec是纪律层软保障（13项特权工具禁用+全文档零授权+M门扫描+外部内容不可信），不读宿主gateway/config。v2.6.5→v2.6.9五轮扫描CLEAN。Phase 0 4选1 fail-closed；image_generate/Firecrawl/二线中文源默认关闭Phase 0 opt-in；写入限run/<项目名>/。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
@@ -157,6 +157,22 @@ metadata:
 
 ## 启动清单（主控 Phase 0 必走）
 
+### 第 0 步：主控职责文档强制加载（v2.11.0 新增，教训 #238/#239，P0 最高优先级）
+
+> ⚠️ **v2.10.3 首测核心缺陷**：主控连自己的角色卡 + 扩展职责（61K）都没读，且深层机制文档（phase-order.yaml / M-Gate-Algorithm 等）一个都没穿透，导致漏 T9、漏 M 门 5/9、误判子代理失败。**第 0 步不读，后面 8 步全错。**
+
+主控 Phase 0 启动时，**必须**按「主控必读文档清单」分层读入（🔴=必读全文 / 🟡=按需分片）：
+
+| 层 | 文档 | 标记 | 读法 |
+|----|------|------|------|
+| 0 | `references/agents/00-主控-coordinator.md` | 🔴 | 必读全文（核心职责全貌，约 9K）|
+| 0 | `references/agents/00-主控-扩展职责.md` | 🟡 | **先读头部「按需加载索引」表**（约 20 行），进入某 Phase 时再读对应节（约 52K 不一次全读）|
+| 2 | `references/_shared/phase-order.yaml` | 🔴 | 必读全文——流程顺序与阻断关系的**唯一真源**（与 SKILL.md 流水线全景冲突时以 yaml 为准）|
+| 2 | `references/_shared/M-Gate-Algorithm.md` | 🔴 | 必读全文——M 门 9 项检查完整规约（约 740 行）|
+| 3 | `failure-modes.md` / `字数判定表.md` / `模型候选池.md` 等 `_shared/` 文档 | 🟡 | 按需分片——进入对应 Phase / 执行对应动作时读 |
+
+> **完整分层清单 + 每层触发时机**见 [`references/agents/00-主控-扩展职责.md`](references/agents/00-主控-扩展职责.md)「主控必读文档清单」段（v2.11.0 新增）。**指针标记系统**：全文档「详见 X.md」指针统一加 🔴（必读，必须点进去读全文）/ 🟡（按需，进入对应阶段才读）标记。
+
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）
 2. 读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）
 3. **语言与受众确认（v2.7.9 显式语言选择步）**：默认中文写作。**Phase 0 先向主人确认目标语言**（中文 / English / 中英混 / 其他，写入任务简报）；本技能的同意提示、隐私披露、流程关卡均以中文呈现并面向中文写作者——使用者不熟悉中文时须在此步声明，主控为其提供关键提示的英文摘要后再征求同意，避免无效同意
@@ -164,7 +180,7 @@ metadata:
 5. **spawn 子代理前必读对应派发话术**：T1/T2/T3/T4/T5/T6/T7/T9 各角色的派发模板在 `references/dispatch/`（v2.5.6 拆分成 10 个独立文件，spawn 哪角色读哪文件），不要凭记忆复制（教训 #57）
 6. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）——审计员卡读全文件即可，不设锚点（锚点 slug 依赖渲染平台，维护易错，教训 #60）
 7. **文件修改安全流程**（v2.1.4 F5）：**禁止 `sed -i`**（静默清空文件教训 #48）——用 `edit` 工具精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
-8. **子代理交接五要素缺一不可**，静默超硬卡阈值（按主控卡 §二十二「硬卡阈值表」：T1-T3 10 分钟 / T4 12 分钟 / T5 15 分钟 / T6-T7 12-15 分钟 / G14 8 分钟）主动介入（v2.5.5 P0 硬性化，原 8 分钟统一硬卡已废弃）
+8. **子代理交接五要素缺一不可**，静默超硬卡阈值主动介入。**硬卡阈值表（v2.11.0 内联，消除对主控卡 §二十二 的循环依赖）**：T1-T3 10 分钟 / T4 12 分钟 / T5 15 分钟 / T6-T7 12-15 分钟 / G14 8 分钟（v2.5.5 P0 硬性化，原 8 分钟统一硬卡已废弃）
 
 ## 何时使用 + 字数分层
 
@@ -274,6 +290,8 @@ metadata:
 > **错误信息友好化**：详见 [`references/errors.md`](references/errors.md)（12 类常见错误的三段式友好版）
 ## 流水线全景（Phase 0-5）
 
+> 🔴 **唯一真源声明（v2.11.0 新增，教训 #237）**：本段是**派生速查视图**，流程顺序与阻断关系的**唯一真源**是 [`references/_shared/phase-order.yaml`](references/_shared/phase-order.yaml)。主控每进入一个 Phase 前**必读 yaml 该 Phase 完整定义**（含 parallel_agents / condition / bounded_loop / output_chars_max），不凭本段文字记忆推进；两处冲突时**以 yaml 为准**。
+
 ```
 Phase 0 定题        与主人确认主题/篇幅/受众/配图意向（无/要图） → `run/<项目名>/01-任务简报.md` + `run/<项目名>/status.md`；**到达时按 checkpoint-card-template.md 骨架呈现（v2.7.0）**
 Phase 1 并行检索    T1 文献检索员 ∥ T2 数据检索员 ∥ T3 案例检索员（sessions_spawn 三方真并行，sessions_yield 等待；T3 任何量级必 spawn，含 0 条空卡协议）
@@ -286,7 +304,7 @@ Phase 3.6 批判      T6 批判伙伴（v2.2.2 新增）→ analysis/批判报�
 Phase 4 审计        T7 审计员 → audits/审计报告-vN.md（G0-G14，v2.4.0 加 G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（需主人首次确认，默认关闭；vendor 路由/降级为宿主配置行为，论衡不规定多 vendor 链，见上「封面图像生成与数据外发披露」；备选 SVG 矢量封面本地零外发）
-Phase 4.5 审稿      T9 同行评审（v2.4.0 新增，v2.4.6 按模式默认开启：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度，详见 [_shared/期刊数据库.md](references/_shared/期刊数据库.md) + [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)）
+Phase 4.5 审稿      T9 同行评审（= yaml `t9_review` 独立节点，在 T7.5 完整性门后、T8 终检前；v2.4.0 新增，v2.4.6 按模式默认开启：行业分析/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject；**v2.5.0 期刊匹配助手**：学术模式默认输出 Top 3 推荐期刊 + 综合匹配度，详见 [_shared/期刊数据库.md](references/_shared/期刊数据库.md) + [_shared/期刊匹配算法.md](references/_shared/期刊匹配算法.md)）
 Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（**v2.5.0 多格式导出**：默认 md，按需选 `--format latex/docx/pdf`，详见 [_shared/format-export.md](references/_shared/format-export.md)；**v2.5.1 中文数据源集成**（OpenAlex/Crossref 第一梯队默认推荐，无需 Key，详见 [_shared/中文数据源集成.md](references/_shared/中文数据源集成.md)）；**按 checkpoint-card-template.md 骨架呈现（v2.7.0）**；**项目收尾归档（T9 接受/主人验收后）按 [_shared/project-archive-sop.md](references/_shared/project-archive-sop.md)，主控出归档清单、主人手工执行（零 exec）**）
 ```
 

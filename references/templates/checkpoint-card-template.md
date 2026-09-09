@@ -80,3 +80,38 @@
 3. **备注可省**：没问题时不写「备注」段，不搞"无备注"占位。
 4. **Phase 0 例外**：外发数据同意 + 可选服务呈现是合规硬约束，不是"备注"，必须出现在选项段内。
 5. **不替代对话**：主人回复可以自由表达（"改一下第三节的论点"），模板只规范呈现，不约束回复。
+
+---
+
+## progress_card 联动规范（v2.11.0 新增，模块 4）
+
+> **用途**：解决「progress_card 与 Checkpoint Card 分离」——侧栏看进度，对话流做决策，双向同步。
+
+### 分层嵌套
+
+- `progress_card`（OpenClaw 侧栏）= 流水线总览：当前 Phase / 下一节点 / 距离终稿几个节点
+- `Checkpoint Card`（对话流文本）= 决策点详情：材料 + 选项 A/B/C/D
+
+### 双向同步
+
+Checkpoint Card 拍板后，主控**立即**更新 progress_card：
+1. 当前 Checkpoint 节点标 ✅
+2. 下一节点标 🔄 In Progress
+3. 更新 progress bar 的 value/max
+
+### aria-label 模板
+
+```
+<progress aria-label="论衡流水线 · Phase X/Y" value="X" max="Y"></progress>
+```
+
+- **value** = 已完成 Phase 序号；**max** = 总 Phase 数（按档位裁剪）
+- **aria-label** = `论衡流水线 · <当前阶段名> <value>/<max>`
+
+### markdown 字段约束
+
+progress_card 的 markdown 保持简洁：首行 progress bar（aria-label 含阶段名 + 进度）→ 当前 Phase 一句话 + 下一节点一句话 → 有异常/降级时加一行告警。**不**在 progress_card 重复 Checkpoint Card 的完整选项（那是对话流职责）。
+
+### 漏跳检测告警
+
+主控调 progress_card 时，强制检查 status.md 状态机所有 Inbox 节点——若「本会话完成 A 但 B 未启动」，加一行高亮告警：`⚠️ 检测到 <B> 未启动（Inbox），疑似漏跳`。
