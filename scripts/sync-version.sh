@@ -72,7 +72,7 @@ SYNCS=(
   "_shared/M-Gate-Algorithm-appendix.md|header"
   "_shared/audit-checklist-quickref.md|header"
 
-  # 9 个角色卡（顶部插入版本号）
+  # 10 个角色卡（顶部插入版本号）
   "agents/00-主控-coordinator.md|header"
   "agents/01-文献检索-literature-scout.md|header"
   "agents/02-数据检索-data-scout.md|header"

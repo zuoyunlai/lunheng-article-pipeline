@@ -1,33 +1,4 @@
-> 版本：v2.11.0（自动同步 2026-09-09）
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+> 版本：v2.11.1（自动同步 2026-09-09）
 
 
 # 论衡快速开始指南
@@ -37,7 +8,7 @@
 
 ---
 
-## 📦 安装（v2.3.13）
+## 📦 安装
 
 论衡是纯 skill，无需创建独立 agent：
 
@@ -47,15 +18,12 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
-> **宿主配置（v2.7.12 修正 v2.6.3 旧表述；v2.10.1 对齐主人 v2.7.13 拍板）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**——本机宿主 config **不作任何强制收紧要求**（config 只对本机生效，不会随净化包分发）。「零 exec」是**纪律层软保障**（全文档零授权 + 角色卡约束 + M 门扫描 + 外部内容不可信原则），**非机械强制**：OpenClaw 2026.9.x 的 `sessions_spawn` 已无 toolsAllow 参数，子代理会继承主控未剥工具，技能侧无法机械保证零 exec。宿主若需 exec 硬隔离，**可自行**加 `tools.subagents.tools.deny`（`[exec, process, browser, apply_patch, ...]` 或 allow 最小集）作为**可选机械加固**，但论衡**不做**强制前置要求。token 统计走精确路径（sessions_spawn 返回值 stats + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
-
-> **运行前软保障自检（v2.7.14 新增，v2.10.1 移除三态确认流程——主人 v2.7.13 拍板：不拒绝运行 + 任意配置可用）**：首次运行 Phase 0 时主控自查工具面，结果记入 status.md `**软保障**: mechanical / prompt-level`：主控自身不含 exec/process/browser/apply_patch → 记 `mechanical`；主控持有上述特权工具或不确定宿主是否 deny → 记 `prompt-level`（纪律层软保障）。**不拒绝、不降级**：零 exec 靠纪律层（全文档零授权 + 角色卡约束 + M 门扫描 + 外部内容不可信原则），config 收紧是宿主的可选机械加固。详见 SKILL.md「运行前软保障自检」。
+> **宿主配置）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**，token 统计走精确路径（sessions_spawn 返回值 stats + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
 
 ---
 
-## 🔧 宿主适配要点（v2.6.1 起）
+## 🔧 宿主适配要点
 
-- 子代理权限边界 = 宿主 config（v2.7.12 修正，v2.10.1 对齐主人 v2.7.13 拍板）：OpenClaw 2026.9.x 的 `sessions_spawn` **无 `toolsAllow` 参数**，5 档白名单（SKILL.md frontmatter）是**声明/部署建议**而非传参。实际子代理工具 = 主控策略快照 − 平台硬性剥除（含 session_status）。论衡是纯 skill，任意配置开箱可用，**本机 config 不作强制收紧**；宿主若需 exec 硬隔离可**自行**加 `tools.subagents.tools.deny: [exec, process, browser, apply_patch, ...]`（可选机械加固，非前置要求）
 - 默认项目目录 `run/<项目名>/`（`cwd_default` 仅是路径提示，非沙箱保证）
 - token 统计走精确路径（sessions_spawn 返回值 stats + `session_status`）；拿不到精确值记 `unavailable`，不估算
 - 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 15/15 PASS，含门 G 正常态）
@@ -72,7 +40,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 - **可选封面外发**（**默认关闭**）：如启用，会向 OpenAI / Google / minimax 发送 prompt
 - **记忆检索**：`memory_search` / `memory_recall` 访问 OpenViking 记忆库（无 LLM vendor 外发）
 
-**v2.2.17 明确**：以上副作用会在 Phase 0 同意关卡（4 选 1）中由你主动选择。如不愿接受任何外发，选 ④全部拒绝（改纯本地 Ollama 推理）。
+以上副作用会在 Phase 0 同意关卡（4 选 1）中由你主动选择。如不愿接受任何外发，选 ④全部拒绝（改纯本地 Ollama 推理）。
 
 ---
 

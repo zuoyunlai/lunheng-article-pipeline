@@ -40,7 +40,7 @@ cd "$SKILL_ROOT"
 # =============================================================================
 # 门 A：角色卡完整性（v2.7.0 实测 11 张卡：8 张原版 + 08-终检 + 00-主控-扩展职责 + 09 同行评审）
 # =============================================================================
-EXPECTED_AGENTS=("00-主控-coordinator.md" "01-文献检索-literature-scout.md" "02-数据检索-data-scout.md" "03-案例检索-case-scout.md" "04-分析-analyst.md" "05-写作-writer.md" "06-批判-critical-companion.md" "07-审计-auditor.md" "08-终检-final-inspector.md" "09-审稿-peer-reviewer.md")
+EXPECTED_AGENTS=("00-主控-coordinator.md" "00-主控-扩展职责.md" "01-文献检索-literature-scout.md" "02-数据检索-data-scout.md" "03-案例检索-case-scout.md" "04-分析-analyst.md" "05-写作-writer.md" "06-批判-critical-companion.md" "07-审计-auditor.md" "08-终检-final-inspector.md" "09-审稿-peer-reviewer.md")
 ACTUAL_AGENTS=$(ls references/agents/ 2>/dev/null | grep -E '^0[0-9]-' | sort)
 MISSING=()
 for exp in "${EXPECTED_AGENTS[@]}"; do
@@ -49,7 +49,7 @@ for exp in "${EXPECTED_AGENTS[@]}"; do
   fi
 done
 if [ ${#MISSING[@]} -eq 0 ]; then
-  pass "门 A: 角色卡完整性（10 张 + 扩展职责 = 11 文件）"
+  pass "门 A: 角色卡完整性（11 张卡）"
 else
   fail "门 A: 角色卡完整性" "缺失: ${MISSING[*]}"
 fi
@@ -223,7 +223,11 @@ if [ -f "$LESSONS_SRC" ]; then
            --include="*.md" --include="*.sh" --include="*.py" \
            --exclude="*.bak*" \
            references/ scripts/ SKILL.md README.md QUICKSTART.md 2>/dev/null \
-         | grep -oE '[0-9]+' | sort -un)
+         | grep -oE '[0-9]+')
+  # v2.11.1 修复（教训 #249）：教训索引表格用裸「| #N |」格式（无「教训」前缀），
+  #   门 H 旧正则扫不到 → #245 在主真源缺失仍 PASS。补采集索引表格裸编号列。
+  INDEX_REFS=$(grep -oE '^\| #[0-9]+ ' "references/_shared/教训索引.md" 2>/dev/null | grep -oE '[0-9]+')
+  REFS=$( { echo "$REFS"; echo "$INDEX_REFS"; } | grep -oE '[0-9]+' | sort -un)
 
   # 采集主真源实有编号（任意标题层级，兼容「## #N」与「## 教训 #N」两种书写）
   HAVE=$(grep -oE '^#{2,4} (教训 )?#[0-9]+' "$LESSONS_SRC" \

@@ -1,9 +1,4 @@
-> 版本：v2.11.0（自动同步 2026-09-09）
-
-
-
-
-
+> 版本：v2.11.1（自动同步 2026-09-09）
 
 
 ![GitHub Actions](https://img.shields.io/github/actions/workflow/status/zuoyunlai/lunheng-article-pipeline/quality.yml?branch=main&label=tests)

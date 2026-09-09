@@ -63,7 +63,7 @@ CHECKS=(
   "_shared/M-Gate-Algorithm-appendix.md|v$EXPECTED|1"
   "_shared/audit-checklist-quickref.md|v$EXPECTED|1"
 
-  # 8 个角色卡（顶部必须含版本号）
+  # 10 个角色卡（顶部必须含版本号）
   "agents/00-主控-coordinator.md|v$EXPECTED|1"
   "agents/01-文献检索-literature-scout.md|v$EXPECTED|1"
   "agents/02-数据检索-data-scout.md|v$EXPECTED|1"
@@ -72,6 +72,7 @@ CHECKS=(
   "agents/05-写作-writer.md|v$EXPECTED|1"
   "agents/06-批判-critical-companion.md|v$EXPECTED|1"
   "agents/07-审计-auditor.md|v$EXPECTED|1"
+  "agents/08-终检-final-inspector.md|v$EXPECTED|1"
   "agents/09-审稿-peer-reviewer.md|v$EXPECTED|1"
 
   # 主控扩展职责（v2.5.0 主控卡拆分后新增）
@@ -103,6 +104,10 @@ CHECKS=(
   "_shared/期刊匹配算法.md|v$EXPECTED|1"
   "_shared/中文数据源集成.md|v$EXPECTED|1"
   "_shared/format-export.md|v$EXPECTED|1"
+  "_shared/工具能力边界.md|v$EXPECTED|1"
+  "_shared/关键协议.md|v$EXPECTED|1"
+  "_shared/教训索引.md|v$EXPECTED|1"
+  "_shared/模型候选池.md|v$EXPECTED|1"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 新增）
   "templates/任务简报-template.md|v$EXPECTED|1"
@@ -111,6 +116,20 @@ CHECKS=(
   "templates/status-template.md|v$EXPECTED|1"
   "templates/投稿就绪检查表-template.md|v$EXPECTED|1"
   "templates/修订说明-template-full.md|v$EXPECTED|1"
+  "templates/案例卡-template.md|v$EXPECTED|1"
+  "templates/数据卡-template.md|v$EXPECTED|1"
+  "templates/文献卡-template.md|v$EXPECTED|1"
+  "templates/先行者清单-template.md|v$EXPECTED|1"
+  "templates/交接报告-template.md|v$EXPECTED|1"
+  "templates/图表-SVG-template.md|v$EXPECTED|1"
+
+  # v2.10.0 SKILL.md 外置文件（v2.10.0 P1-3 拆分新增，教训 #198 补入防漏改）
+  "model-assignment.md|v$EXPECTED|1"
+  "permissions.md|v$EXPECTED|1"
+  "_shared/phase-1-details.md|v$EXPECTED|1"
+  "_shared/phase-2-details.md|v$EXPECTED|1"
+  "_shared/phase-3-details.md|v$EXPECTED|1"
+  "_shared/dispatch-header.md|v$EXPECTED|1"
 
   # 顶层文档（入口，v2.3.6 起纳入；@ = 相对 ENTRY_DIR）
   "@README.md|v$EXPECTED|1"
