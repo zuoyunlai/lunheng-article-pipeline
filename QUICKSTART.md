@@ -1,4 +1,5 @@
-> 版本：v2.12.3（自动同步 2026-09-09）
+> 版本：v2.12.4（自动同步 2026-09-09）
+
 
 
 
@@ -255,7 +256,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 
 ### Q3：论文可以被 ClawHub 安全扫描拒绝吗？
 
-**答：可能。** 论衡 v2.2.12 起所有 user-facing 警告已放文件顶部，Phase 0 同意关卡是金标准。详见教训 #51。
+**答：可能。** 论衡 v2.2.12 起所有 user-facing 警告已放文件顶部，Phase 0 同意关卡是金标准。详见教训 #266。
 
 ---
 
@@ -264,7 +265,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 **答：迭代发布。** 详见论衡发布历史：
 - v2.0.5 → v2.1.7：连续 6 轮 ClawHub scanner findings 闭环
 - v2.1.8 → v2.2.12：P0+P1+P2 持续改进
-- v2.3.0：角色编号重构（教训 #116）+ README 内部冲突修复（教训 #116，+ #118）
+- v2.3.0：角色编号重构（教训 #275）+ README 内部冲突修复（教训 #275，+ #118）
 
 论衡设计哲学：**安全是持续回应反馈的过程，不是发布前的完美**。
 

@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.12.3
+version: 2.12.4
 description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill（主人拍板），任意OpenClaw配置开箱可用；零exec是纪律层软保障（13项特权工具禁用+全文档零授权+M门扫描+外部内容不可信）。Phase 0 4选1 fail-closed；image_generate/Firecrawl/二线中文源默认关闭Phase 0 opt-in；写入限run/<项目名>/。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
@@ -107,9 +107,9 @@ metadata:
 2. 读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）
 3. **语言与受众确认**：默认中文写作。Phase 0 先向主人确认目标语言（中文 / English / 中英混 / 其他，写入任务简报）；非中文使用者须在此步声明，主控为其提供关键提示的英文摘要后再征求同意
 4. **记忆辅助**（默认关闭）：写作偏好由主人 Phase 0 写入任务简报「写作偏好」字段；仅当主人勾选「启用记忆辅助」并点名允许的文件/用途，主控才可用 `memory_*` 工具（opt_in ），T6/T7 调 `memory_recall` 需宿主 config 层临时放行
-5. **spawn 子代理前必读对应派发话术**：`references/dispatch/` 下 T1-T7 + T9 + G14 共 10 个独立文件，spawn 哪角色读哪文件，不要凭记忆复制（教训 #57）
+5. **spawn 子代理前必读对应派发话术**：`references/dispatch/` 下 T1-T7 + T9 + G14 共 10 个独立文件，spawn 哪角色读哪文件，不要凭记忆复制（教训 #268）
 6. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）
-7. **文件修改安全流程**：**禁止 `sed -i`**（静默清空文件教训 #48）——用 `edit` 工具精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
+7. **文件修改安全流程**：**禁止 `sed -i`**（静默清空文件教训 #265）——用 `edit` 工具精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
 8. **硬卡阈值表**：T1-T3 10 分钟 / T4 12 分钟 / T5 15 分钟 / T6-T7 12-15 分钟 / G14 8 分钟
 
 ---
@@ -154,7 +154,7 @@ Phase 1.5 定向回查  条件触发窗口（任务简报标 [Dxx 待复核] / �
 Phase 2 分析        T4 → analysis/分析大纲.md（论点-论据映射 + 反方论证规划 + 三角验证）
 Phase 2.5 大纲确认  主人过目大纲 + 拍板 T4 建议图表（图位/类型/数据源）（人在环！改方向成本最低）
 Phase 3 写作        T5 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、案例标[Cxx]、AI去味10项）
-Phase 3.5 洞察补充  主人过目 v1 → 主控问主人洞要补 → T5 v2 融入（人在环！教训 #46）
+Phase 3.5 洞察补充  主人过目 v1 → 主控问主人洞要补 → T5 v2 融入（人在环！教训 #263）
 Phase 3.6 批判      T6（攻击 v2 不是 v1，轻量档可跳过）∥ G14 中文 AI 痕迹闸同批并行（与 T6 对同一 current_draft 同批 spawn）→ 0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail
 Phase 4 审计        T7 → audits/审计报告-vN.md（G0-G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
@@ -196,7 +196,7 @@ T7 / T9 / G14 报告头部显式写 `修订回环 = N/2`；T8 终检按此表仲
 
 ## 派发话术 + 审计必查项（指针化）
 
-**派发话术**（spawn 哪角色读哪文件，不要凭记忆复制，教训 #57）：
+**派发话术**（spawn 哪角色读哪文件，不要凭记忆复制，教训 #268）：
 
 - T9 同行评审 → [`references/dispatch/T9-同行评审.md`](references/dispatch/T9-同行评审.md)
 - G14 中文 AI 痕迹检测器 → [`references/dispatch/G14-中文AI痕迹检测器.md`](references/dispatch/G14-中文AI痕迹检测器.md)

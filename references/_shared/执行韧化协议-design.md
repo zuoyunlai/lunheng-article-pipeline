@@ -1,4 +1,5 @@
-> 版本：v2.12.3（自动同步 2026-09-09）
+> 版本：v2.12.4（自动同步 2026-09-09）
+
 
 
 
@@ -9,16 +10,16 @@
 
 > **v2.2.8 Phase D 修订**：本协议从「v2.1.0~v2.2.7 内联到 7 张角色卡」改为「**主流程读本文件** + 7 张角色卡顶部精简索引」。理由：原 7 张角色卡复制完整内容约 1.2K tokens 重复，精简后 token 节省 + 协议版本演进只需改本文件一处。
 
-> 2026-08-14 论衡 v2.1.0 引入 | 教训 #43 | 解决子代理脆弱 + 写手卡死
+> 2026-08-14 论衡 v2.1.0 引入 | 教训 #288 | 解决子代理脆弱 + 写手卡死
 
 ## 协议三大铁律（每个角色 prompt 头部必读）
 
 ### 1. 心跳信号（必须执行）
 - **启动 30 秒内**：写自己的心跳文件 `run/<项目>/.tmp/<角色>-heartbeat.md`（状态=🔄 In Progress + 启动时间 + 当前模型）；status.md 由主控独占更新
 - **每 5 分钟一次**：在 status.md 阶段行末尾追加心跳时间戳（格式：`[心跳 HH:MM] model=<model-id>`）
-- **超时硬卡（分角色分级，教训 #126 + #131）**：
+- **超时硬卡（分角色分级，教训 #126 + #279）**：
   - **T1-T3 检索员**：10 分钟（分级表准；中文检索单次 7s+，教训 #126）
-  - **T6 批判 / T7 审计**：15 / 12 分钟（分级表准；批判+修订任务需更长，教训 #131）
+  - **T6 批判 / T7 审计**：15 / 12 分钟（分级表准；批判+修订任务需更长，教训 #279）
   - **T4 分析 / T5 写手**：12 / 15 分钟（旧「8 分钟保持」已废）
   - 各角色硬卡时间点：提前 2 分钟写 `[警告] 已耗时 X 分钟`；提前 1 分钟必须产出 partial output；到点主控 kill + 标记 Failed
   - **读文件 vs 写文件区分**：写文件（落盘）比读文件耗时更长，硬卡判断时对「写文件任务」放宽 2 分钟
@@ -102,7 +103,7 @@
 - 5 分钟无 ack → 主控主动 ping 子代理 session（sessions_history）
 - 超角色分级阈值无 ack + 无产出 → 主控 kill + 标记 Failed + 决定是否重试（阈值表见主控扩展职责 §二十二）
 
-### 4. 编排循环防空转（教训 #102）
+### 4. 编排循环防空转（教训 #274）
 > **背景**：2026-08-19 ECS 实战，T8→T5 交接点被 duplicate 完成事件打断，导致 T5 的 spawn tool call 丢失，主控却误以为已 spawn，空转 2.5 小时。根因：编排循环对「完成事件恰好投递一次」过度依赖，缺三道防御。
 
 **主控编排循环必须遵守的三防**：适用于 T1→T3 / T3→T4 / T4→T8 / T8→T5 / T5→T4（修订）/ T5→T7 等**所有 T 角色 spawn 交接点**。
@@ -114,7 +115,7 @@
 run = sessions_spawn(task=...)
 if not subagents_has_active(run.runId):
     # spawn 丢失，判定为 duplicate 事件 / 网路问题
-    log("[#102 防御] spawn runId={} 未落地，重试".format(run.runId))
+    log("[#274 防御] spawn runId={} 未落地，重试".format(run.runId))
     run = sessions_spawn(task=...)  # 重试 1 次
 ```
 
@@ -130,13 +131,13 @@ while wait_elapsed < WATCHDOG_TIMEOUT:
     if completion_received:
         # 检查 幂等：status.md 该角色是否已 Done？
         if is_role_done(status_md, role):
-            log("[#102 幂等] {} 完成事件已处理过，忽略 duplicate".format(role))
+            log("[#274 幂等] {} 完成事件已处理过，忽略 duplicate".format(role))
             continue  # 忽略 duplicate，不重复推进
         return  # 推进编排
     if wait_elapsed > WATCHDOG_TIMEOUT:
         # 第一次超过阈值时跑一次自查
         if not subagent_alive_in_active_runs(runId):
-            log("[#102 修复] yield 超时 + 子代理不在 active = spawn 丢失，重派")
+            log("[#274 修复] yield 超时 + 子代理不在 active = spawn 丢失，重派")
             respawn()  # 补 spawn
 ```
 
@@ -146,7 +147,7 @@ while wait_elapsed < WATCHDOG_TIMEOUT:
 # 伪代码（完成事件幂等）
 def on_completion(role, runId):
     if status_md[role]['state'] == 'Done':
-        log("[#102 幂等] {} 已在 Done，忽略 duplicate 完成事件 runId={}".format(role, runId))
+        log("[#274 幂等] {} 已在 Done，忽略 duplicate 完成事件 runId={}".format(role, runId))
         return  # 静默忽略，不推进下一个 T
     # 正常推进
     status_md[role]['state'] = 'Done'
@@ -160,7 +161,7 @@ def on_completion(role, runId):
 sessions_spawn(T5)
 sessions_yield()  # ← 被打断则空转
 
-# 正确（#102 修复后）
+# 正确（#274 修复后）
 sessions_spawn(T5)
 assert subagents_has_active(runId)  # 验证落地
 sessions_yield()  # 确认后才 yield
@@ -234,12 +235,12 @@ spawn 任何子代理后，主控**不能只等完成事件**：
 
 > **边界澄清（回应 scanner SDI-1/SDI-4）**：`sessions_history` 是白名单工具，但论衡**只用它读自己 spawn 的子代理**（`subagent:xxx`），用途是编排监控（看子代理有没有产出、有没有死循环），**不是跨会话读取历史或抓取隐藏状态**。上方「🔒 仅人类主人诊断」段的 `session_key` 字样指主人手动排查时在 host shell 查看轨迹文件，与主流程 `sessions_history` 是两回事，勿混。
 
-## 三检索员并行监控补充（教训 #56 + #58）
+## 三检索员并行监控补充（教训 #267 + #289）
 
 > 背景：v2.1.8 主控一次性 spawn T1 + T2 + T3 三个独立 sessions_spawn（同一 function_calls 块内），三方并行。与传统单 spawn 不同，主控需额外监控：
 
 - **三方并行心跳看总和**：T1+T2+T3 三个 sessions 都心跳后才视为「三方并行存活」——任一 30s 未心跳 = 该 T 心跳异常
-- **三方独立超时**（教训 #58）：硬卡阈值对每个 T **独立生效**——T1 超时 ≠ T2/T3 也超；主控只 kill 超时的那个，其他不受影响
-- **runtime vs 墙钟区分**（教训 #58）：runtime = 模型推理 + 工具调用纯耗时；墙钟 = runtime + OpenClaw 调度 + 子会话启动 + 文件落盘；硬卡阈值**指的是墙钟**（含调度延迟），runtime 通常 1-3 分钟
+- **三方独立超时**（教训 #289）：硬卡阈值对每个 T **独立生效**——T1 超时 ≠ T2/T3 也超；主控只 kill 超时的那个，其他不受影响
+- **runtime vs 墙钟区分**（教训 #289）：runtime = 模型推理 + 工具调用纯耗时；墙钟 = runtime + OpenClaw 调度 + 子会话启动 + 文件落盘；硬卡阈值**指的是墙钟**（含调度延迟），runtime 通常 1-3 分钟
 - **失败隔离**：T1 失败不影响 T2/T3 继续；T3 失败不影响 T1/T2；主控收到失败 ack 后标 `Failed` + T0 合并层标「案例缺角」/「文献缺角」/「数据缺角」对应降级
 - **三方同步 ack 节点**：三方共享同一 Phase 1 阶段行的 status.md（避免三份独立 status 难以合并）

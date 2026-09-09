@@ -1,4 +1,5 @@
-> 版本：v2.12.3（自动同步 2026-09-09）
+> 版本：v2.12.4（自动同步 2026-09-09）
+
 
 
 
@@ -62,7 +63,7 @@
 >
 > 主控维护，每个角色交接时更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
 > 失败必须留原因；任一行停留 >8 分钟无进展 → 主控介入（按主控卡 §二十二 硬卡阈值表）。
-> **T3 案例检索任何量级必 spawn**（教训 #56）——含 0 条场景走空卡协议；T2 不再兼带案例，状态独立行。
+> **T3 案例检索任何量级必 spawn**（教训 #267）——含 0 条场景走空卡协议；T2 不再兼带案例，状态独立行。
 
 ## 一、项目元数据（key:value 替换，主控用 `**当前**: X` 策略）
 
@@ -73,7 +74,7 @@
 **最后更新**: YYYY-MM-DD HH:MM
 **软保障**: mechanical / prompt-level（Phase 0 确认：mechanical = 主控无特权工具；prompt-level = 宿主未机械 deny、主人已确认软保障运行）
 **M 门**: v2.2.12 / v2.5.x
-**数据信任档**: 全外发 / 混合 / 全人工（教训 #191，拓展，Phase 0 拍板）
+**数据信任档**: 全外发 / 混合 / 全人工（教训 #259，拓展，Phase 0 拍板）
   - 全外发：默认 web_search + tavily_search 检索，主人不投喂一手数据
   - 混合：部分一手（主人投喂 / 限定检索） + 部分 LLM 检索
   - 全人工：所有数据均为主人一手，LLM 不检索
@@ -132,7 +133,7 @@
 - [ ] **T2.5 数据完整性门**
 - [ ] **T7.5 审计完整性门**
 
-## 三.五、M 门执行记录（教训 #235，主控每 phase 跑完登记）
+## 三.五、M 门执行记录（教训 #286，主控每 phase 跑完登记）
 
 > **用途**：M 门从「T8 终检一次性跑」升级为「每 phase 强制跑 + 记录」。主控每跑一道 M 门，在此登记结果（时间 + 结论 + 通过/失败）。
 
@@ -228,7 +229,7 @@
 ### 4.7 token 消耗记录（精确机制）
 
 > **用途**：T8 终检时汇总「token 总成本」呈现给主人（deliverables.md 成本指标字段的落地）。
-> **v2.12.2 重写根因**（教训 #256）：OpenClaw 的子代理 token 真实来源是**完成事件**的 `Stats:` 行（`tokens N (in N / out N) • prompt/cache N`），**不是 sessions_spawn 返回值**（其无 stats 字段）。教训 #194 早前把来源误记为「sessions_spawn 返回值 stats」。
+> **v2.12.2 重写根因**（教训 #256）：OpenClaw 的子代理 token 真实来源是**完成事件**的 `Stats:` 行（`tokens N (in N / out N) • prompt/cache N`），**不是 sessions_spawn 返回值**（其无 stats 字段）。教训 #192 早前把来源误记为「sessions_spawn 返回值 stats」。
 >
 > **精确机制**（取代三级降级）：
 > - **子代理**：主控 `sessions_yield` 收到每个子代理 completion event 时，从 `Stats:` 行提取 in/out + prompt/cache 记入下表——**主控独占记录**，子代理无法也无需回传自己的 token
