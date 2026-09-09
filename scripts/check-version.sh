@@ -109,6 +109,9 @@ CHECKS=(
   "_shared/教训索引.md|v$EXPECTED|1"
   "_shared/模型候选池.md|v$EXPECTED|1"
   "_shared/可发表性判定表.md|v$EXPECTED|1"
+  # v2.12.1 版本一致性盲区修复：project-archive-sop（v2.7.16 引入，版本戳格式已归一化）+ 路径校验规范（v2.9.1 引入，此前无版本戳）补入清单
+  "_shared/project-archive-sop.md|v$EXPECTED|1"
+  "_shared/路径校验规范.md|v$EXPECTED|1"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 新增）
   "templates/任务简报-template.md|v$EXPECTED|1"

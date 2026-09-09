@@ -120,6 +120,9 @@ SYNCS=(
   "_shared/教训索引.md|header"
   "_shared/模型候选池.md|header"
   "_shared/可发表性判定表.md|header"
+  # v2.12.1 版本一致性盲区修复：project-archive-sop（v2.7.16 引入）+ 路径校验规范（v2.9.1 引入）补入清单
+  "_shared/project-archive-sop.md|header"
+  "_shared/路径校验规范.md|header"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 + v2.6.4 补全，教训 #175 防漏改）
   "templates/任务简报-template.md|header"

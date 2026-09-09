@@ -1,4 +1,5 @@
-> 版本：v2.12.1（自动同步 2026-09-09）
+> 版本：v2.12.2（自动同步 2026-09-09）
+
 
 
 
@@ -53,9 +54,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.9.0**（2026-09-08，当前版本）— **P0-3 并发防护 + P1-1 性能基准 + P1-3/P1-4 设计文档**。新增项目锁机制防止并发冲突，补充性能基准测试数据，提供 SKILL.md 精简优化和增量 M 门验证设计方案。[MIT License](LICENSE)。
-
-**v2.8.0**（2026-09-08）— **第三方全量审计 87/100（优秀）**。修订线：P0-1 依赖版本锁定 + P0-2 路径注入防护 + P1-2 错误消息用户友好化 + P1-5 CI/CD 代码质量工具集成。历史版本：v2.7.15 落地 v2.7.4 实测报告 4 项真实缺口（本机逐项核对后保留项）：R4 报告长度硬上限 + 超限分块协议 + fallback A/B/C 质量分级（phase-order.yaml output_chars_max + 韧化协议 4.7）；R7 反方回应 ≥200 字硬规定 + 4 要素模板（字数判定表 § 〇）；R2 元叙事自指式豁免段清单（结构必写段：先行者差异化 / AI 声明 / 摘要限定语 / 主人洞察理论贡献，写手卡/T6/T7/G14 checker+gate 四处同源）；R9 警示符号 ⚠️→▲/【警告】 + PDF 渲染验证步骤（format-export §四·六）。v2.7.14 回应 ClawHub v2.7.13 审计 2 findings（Outcome Review）：T05「运行前软保障自检」（Phase 0 主控自查 + 三态确认 + status.md 软保障标记，不拒绝运行保持纯 skill 定位）+ T08 安装命令 pin 审计版本。v2.7.13 权限表述软化为建议口径（宿主 config 收紧从「必须」降为「建议」——不收紧时论衡照常运行，零 exec 为纪律层软保障非机械强制，与「纯 skill 任意配置可用」定位一致）。v2.7.12 OpenClaw 2026.9.x 适配修正（spawn toolsAllow 已废弃 → 子代理权限边界改写为宿主 config `tools.subagents` + 平台硬性剥除口径；子代理档位表去 session_status/progress_card，只读档回归纯 read）。人在环检查点呈现模板+ T8 终检独立角色卡+ 全面审计修复线：v2.7.2 只读档报告回传 / G14 时序统一 / 死链修复，v2.7.3 ECS 复盘 20 条改进落地，v2.7.5 token 优化（glossary 拆 core/full + dispatch 抽公共头），v2.7.6–v2.7.9 ClawHub 安全审计收敛（T05 记忆授权集中制 + 白名单收窄），v2.7.10 H1 显示修复（教训 #200），v2.7.11 路径迁移补完 + 净化包路径同步。
+**v2.12.2**（2026-09-09，当前版本）— token 统计假前提修复（教训 #256）+ 版本一致性盲区补入。[MIT License](LICENSE)。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检 v2.7.1 独立角色卡，**T9 同行评审 v2.4.0 新增**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -181,7 +180,7 @@ Phase 5  T8 主控亲终检 → final/定稿.md + 证据包/ + 交付说明.md
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.7.15  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.1  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 
@@ -218,8 +217,9 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.7.15  # pin 审计
 | v2.10.0 | 2026-09-08 | 审计治理 | 章节级 M 门 + T4→T5 准并行 + 独立审计修订 |
 | v2.11.0 | 2026-09-09 | 实战机制化 | 主控执行协议机制化（教训 #238/#239）|
 | v2.12.0 | 2026-09-09 | 判据单源 | 判据单源 + 内容质量门脚本化 + 双视图同步（教训 #251/#252/#253）|
-| **v2.12.1** | **2026-09-09** | **当前** | **瘦身重构（-41.8%）+ cwd_default 陷阱修复 + 教训索引补全（教训 #255）** |
-完整 changelog 见 [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases)。教训沉淀 190+ 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
+| v2.12.1 | 2026-09-09 | — | 瘦身重构（-41.8%）+ cwd_default 陷阱修复 + 教训索引补全（教训 #255）|
+| **v2.12.2** | **2026-09-09** | **当前** | **token 统计假前提修复（教训 #256）+ 版本一致性盲区补入** |
+完整 changelog 见 [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases)。教训沉淀 256 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
 
 ---
 

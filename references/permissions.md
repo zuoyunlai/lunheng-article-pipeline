@@ -1,4 +1,5 @@
-> 版本：v2.12.1（自动同步 2026-09-09）
+> 版本：v2.12.2（自动同步 2026-09-09）
+
 
 
 
@@ -58,4 +59,4 @@
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，**不执行实际 shell 命令**——算法文档中的 bash 示例是给人类主人手动复核的参考命令，**不是 agent 执行代码**（回应 SkillSpector 「models list 命令执行」指控）
 - ℹ️  **零 exec ≠ 零核验**：论衡所有「检查/计数/比对/核验」动作都由 agent 用 `read` 读取文件 + LLM 逐项判定完成；文档中出现的命令式短句（检查/计数/求差集/校验哈希等）是**检查规则的速记**，等价动作一律走 read/write/edit 工具，任何角色都不执行也不「模拟」shell 命令——宿主工具策略（config `tools.subagents` / profile / deny）才是真实权限边界
 - ℹ️  **建议运行环境**：禁用 exec 的 agent（保持论衡「零 exec」哲学）
-- ℹ️  **token 成本统计（精确机制）**：OpenClaw 9.1 提供 `sessions_spawn` 返回值 stats（含 `tokens.in/out` + `prompt/cache` 字段） + `session_status` 工具。**子代理**：若宿主在 spawn 回执提供精确 stats，主控记录并在交接报告中回传；未提供时记录 `unavailable`。**主控自身**：T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）。**成本统计是可观测性字段，不是交付闸门**：禁止估算
+- ℹ️  **token 成本统计（精确机制）**：子代理 token 来自**完成事件**的 `Stats:` 行（`tokens N in/out • prompt/cache N`），主控 `sessions_yield` 收到 completion event 时提取记录（**sessions_spawn 返回值无 stats 字段**，教训 #256）；**主控自身** T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）。**成本统计是可观测性字段，不是交付闸门**：禁止估算

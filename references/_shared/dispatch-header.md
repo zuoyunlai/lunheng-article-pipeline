@@ -1,4 +1,5 @@
-> 版本：v2.12.1（自动同步 2026-09-09）
+> 版本：v2.12.2（自动同步 2026-09-09）
+
 
 
 
@@ -22,4 +23,4 @@
 > - `tool_error` / `protocol` = 工具调用错误，产物可能部分
 > - `status=incomplete` = 显式未完成
 
-> **token 统计**：子代理 stats 由 sessions_spawn 返回值提供（精确值），取代 v2.5.18 三级降级。
+> **token 统计**：子代理 token 由**完成事件**的 `Stats:` 行提供（精确值，主控 `sessions_yield` 时提取），取代 v2.5.18 三级降级。**sessions_spawn 返回值无 stats 字段**（教训 #256）。

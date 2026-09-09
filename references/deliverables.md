@@ -1,4 +1,5 @@
-> 版本：v2.12.1（自动同步 2026-09-09）
+> 版本：v2.12.2（自动同步 2026-09-09）
+
 
 
 
@@ -86,13 +87,13 @@
 ```
 ## 本轮 token 成本（精确）
 - 总计：<Σ> tokens（in <N_in> / out <N_out> / cache <N_cache>）
-- 子代理 Σ：<Σ_sub> tokens（sessions_spawn stats）
+- 子代理 Σ：<Σ_sub> tokens（子代理完成事件 Stats 行）
 - 主控自身：<session_status 主会话值> tokens（含 cost $<cost>）
 - 主要消耗：T5 写手 <N> / T7 审计 <N> / T9 评审 <N>
-- 数据源：sessions_spawn 返回值 stats + session_status 工具（OpenClaw 9.1+）
+- 数据源：子代理完成事件 Stats 行 + session_status 工具（OpenClaw 9.1+）
 ```
 
-**v2.6.1 重写根因**（教训 #194）：OpenClaw 9.1 提供精确 API（sessions_spawn stats + session_status 工具），**v2.5.18 三级降级机制是设计偏慎**，原「宿主无关」表述隐含「拿不到精确值」的错误前提。v2.6.1 起仅精确统计，拿不到精确值 = 流程错误（不是填「未配置」）。
+**v2.6.1 重写根因**（教训 #194）：OpenClaw 9.1 提供精确 API（子代理完成事件 Stats + session_status 工具），**v2.5.18 三级降级机制是设计偏慎**，原「宿主无关」表述隐含「拿不到精确值」的错误前提。v2.6.1 起仅精确统计，拿不到精确值 = 流程错误（不是填「未配置」）。**教训 #256**：早前文档把 token 来源误写为「sessions_spawn 返回值 stats」，实测 spawn 返回值无 stats 字段，真实来源是子代理完成事件的 `Stats:` 行。
 
 **待 merge 反哺清单（主人实测）**：交付说明加「待 merge 反哺清单」checklist，固化为 T8 模板动作——列出 T7 反哺报告建议的规则 + merge 目标角色卡，等主人人工 review 后手动 merge（**不自动 commit**）。
 

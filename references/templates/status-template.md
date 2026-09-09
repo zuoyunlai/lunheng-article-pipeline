@@ -1,4 +1,5 @@
-> 版本：v2.12.1（自动同步 2026-09-09）
+> 版本：v2.12.2（自动同步 2026-09-09）
+
 
 
 
@@ -226,26 +227,26 @@
 ### 4.7 token 消耗记录（精确机制）
 
 > **用途**：T8 终检时汇总「token 总成本」呈现给主人（deliverables.md 成本指标字段的落地）。
-> **v2.6.1 重写根因**（教训 #194）：OpenClaw 9.1 提供 sessions_spawn 返回值 stats（含 tokens.in/out + prompt/cache） + session_status 工具，**无需三级降级**。v2.5.18「宿主无关」隐含「拿不到精确值」错误前提已清除。
+> **v2.12.2 重写根因**（教训 #256）：OpenClaw 的子代理 token 真实来源是**完成事件**的 `Stats:` 行（`tokens N (in N / out N) • prompt/cache N`），**不是 sessions_spawn 返回值**（其无 stats 字段）。教训 #194 早前把来源误记为「sessions_spawn 返回值 stats」。
 >
 > **精确机制**（取代三级降级）：
-> - **子代理**：主控 spawn 时已拿精确 stats → 子代理交接报告原样回传
+> - **子代理**：主控 `sessions_yield` 收到每个子代理 completion event 时，从 `Stats:` 行提取 in/out + prompt/cache 记入下表——**主控独占记录**，子代理无法也无需回传自己的 token
 > - **主控自身**：T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）
-> - **拿不到精确值 = 流程错误**（不是填「未配置」）
+> - **拿不到精确值 = 平台异常**（completion event 缺 Stats 行），不是填「未配置」
 
-**各角色 ack 时填**（按 sessions_spawn 返回值精确 token 数）：
+**主控收到每个子代理 completion 时填**（数据源 = completion event Stats 行）：
 
 | 角色 | token 消耗（in / out） | 模型 | 记录人 |
 |------|------------------------|------|--------|
-| T1 文献 | `<tokens.in> / <tokens.out>` | `<model>` | T1 ack（来自 spawn stats） |
-| T2 数据 | `<tokens.in> / <tokens.out>` | `<model>` | T2 ack（来自 spawn stats） |
-| T3 案例 | `<tokens.in> / <tokens.out>` | `<model>` | T3 ack（来自 spawn stats） |
-| T4 分析 | `<tokens.in> / <tokens.out>` | `<model>` | T4 ack（来自 spawn stats） |
-| T5 写手 | `<tokens.in> / <tokens.out>` | `<model>` | T5 ack（来自 spawn stats） |
-| T6 批判 | `<tokens.in> / <tokens.out>` | `<model>` | T6 ack（来自 spawn stats） |
-| T7 审计 | `<tokens.in> / <tokens.out>` | `<model>` | T7 ack（来自 spawn stats） |
-| T9 评审 | `<tokens.in> / <tokens.out>` | `<model>` | T9 ack（来自 spawn stats） |
-| G14 检测 | `<tokens.in> / <tokens.out>` | `<model>` | G14 ack（来自 spawn stats） |
+| T1 文献 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
+| T2 数据 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
+| T3 案例 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
+| T4 分析 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
+| T5 写手 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
+| T6 批判 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
+| T7 审计 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
+| T9 评审 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
+| G14 检测 | `<tokens.in> / <tokens.out>` | `<model>` | 主控（completion Stats） |
 | **主控自身** | `<session_status 查 main>` | `<model>` | T8 汇总 |
 | **总计** | `<Σ>` | — | T8 汇总 |
 
@@ -256,7 +257,7 @@
 - 子代理 Σ：<Σ_sub> tokens（含 prompt/cache）
 - 主控自身：<session_status 主会话值> tokens + $<cost> cost
 - 主要消耗：T5 写手 <N> / T7 审计 <N> / T9 评审 <N>
-- 数据源：sessions_spawn 返回值 stats + session_status 工具（OpenClaw 9.1+）
+- 数据源：子代理完成事件 Stats 行 + session_status 工具（OpenClaw 9.1+）
 ```
 
 ---

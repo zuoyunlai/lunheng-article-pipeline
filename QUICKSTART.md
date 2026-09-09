@@ -1,4 +1,5 @@
-> 版本：v2.12.1（自动同步 2026-09-09）
+> 版本：v2.12.2（自动同步 2026-09-09）
+
 
 
 
@@ -20,14 +21,14 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
-> **宿主配置）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**，token 统计走精确路径（sessions_spawn 返回值 stats + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
+> **宿主配置）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**，token 统计走精确路径（子代理完成事件 `Stats:` 行 + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
 
 ---
 
 ## 🔧 宿主适配要点
 
 - 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）
-- token 统计走精确路径（sessions_spawn 返回值 stats + `session_status`）；拿不到精确值记 `unavailable`，不估算
+- token 统计走精确路径（子代理完成事件 `Stats:` 行 + `session_status`）；拿不到精确值 = 平台异常，不估算
 - 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 15/15 PASS，含门 G 正常态）
 
 ---

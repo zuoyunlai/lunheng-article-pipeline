@@ -23,11 +23,8 @@
 - 问题 A
 - 问题 B
 
-## 5. token 消耗（精确机制）
-- 输入：`<tokens.in>`（来自 sessions_spawn 返回值 stats）
-- 输出：`<tokens.out>`（同上）
-- prompt/cache：`<prompt/cache>`（同上）
-- 取值规则：**全精确**，无三级降级——拿不到精确值 = 流程错误
+## 5. token 消耗（由主控记录）
+- 说明：token 消耗由**主控**在 `sessions_yield` 收到本子代理 completion event 时从 `Stats:` 行提取记录（`tokens N in/out • prompt/cache N`），**子代理无需也回传不了自己的 token**（sessions_spawn 返回值无 stats 字段，教训 #256）
 
 ## 6. 下一步
 - 阶段 X 的预期任务

@@ -1,4 +1,5 @@
-> 版本：v2.12.1（自动同步 2026-09-09）
+> 版本：v2.12.2（自动同步 2026-09-09）
+
 
 
 # 执行韧化协议 v2.1.0（论衡激进重构，设计者文档**）
@@ -32,12 +33,12 @@
 
 每段 ack 在 status.md 阶段行末尾追加： `[ack N% HH:MM] <一句话说进度>`。
 
-**完成 ack 必须记录 token 消耗（精确机制）**：
-角色完成 ack 时，在交接报告「token 消耗」段记录本次 LLM 调用的 token 数（来自 sessions_spawn 返回值 stats，精确）：
-- **输入**：`tokens.in`（精确值）
-- **输出**：`tokens.out`（精确值）
+**完成 ack 的 token 消耗由主控记录（精确机制）**：
+角色完成 ack **不**回传自己的 token（子代理拿不到：sessions_spawn 返回值无 stats 字段，教训 #256）。token 由**主控**在 `sessions_yield` 收到 completion event 时从 `Stats:` 行提取（`tokens N in/out • prompt/cache N`）记入 status.md 4.7 表：
+- **输入**：`tokens.in`（精确值，来自 completion Stats）
+- **输出**：`tokens.out`（精确值，来自 completion Stats）
 - **prompt/cache**：如有则记，否则留空
-- **v2.6.1 重写根因**（教训 #194）：v2.5.18 三级降级机制是设计偏慎——OpenClaw 9.1 已提供 sessions_spawn stats，**无需估算/降级**。拿不到精确值 = 流程错误，不填「未配置」。
+- **v2.12.2 重写根因**（教训 #256）：v2.6.1 起文档误把来源写成「sessions_spawn stats」（沿袭教训 #192 的误记），实测 spawn 返回值无 stats。拿不到精确值 = 平台异常（completion event 缺 Stats 行），不填「未配置」。
 
 **示例（写手 4758 字）：**
 ```
