@@ -1,4 +1,4 @@
-# 交接报告模板（精简版，v2.2.14）
+# 交接报告模板（精简版）
 
 > **精简版**：只保留骨架 + 必填字段，详细说明见 [`交接报告-template.md`](交接报告-template.md)
 
@@ -23,7 +23,7 @@
 - 问题 A
 - 问题 B
 
-## 5. token 消耗（v2.6.1 重写，精确机制）
+## 5. token 消耗（精确机制）
 - 输入：`<tokens.in>`（来自 sessions_spawn 返回值 stats）
 - 输出：`<tokens.out>`（同上）
 - prompt/cache：`<prompt/cache>`（同上）

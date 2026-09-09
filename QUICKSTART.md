@@ -1,4 +1,5 @@
-> 版本：v2.12.0（自动同步 2026-09-09）
+> 版本：v2.12.1（自动同步 2026-09-09）
+
 
 
 
@@ -14,7 +15,7 @@
 论衡是纯 skill，无需创建独立 agent：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计版本（v2.10.3 修复 ECS audit Review + 主人 v2.7.13 立场强化）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -25,13 +26,13 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 
 ## 🔧 宿主适配要点
 
-- 默认项目目录 `run/<项目名>/`（`cwd_default` 仅是路径提示，非沙箱保证）
+- 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）
 - token 统计走精确路径（sessions_spawn 返回值 stats + `session_status`）；拿不到精确值记 `unavailable`，不估算
 - 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 15/15 PASS，含门 G 正常态）
 
 ---
 
-## ⚠️ 重要警告（v2.2.17 加重，回应 ClawHub scanner F09 91%）
+## ⚠️ 重要警告（回应 ClawHub scanner F09 91%）
 
 使用论衡技能会触发以下副作用，请使用前确认你已理解并同意：
 
@@ -52,7 +53,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 # 2. 主控自动派 T1∥T2∥T3 三检索员并行检索
 # 3. 主控自动派 T4 分析 → T5 写手 → T6 批判 → T7 审计 → T8 主控终检
 #    
-# 3.5 可选：Phase 4.5 派发（v2.4.0 新增，默认全部关闭，需主人在 Phase 0 明确勾选）：
+# 3.5 可选：Phase 4.5 派发（默认全部关闭，需主人在 Phase 0 明确勾选）：
 #     T9 同行评审（6 维度评分）+ G14 中文 AI 痕迹闸（8 类检测，Phase 3.6 与 T6 同批）+ 方法论足迹面板
 # 4. 交付一份带引用来源的高质量长文
 ```
@@ -109,7 +110,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 4. **Phase 2.5 主人确认**：主人过目大纲
 5. **Phase 3 写作派发**：自动派 **T5** 写手写 v1
 6. **Phase 3.5 主人洞察补充**（人在环，必到）：主控呈现初稿 v1，主人选择提供洞察或「无补充」；有洞察才由 T5 写手融入 v2，二者都必须记录
-7. **Phase 3.6 批判派发**（v2.3.0 新增独立节点）：自动派 **T6** 批判伙伴攻击 v2（含主人洞察）
+7. **Phase 3.6 批判派发**：自动派 **T6** 批判伙伴攻击 v2（含主人洞察）
 8. **Phase 4 审计派发**：自动派 **T7** 审计员
 9. **Phase 4.5 可选派发**（**默认关闭**，Phase 0 明确勾选才走）：
    - **T9 同行评审**（按模式触发）：行业分析/学术论文默认开启，公众号默认关闭（主人可选开启）；6 维度评分 → accept/minor/major/reject。T9 结果必须在对话中呈现给主人
@@ -117,7 +118,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
    - **方法论足迹面板**（可选）：status.md 加方法论可见段（借鉴 deep-research-pro）
 10. **Phase 5 终检**：主控 **T8** 主控终检交付
 
-**主人在 4 个节点介入**：Phase 0 / Phase 2.5 / Phase 3.5 / Phase 5。四个节点都必须呈现材料并记录明确决策；Phase 3.5 可选「无补充」，但不可静默跳过（v2.6.2）。Phase 3.6 T6 批判是内部流水线动作，非主人介入（教训 #138）
+**主人在 4 个节点介入**：Phase 0 / Phase 2.5 / Phase 3.5 / Phase 5。四个节点都必须呈现材料并记录明确决策；Phase 3.5 可选「无补充」，但不可静默跳过。Phase 3.6 T6 批判是内部流水线动作，非主人介入（教训 #138）
 
 ---
 
@@ -146,7 +147,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 
 ---
 
-## 📊 10 张角色卡一览（v2.7.1 更新：9 → 10 张，T8 终检独立角色卡）
+## 📊 10 张角色卡一览（T8 终检独立角色卡）
 
 | 角色 | 职责 | 何时启动 |
 |------|------|---------|
@@ -158,10 +159,10 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 | **T5 写手** | 正文撰写 | Phase 3 |
 | **T6 批判伙伴** | 从反方攻击论证（C1-C7） | Phase 3.6（T5 v2 后，攻击 v2 含主人洞察） |
 | **T7 审计员** | 质量检查 + 修订任务书 | Phase 4 |
-| **T8 终检** | 交付物完整性 + AI 使用披露 | Phase 5（v2.7.1 独立角色卡） |
+| **T8 终检** | 交付物完整性 + AI 使用披露 | Phase 5 |
 | **T9 同行评审** | 预演期刊审稿（6 维度评分 → accept/minor/major/reject） | Phase 4.5（行业分析/学术默认开启；公众号默认关闭，主人可选） |
 
-> **G14 中文 AI 痕迹闸（v2.4.0 新增）**：Phase 3.6 与 T6 同批并行（v2.7.2 统一）。8 类检测（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning 触发修订 / 5+ 类 Fail 强制修订。
+> **G14 中文 AI 痕迹闸**：Phase 3.6 与 T6 同批并行。8 类检测（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning 触发修订 / 5+ 类 Fail 强制修订。
 
 完整角色定义：详见 [`glossary-full.md § 一 核心角色`](references/_shared/glossary-full.md)
 
@@ -214,7 +215,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 - 搬入 `final/局限性.md`
 - 论文正常交付（不假装完美）
 
-> ⚠️ **修订回环口径（v2.7.3 仲裁表 + v2.7.9 统一）**：「轮」= **0 轮** T5 出 v1 → **1 轮** v1→v2（融入主人洞察 Phase 3.5 + T6/G14 反馈）→ **2 轮** v2→v3（T7 打回或 T8 亲修）。常规批判修订上限 2 轮；v3 后 minor 修补由 T8 inline 处置（独立登记，不占用 2 轮预算），结构性 P1/P0 须主人拍板启例外通道（Acknowledged Limitations）——无静默无限修订。完整仲裁表见 SKILL.md「修订回环仲裁规则」。
+> ⚠️ **修订回环口径**：「轮」= **0 轮** T5 出 v1 → **1 轮** v1→v2（融入主人洞察 Phase 3.5 + T6/G14 反馈）→ **2 轮** v2→v3（T7 打回或 T8 亲修）。常规批判修订上限 2 轮；v3 后 minor 修补由 T8 inline 处置（独立登记，不占用 2 轮预算），结构性 P1/P0 须主人拍板启例外通道（Acknowledged Limitations）——无静默无限修订。完整仲裁表见 SKILL.md「修订回环仲裁规则」。
 
 ---
 
@@ -243,7 +244,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 
 ### Q2：数据来源可以是二手转引吗？
 
-**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/glossary-full.md)。**🟢🟡🔴 是「信任级别」标识**（v2.2.1 起），**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`audit-checklist-quickref.md § G11`](references/_shared/audit-checklist-quickref.md)）：
+**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/glossary-full.md)。**🟢🟡🔴 是「信任级别」标识**，**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`audit-checklist-quickref.md § G11`](references/_shared/audit-checklist-quickref.md)）：
 - 🟢 已发布公开数据（最高信任）
 - 🟡 主人投喂数据（中信任）
 - 🔴 二手转引（低信任，必须回溯一次文献 + 顶部标注）
@@ -261,7 +262,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 **答：迭代发布。** 详见论衡发布历史：
 - v2.0.5 → v2.1.7：连续 6 轮 ClawHub scanner findings 闭环
 - v2.1.8 → v2.2.12：P0+P1+P2 持续改进
-- v2.3.0：角色编号重构（教训 #116）+ README 内部冲突修复（教训 #116 + #118）
+- v2.3.0：角色编号重构（教训 #116）+ README 内部冲突修复（教训 #116，+ #118）
 
 论衡设计哲学：**安全是持续回应反馈的过程，不是发布前的完美**。
 

@@ -1,7 +1,8 @@
-> 版本：v2.12.0（自动同步 2026-09-09）
+> 版本：v2.12.1（自动同步 2026-09-09）
 
 
-# 数据图表 SVG 模板（Phase 4.5 配图专用，v2.3.1 新增）
+
+# 数据图表 SVG 模板（Phase 4.5 配图专用）
 
 
 > **用途**：论衡主控在 Phase 4.5 生成数据图表时，参考本模板用 `write` 工具手写 SVG 矢量图。
@@ -168,9 +169,9 @@
 - 图件统一入 `final/图件/`，命名 `图N_标题.svg`（N 与正文 [图N] 对应）
 - 交付说明 `final/交付说明.md` 列图件清单 + 每图数据来源编号
 
-### 6.1 PNG 转换的执行边界（v2.5.23 P0 强化；v2.6.8 修订回应 T05：主控一律不碰 exec）
+### 6.1 PNG 转换的执行边界
 
-> **关键澄清（v2.6.8）**：`rsvg-convert` 是外部可执行程序。论衡「零 exec」承诺 = 论衡 agent（主控 + 全部子代理）**任何情况下都不调用** `exec`/`process` 等 shell 执行工具（对应 `metadata.tools.denied` 永久拒绝，Phase 0 同意也不能豁免）。SVG 文件一律由主控用 `write` 工具纯文本产出；SVG → PNG 的本地转换只由**主人本人手工执行**（在 agent 流程之外），或由主控经 opt-in 调用 `image_generate`（远端推理，非本地执行）。
+> **关键澄清**：`rsvg-convert` 是外部可执行程序。论衡「零 exec」承诺 = 论衡 agent（主控 + 全部子代理）**任何情况下都不调用** `exec`/`process` 等 shell 执行工具（对应 `metadata.tools.denied` 永久拒绝，Phase 0 同意也不能豁免）。SVG 文件一律由主控用 `write` 工具纯文本产出；SVG → PNG 的本地转换只由**主人本人手工执行**（在 agent 流程之外），或由主控经 opt-in 调用 `image_generate`（远端推理，非本地执行）。
 
 | 转换方式 | 执行性质 | 触发条件 | 谁来执行 |
 |---------|---------|---------|---------|
@@ -179,7 +180,7 @@
 | `image_generate` 转 PNG | 远端 API 调用 + 模型推理 | 主人明确批准（opt-in） | 主控走 `image_generate` 工具调用 |
 | SVG 矢量直接发布 | 零执行 | 默认 | 主控 `write` 工具 |
 
-**触发门（v2.5.23 新增；v2.6.8 收紧）**：
+**触发门**：
 - Phase 0 启动问句：「PNG 转换需求？ ① 无（SVG 矢量直接发布）/ ② 主人本地手工 rsvg-convert / ③ 主控调用 image_generate 转 PNG」
 - 选 ② → 主人本人手工跑命令，agent 不执行；选 ③ → Phase 0 同意后主控可调 `image_generate`
 - **永久禁止**主控/子代理运行 rsvg-convert / ImageMagick / 任何转换 binary 或 shell 命令——此禁止不可被 Phase 0 同意、进度压力或任何理由豁免（与 `metadata.tools.denied` 一致）

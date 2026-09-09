@@ -1,4 +1,4 @@
-> 版本：v2.12.0（自动同步 2026-09-09）
+> 版本：v2.12.1（自动同步 2026-09-09）
 
 
 
@@ -53,15 +53,16 @@
 
 
 
-# 多格式导出（v2.5.0 新增，可选，默认 md）
+
+# 多格式导出（可选，默认 md）
 
 > **原则**：主人不选就不加载导出逻辑，尽可能节省 token。
 > **默认**：Phase 5 终稿输出 Markdown（当前行为，零额外 token）。
 > **触发**：主人在 Phase 0 定题时或 Phase 5 终稿时选 `--format md/latex/docx/pdf`。
 >
-> ⚠️ **诚实声明（v2.5.16 修订，回应第三方审计）**：**md 是完整支持的**；latex/docx/pdf 三格式是**实验性功能**——命令模板引用的 4 个依赖文件（参考文献.bib / academic-paper 模板 / academic-paper-template.docx / chinese-gb7714-2015-numeric.csl）**论衡当前不自动产出**，需主人自备（见下方「前置条件清单」），且 **pandoc/rsvg-convert 由主人手动跑**（零 exec）。选 latex/docx/pdf 前请确认已满足前置条件，否则会卡壳。**.bib 自动生成机制计划 v2.6.0 落地**。
+> ⚠️ **诚实声明（回应第三方审计）**：**md 是完整支持的**；latex/docx/pdf 三格式是**实验性功能**——命令模板引用的 4 个依赖文件（参考文献.bib / academic-paper 模板 / academic-paper-template.docx / chinese-gb7714-2015-numeric.csl）**论衡当前不自动产出**，需主人自备（见下方「前置条件清单」），且 **pandoc/rsvg-convert 由主人手动跑**（零 exec）。选 latex/docx/pdf 前请确认已满足前置条件，否则会卡壳。**.bib 自动生成机制计划 v2.6.0 落地**。
 
-## 〇、前置条件清单（latex/docx/pdf 必读，v2.5.16 新增）
+## 〇、前置条件清单（latex/docx/pdf 必读）
 
 主人选 latex/docx/pdf 前，需自备以下依赖（论衡不自动产出）：
 
@@ -137,10 +138,10 @@ mv final/定稿.md.bak-pdf final/定稿.md
 ```
 
 > **零外发原则**：SVG 转 PDF 用 rsvg-convert（本地工具，零外发），pandoc 本地跑。
-> **⚠️ sed 破坏性警示（v2.5.16 补）**：SVG 嵌入的 sed 是**原地破坏**定稿.md 的临时操作，
+> **⚠️ sed 破坏性警示**：SVG 嵌入的 sed 是**原地破坏**定稿.md 的临时操作，
 > 必须 cp 备份 + 跑完恢复，否则交付的定稿.md 已被污染。
 
-## 四、Phase 0 + Phase 5 选择流程（v2.5.16 同步 v2.5.5 六选项）
+## 四、Phase 0 + Phase 5 选择流程
 
 ### Phase 0（定题，预选）
 主控询问主人「本次任务是否需要多格式导出？」（预选，不阻塞）：
@@ -149,7 +150,7 @@ mv final/定稿.md.bak-pdf final/定稿.md
 □ 否（默认 md）→ 不加载导出逻辑，节省 token
 ```
 
-### Phase 5（终稿，正式拍板，v2.5.5 教训 #172）
+### Phase 5（终稿，正式拍板，教训 #172）
 **主控 T8 终检时必在对话里向主人主动呈现 6 选项**（不依赖 Phase 0 预选，主人不答 = 默认 md）：
 ```
 - □ A. md（默认，零额外 token）— 公众号/知乎/小红书
@@ -162,21 +163,21 @@ mv final/定稿.md.bak-pdf final/定稿.md
 如主人选 B/C/D → T8 给出命令模板（§二），主人自备前置条件（§〇）后**手工跑 pandoc**；论衡 agent 不执行 shell。
 如主人选 A/F → 仅输出 final/定稿.md。
 
-## 四·四、表格样式约定（v2.7.3，ECS 实战：16 格矩阵 docx 样式不可控）
+## 四·四、表格样式约定（ECS 实战：16 格矩阵 docx 样式不可控）
 
 - 正文表格统一 **pipe 表格**（`| |`），禁止 HTML 表格 / 嵌套表格（pandoc docx 兼容性）
 - 单元格内禁用换行符（docx 转换即碎）；多值单元格用「；」分隔
 - ≥8 列宽表（对比矩阵）→ T4 大纲阶段就拆为多子表（每表 ≤6 列），pandoc 参考模板 `academic-paper-template.docx` 预置 Table Grid 样式接管
 - 表注写表下方普通段落（「表 N 注：」起头），不写在表格末行单元格内
 
-## 四·五、导出前元数据清洗（v2.7.3 新增，ECS 实战：docx 残留 emoji 信任块）
+## 四·五、导出前元数据清洗（ECS 实战：docx 残留 emoji 信任块）
 
 **latex/docx/pdf 导出前必做**（md 默认格式跳过；清洗对象 = 定稿 export 副本，不动 run/ 原件）：
 1. **信任级别 emoji 清洗**：🟢/🟡/🔴/⚠️ 删除或改正文括注——🟡 → `（数据为二手转引，须回溯原始来源）`；⚠️ → `（单方口径数据）`；🟢 直接删标记
 2. **元信息自检块剥离**：字数自检表 / SHA256 校验行 / AI 痕迹 grep 计数表 / 心跳时间戳——这些是过程产物，不进交付稿
 3. **清洗后核对**：清洗副本再过一遍 M-Form-7 白名单（操作员报告残留 = P0）；字数按清洗后版本重报（清洗删字后不得超过预算下限）
 
-## 四·六、PDF 渲染验证（v2.7.15 新增，回应实测 #9：⚠️ 在 Noto Serif CJK 渲染成 △）
+## 四·六、PDF 渲染验证（回应实测 #9：⚠️ 在 Noto Serif CJK 渲染成 △）
 
 **触发**：主人选 `--format pdf` 并手工跑完 pandoc 后（零 exec，主人执行）。**目的**：抓字体 fallback 乱码（emoji 渲染成 △/豆腐块）与首页文本缺失。
 
@@ -193,12 +194,12 @@ pdftotext -f 1 -l 1 final/定稿.pdf - | head -40
 
 ## 五、与字数判定表 / 投稿就绪检查表的关系
 
-- 字数判定表（v2.4.6）：无论 format，所有格式都要过字数核验
-- 投稿就绪检查表（v2.4.6）：Word/PDF 转换检查项在 v2.5.0 启用 `--format docx/pdf` 时激活
+- 字数判定表：无论 format，所有格式都要过字数核验
+- 投稿就绪检查表：Word/PDF 转换检查项在 v2.5.0 启用 `--format docx/pdf` 时激活
 
-## 六、限制（v2.5.16 诚实化）
+## 六、限制
 
 - **零 exec**：pandoc / rsvg-convert 由主人在 host shell 手动跑；论衡 agent 不执行 shell 命令
 - **模板依赖**：latex/docx/pdf 需主人自备模板（academic-paper.tex / academic-paper-template.docx）+ .bib + CSL（见 §〇 前置条件清单）
 - **中文支持**：用 xelatex 引擎 + csl=chinese-gb7714-2015-numeric 处理中文引用
-- **.bib 生成机制缺失（v2.5.16 明示）**：论衡当前不产出 BibTeX，latex/docx/pdf 的 `--bibliography` 依赖主人手动转换；计划 v2.6.0 补 T1「文献卡 → .bib」自动生成
+- **.bib 生成机制缺失**：论衡当前不产出 BibTeX，latex/docx/pdf 的 `--bibliography` 依赖主人手动转换；计划 v2.6.0 补 T1「文献卡 → .bib」自动生成

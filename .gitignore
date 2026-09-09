@@ -9,3 +9,4 @@ scripts/__pycache__/
 # Python test/cache directories (pytest_cache 自带 .gitignore 会被屏蔽，根目录兜底防 rsync 污染净化包)
 .pytest_cache/
 __pycache__/
+run/
