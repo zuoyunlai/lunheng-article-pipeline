@@ -1,4 +1,5 @@
-> 版本：v2.12.2（自动同步 2026-09-09）
+> 版本：v2.12.3（自动同步 2026-09-09）
+
 
 
 
@@ -73,9 +74,9 @@
 - **openclaw.json 模型 = 本机默认示例 + 最后兜底**：`agents.list[].model.primary + fallbacks` 仅作「Phase 0 自检失败时的兜底默认」，不是硬配置；实际角色模型由能力抽象运行时解析。
 
 **路径校验（响应腾讯 A.I.G 审计 Remediation #5）**：
-- **所有文件写入前必须校验路径**：调用 `python3 scripts/path-canonical.py <base_dir> <target_path>` 获取 canonical 路径
+- **所有文件写入前必须校验路径**：按 `_shared/路径校验规范.md` 的 in-process 判定口诀（`Path.resolve()` + `relative_to()` 包含性检查）**推理模拟**，零 exec，不调脚本
 - **校验失败 → 写入 error log + 心跳告警主控**：路径遍历/绝对路径/符号链接逃逸 → 记录错误 + 人在环介入
-- **详见**：[`_shared/路径校验规范.md`](../_shared/路径校验规范.md)（含调用示例、测试套件、角色卡集成指南）
+- **详见**：[`_shared/路径校验规范.md`](../_shared/路径校验规范.md)（含判定口诀、in-process 伪代码、测试套件、角色卡集成指南）
 
 ## 职责
 

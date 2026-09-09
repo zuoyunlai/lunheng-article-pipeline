@@ -88,9 +88,9 @@ def strip_shell(s: str) -> str:
         flags=re.DOTALL
     )
 
-    # ---- 0b. 删除目录树里 scripts/ .github/ .sh .yml 行（开发者维护工具，净化包已剥离）----
-    s = re.sub(r'[^\n]*(scripts/|\.github/)[^\n]*\n', '', s)
-    s = re.sub(r'[^\n]*\.(sh|yml)\s*(#.*)?\n', '', s)
+    # ---- 0b. 开发者工具引用行删除（scripts/ .github/ .sh .yml）—— 已移到行循环内「正文行处理」处，
+    #          避免误伤代码块内的 scripts/ 参数行（教训 #256 同型：v2.12.1 曾误删
+    #          「路径校验规范」subprocess.run 的 ["python3","scripts/path-canonical.py",...] 参数行）----
 
     lines = s.split('\n')
     out = []
@@ -197,6 +197,10 @@ def strip_shell(s: str) -> str:
             continue
 
         # ---- 正文行处理 ----
+        # 0b. 删除开发者工具引用行（scripts/ .github/ .sh .yml）——仅正文，不碰代码块（教训 #256 同型）
+        if re.search(r'(scripts/|\.github/)', line) or re.search(r'\.(sh|yml)\s*(#.*)?$', line):
+            i += 1
+            continue
         line = process_inline(line)
         out.append(line)
         i += 1
