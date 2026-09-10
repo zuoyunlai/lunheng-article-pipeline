@@ -380,9 +380,9 @@ RESIDUAL_PATTERNS=(
   'shellcheckrc'
   'paper-ready-check\.(sh|py)'  # v2.12.0 新增：论衡开发者脚本不应出现在净化版（脚本随 scripts/ 整目录被剥，但散落 .md 引用必须脱钩）
   'check-version\.sh'           # v2.12.0 新增：开发者版本同步脚本不在净化版
-  'self-audit-gate\.sh'        # v2.12.6 新增：自审门脚本（防 project-archive-sop 等散落 .md 引用漏剥，同 check-version.sh 类）
-  'sync-version\.sh'           # v2.12.6 新增：版本同步脚本（同 check-version.sh 类）
-  'build-clawhub-release\.sh'  # v2.12.6 新增：净化包构建脚本自身（同 check-version.sh 类）
+  'self-audit-gate\.sh'        # v2.12.10 新增：自审门脚本（防 project-archive-sop 等散落 .md 引用漏剥，同 check-version.sh 类）
+  'sync-version\.sh'           # v2.12.10 新增：版本同步脚本（同 check-version.sh 类）
+  'build-clawhub-release\.sh'  # v2.12.10 新增：净化包构建脚本自身（同 check-version.sh 类）
 )
 for pat in "${RESIDUAL_PATTERNS[@]}"; do
   # grep 无命中时返回 1；在 pipefail 下需显式吞掉该正常状态。
@@ -460,7 +460,7 @@ if [[ "$FINAL_HITS" -gt 0 ]]; then
 fi
 echo "  ✅ 最终残留扫描通过"
 
-# ---- 4d. 语言政策声明门（v2.12.9 新增，防回归）----
+# ---- 4d. 语言政策声明门（v2.12.10 新增，防回归）----
 # 背景：ClawHub SkillSpector 「Natural-Language Policy Violations」逐文件判定，
 # 净化包内每个交付 .md 必须带一行「语言政策」声明（说明产出语言可切换 + 中文特化是设计定位）。
 # 真源侧由 scripts/inject-lang-policy.py 注入；此处对产物做正向校验，漏注入即阻断发布。

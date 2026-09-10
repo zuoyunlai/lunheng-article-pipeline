@@ -21,9 +21,9 @@ pipeline:
     owner_visible: true
     blocking: false
     trigger_conditions:
-      - task_brief_marks_Dxx_for_review
-      - unresolved_red_second_hand_data
-      - t9_evidence_score_low  # 时序澄清：T9 在 Phase 4.5 才运行，此条件在 Phase 1.5 时点不可达；T9 评分低触发的回查在 Phase 4.5 后单独执行（见 phase-1-details）
+      - brief_marked_Dxx_for_review       # 任务简报标 [Dxx 待复核]
+      - t2_5_red_data_unresolved          # T2.5 闸门发现 🔴 二手转引未回溯到原始来源
+      - t9_evidence_score_low             # 时序澄清：T9 在 Phase 4.5 才运行，此条件在 Phase 1.5 时点不可达；T9 评分低触发的回查在 Phase 4.5 后单独执行（见 phase-1-details）
     decisions: [triggered, not_triggered]
     output_if_triggered: literature/回查报告-vN.md
     required_record: status.md

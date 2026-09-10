@@ -1,4 +1,4 @@
-> 版本：v2.12.9（自动同步 2026-09-10）
+> 版本：v2.12.10（自动同步 2026-09-10）
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
 
@@ -61,12 +61,21 @@
 **其他约束**：
 - 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证）。子代理工具面由**四层**决定：① 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`progress_card`/`cron`/`message`/`sessions_send`/`conversations_*`；每组 turn 从持久化的子代理 session envelope 重新推导，`allow`/`alsoAllow` 无法绕过）② **depth 层追剥**（子代理到 `maxSpawnDepth` 即叶子，追加剥 `sessions_spawn`/`subagents`/`sessions_list`/`sessions_history`；depth 策略在运行时权威——宿主改 cap，存量会话的递归工具面随之增减）③ **捕获主控有效工具策略快照**（主控未被剥的工具，子代理同样继承——主控若持有 exec 而宿主不加约束，子代理也可能继承 exec）④ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**论衡是纯 skill（主人拍板），任意 OpenClaw 配置开箱可用**——本机宿主 config **不作任何强制收紧要求**：config 只对本机生效，不会随 ClawHub 净化包分发；论衡定位是「说明书」不是「独立 agent」，任意具备 `sessions_spawn` + 检索工具的 OpenClaw agent 加载即可运行。**宿主加固推荐（论衡建议项，非运行前置条件）**：宿主可在 config 加两条机械加固（`tools.subagents.tools` 为 hot reload，改完即时生效）——① `tools.subagents.tools.deny: ["exec","process","browser","apply_patch","tts","video_generate","music_generate"]`（或按上表 5 档声明配 `allow` 最小集），把零 exec 从纪律层升级为**机械强制**；② `agents.defaults.subagents.maxSpawnDepth: 1` 把直接子代理锁成**叶子**，匹配论衡「角色卡 = 叶子 worker」架构（默认 5，不锁则子代理可自行再 spawn，见下文「叶子纪律」）。论衡**不做**强制前置要求（纯 skill 定位，任意配置开箱可用），但**推荐**加固——未加固时论衡按纪律层运行，并在 status.md「项目元数据」如实标注 `prompt-level`，**不声称**机械强制（fail-closed 诚实口径，回应 ClawHub T05）。零 exec 的纪律层保障（`全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则`），非机械强制。5 档分档（`metadata.subagent_tiers`）是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。**论衡 v2.6.5→v2.6.9 五轮 ClawHub 扫描 CLEAN 是设计表述被认可的实证**：靠的是 SKILL.md 文本层明确表达（禁用 13 项 + fail-closed + 全文档零授权 + 跨文件证据链），扫描器读 SKILL.md 时认可设计表达。**v2.10.1 口径**：本机宿主 config 不作任何强制收紧要求（config 只对本机生效不进净化包）；设计表述上仍坚持「零 exec 纪律层 + 全文档零授权 + fail-closed」，**不**声称机械强制，**不**声称扫描器会自动给 Pass——扫描结果由 ClawHub 扫描器在每次 publish 时判定。
 
-> 🛡️ **未加固 ≠ 可直接开跑（v2.12.9 新增，回应 ClawHub A.I.G T05 fail-closed 要求）**：未加固时标 `prompt-level` 只解决了「诚实」，不解决「同意」。主控在**首次 spawn 子代理之前**必须走「加固状态确认」三选一并取得明示结论：① 已加固 → `enforcement: mechanical`；② 主人知情后选择继续 → `enforcement: acknowledged-prompt-level`；③ 不加固且不确认 → **不 spawn**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审）或中止。**未取得 ①/② 任一结论时不得 spawn 子代理。** 确认结果记入 status.md「项目元数据」段。全程**不读取**宿主 config 文件——加固与否由**主人声明**，详见 SKILL.md §执行能力边界「加固状态确认」。
+> 🛡️ **加固状态确认（v2.12.10 收紧为强制机械，回应 ClawHub A.I.G T05 + Intent-Code Divergence）**：主控在**首次 spawn 子代理之前**必须先 `read` 宿主 `~/.openclaw/openclaw.json`（**仅此一次读取，不写入、不修改**），核实两条机械加固配置存在：① `tools.subagents.tools.deny` 含 13 项特权工具（exec/process/browser/apply_patch/cron/video_generate/music_generate/tts/memory_store/skill_workshop/memory_forget/sessions_search/sessions_send）；② `agents.defaults.subagents.maxSpawnDepth: 1`。读到的实际 deny 列表原样记录到 status.md「项目元数据 → 机械加固核对」段（防口头声明与实际配置漂移）。
+>
+> 核实结果分两档：
+>
+> | 结果 | 状态 | 后续动作 |
+> |------|------|---------|
+> | 两条均已配 | `enforcement: mechanical` | 按纪律层 + 机械层双保障 spawn 子代理 |
+> | 任何一条缺失或读不到 config | `enforcement: degraded` | **不 spawn 子代理**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审，不派子代理）|
+>
+> **v2.12.10 起删除 acknowledged-prompt-level 中间档**——「主人口头声明已加固但未读 config」不再被接受，「主人知情后选择 prompt-only 继续」也不再被接受。原因：声明式信任与未加固开跑均与 zero-trust + fail-closed 一致性冲突，ClawHub A.I.G T05 与 SkillSpector Intent-Code Divergence 均明确反对。论衡现在只接受「机械加固通过」或「降级为单主控」二选一，**没有中间档**。单主控降级模式下整篇产出由主控 LLM 一次性完成（不拆 T1-T7 角色），产出会显著降级（无三角验证、无独立审计、无修订回环），且默认关闭 G14 闸门——适合一次性草稿或试运行。
 - 🔒 **运行前软保障自检**：Phase 0 派发第一批子代理前，主控执行一次软保障判定，结果记入 status.md「项目元数据」`**软保障**: mechanical / prompt-level`：
-  1. **自查主控工具面**：主控自身不含 `exec/process/browser/apply_patch`（已被宿主策略剥除/deny）→ 子代理继承面必不含这些特权工具（教训 #202，：子代理工具面 = 平台硬剥 + 主控策略快照 − 宿主 config deny），机械层成立 → 记 `mechanical`，无需额外确认。
-  2. 主控自身持有上述特权工具 → 子代理是否被宿主 `tools.subagents.tools.deny` 机械拦截**无法从技能侧证明**（技能无宿主 config 读取面）→ 记 `prompt-level`（论衡纪律层软保障），**不拒绝运行**——论衡是纯 skill，配置收紧是宿主可选机械加固，不是运行前置条件（主人拍板接受软保障）。
-  3. 未 deny 或不确定 → 主人确认接受后记 `prompt-level`（软保障运行：零 exec 靠纪律层——全文档零授权 + 角色卡约束 + M 门扫描 + 外部内容不可信原则，非机械强制）；**不拒绝运行**——纯 skill 定位：任意 OpenClaw 配置可用，config 收紧是宿主可选机械加固而非运行前置。
-  4. 每次 spawn 前主控复核该标记；`prompt-level` 时任务简报/交接报告附「特权工具可能可及，严守零 exec 纪律」提醒（角色卡已含零授权约束）。
+  **v2.12.10 起软保障自检只做机械核对**（替代原四步软判定）：
+  1. **读 config 核两条**：主控 `read ~/.openclaw/openclaw.json`，校验 `tools.subagents.tools.deny` 含全部 13 项特权工具**且** `agents.defaults.subagents.maxSpawnDepth: 1` → 记 `mechanical`，后续 spawn 按机械层走。
+  2. 任何一条缺失或读不到 config → 记 `degraded`，**不 spawn**，走单主控降级模式。
+  3. 不再有 prompt-level 中间档；不再做「主控自身工具面自检」（自检口径与实际 config 可能漂移，已删除）；不再做「主人口头声明已加固」（声明式信任已被移除）。
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，**不执行实际 shell 命令**——算法文档中的 bash 示例是给人类主人手动复核的参考命令，**不是 agent 执行代码**（回应 SkillSpector 「models list 命令执行」指控）
 - ℹ️  **零 exec ≠ 零核验**：论衡所有「检查/计数/比对/核验」动作都由 agent 用 `read` 读取文件 + LLM 逐项判定完成；文档中出现的命令式短句（检查/计数/求差集/校验哈希等）是**检查规则的速记**，等价动作一律走 read/write/edit 工具，任何角色都不执行也不「模拟」shell 命令——宿主工具策略（config `tools.subagents` / profile / deny）才是真实权限边界
 - 🚫 **叶子纪律（角色卡不再委托，新增）**：论衡架构里角色卡 T1-T7/T9 = **叶子 worker**——子代理**不得**调用 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history` 派生或管理子代理；需要额外检索/额外人手 → 在交接报告写「需求回执」交主控，由主控决定是否 spawn（主控只认直接子级，孙辈结果不上传会导致产出丢失）。两层落地：机械层 = 宿主 `maxSpawnDepth: 1`；纪律层 = 本段 + 角色卡声明 + 主控每次 spawn 的任务书声明（三层冗余，见 [`关键协议.md`](关键协议.md) §叶子纪律）。**OpenClaw 默认开启有界递归委派（depth 默认 5）**，故不锁 depth 时子代理**确实拿到**上述工具——纪律层不是空话。

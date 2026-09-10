@@ -34,6 +34,6 @@ jobs:
           echo "=== 调用 scripts/check-version.sh ==="
           bash ./scripts/check-version.sh
 
-      # v2.12.6（教训 #116）：9 角色编号旧命名检查已迁入 scripts/check-version.sh。
+      # v2.12.10（教训 #116）：9 角色编号旧命名检查已迁入 scripts/check-version.sh。
       # 原内联实现的豁免条件依赖「行内含 v2.x 版本号 token」，v2.12.5 语义锚点清理
       # 删掉标注行里的版本号后豁免失效 → 本地 check 绿、CI 红。现由单一真源统一判定。

@@ -1,8 +1,8 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.12.9
-description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，任意OpenClaw配置开箱可用。零exec=不执行shell（纪律层软保障，13项特权工具永久禁用；宿主 config 可选机械加固），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/<项目名>/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。<2000字建议直接用主控LLM。"
+version: 2.12.10
+description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，多Agent模式要求宿主 OpenClaw 配置两条机械加固（subagent tools deny + maxSpawnDepth=1），单主控降级模式任意配置可用。零exec=不执行shell（13项特权工具永久禁用），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/<项目名>/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
     requires:
@@ -80,11 +80,9 @@ metadata:
 **纪律保障（零 exec）**：
 
 - 🔒 **论衡是纯 skill，任意 OpenClaw 配置开箱可用**：论衡定位是「说明书」不是「独立 agent」，任意具备 `sessions_spawn` + 检索工具的 OpenClaw agent 加载即可运行——config 加固是**建议项**不是运行前置条件。**推荐两条机械加固**（宿主 config，hot reload）：① `tools.subagents.tools.deny: ["exec","process","browser","apply_patch", ...]` → 零 exec 从纪律层升为**机械强制**（每 turn 重新推导，`allow`/`alsoAllow` 不能绕过）；② `agents.defaults.subagents.maxSpawnDepth: 1` → 直接子代理即**叶子**，匹配论衡「角色卡 = 叶子 worker」架构（默认 5，不锁则子代理可自行再 spawn）。未加固时论衡按纪律层运行并在 status.md 如实标注 `prompt-level`，**不声称**机械强制（fail-closed 诚实口径）。
-- 🛡️ **加固状态确认（spawn 前必走，fail-closed）**：主控在**首次 spawn 子代理之前**，必须向主人显式呈现当前加固状态（宿主是否已配上述两条），并取得**三选一**明示结论后才可 spawn：
-  - ① **已加固** → status.md 记 `enforcement: mechanical`，按纪律层 + 机械层双保障运行；
-  - ② **知情后选择继续** → status.md 记 `enforcement: acknowledged-prompt-level`（主人已知悉子代理可能继承主控特权工具，仍选择继续），并在项目交付时提示复核；
-  - ③ **不加固且不确认** → **不 spawn 子代理**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审，不派子代理）或中止本次运行，由主人二选一。
-  **禁止**在未取得 ①/② 任一结论时静默按 `prompt-level` 开跑——纪律层软保障**不等于**已获主人同意。
+- 🛡️ **加固状态确认（spawn 前必走，fail-closed，v2.12.10 收紧为强制机械）**：主控在**首次 spawn 子代理之前**，必须确认宿主 OpenClaw 已配置**两条机械加固**（`tools.subagents.tools.deny` 含 exec/process/browser/apply_patch 等 13 项 + `agents.defaults.subagents.maxSpawnDepth: 1`）。确认手段：① 主控先 `read` 宿主 `~/.openclaw/openclaw.json`（**仅首次加固检查**，不写入、不修改）核实两条配置存在 → status.md 记 `enforcement: mechanical` 并附实际读取到的 deny 列表（防主人口头声明与实际配置不一致）；② **未读到两条机械加固** → **不 spawn 子代理**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审，不派子代理）。**没有 acknowledged-prompt-level 中间档**——v2.12.10 起论衡只接受「机械加固通过」或「降级为单主控」二选一，回应 ClawHub 审计 Intent-Code Divergence（声明式信任已被移除）。
+  - **例外**：单主控降级模式下，整篇产出由主控 LLM 一次性完成（不拆 T1-T7 角色），产出会显著降级（无三角验证、无独立审计、无修订回环），且默认关闭 G14 闸门；适合一次性草稿或试运行。
+  - **禁止**绕过加固检查直接 spawn 子代理——纪律层软保障**不等于**机械强制。
 - 🚫 **叶子纪律（角色卡不再委托）**：T1-T7/T9 = 叶子 worker——**不得**调用 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history` 派生或管理子代理；需要额外检索/人手 → 交接报告写「需求回执」交主控，由主控决定是否 spawn。机械版 = 宿主 `maxSpawnDepth: 1`，纪律版为兜底（见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md) §叶子纪律）。
 - 🔒 **零 exec 软保障**：论衡运行时全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则，**不**调 exec/process/browser/apply_patch/cron 等特权工具。
 - ℹ️ **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，不执行实际 shell 命令（bash 示例是给人类主人手动复核的参考命令，不是 agent 执行代码）。
@@ -143,6 +141,8 @@ metadata:
 
 **审计反哺不自动 commit**：T7 反哺报告默认只产出 `audits/反哺报告-vN.md`，**不会**自动修改论衡 workspace 下的角色卡；任何对角色卡的改动必须由主人人工 review 后手动 merge。
 
+**Maintainer-only 分区（user-facing 隔离，v2.12.10 起）**：论衡技能运行期使用的所有 `scripts/`、`tests/`、`Makefile`、自审门 `M-Gate-Algorithm.md` 脚本化副本、版本同步脚本、构建发布脚本均属**维护者工具**，与论衡运行时能力**无关**——运行时仅依靠 `references/_shared/` 下的 LLM 推理判定 + `read/write/edit/sessions_spawn` 编排。这些工具仅供主人（仓库维护者）本地或 CI 使用，ClawHub 净化包已剥离，运行时不会出现。
+
 **失败回滚**：任一 Phase 失败，已写入的文件保留在 `run/<项目名>/` 供人工清理，不会自动删除。
 
 **重要隐私提示**：
@@ -190,7 +190,7 @@ Phase 4 审计        T7 → audits/审计报告-vN.md（G0-G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（默认关闭；vendor 路由为宿主配置行为）
 Phase 4.5 审稿      T9 同行评审（= yaml t9_review 独立节点，在 T7.5 完整性门后、T8 终检前；行业/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject）
-Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（多格式导出：默认 md，按需选 --format latex/docx/pdf；项目收尾归档按 [_shared/project-archive-sop.md](references/_shared/project-archive-sop.md)，主控出归档清单、主人手工执行（零 exec））
+Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（默认 md 完整支持；latex/docx/pdf 由主人自备模板 + 手动跑 pandoc + rsvg-convert，论衡 agent 不执行，详见 [_shared/format-export.md](references/_shared/format-export.md) §零 exec；项目收尾归档按 [_shared/project-archive-sop.md](references/_shared/project-archive-sop.md)：主控出归档清单，主人手工 mv/cp，agent 不执行）
 ```
 
 > **Phase 详细操作按需加载**：[`phase-1-details.md`](references/_shared/phase-1-details.md)（检索边界 / 强相关性 / 三角验证 / 数据信任 3 档）、[`phase-2-details.md`](references/_shared/phase-2-details.md)（退化场景）、[`phase-3-details.md`](references/_shared/phase-3-details.md)（写作铁律 10 项 + 洞察补充 + T6/G14 + 修订回环）。
@@ -220,7 +220,7 @@ T7 / T9 / G14 报告头部显式写 `修订回环 = N/2`；T8 终检按此表仲
 3. **反方论证强制 + 强相关性原则**（防材料堆砌，2026-08-13 教训 #34）：每条材料必答「它支撑哪个论点」；数量封顶 [Lxx] 8-12 / [Dxx] 30-50 / [Cxx] 5-8 共 50-70 条；反向淘汰自查（删除它哪条论点会塌，无影响→砍）；相关性优先于时效
 4. **独立审计 + 原创性保证**（2026-08-13 防「重复/改写已公开文章」）：审计员只审不改，引用分级抽验（C级 100% / B级 ≥50% / A级 ≥10%）；先行者检索（T1 主动搜「是否已有公开深度文写过类似核心论点」）+ 差异点声明（T4 大纲必声明与已公开文章的差异点）+ G7 原创性审计（核心论点与他人重复且未声明 → P0）
 5. **模型分工**：检索用便宜快模型，分析/写作用推理强模型，审计用顶配，主控负责路由；顶配档全不可用 → 显式告知主人禁止静默降级
-6. **时间锚点显式化 + 失败回滚**：所有卡片引用必带年份；案例卡额外填「检索截止日期」+「事件时间窗口」；任一 Phase 失败已写文件保留供人工清理，不自动删除
+6. **时间锚点显式化 + 文件保留原则**：所有卡片引用必带年份；案例卡额外填「检索截止日期」+「事件时间窗口」；任一 Phase 失败或项目收尾，**论衡 agent 不执行任何删除操作**——已写文件保留在 `run/<项目名>/` 供主人手工清理（防误删红线）；项目归档同样由主控出清单、主人手工 `mv`/`cp`（agent 不执行），详见 [`project-archive-sop.md`](references/_shared/project-archive-sop.md)。**「归档」= 复制/移动到 `run/.archive/`；「删除」= 主人手工 `rm -rf`**——两个动作都由主人在 host shell 完成，论衡 agent 一律不碰。
 
 ---
 

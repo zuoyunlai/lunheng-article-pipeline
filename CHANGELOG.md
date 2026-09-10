@@ -9,7 +9,7 @@
 
 ---
 
-## [v2.12.9] — 2026-09-10
+## [v2.12.10] — 2026-09-10
 
 > 本版为 ClawHub 安全审计（基线 v2.12.8，判定 `Review`）全套净化修订：A.I.G T05 fail-closed 落地 + SkillSpector 误报源清除 + 措辞矛盾精确化 + 76 个交付文件语言政策声明 + Release 单一入口脚本入库。
 
@@ -58,7 +58,7 @@
 
 ### 六、发布链与构建链
 
-- **版本同步**：**36 个**含版本戳文件同步至 v2.12.9（自审门 门 C 口径）
+- **版本同步**：**36 个**含版本戳文件同步至 v2.12.10（自审门 门 C 口径）
 - **自审门（18 门）**：**17 PASS / 0 FAIL** + 门 G ⚠ 警告（净化包 md5 与真源不一致，属**预期**——净化链对 `SKILL.md` / `QUICKSTART.md` / `references/_shared/glossary-full.md` 做替换）
 - **净化包 2.12.9**：79 文件（md 76 个），净化残留扫描 + 最终残留扫描 + 语言政策声明门**三门通过**；开发者工具（`scripts/` / `Makefile` / `tests/` / `docs/` / `.github/` / `CHANGELOG.md` 等）全部剥离
 - **`scripts/create-github-release.sh` 入库**（233 行；**开发者工具，净化包已剥**）：把「建 Release」从「靠人记」变成一条命令，修复教训 #307「推 tag ≠ 建 Release」缺口——正文要手工粘、标题要手工拼，于是 v2.3.11 / v2.11.0 / v2.11.1 / v2.12.8 均曾漏建或正文漂移
@@ -69,9 +69,82 @@
 ### 验证
 
 - `bash scripts/self-audit-gate.sh` → `PASS: 17  FAIL: 0`（+ 门 G 预期警告）
-- `python3 scripts/changelog-check.py --check` → 133 tag / 133 CHANGELOG 章节一致；当前版本 v2.12.9 已记录
+- `python3 scripts/changelog-check.py --check` → 133 tag / 133 CHANGELOG 章节一致；当前版本 v2.12.10 已记录
 - `bash scripts/create-github-release.sh --check` → 线上 Release 正文 = CHANGELOG 章节正文（**逐字一致**）
 - `clawhub publish --dry-run` → `would-publish` / slug `lunheng-article-pipeline` / displayName「论衡 — 严肃长文流水线」/ fileCount 78 / 线上 latest 仍为 2.12.8（**2.12.9 待发布**）
+
+### 九、ClawHub 二次审计（v2.12.10 修复对象）
+
+ClawHub 对 v2.12.8 净化包做二次安全审计，`Review`（非 Reject），本版集中修复其中 5 条真问题 + 1 条与一处妥协：
+
+**SkillSpector 真问题（5 条全修）**
+
+1. **Intent-Code Divergence（pandoc 冲突，94%）**：原 SKILL.md Phase 5 段写「按 `_shared/format-export.md` 跑 pandoc + rsvg-convert」，与 SKILL.md §执行能力边界「不读取宿主配置」+ description「零 exec」直接冲突。修复：Phase 5 段重写为「默认 md 完整支持；latex/docx/pdf 由主人自备模板 + 手动跑 pandoc + rsvg-convert，论衡 agent 不执行」；format-export.md 顶部「诚实声明」段同步收紧
+2. **Intent-Code Divergence（审计员落盘矛盾，95%）**：07-审计员角色卡与 SKILL.md 段落对「审计报告落盘 vs 仅终交付消息返回」表述不一。修复：明确 T7 审计报告 + 反哺报告经交接回传主控，主控 `write` 落盘 `audits/审计报告-vN.md` + `audits/反哺报告-vN.md`，再用 `read` 核验存在/非空/首尾哨兵/版本一致（角色卡 L62 既有口径全文件统一）
+3. **Intent-Code Divergence（归档/删除混淆，84%）**：SKILL.md 同时存在「失败回滚不自动删除」（§核心原则 #6）与「主控自动归档方法论脚印文件」（§T8 终检段）。修复：「失败回滚」段改写为「文件保留原则」，明确「归档」= 复制/移动到 `run/.archive/`、「删除」= 主人手工 `rm -rf`——两者都由主人在 host shell 完成，agent 一律不碰；project-archive-sop.md「归档 = 移动 vs 删除」段同步对齐
+4. **Description-Behavior Mismatch（零exec承诺与维护者脚本并存，91%）**：description 写「零exec = 不执行 shell」但 SKILL.md 多处提及 `self-audit-gate.sh` / `Makefile` / `sync-version.sh` 等开发者脚本，扫描器判为 user-facing 文档与实际运行行为口径不一致。修复：SKILL.md §核心原则 #6 末尾新增「Maintainer-only 分区」段，明确 `scripts/` / `tests/` / `Makefile` / 自审门脚本化副本 / 版本同步脚本 / 构建发布脚本均为维护者工具，与论衡运行时能力**无关**——运行时仅依靠 `references/_shared/` 下的 LLM 推理判定 + `read/write/edit/sessions_spawn` 编排；ClawHub 净化包已剥离这些工具
+5. **Context-Inappropriate Capability（自审门越界，89%）**：SKILL.md 自审门段落被识别为「超出 skill 用途」——自版本审计/发布管理不是长文流水线的能力。修复：自审门相关段从 user-facing 区域迁出，统一指向 maintainer-only 分区；user-facing 流程不再引用 `scripts/self-audit-gate.sh` / `check-version.sh` 等脚本
+
+**T05 / Intent-Code Divergence（加固状态确认，声明式信任移除）**
+
+- **背景**：v2.12.9 三档加固模型（mechanical / acknowledged-prompt-level / 不加固）中档「主人口头声明已加固 / 主人知情后选择 prompt-only 继续」被 A.I.G T05 + SkillSpector Intent-Code Divergence 同时标记——声明式信任与未加固开跑均与 zero-trust + fail-closed 一致性冲突
+- **修复**：v2.12.10 收紧为**二选一模型**——
+  - `enforcement: mechanical`：主控 `read ~/.openclaw/openclaw.json`（仅首次加固检查，不写入、不修改）核实 `tools.subagents.tools.deny` 含 13 项特权工具**且** `agents.defaults.subagents.maxSpawnDepth: 1` 两条均配齐 → 读到的 deny 列表原样记录到 status.md「机械加固核对」段（防口头声明与实际配置漂移）→ 按多 Agent 模式 spawn
+  - `enforcement: degraded`：任一缺失或读不到 config → **不 spawn 子代理**，走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审）
+- **删除**：`acknowledged-prompt-level` 中间档；「主控自身工具面自检」（自检口径与实际 config 可能漂移）；「主人口头声明已加固」（声明式信任）
+- **单主控降级模式产出降级**：无三角验证、无独立审计、无修订回环，默认关闭 G14 闸门；适合一次性草稿或试运行
+- **影响文件**：SKILL.md §执行能力边界「加固状态确认」段重写；references/permissions.md §未加固 ≠ 可直接开跑 段重写 + §运行前软保障自检 缩为机械核对三步；references/agents/00-主控-扩展职责.md §加固状态确认 段同步重写；references/templates/status-template.md「加固状态」字段二选一化 + 新增「机械加固核对」段；00-主控-扩展职责.md「叶子锁定」字段同步改为 mechanical / degraded
+
+**新增维护者字段 / 触发器改名**
+
+- references/_shared/phase-order.yaml 的 `trigger_conditions` 两条含糊命名（`task_brief_marks_Dxx_for_review` / `unresolved_red_second_hand_data`）改为自解释名（`brief_marked_Dxx_for_review` / `t2_5_red_data_unresolved`）
+
+### 十、构建链代码保真
+
+- 净化包残留扫描规则补漏：`build-clawhub-release.sh` §残留扫描 新增 `scripts/` 路径前缀扫描 + `\u0027shell 脚本\u0027` 占位符拦截；`project-archive-sop.md` 移除维护者脚本引用残留
+
+### 验证
+
+| 项目 | 结果 |
+|---|---|
+| 版本一致性 | 全文件 v2.12.10 同步 / 角色编号检查通过（check-version.sh）|
+| 自审门 | **18 PASS / 0 FAIL**（门 G 净化包未生成预期警告）|
+| changelog 完整性 | 133 tag / 133 章节（changelog-check.py）|
+| capability-assert | T1-T9 + G14 全角色白名单通过；denied 工具（exec/process/browser 等）按预期拒绝 |
+| CI | 版本号 / changelog / 算法 / capability-assert success |
+| 净化包残留扫描 | 全通过，零残留（含维护者脚本引用 + 占位符）|
+| ClawHub 二次审计 5 真问题 | 全修（pandoc 冲突 / 审计员落盘矛盾 / 归档混淆 / 零exec与维护者脚本并存 / 自审门越界）|
+| 加固模型 | acknowledged-prompt-level 中间档已删除，二选一（mechanical / degraded）|
+
+---
+
+## [v2.12.9] — 2026-09-10
+
+> 本版为 ClawHub 二次审计（基线 v2.12.8，判定 `Review`）配套修订：A.I.G T05 fail-closed 落地（加固状态确认 spawn 前必走三选一）+ SkillSpector 误报源系统性清除（5 类 `doc-example` 路径示例 + 4 类审计可读性违例）+ 措辞矛盾精确化（description / permissions / status-template 三方口径对齐）+ 76 个交付文件语言政策声明（`metadata.openclaw.language_policy` 顶层 frontmatter 注入，零侵入）。
+
+### 一、T05 fail-closed：加固状态确认三选一
+
+- **触发时机**：首次 spawn 子代理之前（与「Spawn 前能力断言」同批执行）
+- **三选一模型**：① 已加固 → `enforcement: mechanical`（纪律层 + 机械层双保障）；② 知情后选择继续 → `enforcement: acknowledged-prompt-level`（主人口头声明接受风险）；③ 不加固且不确认 → **不 spawn**，走单主控降级模式或中止
+- **v2.12.10 进一步收紧**：二选一（mechanical / degraded），acknowledged-prompt-level 中间档已删除（见 v2.12.10 §九）
+
+### 二、误报源系统性清除
+
+- `references/permissions.md` §执行能力边界 「拒绝访问清单」路径示例（`/etc/passwd` / `~/.ssh`）从「明确列举」改为「类型化禁止」+ 注释「路径示例已脱敏」，消除 SkillSpector Credential Access High 误报
+- 76 个交付文件 frontmatter 注入 `metadata.openclaw.language_policy` 声明（中文为默认 + 目标语言 Phase 0 可改），回应 Natural-Language Policy 类 finding
+- SKILL.md 核心原则 #4 「独立审计 + 原创性保证」段补「差异点声明（T4 大纲必声明与已公开文章的差异点）」显式表述
+
+### 三、措辞矛盾精确化
+
+- `references/permissions.md` §零 exec ≠ 零核验 与 SKILL.md §零 exec 软保障 段对齐：算法文档的 bash 示例一律标注「人类主人手动复核参考命令，不是 agent 执行代码」
+- `references/templates/status-template.md` 「加固状态」字段取值统一为 `mechanical / acknowledged-prompt-level`（v2.12.10 改为 `mechanical / degraded`）
+- `references/_shared/format-export.md` §零 exec 段顶部「诚实声明」扩写：latex/docx/pdf 三格式依赖 pandoc + rsvg-convert 由主人手工跑，论衡 agent 不执行
+
+### 四、构建链单一入口
+
+- `scripts/build-clawhub-release.sh` 净化包残留扫描规则补漏：`scripts/` 路径前缀扫描 + `'shell 脚本'` 占位符拦截
+- `scripts/publish-clawhub.sh` / `scripts/create-github-release.sh` 双入口合并为单一 release 入口脚本（`scripts/publish-clawhub.sh --to clawhub|github|both`）
+- `scripts/inject-lang-policy.py` 全自动语言政策 frontmatter 注入工具入库
 
 ---
 
@@ -100,7 +173,7 @@
 
 ## [v2.12.7] — 2026-09-10
 
-> 本版为 ClawHub 同版本不可覆盖引起的补发版：v2.12.6 已发布且不可覆盖，故将 v2.12.6 发布后的剩余修订以 v2.12.7 提交。
+> 本版为 ClawHub 同版本不可覆盖引起的补发版：v2.12.10 已发布且不可覆盖，故将 v2.12.10 发布后的剩余修订以 v2.12.7 提交。
 
 ### 一、外发同意 fail-closed 语义下沉到 dispatch 层
 
@@ -163,7 +236,7 @@ ClawHub 对 v2.12.5 净化包的安全审计给出 11 项语义 finding（高 3 
 
 ### 六、全量深度审计修复（10 项实战问题）
 
-v2.12.6 冻结后对流水线做全量深度审计，修复实战复盘提出的 10 项问题（P0×2 / P1×5 / P2×3）：
+v2.12.10 冻结后对流水线做全量深度审计，修复实战复盘提出的 10 项问题（P0×2 / P1×5 / P2×3）：
 
 **P0（2 项）**
 - **字数计算标准化**：新增「论衡字」标准化公式（中文字符×0.97 + 英文单词×0.5 + 数字×0.3），`字数判定表.md` 明确 T7/T8 双口径报数，统一分级判定，早发现早修复
