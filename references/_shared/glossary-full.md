@@ -1,4 +1,5 @@
-> 版本：v2.12.11（自动同步 2026-09-10）
+> 版本：v2.12.12（自动同步 2026-09-10）
+
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -282,7 +283,7 @@
 
 ### 第 1 层：Git（真源版本控制）
 
-> ⚠️ **澄清（回应 SkillSpector Context-Inappropriate Capability）**：以下命令是**人类维护者（技能作者）发布新版本时手工执行的维护流程**，不是技能运行时指令——论衡 agent 在文章写作流水线中不执行任何 git 写操作（commit/tag/push），git 仅限项目本地版本快照。
+> ⚠️ **澄清**：以下命令是**人类维护者（技能作者）发布新版本时手工执行的维护流程**，不是技能运行时指令——论衡 agent 在文章写作流水线中不执行任何 git 写操作（commit/tag/push），git 仅限项目本地版本快照。
 
 ### 第 2 层：技能文档（18 文件版本号同步）
 - `SKILL.md` frontmatter `version: X.Y.Z`（版本号单一真源）
@@ -293,7 +294,7 @@
 - **GitHub Releases**：每版必建 `gh release create`（教训：曾漏建；维护者手工执行）
 - repo description：`gh repo edit`（含版本号；维护者手工执行）
 
-### 第 4 层：ClawHub（净化包 + 扫描）
+### 第 4 层：ClawHub 发布版
 - `scripts/build-clawhub-release.sh` 生成净化包（维护者手工执行）
 - `clawhub publish` 上传 + security scan（维护者手工执行）
 
@@ -326,7 +327,7 @@
 5. **大模型推理 provider**（当前模型，如 deepseek / MiniMax / Anthropic / GLM 等）：各角色卡调用 LLM 时，将**文献卡/数据卡/案例卡/草稿/分析大纲全文**发送给模型 provider
 6. **（可选，默认关闭）中文数据源第二/三梯队**：万方开放平台（`WANFANG_APP_KEY`+`WANFANG_APPCODE`）/ 科情数据（`KQING_APP_KEY`）/ NSTL（`NSTL_APP_KEY`）/ Firecrawl（`firecrawl_api_key`，抓取 paper.edu.cn）——**均需主人显式启用 + 自配 API key**，论衡不存储 key，未启用时零调用
 
-> **术语澄清（回应 ClawHub 安全审计）**：「零 exec」= 不执行 shell 命令（`exec` 工具禁用），是**执行能力边界**；「零外发」= 不向外部发送数据，是**数据传输边界**。两者**不是一回事**。
+> **术语澄清**：「零 exec」= 不执行 shell 命令（`exec` 工具禁用），是**执行能力边界**；「零外发」= 不向外部发送数据，是**数据传输边界**。两者**不是一回事**。
 >
 > **内置功能（零外发）**：**数据图表 SVG** 由主控用 `write` 工具本地手写矢量图，**零外发，不依赖任何外部服务**（禁止文生图）。「零外发」**仅指数据图表 SVG**——检索（web_search/tavily/web_fetch）和**封面（image_generate）都会外发数据**。仅「封面」才调用 `image_generate`（**默认关闭**，需主人在 Phase 0 勾选启用；外发内容 = 图像 prompt；provider 不可用或主人不同意时改走 SVG 矢量封面，**不跨 vendor 自动降级**）。
 

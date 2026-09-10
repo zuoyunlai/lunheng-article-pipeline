@@ -1,4 +1,5 @@
-> 版本：v2.12.11（自动同步 2026-09-10）
+> 版本：v2.12.12（自动同步 2026-09-10）
+
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -70,7 +71,7 @@
 > **默认**：Phase 5 终稿输出 Markdown（当前行为，零额外 token）。
 > **触发**：主人在 Phase 0 定题时或 Phase 5 终稿时选 `--format md/latex/docx/pdf`。
 >
-> ⚠️ **诚实声明（回应第三方审计）**：**md 是完整支持的**；latex/docx/pdf 三格式是**实验性功能**——命令模板引用的 4 个依赖文件（参考文献.bib / academic-paper 模板 / academic-paper-template.docx / chinese-gb7714-2015-numeric.csl）**论衡当前不自动产出**，需主人自备（见下方「前置条件清单」），且 **pandoc/rsvg-convert 由主人手动跑**（零 exec）。选 latex/docx/pdf 前请确认已满足前置条件，否则会卡壳。**.bib 自动生成机制计划 v2.6.0 落地**。
+> ⚠️ **诚实声明**：**md 是完整支持的**；latex/docx/pdf 三格式是**实验性功能**——命令模板引用的 4 个依赖文件（参考文献.bib / academic-paper 模板 / academic-paper-template.docx / chinese-gb7714-2015-numeric.csl）**论衡当前不自动产出**，需主人自备（见下方「前置条件清单」），且 **pandoc/rsvg-convert 由主人手动跑**（零 exec）。选 latex/docx/pdf 前请确认已满足前置条件，否则会卡壳。**.bib 自动生成机制计划 v2.6.0 落地**。
 
 ## 〇、前置条件清单（latex/docx/pdf 必读）
 

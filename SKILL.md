@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.12.11
+version: 2.12.12
 description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，多Agent模式要求宿主 OpenClaw 配置两条机械加固（subagent tools deny + maxSpawnDepth=1），单主控降级模式任意配置可用。零exec=不执行shell（13项特权工具永久禁用），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/<项目名>/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
@@ -38,7 +38,7 @@ metadata:
 
 **定位**：中文学术/深度长文专用流水线——中文特化（G14 AI 痕迹闸 / GB/T 7714-2015 引用规范 / Top 3 中文期刊建议 / 中文新闻源优先）是**设计定位**，不是 locale 缺陷。
 
-**语言边界（显式声明，回应审计 Natural-Language Policy 类发现）**：
+**语言边界（显式声明）**：
 
 | 维度 | 默认 | 主人在 Phase 0 可改 |
 |------|--------|------------------|
@@ -66,21 +66,21 @@ metadata:
 
 ## ⚠️ 执行能力边界（先读这一段）
 
-**论衡技能的工具边界（回应 ClawHub A.I.G T05 + SkillSpector 6 findings）**：
+**论衡技能的工具边界**：
 
 - **主控 documented — 13 项**：read / write / edit + sessions_spawn / sessions_yield / sessions_history + subagents+ web_search / web_fetch / tavily_search / tavily_extract + session_status / progress_card。
 - **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：`research` T1-T3 = base + web_* + tavily_*；`analysis` T4 / `writing` T5 = base；`audit` T6-T7 / `review` T9+G14 = read only；T8 = []（主控亲完成）。子代理工具面的**四层**（平台硬剥 / depth 追剥 / 主控策略快照 / 宿主 config）详见 [`references/permissions.md`](references/permissions.md)。
 - **Opt-in（默认禁止，Phase 0 主人明确同意才解锁）**：`image_generate`（封面生成）、`memory_get` / `memory_search` / `memory_recall`（记忆辅助）；解锁方式 = `run/<项目名>/status.md`「Phase 0 同意记录」段填写 `opt_in:` 清单，凭记录调阅。
 - **行为预授权**：配额耗尽未勾选 = 暂停等拍板（fail-closed）；G14 Warning 未勾选 = 暂停等主人 3 选 1；永不覆盖 `denied` 列表。
 - **禁用（`denied`）— 13 项永久**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / memory_forget / sessions_search / sessions_send。
-- 🔍 **零 exec ≠ 零出网（精确口径，回应审计 Intent-Code Divergence）**：零 exec 只约束「不执行 shell、不调 exec/process」，**不等于**「不向外部发送任何数据」。检索类工具（web_search / tavily_search / web_fetch / tavily_extract）是**默认启用**的对外检索能力，仅发送「检索关键词 + 目标 URL」，**须经 Phase 0「外部服务同意 4 选 1」明示同意后才执行**（主人选 ④全部拒绝 → 本次运行不调用检索工具，改主人自带材料 + 本地模型推理）。与之并列的是**默认关闭 + 勾选才启用**的 opt-in 项：`image_generate`（封面）、Firecrawl、二三线中文源（万方/科情/NSTL）、记忆辅助。两类性质不同，勿混为一谈。
+- 🔍 **零 exec ≠ 零出网（精确口径）**：零 exec 只约束「不执行 shell、不调 exec/process」，**不等于**「不向外部发送任何数据」。检索类工具（web_search / tavily_search / web_fetch / tavily_extract）是**默认启用**的对外检索能力，仅发送「检索关键词 + 目标 URL」，**须经 Phase 0「外部服务同意 4 选 1」明示同意后才执行**（主人选 ④全部拒绝 → 本次运行不调用检索工具，改主人自带材料 + 本地模型推理）。与之并列的是**默认关闭 + 勾选才启用**的 opt-in 项：`image_generate`（封面）、Firecrawl、二三线中文源（万方/科情/NSTL）、记忆辅助。两类性质不同，勿混为一谈。
 
-**Workspace 路径收口（回应 SkillSpector）**：read/write/edit 仅允许 `run/<项目名>/` 子树；拒绝绝对路径、父路径穿越（`..`）、symlink 逃逸、工作区外访问。**默认 cwd = workspace 根**（不设 `cwd_default`，否则 run/ 会被解析到 skill 目录内，教训 #255）——spawn 子代理时显式传 `cwd: run/<项目名>/`（相对 workspace 根），子代理首句必读 `references/_shared/关键协议.md` §workspace 路径收口（read/write/edit 边界）。**唯一例外**：spawn 前一次性「加固状态确认」会 `read` 宿主 `~/.openclaw/openclaw.json`（只读、不改、不写项目外）。⚠️ 若宿主 agent workspace 非标准位置（相对路径会解析到该 workspace 下导致 run/ 错位，实战曾解析到 /root/），改传绝对路径 `<workspace>/run/<项目名>/`。
+**Workspace 路径收口**：read/write/edit 仅允许 `run/<项目名>/` 子树；拒绝绝对路径、父路径穿越（`..`）、symlink 逃逸、工作区外访问。**默认 cwd = workspace 根**（不设 `cwd_default`，否则 run/ 会被解析到 skill 目录内，教训 #255）——spawn 子代理时显式传 `cwd: run/<项目名>/`（相对 workspace 根），子代理首句必读 `references/_shared/关键协议.md` §workspace 路径收口（read/write/edit 边界）。**唯一例外**：spawn 前一次性「加固状态确认」会 `read` 宿主 `~/.openclaw/openclaw.json`（只读、不改、不写项目外）。⚠️ 若宿主 agent workspace 非标准位置（相对路径会解析到该 workspace 下导致 run/ 错位，实战曾解析到 /root/），改传绝对路径 `<workspace>/run/<项目名>/`。
 
 **纪律保障（零 exec）**：
 
 - 🔒 **论衡是纯 skill：单主控降级模式任意 OpenClaw 配置开箱可用**：论衡定位是「说明书」不是「独立 agent」，任意具备 `sessions_spawn` + 检索工具的 OpenClaw agent 加载即可运行。**多 Agent 模式必配两条机械加固**（宿主 config，hot reload）：① `tools.subagents.tools.deny: ["exec","process","browser","apply_patch", ...]` → 零 exec 从纪律层升为**机械强制**（每 turn 重新推导，`allow`/`alsoAllow` 不能绕过）；② `agents.defaults.subagents.maxSpawnDepth: 1` → 直接子代理即**叶子**，匹配论衡「角色卡 = 叶子 worker」架构（默认 5，不锁则子代理可自行再 spawn）。**多 Agent 模式必过下一行「🛡️ 加固状态确认」的机械核对；未通过 → 记 `enforcement: degraded`，不 spawn 子代理**（fail-closed 诚实口径）。
-- 🛡️ **加固状态确认（spawn 前必走，fail-closed，v2.12.10 收紧为强制机械）**：主控在**首次 spawn 子代理之前**，必须确认宿主 OpenClaw 已配置**两条机械加固**（`tools.subagents.tools.deny` 含 exec/process/browser/apply_patch 等 13 项 + `agents.defaults.subagents.maxSpawnDepth: 1`）。确认手段：① 主控先 `read` 宿主 `~/.openclaw/openclaw.json`（**仅首次加固检查**，不写入、不修改）核实两条配置存在 → status.md 记 `enforcement: mechanical` 并附实际读取到的 deny 列表（防主人口头声明与实际配置不一致）；② **未读到两条机械加固** → **不 spawn 子代理**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审，不派子代理）。**没有 acknowledged-prompt-level 中间档**——v2.12.10 起论衡只接受「机械加固通过」或「降级为单主控」二选一，回应 ClawHub 审计 Intent-Code Divergence（声明式信任已被移除）。
+- 🛡️ **加固状态确认（spawn 前必走，fail-closed，v2.12.10 收紧为强制机械）**：主控在**首次 spawn 子代理之前**，必须确认宿主 OpenClaw 已配置**两条机械加固**（`tools.subagents.tools.deny` 含 exec/process/browser/apply_patch 等 13 项 + `agents.defaults.subagents.maxSpawnDepth: 1`）。确认手段：① 主控先 `read` 宿主 `~/.openclaw/openclaw.json`（**仅首次加固检查**，不写入、不修改）核实两条配置存在 → status.md 记 `enforcement: mechanical` 并附实际读取到的 deny 列表（防主人口头声明与实际配置不一致）；② **未读到两条机械加固** → **不 spawn 子代理**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审，不派子代理）。**没有 acknowledged-prompt-level 中间档**——v2.12.10 起论衡只接受「机械加固通过」或「降级为单主控」二选一，（声明式信任已被移除）。
   - **例外**：单主控降级模式下，整篇产出由主控 LLM 一次性完成（不拆 T1-T7 角色），产出会显著降级（无三角验证、无独立审计、无修订回环），且默认关闭 G14 闸门；适合一次性草稿或试运行。
   - **禁止**绕过加固检查直接 spawn 子代理——纪律层软保障**不等于**机械强制。
 - 🚫 **叶子纪律（角色卡不再委托）**：T1-T7/T9 = 叶子 worker——**不得**调用 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history` 派生或管理子代理；需要额外检索/人手 → 交接报告写「需求回执」交主控，由主控决定是否 spawn。机械版 = 宿主 `maxSpawnDepth: 1`，纪律版为兜底（见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md) §叶子纪律）。
@@ -153,7 +153,7 @@ metadata:
 
 **主控 Phase 0 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**），写入 `01-任务简报.md`「外部服务同意记录」段作为审计追溯依据。
 
-**检索层口径（区分「默认启用」与「默认关闭」两类，回应审计 Description-Behavior Mismatch）**：
+**检索层口径（区分「默认启用」与「默认关闭」两类）**：
 
 | 类别 | 工具 | 默认状态 | 离开本机的数据 |
 |------|------|---------|--------------|
@@ -167,7 +167,7 @@ metadata:
 
 **🔒 不读取宿主网关配置（精确口径）**：论衡运行**不调用** `gateway` / `config` / 任何宿主配置读取工具，**不读取** `~/.openclaw/openclaw.json` 等宿主配置文件——主控 documented 工具集无 gateway / config / agents_list / cron / message 类工具。宿主可单独配置 gateway 限权访问，与论衡运行无关。**唯一例外**＝首次 spawn 前的加固核对会 `read` 一次 `~/.openclaw/openclaw.json`（只读、不改、不写项目外）。
 
-> **与「加固状态确认」的唯一例外（回应审计 Intent-Code Divergence）**：上段说的是**运行时其余阶段不读宿主配置文件**；**唯一例外**是 spawn 前一次性「加固状态确认」——主控 `read` 宿主 `~/.openclaw/openclaw.json` 做**机械核对**（**非主人声明**；只读、不改、不写项目外），核实 `tools.subagents.tools.deny` 含 13 项特权工具**且** `agents.defaults.subagents.maxSpawnDepth: 1` 两条齐备才可 spawn；**未核实通过不得 spawn 子代理**（记 `enforcement: degraded`，走单主控降级模式）。
+> **与「加固状态确认」的唯一例外**：上段说的是**运行时其余阶段不读宿主配置文件**；**唯一例外**是 spawn 前一次性「加固状态确认」——主控 `read` 宿主 `~/.openclaw/openclaw.json` 做**机械核对**（**非主人声明**；只读、不改、不写项目外），核实 `tools.subagents.tools.deny` 含 13 项特权工具**且** `agents.defaults.subagents.maxSpawnDepth: 1` 两条齐备才可 spawn；**未核实通过不得 spawn 子代理**（记 `enforcement: degraded`，走单主控降级模式）。
 
 **主人拒绝任一外发项** → 主控调整方案并重做 Phase 0 确认。
 
@@ -246,7 +246,7 @@ T7 / T9 / G14 报告头部显式写 `修订回环 = N/2`；T8 终检按此表仲
 **T8 终检可发表性判据（单源）**：
 
 - 36 项必查清单（可发表性 6 维度）→ [`references/_shared/可发表性判定表.md`](references/_shared/可发表性判定表.md)（唯一真源；SKILL.md / 08 角色卡 / T8 dispatch 只引用不罗列）
-- 本地自动化二审 → `bash scripts/paper-ready-check.sh <项目名>`（开发者工具，ClawHub 净化版已剥）
+- 本地自动化二审 → `bash scripts/paper-ready-check.sh <项目名>`（维护者工具，不随发布版分发）
 
 ---
 
@@ -313,4 +313,4 @@ T7 / T9 / G14 报告头部显式写 `修订回环 = N/2`；T8 终检按此表仲
 
 本技能以 **MIT License** 发布 — Copyright (c) 2026 左运来 (zuoyunlai)。
 
-完整文本见 [`LICENSE`](LICENSE)。允许商业使用、修改、分发，需保留版权声明。论衡采用双视图发布架构（本地真源 + ClawHub 净化包），受 MIT License 约束。
+完整文本见 [`LICENSE`](LICENSE)。允许商业使用、修改、分发，需保留版权声明。论衡采用双视图发布架构（本地维护版 + ClawHub 发布版），受 MIT License 约束。

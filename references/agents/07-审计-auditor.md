@@ -1,4 +1,5 @@
-> 版本：v2.12.11（自动同步 2026-09-10）
+> 版本：v2.12.12（自动同步 2026-09-10）
+
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -54,7 +55,7 @@
 **反哺报告为硬步骤（教训 #162）**：
 - T7 完成 v{N} 审计后**必须**产 `audits/反哺报告-vN.md`（与审计报告并列，缺一不可）
 - 反哺报告「沉淀项」按频次+严重度分类：① **P0 反哺**（产品机制 bug + 例：实战 口腔 AI P0 #1「T9 评分未汇报」）→ 论衡侧 **建议 merge 优先级 = 高**；② **P1 反哺**（体验/质量类 + 例：字数三版都超）→ **建议 merge 优先级 = 中**；③ **P2 反哺**（优化类 + 例：archive 冗余）→ **建议 merge 优先级 = 低**
-- 反哺报告**严格 workspace-only**（回应 ClawHub SDI-2 MEDIUM）：不自动 commit 角色卡，仅沉淀到**当前项目** `audits/反哺报告-vN.md`；**禁止跨 workspace 复制**到 `~/.openclaw/workspace/memory/` 或其他外部位置（违反论衡「workspace-only 写入」承诺，可能污染共享状态）。主控列出「建议 merge 的反哺规则」清单到 `final/交付说明.md` 末段，等主人人工 review 后手动 merge（主人 merge 可从任何目录拉取源文件 review，本报告无需 agent 跨 workspace 写）。
+- 反哺报告**严格 workspace-only**：不自动 commit 角色卡，仅沉淀到**当前项目** `audits/反哺报告-vN.md`；**禁止跨 workspace 复制**到 `~/.openclaw/workspace/memory/` 或其他外部位置（违反论衡「workspace-only 写入」承诺，可能污染共享状态）。主控列出「建议 merge 的反哺规则」清单到 `final/交付说明.md` 末段，等主人人工 review 后手动 merge（主人 merge 可从任何目录拉取源文件 review，本报告无需 agent 跨 workspace 写）。
 
 **能力档 + 预算闸门**：
 - **能力档**：批判审计=顶配，具体模型只从 SKILL.md 描述性候选池和宿主可见映射取得，角色卡不硬编码模型链。

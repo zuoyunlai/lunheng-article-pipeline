@@ -1,4 +1,5 @@
-> 版本：v2.12.11（自动同步 2026-09-10）
+> 版本：v2.12.12（自动同步 2026-09-10）
+
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -25,7 +26,7 @@
 论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.11  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.12  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -48,7 +49,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.11  # 建议 pi
 
 ---
 
-## ⚠️ 重要警告（回应 ClawHub scanner F09 91%）
+## ⚠️ 重要警告
 
 使用论衡技能会触发以下副作用，请使用前确认你已理解并同意：
 
@@ -267,16 +268,16 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.11  # 建议 pi
 
 ---
 
-### Q3：论文可以被 ClawHub 安全扫描拒绝吗？
+### Q3：论文会被平台安全扫描拒绝吗？
 
 **答：可能。** 论衡的 user-facing 警告一律放在文件顶部，Phase 0 同意关卡是金标准。详见 SKILL.md「⚠️ 执行前安全须知 + 外部服务声明（精简合并）」段。
 
 ---
 
-### Q4：如何处理 AI 安全审计发现的问题？
+### Q4：如何处理 AI 安全扫描发现的问题？
 
 **答：迭代发布。** 详见论衡发布历史：
-- v2.0.5 → v2.1.7：连续 6 轮 ClawHub scanner findings 闭环
+- v2.0.5 → v2.1.7：连续 6 轮平台扫描问题闭环
 - v2.1.8 → v2.2.12：P0+P1+P2 持续改进
 - v2.3.0：角色编号重构 + README 内部冲突修复
 

@@ -677,13 +677,30 @@ else
 fi
 
 # =============================================================================
-# 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
+# 门 G：净化包与真源的一致性（版本号硬校验 + 指纹 informational）
 # =============================================================================
+# v2.12.12 修正（门设计缺陷）：旧版把「真源 md5 == 包 md5」当硬校验，但净化链本就对包做
+#   sed 替换（剥离开发者叙事），只要包已生成就必然不一致 → 门 G 永远无法 PASS，
+#   CHANGELOG 里于是并存「18 PASS（含未生成包时的门 G）」与「17 PASS + 门 G ⚠」两种口径
+#   （2026-09-10 核对：属门设计缺陷，非记录错误）。
+#   现改为：硬校验 = ①包内版本号 == 真源版本号；②包内无开发者脚本；
+#   md5 差异降为 informational 提示，不参与 PASS/FAIL 计数。
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit
-# 主人可在 commit 后手工跑 `bash scripts/self-audit-gate.sh` 看结果
 PURIFY_DIR="$SKILL_ROOT/outputs/clawhub-release/$EXPECTED_VERSION"
 if [ -d "$PURIFY_DIR" ]; then
-  # 仅检查关键文件 md5
+  GATE_G_FAIL=""
+  # 硬校验 1：包内版本号 == 真源版本号（防「包是真源旧版」静默发布）
+  if [ -f "$PURIFY_DIR/SKILL.md" ]; then
+    PUR_VER=$(grep -m1 '^version:' "$PURIFY_DIR/SKILL.md" | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
+    [ "$PUR_VER" != "$EXPECTED_VERSION" ] && GATE_G_FAIL="$GATE_G_FAIL [包内版本 $PUR_VER ≠ 真源 $EXPECTED_VERSION]"
+  else
+    GATE_G_FAIL="$GATE_G_FAIL [包内缺 SKILL.md]"
+  fi
+  # 硬校验 2：包内不得出现开发者脚本（.sh 或 scripts/ 路径）
+  if find "$PURIFY_DIR" \( -name '*.sh' -o -path '*/scripts/*' \) -print -quit 2>/dev/null | grep -q .; then
+    GATE_G_FAIL="$GATE_G_FAIL [包内含开发者脚本]"
+  fi
+  # informational：关键文件 md5 差异（净化链替换导致，属预期，不计 PASS/FAIL）
   KEY_FILES=("SKILL.md" "QUICKSTART.md" "references/_shared/glossary-full.md")
   MD5_MISMATCH=""
   for kf in "${KEY_FILES[@]}"; do
@@ -691,17 +708,61 @@ if [ -d "$PURIFY_DIR" ]; then
     [ ! -f "$PURIFY_DIR/$kf" ] && continue
     SRC_MD5=$(md5sum "$kf" 2>/dev/null | awk '{print $1}')
     PUR_MD5=$(md5sum "$PURIFY_DIR/$kf" 2>/dev/null | awk '{print $1}')
-    if [ "$SRC_MD5" != "$PUR_MD5" ]; then
-      MD5_MISMATCH="$MD5_MISMATCH [$kf]"
-    fi
+    [ "$SRC_MD5" != "$PUR_MD5" ] && MD5_MISMATCH="$MD5_MISMATCH [$kf]"
   done
-  if [ -z "$MD5_MISMATCH" ]; then
-    pass "门 G: 净化包 md5 一致（仅作可选加固）"
+  if [ -z "$GATE_G_FAIL" ]; then
+    pass "门 G: 净化包与真源一致（版本号 $EXPECTED_VERSION + 无开发者脚本）"
+    [ -n "$MD5_MISMATCH" ] && echo -e "  ${YELLOW}ℹ${NC} 门 G 指纹差异（informational，净化链替换所致，不计入 PASS/FAIL）：$MD5_MISMATCH"
   else
-    warn "门 G: 净化包 md5 不一致:$MD5_MISMATCH（净化包正常做 sed/pip 替换，不一致属预期）"
+    fail "门 G: 净化包与真源不一致" "$GATE_G_FAIL"
   fi
 else
   pass "门 G: 净化包未生成（commit 阶段正常态，发布时 build-clawhub-release.sh 后自动生成）"
+fi
+
+# =============================================================================
+# 门 Q：净化可见面「审计归因语」回归门（v2.12.12 新增）
+# =============================================================================
+# 背景：leak-audit §四.1 建议「把门禁升级为语义扫描」，但 v2.12.11 只修了审计点名的 1 处，
+#   并只做了词表中性化（'A.I.G 扫描器'→'A.I.G 审计'）—— 结果包内仍存「回应 <平台> <扫描器>
+#   <finding 编号>」类维护者叙事（实测 14 文件 50+ 行，changelog 只披露 2 个文件）。
+#   根因：检查点在**包侧**（构建后才报），而写法漂移源在**真源侧**（改 A 漏 A，同教训 #192/#300）。
+# 本门把检查点前移到真源：对「将来会进包的可见面」直接 fail-loud，构建前就能拦住。
+# 范围 = 与 build-clawhub-release.sh 的可见面一致（排除不外发文件）。
+GATE_Q_FAIL=""
+Q_FILES=()
+while IFS= read -r -d '' f; do
+  case "${f#"$SKILL_ROOT"/}" in
+    references/_shared/教训索引.md|references/设计文档*.md|references/design/*|references/_shared/archive/*) continue ;;
+  esac
+  Q_FILES+=("$f")
+done < <(find "$SKILL_ROOT" -name '*.md' -not -path '*/.git/*' -not -path '*/outputs/*' \
+  -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
+  -not -name 'CHANGELOG.md' -not -name 'README.md' -print0)
+Q_PATTERNS=(
+  'ClawHub A\.I\.G'
+  'A\.I\.G'
+  'SkillSpector|ClawScan'
+  'SQP-[0-9]|SDI-[0-9]'
+  'Intent-Code Divergence|Description-Behavior Mismatch|Context-Inappropriate Capability|External Transmission'
+  'scanner'
+  '扫描器'
+  'Remediation'
+  'T0[0-9]'
+  '92% finding|#89% finding'
+)
+if [ ${#Q_FILES[@]} -gt 0 ]; then
+  for pat in "${Q_PATTERNS[@]}"; do
+    hits=$(grep -lE "$pat" "${Q_FILES[@]}" 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$hits" -gt 0 ]; then
+      GATE_Q_FAIL="$GATE_Q_FAIL [$pat → $hits 文件]"
+    fi
+  done
+fi
+if [ -z "$GATE_Q_FAIL" ]; then
+  pass "门 Q: 净化可见面无审计归因语（${#Q_FILES[@]} md，10 类 token）"
+else
+  fail "门 Q: 净化可见面残留审计归因语" "$GATE_Q_FAIL"
 fi
 
 # =============================================================================

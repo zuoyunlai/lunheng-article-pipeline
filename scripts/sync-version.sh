@@ -149,6 +149,11 @@ SYNCS=(
   "_shared/phase-2-details.md|header"
   "_shared/phase-3-details.md|header"
   "_shared/dispatch-header.md|header"
+
+  # v2.12.12 版本一致性盲区修复：phase-order.yaml（阶段真源，头部自述「版本随 SKILL.md 同步」
+  #   但既不在本清单、也不是 markdown 块引用格式，故长期停在旧版本戳 —— 净化包内随包分发的
+  #   版本与 SKILL.md 不一致）。用 yarnversion 模式改专用 `version: X.Y.Z` 行。
+  "_shared/phase-order.yaml|yamlversion"
 )
 
 UPDATED=0
@@ -215,7 +220,6 @@ for sync in "${SYNCS[@]}"; do
     fi
     UPDATED=$((UPDATED+1))
   elif [ "$mode" == "replace" ]; then
-    # 全文替换旧版本号
     if [ "$DRY_RUN" == true ]; then
       echo "📝 将修改：$file（全文替换为 v$EXPECTED）"
     else
@@ -226,6 +230,16 @@ for sync in "${SYNCS[@]}"; do
       sed -i -E "s/v2\.2\.[0-9]+/v$EXPECTED/g" "$full_path"
 
       echo "✅ 更新：$file（全文替换为 v$EXPECTED）"
+    fi
+    UPDATED=$((UPDATED+1))
+  elif [ "$mode" == "yamlversion" ]; then
+    # v2.12.12：改 YAML 顶层 `version: X.Y.Z` 行（phase-order.yaml 专用；不带 v 前缀）
+    if [ "$DRY_RUN" == true ]; then
+      echo "📝 将修改：$file（version: 行 → $EXPECTED）"
+    else
+      cp "$full_path" "$full_path.bak.$(date +%Y%m%d-%H%M%S)"
+      sed -i -E "s/^version: [0-9]+\.[0-9]+\.[0-9]+/version: $EXPECTED/" "$full_path"
+      echo "✅ 更新：$file（version: → $EXPECTED）"
     fi
     UPDATED=$((UPDATED+1))
   fi

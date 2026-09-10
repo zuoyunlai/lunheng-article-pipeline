@@ -1,4 +1,5 @@
-> 版本：v2.12.11（自动同步 2026-09-10）
+> 版本：v2.12.12（自动同步 2026-09-10）
+
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -128,7 +129,7 @@ if not subagents_has_active(run.runId):
 ```
 
 #### 4.2 yield watchdog 超时自查（必做）
-`sessions_yield` 后超过 N 分钟（推荐 **3 分钟**，可根据 Phase 调整）仍无完成事件 → 主控**不再静默等**，自查 `subagents(action=list)`（宿主强制 self-spawn 列表，超出最小权限，回应 A.I.G T05）：
+`sessions_yield` 后超过 N 分钟（推荐 **3 分钟**，可根据 Phase 调整）仍无完成事件 → 主控**不再静默等**，自查 `subagents(action=list)`（宿主强制 self-spawn 列表，超出最小权限）：
 - 预期角色仍在 active runs + 最近有 status.md 心跳 → 子代理真在跑，继续 yield（但记录已等待 X 分钟，下次超阈值重判定）
 - 预期角色不在 active runs（subagent 已结束但没投递完成事件）或重复投递同一子代理的完成事件 ≥2 次 → **duplicate 事件嫌疑**，立即补 spawn：
 ```python
@@ -215,7 +216,7 @@ spawn 任何子代理后，主控**不能只等完成事件**：
 
 > 与既有标记的关系：v2.7.3 `[主控 fallback 产物 / <实际模型> / <日期>]` 对应 B 级；v2.7.2 回传截断标记（主控落盘后对照回传原文抽查首尾）是 A/B 级的检测手段，保留。
 
-#### 4.5 诊断边界（回应安全审计 SDI-1/SDI-4 sessions_history 措辞歧义）
+#### 4.5 诊断边界（sessions_history 措辞歧义）
 
 > **一句话**：本协议区分两类诊断能力，边界不可混：
 > - 🔒 **仅人类主人诊断**：读 OpenClaw runtime 内部会话轨迹文件 / 执行 shell 命令（exec/process）——**agent 零 exec，永不调用**
@@ -241,7 +242,7 @@ spawn 任何子代理后，主控**不能只等完成事件**：
 
 **论衡 agent 不调用的**：exec / process / 读 OpenClaw runtime 内部路径 / sha256 直接计算（这些是**人类主人**的能力，不在 agent 范围内）。
 
-> **边界澄清（回应 scanner SDI-1/SDI-4）**：`sessions_history` 是白名单工具，但论衡**只用它读自己 spawn 的子代理**（`subagent:xxx`），用途是编排监控（看子代理有没有产出、有没有死循环），**不是跨会话读取历史或抓取隐藏状态**。上方「🔒 仅人类主人诊断」段的 `session_key` 字样指主人手动排查时在 host shell 查看轨迹文件，与主流程 `sessions_history` 是两回事，勿混。
+> **边界澄清**：`sessions_history` 是白名单工具，但论衡**只用它读自己 spawn 的子代理**（`subagent:xxx`），用途是编排监控（看子代理有没有产出、有没有死循环），**不是跨会话读取历史或抓取隐藏状态**。上方「🔒 仅人类主人诊断」段的 `session_key` 字样指主人手动排查时在 host shell 查看轨迹文件，与主流程 `sessions_history` 是两回事，勿混。
 
 ## 三检索员并行监控补充（教训 #267 + #289）
 

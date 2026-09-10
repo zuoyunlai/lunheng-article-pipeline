@@ -9,6 +9,56 @@
 
 ---
 
+## [v2.12.12] — 2026-09-10
+
+> 本版为 **v2.12.11 审计余量收口**。v2.12.11 的 leak-audit 只点名 1 处归因语泄漏（P1），但收口时实测净化包内 **14 文件 / 50+ 行**含同类「回应 <平台> <扫描器> <finding 编号>」维护者叙事，而 changelog 披露只写了 2 个文件——**披露范围低估约 7 倍**，等于把审计的 P1 留在了包里。本版按「根因级修正 + 检查点前移」清干净后再发布。
+
+### 一、审计归因语全量清理（真源侧，28 文件 / 75 行）
+
+**根因**：净化链只做**词表中性化**（`A.I.G 扫描器` → `A.I.G 审计`），无语义层规则；同 教训 #192/#300 型「改 A 漏 A」。leak-audit §四.1 建议的「门禁升级为语义扫描」在 v2.12.11 未落地。
+
+**策略变更（根因级）**：改为**在真源侧一次清干净**，而非在包内打补丁。理由：规则型 sed 表会随真源写法漂移而静默失效（这正是本类缺陷的成因）；真源清干净后，净化链只需一条 fail-loud 兜底扫描，规则面收敛到零。
+
+- **清理工具**：`outputs/audits/20260910/neutralize-attribution.py`（带**逐条命中计数**，真源写法漂移导致某条 0 命中时 fail-loud——正是 leak-audit §四.3 要求的「规则形态失配自检」）；实测 **62 条规则全命中、0 MISS**
+- **剔除**：`回应 ClawHub A.I.G T05 + SkillSpector 6 findings` / `回应 ClawHub SQP-1/2/3 MEDIUM` / `回应 ClawHub SDI-1/2/4` / `回应 ClawHub 92% finding` / `#89% finding` / `ClawHub scanner F09 91%` / `响应腾讯 A.I.G 审计 Remediation #5` / `Intent-Code Divergence` / `Description-Behavior Mismatch` / `Context-Inappropriate Capability` / `External Transmission` / `（回应 T02）`
+- **保留**：平台/渠道名（`ClawHub 发布版`、`ClawHub 竞品`、发布层级）、领域词（`T7 审计`、`审计报告`、`F1-F9`）——**规则本体与权限边界一字未改**，只去掉出处与扫描史
+- 混合写法只删归因子句、保留实质：如 `（v2.12.10 收紧为强制机械，回应 ClawHub A.I.G T05 + Intent-Code Divergence）` → `（v2.12.10 收紧为强制机械）`
+
+### 二、检查点前移：新增门 Q（净化可见面归因语回归门）
+
+- `scripts/self-audit-gate.sh` 新增**门 Q**：扫描「将来会进包的可见面」（`SKILL.md` / `QUICKSTART.md` / `references/**/*.md`，排除不外发文件），对 10 类审计归因 token fail-loud
+- **为什么前移到真源**：旧检查点在**包侧**（构建后才报，且只认字面 token），而写法漂移源在**真源侧**——本版把拦截点提前到 commit 前
+
+### 三、门设计缺陷修正：门 G 由 md5 硬校验改版本号硬校验
+
+- **缺陷**：旧门 G 把「真源 md5 == 包 md5」当硬校验，但净化链本就对包做 sed 替换 → **只要包已生成就必然不一致**，门 G 永远无法 PASS。于是 CHANGELOG 并存「18 PASS（未生成包时）」与「17 PASS + 门 G ⚠」两种口径（核对确认属门设计缺陷，非记录错误）
+- **修正**：硬校验 = ①包内 `SKILL.md` 版本号 == 真源版本号；②包内无开发者脚本（`.sh` / `scripts/`）。md5 差异降为 informational，不参与 PASS/FAIL 计数
+- 自审门由 **18 门 → 19 门**（新增门 Q）
+
+### 四、其余收口
+
+- **净化包排除 `.safe-pattern-manifest.json`**：维护者扫描器豁免清单（非 md，消费者无用），此前长期处于全部 md-only 扫描盲区
+- **删除死脚本 `scripts/path_validator.py`**（5 409 B）：`xref-audit` §3.3 判定「疑似被 `path-canonical.py` 取代」——`Makefile` / CI / 文档 / 测试全无入链，实为重复实现，连同其归属语一并移除
+- **`08-终检` phase 决策记录职责收口**：原写「合并各 phase 独立 decision 文件到 `phase-history.md`」，但全流程**不存在** decision 文件产出 → 该职责无输入、永远无法执行。改为按实况描述：`status.md`「人在环决策记录」段 + 四节点 checkpoint 卡收敛为 `final/phase-history.md`；`可发表性判定表` A4 判据同步
+- **构建脚本汇总行去缓存噪声**：`对比真源 N` 原用裸 `find | wc -l`，含 `__pycache__` / `.pytest_cache` / `*.pyc` 共 24 个缓存文件；已显式排除，基数与实际真源一致
+- **教训索引补录**：论衡侧 `教训索引.md` 最大编号 **#314 → #316**（#316 汇报版本/待办须现场取证，#315 空号未使用）——消除论衡侧与主真源差 2 的滞后
+
+### 五、验证
+
+| 项 | 结果 |
+|---|---|
+| 自审门（19 门） | **19 PASS / 0 FAIL**（门 G 版本号硬校验通过 + 指纹差异 informational；门 Q 新增） |
+| 归因语清理 | 62 条规则**全命中、0 MISS**；净化可见面残留 **0 行** |
+| 净化包重建 | 三门全绿（净化残留扫描 / 最终残留扫描 / 语言政策声明门） |
+| changelog 一致性 | tag 与章节数一致，当前版本 v2.12.12 已记录 |
+
+### 六、已知残留（显式披露，非门禁项）
+
+- `CHANGELOG.md` / `README.md` / `references/_shared/教训索引.md` 保留完整扫描史（**均为不外发文件**，被 `build-clawhub-release.sh` 排除）——历史归历史，外发面归零
+- `scripts/*` 头注释仍含少量归属语（维护者工具，**从不进包**）
+
+---
+
 ## [v2.12.11] — 2026-09-10
 
 > 本版为**全仓四路专项审计**的配套整改。审计对象 = 本地真源 HEAD `bef172b`（v2.12.10），四路只读扫描、报告单列于 `outputs/audits/20260910/`；整改后净化包重建三门全绿。
@@ -70,7 +120,7 @@
 
 ### 已知残留（显式披露，非门禁项）
 
-- `.safe-pattern-manifest.json` 仍随净化包分发（内容已去扫描史；属扫描器豁免清单，消费者无用）——待评估「从包中排除 vs 纳入扫描范围」
+- `.safe-pattern-manifest.json` 仍随净化包分发（内容已去扫描史；属审核工具豁免清单，消费者无用）——待评估「从包中排除 vs 纳入扫描范围」
 - `permissions.md` / `SKILL.md` 中「回应 ClawHub A.I.G T05」类审计归因语仍在（措辞层，不影响运行与权限边界）
 
 ---
@@ -157,7 +207,7 @@ ClawHub 对**已发布 v2.12.9 净化包**做语义审计（`scanId: skill:lunhe
 1. **`SDI-4`（confidence 0.94 · `references/pipeline-readme.md` L240）意图-代码背离：pandoc 冲突**：原 SKILL.md Phase 5 段写「按 `_shared/format-export.md` 跑 pandoc + rsvg-convert」，与 SKILL.md §执行能力边界「不读取宿主配置」+ description「零 exec」直接冲突。修复：Phase 5 段重写为「默认 md 完整支持；latex/docx/pdf 由主人自备模板 + 手动跑 pandoc + rsvg-convert，论衡 agent 不执行」；format-export.md 顶部「诚实声明」段同步收紧
 2. **`SDI-4`（confidence 0.95 · `references/dispatch/T7-审计.md`）意图-代码背离：审计员落盘矛盾**：07-审计员角色卡与 SKILL.md 段落对「审计报告落盘 vs 仅终交付消息返回」表述不一。修复：明确 T7 审计报告 + 反哺报告经交接回传主控，主控 `write` 落盘 `audits/审计报告-vN.md` + `audits/反哺报告-vN.md`，再用 `read` 核验存在/非空/首尾哨兵/版本一致（角色卡 L62 既有口径全文件统一）
 3. **`SDI-4`（confidence 0.84 · `references/templates/status-template.md` L255 vs L265）意图-代码背离：归档/删除混淆**：SKILL.md 同时存在「失败回滚不自动删除」（§核心原则 #6）与「主控自动归档方法论脚印文件」（§T8 终检段）。修复：「失败回滚」段改写为「文件保留原则」，明确「归档」= 复制/移动到 `run/.archive/`、「删除」= 主人手工 `rm -rf`——两者都由主人在 host shell 完成，agent 一律不碰；project-archive-sop.md「归档 = 移动 vs 删除」段同步对齐
-4. **`SDI-1`（confidence 0.91 · `references/agents/00-主控-扩展职责.md`）描述-行为不符：零 exec 承诺与维护者脚本并存**：description 写「零exec = 不执行 shell」但 SKILL.md 多处提及 `self-audit-gate.sh` / `Makefile` / `sync-version.sh` 等开发者脚本，扫描器判为 user-facing 文档与实际运行行为口径不一致。修复：SKILL.md §核心原则 #6 末尾新增「Maintainer-only 分区」段，明确 `scripts/` / `tests/` / `Makefile` / 自审门脚本化副本 / 版本同步脚本 / 构建发布脚本均为维护者工具，与论衡运行时能力**无关**——运行时仅依靠 `references/_shared/` 下的 LLM 推理判定 + `read/write/edit/sessions_spawn` 编排；ClawHub 净化包已剥离这些工具
+4. **`SDI-1`（confidence 0.91 · `references/agents/00-主控-扩展职责.md`）描述-行为不符：零 exec 承诺与维护者脚本并存**：description 写「零exec = 不执行 shell」但 SKILL.md 多处提及 `self-audit-gate.sh` / `Makefile` / `sync-version.sh` 等开发者脚本，审核工具判为 user-facing 文档与实际运行行为口径不一致。修复：SKILL.md §核心原则 #6 末尾新增「Maintainer-only 分区」段，明确 `scripts/` / `tests/` / `Makefile` / 自审门脚本化副本 / 版本同步脚本 / 构建发布脚本均为维护者工具，与论衡运行时能力**无关**——运行时仅依靠 `references/_shared/` 下的 LLM 推理判定 + `read/write/edit/sessions_spawn` 编排；ClawHub 净化包已剥离这些工具
 5. **`SDI-2`（confidence 0.89 · `references/agents/00-主控-扩展职责.md`）能力越界：自审门/版本审计超出长文流水线用途**：SKILL.md 自审门段落被识别为「超出 skill 用途」——自版本审计/发布管理不是长文流水线的能力。修复：自审门相关段从 user-facing 区域迁出，统一指向 maintainer-only 分区；user-facing 流程不再引用 `scripts/self-audit-gate.sh` / `check-version.sh` 等脚本
 
 **T05 / `SDI-4`（加固状态确认，声明式信任移除）**
@@ -290,7 +340,7 @@ ClawHub 对 v2.12.5 净化包的安全审计给出 11 项语义 finding（高 3 
 
 ### 二、净化链代码保真修复（教训 #300）
 
-- `strip-anchor-residue.py` 正则同时匹配半角括号，误删所有无参函数调用括号，净化包伪代码语义静默损坏（无扫描器报警）
+- `strip-anchor-residue.py` 正则同时匹配半角括号，误删所有无参函数调用括号，净化包伪代码语义静默损坏（无审核工具报警）
 - 修复：拆分全角/半角规则，空括号清理排除 `标识符()` 形态；新增自审门 P 逐围栏校验 `(` / `)` 计数
 
 ### 三、changelog 单一真源与完整性校验（P2）
@@ -778,7 +828,7 @@ tag v2.10.3 → a33cac9（zipball 包含全 4 commit）
 
 ## [v2.9.1] — 2026-09-08
 
-**背景**：v2.9.0 发布后腾讯 AIG 扫描器对净化包生成 7 项建议，主人决策：采纳 #2/#5/#6，不采纳 #1/#3/#4/#7。
+**背景**：v2.9.0 发布后腾讯 AIG 审核工具对净化包生成 7 项建议，主人决策：采纳 #2/#5/#6，不采纳 #1/#3/#4/#7。
 
 ### ✅ 实施项（采纳的 3 项）
 
@@ -1600,7 +1650,7 @@ git checkout v2.7.15
 **触发**：主人贴审计页 → v2.7.13 审计落盘 = T05 High（SKILL.md 权限段）+ T08 Medium（QUICKSTART 安装命令）+ VirusTotal pending / static clean。
 
 ### T05 · Unauthorized Access and Privilege Escalation（High）
-扫描器判定「5 档白名单是声明不是机械强制」= 运行时权限不匹配。主人拍板：折中不推翻纯 skill 定位（任意 OpenClaw 配置可用）→ **新增「运行前软保障自检」协议**（SKILL.md 权限段）：
+审核工具判定「5 档白名单是声明不是机械强制」= 运行时权限不匹配。主人拍板：折中不推翻纯 skill 定位（任意 OpenClaw 配置可用）→ **新增「运行前软保障自检」协议**（SKILL.md 权限段）：
 - Phase 0 派发前主控自查工具面：主控无 exec/process/browser/apply_patch → 机械层成立，status.md 记 `mechanical`
 - 主控持有特权工具且宿主未 config deny → 向主人三态确认（已 deny / 未 deny / 不确定），记 `prompt-level`
 - **不拒绝运行**：config 收紧 = 宿主可选机械加固，非运行前置；软保障靠纪律层（全文档零授权 + 角色卡约束 + M 门 + 外部内容不可信）
@@ -2020,7 +2070,7 @@ feat(checkpoint): v2.7.0 human-in-the-loop checkpoint card template — structur
 ### 可移植性
 - 启动清单第 3 条去私有化（MEMORY.md 路径改描述性指引）
 
-### 双扫描器验证
+### 双审核工具验证
 - LZ Skill Vetter Pro：🟢 SAFE TO INSTALL（606 文件 84,793 行，0 high/critical）
 - ClawHub scanner：✅ clean
 
@@ -3472,7 +3522,7 @@ create mode 100644 references/_shared/M-Gate-渐进式验证-v2.2.15.md
 - 明确「LLM 不能直接算 sha256 → read 读全文推理 + 人类主人手动回填 sha256」
 
 **3. backfill_check 反例标签**
-- M-Exist-1 v2.2.4 段加「⚠️ 反例警示」标签，扫描器不会误读「L23==ref23 PASS」为示例
+- M-Exist-1 v2.2.4 段加「⚠️ 反例警示」标签，审核工具不会误读「L23==ref23 PASS」为示例
 
 **4. T2 案例卡铁律（v2.2.11 强化）**
 - pipeline-readme.md T2 派发话术加「⚠️ T2 铁律」段——T2 只输出 [Dxx]，不产 [Cxx]；案例卡完全由 T6 接手
