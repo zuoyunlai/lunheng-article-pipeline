@@ -11,47 +11,50 @@
 
 ## [v2.12.10] — 2026-09-10
 
-> 本版为 ClawHub 安全审计（基线 v2.12.8，判定 `Review`）全套净化修订：A.I.G T05 fail-closed 落地 + SkillSpector 误报源清除 + 措辞矛盾精确化 + 76 个交付文件语言政策声明 + Release 单一入口脚本入库。
+> 本版为 ClawHub 对**已发布 v2.12.9 净化包**的语义审计（`scanId: skill:lunheng-article-pipeline:2.12.9`；扫描 2026-09-10 19:58:11 → 20:15:09 CST；ClawScan 判定 `suspicious` / 置信度 medium）配套修订：加固模型收紧为二选一（mechanical / degraded）+ SkillSpector 语义真问题 5 类全修 + 构建链代码保真 + Release 单一入口脚本入库。
 
 ### 〇、审计基线（本版修复对象）
 
-- **审计对象**：已发布的 v2.12.8 净化包；**判定** `Review`（结论原话：「不是恶意的，但需复核」）
-- **静态分析**：`No suspicious patterns detected`——本版全部命中来自**语义审计**（静态层已放行，Pass/Review ≠ 零问题）
-- **A.I.G**（`skill-scan`）：`Findings (1)` —— **T05 · Unauthorized Access and Privilege Escalation（Warning；文档内 Risk Level Medium）**「Subagents May Inherit Excessive Privileges Without Mandatory Mechanical Enforcement」，位置 `SKILL.md:82-84` + `references/permissions.md:27,49-54`
-- **SkillSpector**：`Findings (58)`；审计页按类别聚合**展示 25 条**——`Natural-Language Policy Violations` 17 / `Credential Access` 2（High，均 `doc-example` 误报源）/ `External Transmission` 2 / `Intent-Code Divergence` 2 / `Ssd 4` 1 / `Description-Behavior Mismatch` 1；展示条目严重级 = High 2 + Medium 23
-- **处置**：4 类真实问题全修 + 1 类误报源清除；`Ssd 4` 与 `Intent-Code Divergence` **同根**（「不得检查宿主配置/边界」与「讨论递归委派可用性 + 加固状态」的表述冲突），由 §四 同一处精确化覆盖
+- **审计对象**：ClawHub **已发布 v2.12.9** 净化包（`scanId: skill:lunheng-article-pipeline:2.12.9`；79 文件；sha256 `29b1985956d26bd8cf1f525261d28c5c7d2a48170eb4de52683a52bfdb153ed7`；扫描窗口 2026-09-10 19:58:11 → 20:15:09 CST）
+- **平台记录**：skill 页 `Moderate CLEAN` + Mod Note `Review: review.llm_review`（Engine v2.4.26，Mod Time 2026-09-10 12:15 UTC）——静态层放行、语义层需复核
+- **静态分析与外部信誉**：静态 `No suspicious patterns detected`；VirusTotal 64 引擎 `clean`（0 malicious / 0 suspicious）
+- **ClawScan（A.I.G）**：verdict `suspicious` / 置信度 **medium**；summary 原话「The skill is mostly disclosed and purpose-aligned, but its multi-agent mode can rely on prompt-only controls while spawned workers may inherit powerful host tools.」；findings 中 `unexpected` 仅 **4 条**——`T05`（子代理继承特权工具 + 仅 prompt 级约束）、`SDI-1`（manifest 零 exec 口径与维护者脚本并存）、`SDI-2`（自版本审计超出长文流水线用途）、`SDI-4`（加固靠声明而非机械核验）；其余 `PE3` / `E1`×2 / `SQP-3` / `SQP-1` / `SDI-4`×2 / `AE4` 均判 `expected`
+- **SkillSpector**：`issueCount 15`（score 89 / severity CRITICAL / status suspicious / scanner v2.11.2 / recommendation DO_NOT_INSTALL）；分类分布 `SDI-4 ×4` / `SQP-3 ×3` / `AE4 ×2` / `E1 ×2` / `PE3 ×1` / `SQP-1 ×1` / `SDI-1 ×1` / `SDI-2 ×1`
+- **与前一轮的边界（不可混引）**：上一轮审计对象是已发布 **v2.12.8**（80 文件 / sha256 `1d6980b3c82c5a01c44c7938d80a22f70b61fbe81629503136e4355314479b6b` / 扫描 17:27:20 → 17:48:45 CST / SkillSpector `issueCount 58`、score 100 / ClawScan 置信度 high），其修订产出 **v2.12.9**；**本版修的是 v2.12.9 这一轮的 15 条**（教训 #314）
+- **处置**：语义真问题 5 类全修（§九 5 条）+ 加固模型妥协 1 类收紧为二选一（§九 加固段）+ `expected` 条目维持文档层自证、不改行为
 
-### 一、T05 fail-closed：加固状态确认（spawn 前必走）
+### 一、T05 fail-closed：加固状态确认（v2.12.9 三选一 → 本版收紧为二选一）
+
+> 归因注：以下三选一模型是 **v2.12.9** 的落地内容（本轮审计仍判其不足：靠「主人声明」而非机械核验）；本版的真实动作是**收紧为二选一 mechanical / degraded**，详见 §九「T05 / `SDI-4`」段。
 
 - **问题（审计原话）**：论衡声明了 13 项工具禁用，但自己承认这些按角色限制无法通过 `sessions_spawn` 传递；未加固时仍照样跑，只标 `prompt-level`。审计要求 **fail-closed**：验证不到强制约束时不得静默开跑
 - **根因**：`prompt-level` 诚实标注只解决「诚实」，不解决「同意」；纪律层软保障 ≠ 已获主人授权
 - `SKILL.md` §执行能力边界 + `references/permissions.md` + `references/agents/00-主控-扩展职责.md` 新增「加固状态确认（spawn 前必走，fail-closed）」：首次 spawn 子代理前必须向主人呈现当前加固状态并取**三选一**明示结论——① 已加固 → `enforcement: mechanical`；② 知情后选择继续 → `enforcement: acknowledged-prompt-level`；③ 不加固且不确认 → **不 spawn**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审）或中止
 - **禁止**未取得 ①/② 任一结论就静默 `prompt-level` 开跑
 - **与「纯 skill 开箱可用」定位的取舍**：审计 remediation 原文要求「**Require** host-level denial of privileged tools」+「**Require** `maxSpawnDepth: 1`」。论衡保留「任意 OpenClaw 配置开箱可用」定位（主人拍板），**不**把宿主加固设为运行前置，改以 **spawn 前三选一** 兑付 fail-closed——③「不加固且不确认」即**不 spawn**（降级为单主控顺序模式或中止）；即 fail-closed 落在「验证不到就不开跑」，而非「强制宿主改 config」
-- `references/templates/status-template.md` 项目元数据新增 `**加固状态**` 字段（取值 `mechanical` / `acknowledged-prompt-level`）；主控卡 Phase 0 索引表同步
+- `references/templates/status-template.md` 项目元数据新增 `**加固状态**` 字段（v2.12.9 取值 `mechanical` / `acknowledged-prompt-level`；本版改为 `mechanical` / `degraded`）；主控卡 Phase 0 索引表同步
 
-### 二、凭据访问误报源清除（SkillSpector Credential Access ×2）
+### 二、凭据访问误报源复核（SkillSpector `PE3` ×1，承接 v2.12.9）
 
-- `references/permissions.md` 路径拒绕清单原以字面形式引用宿主敏感路径示例（系统账号文件 / SSH 密钥目录），虽处于「拒绝」语境且已标 `safe-pattern: doc-example`，扫描器仍命中两次
-- 改为**不含字面路径**的描述性表述，保留同等约束力（语义不变，误报消除）
+- v2.12.9 已把 `references/permissions.md` 路径拒绕清单的字面示例（系统账号文件 / SSH 密钥目录）改为类型化禁止 + `safe-pattern: doc-example` 注记
+- 本轮 `PE3` 仅 **×1**（confidence 0.6，命中的是 `.safe-pattern-manifest.json` 的豁免注记本身），**ClawScan 判定 `expected`**——「deny-list 示例不是访问凭据的指令」；本版不改行为，保留文档层自证
 
-### 三、描述-行为不符：命令语义口径统一（Description-Behavior Mismatch）
+### 三、描述-行为不符口径（`SDI-1` ×1，承接 v2.12.9）
 
-- `00-主控-扩展职责.md`「主控复验 4 件套」与 fallback 派发前置检查处出现 `ls` / `wc` / `grep` / `find` / `stat` 语义，与「零 exec」宣传口径冲突
-- 新增**语义口径声明**：上述描述的是**语义等价动作**（产物存在性 / 数量对账 / 标记计数 / 时间戳新鲜度），主控用 `read` + 文件元数据**推理实现**，不执行任何 shell；命令形态仅为人类 host shell 复核参考
-- `references/_shared/audit-checklist-quickref.md` G8 代码块同步标注
+- v2.12.9 已在 `00-主控-扩展职责.md`「主控复验 4 件套」与 fallback 派发前置检查处加**语义口径声明**：`ls` / `wc` / `grep` / `find` / `stat` 指的是**语义等价动作**（产物存在性 / 数量对账 / 标记计数 / 时间戳新鲜度），主控用 `read` + 文件元数据推理实现，不执行任何 shell；命令形态仅为人类 host shell 复核参考（`references/_shared/audit-checklist-quickref.md` G8 代码块同步标注）
+- 本轮 `SDI-1`（confidence 0.91）的口径转为「manifest 零 exec 承诺与维护者脚本并存」——由 §九 第 4 条的 Maintainer-only 分区段消解，与 v2.12.9 的语义口径声明互补
 
-### 四、意图-代码背离 / 状态一致性：三处矛盾精确化（Intent-Code Divergence ×2 + Ssd 4 ×1 + External Transmission ×2）
+### 四、意图-代码背离 / 状态一致性（本轮 `SDI-4` ×4；实修 3 处 + 1 处即加固模型 → §九）
 
-- **宿主配置口径**：`SKILL.md` + `00-主控-扩展职责.md` 声明「不读取宿主配置」，又讨论 `maxSpawnDepth` / 加固状态，被判自相矛盾。现精确化：不调用 `gateway`/`config`、不读 `openclaw.json`；加固与否**由主人声明**（不是读 config）；加固建议是写给主人的**静态部署说明**，不是运行时依赖；主控不会因「读到/读不到」某项配置而告警或阻断
-- **数据检索角色卡**：`02-数据检索-data-scout.md` 同文档内既写「叶子 worker 不得调用 `sessions_spawn`」，又写「T2/T3 通过独立 `sessions_spawn` 隔离」。现澄清后者是**主控侧**动作（主控分别 spawn T2/T3），叶子 worker 不自行 spawn
-- **状态一致性（审计条目 `Ssd 4`）**：与本组同根，审计原话指「要求 agent 不去检查宿主配置/边界，同时又在讨论递归委派可用性与加固状态」。§一 的「加固与否**由主人声明**、不读 config、加固建议是静态部署说明」精确化同时消解该条（`SKILL.md` + `00-主控-扩展职责.md` §十五点五「不读取宿主配置」补澄清句）
-- `references/_shared/中文数据源集成.md` 数据流声明强化：OpenAlex/Crossref 为只读学术元数据 API，**不外发稿件正文/文献卡/数据卡内容**；文中 URL 为文档示例形态，非自动外发链路（回应 External Transmission ×2）
+- **宿主配置口径（本版重写）**：v2.12.9 的「不读 `openclaw.json`、加固与否由主人声明」被判「既拒绝核验又允许继续运行」（`SDI-4`，confidence 0.84）→ 本版改为**机械核对**：首次 spawn 前 `read ~/.openclaw/openclaw.json` 核实两条加固，读不到即 `degraded` 且不 spawn（详见 §九 加固段）
+- **数据检索角色卡（v2.12.9 已澄清，本轮 `expected`）**：`02-数据检索-data-scout.md` 同文档既写「叶子 worker 不得调用 `sessions_spawn`」，又写「T2/T3 通过独立 `sessions_spawn` 隔离」——后者指**主控侧**动作（主控分别 spawn T2/T3），叶子 worker 不自行 spawn
+- **外部传输口径（v2.12.9 已补，本轮 `E1` ×2 判 `expected`）**：`references/_shared/中文数据源集成.md` 声明 OpenAlex / Crossref 为只读学术元数据 API，**不外发稿件正文/文献卡/数据卡内容**；文中 URL 为文档示例形态，非自动外发链路
+- **叶锁口径同步**：`status-template.md` / `00-主控-扩展职责.md` 的「叶子锁定」取值由 `mechanical / prompt-level` 改为 `mechanical / degraded`，与加固二选一模型对齐
 
-### 五、语言政策声明：76 个交付文件 + 构建门（Natural-Language Policy Violations，审计页 17 条，为条目最集中一类）
+### 五、语言政策声明（本轮 `SQP-3` ×3 + `SQP-1` ×1；机制承接 v2.12.9）
 
-- **问题**：扫描器**逐文件**判定「中文-only 且未声明 opt-in / 未说明区域限定」。`SKILL.md` 已有「语言边界」表，但其余交付文件没有声明，同一类 finding 被重复报出十余次（本类占审计页展示条目的三分之二）
-- 新增 `scripts/inject-lang-policy.py`（140 行，幂等）——为 **76 个**交付 md 在版本行下注入一行**语言政策**声明：产出语言默认中文、Phase 0 可改 English / 中英混 / 其他（全流程以任务简报「目标语言」字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是**设计定位**，不构成使用者语种限制
+- **本轮实际条数**：v2.12.9 报告 NLP 类已从 **17 条降到 3 条**（`SQP-3`：`references/_shared/phase-order.yaml`、`references/case-studies.md`、`references/templates/先行者清单-template.md`）+ **1 条** `SQP-1`（`trigger_conditions` 命名不可自解释）——原 v2.12.8 报告的 17 条已在 v2.12.9 集中处理
+- **v2.12.9 已落地**（本版承接，非本版新增）：`scripts/inject-lang-policy.py`（幂等）——为 **76 个**交付 md 在版本行下注入一行**语言政策**声明：产出语言默认中文、Phase 0 可改 English / 中英混 / 其他（全流程以任务简报「目标语言」字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是**设计定位**，不构成使用者语种限制
 - **注入范围与 7 项例外**（`EXCLUDE_REL`）：`SKILL.md`（自带「语言边界」表，用另一套声明）、`CHANGELOG.md`、`references/设计文档{,-架构,-哲学}.md`、`references/_shared/教训索引.md`、`references/templates/README-模板拆分方案.md` 不注入；脚本按 `MARKER` 判重，重复运行不产生双重声明
 - `scripts/build-clawhub-release.sh` 新增**语言政策声明门**（4d 段，防回归）：对净化包内**每个** md 正向校验是否含 `🌐 **语言政策**`，缺失即打印文件清单并 exit 1；唯一豁免 `SKILL.md`。实测净化包 76 个 md 中 75 个含声明（1 个例外 = `SKILL.md`）
 - 净化包规模：真源 148 文件 → 净化包 **79 文件**（其中 md 76 个）
@@ -60,7 +63,7 @@
 
 - **版本同步**：**36 个**含版本戳文件同步至 v2.12.10（自审门 门 C 口径）
 - **自审门（18 门）**：**17 PASS / 0 FAIL** + 门 G ⚠ 警告（净化包 md5 与真源不一致，属**预期**——净化链对 `SKILL.md` / `QUICKSTART.md` / `references/_shared/glossary-full.md` 做替换）
-- **净化包 2.12.9**：79 文件（md 76 个），净化残留扫描 + 最终残留扫描 + 语言政策声明门**三门通过**；开发者工具（`scripts/` / `Makefile` / `tests/` / `docs/` / `.github/` / `CHANGELOG.md` 等）全部剥离
+- **净化包 2.12.10**：79 文件（md 76 个），净化残留扫描 + 最终残留扫描 + 语言政策声明门**三门通过**；开发者工具（`scripts/` / `Makefile` / `tests/` / `docs/` / `.github/` / `CHANGELOG.md` 等）全部剥离
 - **`scripts/create-github-release.sh` 入库**（233 行；**开发者工具，净化包已剥**）：把「建 Release」从「靠人记」变成一条命令，修复教训 #307「推 tag ≠ 建 Release」缺口——正文要手工粘、标题要手工拼，于是 v2.3.11 / v2.11.0 / v2.11.1 / v2.12.8 均曾漏建或正文漂移
   - **三条铁律机械化**：① 正文单一真源 = 逐字提取 `CHANGELOG.md` 对应章节（不产生第二份真相）；② 标题单一格式 = `论衡 <tag> — <摘要>`，摘要取自该 tag 的发版提交 subject（约定 `release: <tag> — <摘要>`）；③ 已存在则 `gh release edit` **同步**（修正文/标题漂移），不新建、不覆盖历史
   - **开关**：`--dry-run`（本地零副作用预览）/ `--check`（只比对「CHANGELOG 章节 vs 线上 Release 正文」，漂移即 exit 1）/ `--no-dispatch`（不触发 `changelog-check.yml` 在线校验）；退出码 0 = 完成/一致，1 = 漂移或缺 Release，2 = 环境或用法不满足
@@ -71,29 +74,37 @@
 - `bash scripts/self-audit-gate.sh` → `PASS: 17  FAIL: 0`（+ 门 G 预期警告）
 - `python3 scripts/changelog-check.py --check` → 133 tag / 133 CHANGELOG 章节一致；当前版本 v2.12.10 已记录
 - `bash scripts/create-github-release.sh --check` → 线上 Release 正文 = CHANGELOG 章节正文（**逐字一致**）
-- `clawhub publish --dry-run` → `would-publish` / slug `lunheng-article-pipeline` / displayName「论衡 — 严肃长文流水线」/ fileCount 78 / 线上 latest 仍为 2.12.8（**2.12.9 待发布**）
+- `clawhub publish --dry-run` → `would-publish` / slug `lunheng-article-pipeline` / displayName「论衡 — 严肃长文流水线」/ 线上 latest 为 **2.12.9**（2026-09-10 19:58 CST 发布；本节记录修订后须重建净化包再发布 2.12.10）
 
-### 九、ClawHub 二次审计（v2.12.10 修复对象）
+### 勘误（本节记录修订，2026-09-10）
 
-ClawHub 对 v2.12.8 净化包做二次安全审计，`Review`（非 Reject），本版集中修复其中 5 条真问题 + 1 条与一处妥协：
+- 本节初稿把审计对象写成「已发布的 v2.12.8 净化包」，并引用了该轮的 `Findings (58)` / `NLP 17` / `Credential Access ×2` 等数字——**那是 v2.12.9 的修复对象**，与本版无关
+- 已按 ClawHub 存储扫描报告逐字段校正（`clawhub scan download lunheng-article-pipeline --version 2.12.9`，本机 `/tmp/scan9/report.zip`）：对象 = **v2.12.9**（79 文件 / 15 条 / 置信度 medium），真问题 `SDI-4`×3 + `SDI-1` + `SDI-2`（教训 #314）
+- 同批校正 v2.12.9 章节两处表述：审计序号改为**版本化标注**；语言政策机制为**版本行下一行正文声明**（`scripts/inject-lang-policy.py`），仓库内**不存在** `metadata.openclaw.language_policy` frontmatter
+
+### 九、ClawHub 语义审计明细（对象：**已发布 v2.12.9**，15 条）
+
+ClawHub 对**已发布 v2.12.9 净化包**做语义审计（`scanId: skill:lunheng-article-pipeline:2.12.9`；19:58:11 → 20:15:09 CST；ClawScan `suspicious` / 置信度 medium；Mod Note `Review: review.llm_review`），本版集中修复其中 **5 条 `unexpected` 真问题**（`SDI-4` ×3 / `SDI-1` ×1 / `SDI-2` ×1）+ `SQP-1` ×1：
 
 **SkillSpector 真问题（5 条全修）**
 
-1. **Intent-Code Divergence（pandoc 冲突，94%）**：原 SKILL.md Phase 5 段写「按 `_shared/format-export.md` 跑 pandoc + rsvg-convert」，与 SKILL.md §执行能力边界「不读取宿主配置」+ description「零 exec」直接冲突。修复：Phase 5 段重写为「默认 md 完整支持；latex/docx/pdf 由主人自备模板 + 手动跑 pandoc + rsvg-convert，论衡 agent 不执行」；format-export.md 顶部「诚实声明」段同步收紧
-2. **Intent-Code Divergence（审计员落盘矛盾，95%）**：07-审计员角色卡与 SKILL.md 段落对「审计报告落盘 vs 仅终交付消息返回」表述不一。修复：明确 T7 审计报告 + 反哺报告经交接回传主控，主控 `write` 落盘 `audits/审计报告-vN.md` + `audits/反哺报告-vN.md`，再用 `read` 核验存在/非空/首尾哨兵/版本一致（角色卡 L62 既有口径全文件统一）
-3. **Intent-Code Divergence（归档/删除混淆，84%）**：SKILL.md 同时存在「失败回滚不自动删除」（§核心原则 #6）与「主控自动归档方法论脚印文件」（§T8 终检段）。修复：「失败回滚」段改写为「文件保留原则」，明确「归档」= 复制/移动到 `run/.archive/`、「删除」= 主人手工 `rm -rf`——两者都由主人在 host shell 完成，agent 一律不碰；project-archive-sop.md「归档 = 移动 vs 删除」段同步对齐
-4. **Description-Behavior Mismatch（零exec承诺与维护者脚本并存，91%）**：description 写「零exec = 不执行 shell」但 SKILL.md 多处提及 `self-audit-gate.sh` / `Makefile` / `sync-version.sh` 等开发者脚本，扫描器判为 user-facing 文档与实际运行行为口径不一致。修复：SKILL.md §核心原则 #6 末尾新增「Maintainer-only 分区」段，明确 `scripts/` / `tests/` / `Makefile` / 自审门脚本化副本 / 版本同步脚本 / 构建发布脚本均为维护者工具，与论衡运行时能力**无关**——运行时仅依靠 `references/_shared/` 下的 LLM 推理判定 + `read/write/edit/sessions_spawn` 编排；ClawHub 净化包已剥离这些工具
-5. **Context-Inappropriate Capability（自审门越界，89%）**：SKILL.md 自审门段落被识别为「超出 skill 用途」——自版本审计/发布管理不是长文流水线的能力。修复：自审门相关段从 user-facing 区域迁出，统一指向 maintainer-only 分区；user-facing 流程不再引用 `scripts/self-audit-gate.sh` / `check-version.sh` 等脚本
+1. **`SDI-4`（confidence 0.94 · `references/pipeline-readme.md` L240）意图-代码背离：pandoc 冲突**：原 SKILL.md Phase 5 段写「按 `_shared/format-export.md` 跑 pandoc + rsvg-convert」，与 SKILL.md §执行能力边界「不读取宿主配置」+ description「零 exec」直接冲突。修复：Phase 5 段重写为「默认 md 完整支持；latex/docx/pdf 由主人自备模板 + 手动跑 pandoc + rsvg-convert，论衡 agent 不执行」；format-export.md 顶部「诚实声明」段同步收紧
+2. **`SDI-4`（confidence 0.95 · `references/dispatch/T7-审计.md`）意图-代码背离：审计员落盘矛盾**：07-审计员角色卡与 SKILL.md 段落对「审计报告落盘 vs 仅终交付消息返回」表述不一。修复：明确 T7 审计报告 + 反哺报告经交接回传主控，主控 `write` 落盘 `audits/审计报告-vN.md` + `audits/反哺报告-vN.md`，再用 `read` 核验存在/非空/首尾哨兵/版本一致（角色卡 L62 既有口径全文件统一）
+3. **`SDI-4`（confidence 0.84 · `references/templates/status-template.md` L255 vs L265）意图-代码背离：归档/删除混淆**：SKILL.md 同时存在「失败回滚不自动删除」（§核心原则 #6）与「主控自动归档方法论脚印文件」（§T8 终检段）。修复：「失败回滚」段改写为「文件保留原则」，明确「归档」= 复制/移动到 `run/.archive/`、「删除」= 主人手工 `rm -rf`——两者都由主人在 host shell 完成，agent 一律不碰；project-archive-sop.md「归档 = 移动 vs 删除」段同步对齐
+4. **`SDI-1`（confidence 0.91 · `references/agents/00-主控-扩展职责.md`）描述-行为不符：零 exec 承诺与维护者脚本并存**：description 写「零exec = 不执行 shell」但 SKILL.md 多处提及 `self-audit-gate.sh` / `Makefile` / `sync-version.sh` 等开发者脚本，扫描器判为 user-facing 文档与实际运行行为口径不一致。修复：SKILL.md §核心原则 #6 末尾新增「Maintainer-only 分区」段，明确 `scripts/` / `tests/` / `Makefile` / 自审门脚本化副本 / 版本同步脚本 / 构建发布脚本均为维护者工具，与论衡运行时能力**无关**——运行时仅依靠 `references/_shared/` 下的 LLM 推理判定 + `read/write/edit/sessions_spawn` 编排；ClawHub 净化包已剥离这些工具
+5. **`SDI-2`（confidence 0.89 · `references/agents/00-主控-扩展职责.md`）能力越界：自审门/版本审计超出长文流水线用途**：SKILL.md 自审门段落被识别为「超出 skill 用途」——自版本审计/发布管理不是长文流水线的能力。修复：自审门相关段从 user-facing 区域迁出，统一指向 maintainer-only 分区；user-facing 流程不再引用 `scripts/self-audit-gate.sh` / `check-version.sh` 等脚本
 
-**T05 / Intent-Code Divergence（加固状态确认，声明式信任移除）**
+**T05 / `SDI-4`（加固状态确认，声明式信任移除）**
 
-- **背景**：v2.12.9 三档加固模型（mechanical / acknowledged-prompt-level / 不加固）中档「主人口头声明已加固 / 主人知情后选择 prompt-only 继续」被 A.I.G T05 + SkillSpector Intent-Code Divergence 同时标记——声明式信任与未加固开跑均与 zero-trust + fail-closed 一致性冲突
+- **背景**：v2.12.9 三档加固模型（mechanical / acknowledged-prompt-level / 不加固）中档「主人口头声明已加固 / 主人知情后选择 prompt-only 继续」被 A.I.G T05 + SkillSpector `SDI-4`（confidence 0.84）同时标记——声明式信任与未加固开跑均与 zero-trust + fail-closed 一致性冲突
 - **修复**：v2.12.10 收紧为**二选一模型**——
   - `enforcement: mechanical`：主控 `read ~/.openclaw/openclaw.json`（仅首次加固检查，不写入、不修改）核实 `tools.subagents.tools.deny` 含 13 项特权工具**且** `agents.defaults.subagents.maxSpawnDepth: 1` 两条均配齐 → 读到的 deny 列表原样记录到 status.md「机械加固核对」段（防口头声明与实际配置漂移）→ 按多 Agent 模式 spawn
   - `enforcement: degraded`：任一缺失或读不到 config → **不 spawn 子代理**，走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审）
 - **删除**：`acknowledged-prompt-level` 中间档；「主控自身工具面自检」（自检口径与实际 config 可能漂移）；「主人口头声明已加固」（声明式信任）
 - **单主控降级模式产出降级**：无三角验证、无独立审计、无修订回环，默认关闭 G14 闸门；适合一次性草稿或试运行
 - **影响文件**：SKILL.md §执行能力边界「加固状态确认」段重写；references/permissions.md §未加固 ≠ 可直接开跑 段重写 + §运行前软保障自检 缩为机械核对三步；references/agents/00-主控-扩展职责.md §加固状态确认 段同步重写；references/templates/status-template.md「加固状态」字段二选一化 + 新增「机械加固核对」段；00-主控-扩展职责.md「叶子锁定」字段同步改为 mechanical / degraded
+
+- 本轮 `SQP-1`（confidence 0.94）由触发器改名消解；`SQP-3` ×3 判 `expected`（ClawScan 原话：中文是默认，但 SKILL.md 与模板显式允许 Phase 0 选择 English / 混排 / 其他）→ 仅保留声明，不改行为
 
 **新增维护者字段 / 触发器改名**
 
@@ -113,14 +124,14 @@ ClawHub 对 v2.12.8 净化包做二次安全审计，`Review`（非 Reject），
 | capability-assert | T1-T9 + G14 全角色白名单通过；denied 工具（exec/process/browser 等）按预期拒绝 |
 | CI | 版本号 / changelog / 算法 / capability-assert success |
 | 净化包残留扫描 | 全通过，零残留（含维护者脚本引用 + 占位符）|
-| ClawHub 二次审计 5 真问题 | 全修（pandoc 冲突 / 审计员落盘矛盾 / 归档混淆 / 零exec与维护者脚本并存 / 自审门越界）|
+| ClawHub 语义审计（对象＝已发布 v2.12.9）5 真问题 | 全修（`SDI-4`×3：pandoc 冲突 / 审计员落盘矛盾 / 归档混淆；`SDI-1`：零exec与维护者脚本并存；`SDI-2`：自审门越界）|
 | 加固模型 | acknowledged-prompt-level 中间档已删除，二选一（mechanical / degraded）|
 
 ---
 
 ## [v2.12.9] — 2026-09-10
 
-> 本版为 ClawHub 二次审计（基线 v2.12.8，判定 `Review`）配套修订：A.I.G T05 fail-closed 落地（加固状态确认 spawn 前必走三选一）+ SkillSpector 误报源系统性清除（5 类 `doc-example` 路径示例 + 4 类审计可读性违例）+ 措辞矛盾精确化（description / permissions / status-template 三方口径对齐）+ 76 个交付文件语言政策声明（`metadata.openclaw.language_policy` 顶层 frontmatter 注入，零侵入）。
+> 本版为 ClawHub 对**已发布 v2.12.8 净化包**的安全审计（`scanId: skill:lunheng-article-pipeline:2.12.8`；80 文件；扫描 2026-09-10 17:27:20 → 17:48:45 CST；SkillSpector `Findings 58` / score 100 / ClawScan 置信度 high）配套修订：A.I.G T05 fail-closed 落地（加固状态确认 spawn 前必走三选一）+ SkillSpector 误报源系统性清除（`doc-example` 路径示例 + 审计可读性违例）+ 措辞矛盾精确化（description / permissions / status-template 三方口径对齐）+ 76 个交付文件语言政策声明（版本行下 `🌐 **语言政策**` 正文声明 + `scripts/inject-lang-policy.py` 幂等注入，零侵入）。
 
 ### 一、T05 fail-closed：加固状态确认三选一
 
@@ -131,7 +142,7 @@ ClawHub 对 v2.12.8 净化包做二次安全审计，`Review`（非 Reject），
 ### 二、误报源系统性清除
 
 - `references/permissions.md` §执行能力边界 「拒绝访问清单」路径示例（`/etc/passwd` / `~/.ssh`）从「明确列举」改为「类型化禁止」+ 注释「路径示例已脱敏」，消除 SkillSpector Credential Access High 误报
-- 76 个交付文件 frontmatter 注入 `metadata.openclaw.language_policy` 声明（中文为默认 + 目标语言 Phase 0 可改），回应 Natural-Language Policy 类 finding
+- 76 个交付文件在**版本行下注入一行 `🌐 **语言政策**` 正文声明**（中文为默认 + 目标语言 Phase 0 可改，`scripts/inject-lang-policy.py` 幂等注入），并由 `build-clawhub-release.sh` 4d 段正向校验防回归，回应 Natural-Language Policy 类 finding（声明形态是正文行，**不是** `metadata.openclaw.language_policy` frontmatter）
 - SKILL.md 核心原则 #4 「独立审计 + 原创性保证」段补「差异点声明（T4 大纲必声明与已公开文章的差异点）」显式表述
 
 ### 三、措辞矛盾精确化
