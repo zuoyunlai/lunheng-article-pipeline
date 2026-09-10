@@ -34,57 +34,6 @@ jobs:
           echo "=== 调用 scripts/check-version.sh ==="
           bash ./scripts/check-version.sh
 
-      - name: 检查 9 角色编号 v2.3.0 一致性（教训 #116）
-        run: |
-          echo "=== 9 角色编号 v2.3.0 一致性检查 ==="
-
-          # v2.3.0 角色编号重构：任何文件出现 v2.2.x 旧角色命名（非历史段）→ FAIL
-          # 旧命名 → 新命名：T6 案例检索→T3 / T8 批判→T6 / T5 审计→T7 / T7 终检→T8 / T3 分析→T4 / T4 写手→T5
-          LEGACY_ROLES=(
-            'T6 案例检索'
-            'T8 批判'
-            'T5 审计'
-            'T7 终检'
-            'T3 分析'
-            'T4 写手'
-            'T1/T2/T6'
-            'T1∥T2∥T6'
-          )
-
-          FILES=(
-            "references/_shared/glossary-full.md"
-            "references/_shared/glossary-core.md"
-            "references/pipeline-readme.md"
-            "README.md"
-            "SKILL.md"
-            "references/agents/00-主控-coordinator.md"
-          )
-
-          ROLE_FAIL=0
-
-          for file in "${FILES[@]}"; do
-            if [ ! -f "$file" ]; then
-              continue
-            fi
-
-            for p in "${LEGACY_ROLES[@]}"; do
-              # 排除合法的「v2.3.0 重构标注段」+「版本历史 changelog/表格」（含 v2.x 版本号标记的行）
-              hits=$(grep -E "$p" "$file" 2>/dev/null \
-                     | grep -v 'v2\.[0-9]' | grep -v '→T' | grep -v '原 T' | grep -v '应改' | wc -l)
-              if [ "$hits" -gt 0 ]; then
-                echo "  ❌ $file 含真正 v2.2.x 角色命名 '$p' ($hits 处)"
-                ROLE_FAIL=$((ROLE_FAIL+1))
-              else
-                echo "  ✅ $file 无 v2.2.x 角色命名 '$p'"
-              fi
-            done
-          done
-
-          echo ""
-          if [ "$ROLE_FAIL" -eq 0 ]; then
-            echo "✅ 9 角色编号 v2.3.0 一致性检查通过"
-            exit 0
-          else
-            echo "❌ 9 角色编号一致性检查失败（$ROLE_FAIL 处）"
-            exit 1
-          fi
+      # v2.12.6（教训 #116）：9 角色编号旧命名检查已迁入 scripts/check-version.sh。
+      # 原内联实现的豁免条件依赖「行内含 v2.x 版本号 token」，v2.12.5 语义锚点清理
+      # 删掉标注行里的版本号后豁免失效 → 本地 check 绿、CI 红。现由单一真源统一判定。

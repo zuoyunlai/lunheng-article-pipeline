@@ -231,8 +231,56 @@ if [ -f "$PIN_FILE" ]; then
 fi
 echo ""
 
+# ---- 附：9 角色编号 v2.3.0 旧命名残留（教训 #116）----
+# v2.12.6 从 CI 内联迁入本脚本（单一真源）：此前本地 check 通过、CI 失败——
+# 旧实现靠「行内含 v2.x 版本号 token」豁免重构标注行，而 v2.12.5 语义锚点清理
+# 删掉了标注行里的版本号，豁免条件随之失效 → 两侧判定分叉。改为语义豁免：
+# 箭头映射（→ T3）、「原 T」「应改」「重构标注」等沿革标注形态一律视为合法。
+# 旧命名 → 新命名：T6 案例检索→T3 / T8 批判→T6 / T5 审计→T7 / T7 终检→T8 / T3 分析→T4 / T4 写手→T5
+ROLE_FILES=(
+  "references/_shared/glossary-full.md"
+  "references/_shared/glossary-core.md"
+  "references/pipeline-readme.md"
+  "README.md"
+  "SKILL.md"
+  "references/agents/00-主控-coordinator.md"
+)
+LEGACY_ROLES=(
+  'T6 案例检索'
+  'T8 批判'
+  'T5 审计'
+  'T7 终检'
+  'T3 分析'
+  'T4 写手'
+  'T1/T2/T6'
+  'T1∥T2∥T6'
+)
+ROLE_FAIL=0
+for file in "${ROLE_FILES[@]}"; do
+  full_path="$SKILL_ROOT/$file"
+  if [ ! -f "$full_path" ]; then
+    continue
+  fi
+  for p in "${LEGACY_ROLES[@]}"; do
+    hits=$(grep -E "$p" "$full_path" 2>/dev/null \
+           | grep -v 'v2\.[0-9]' \
+           | grep -vE '→[[:space:]]*T[0-9]' \
+           | grep -v '原 T' | grep -v '应改' | grep -v '重构标注' | wc -l)
+    if [ "$hits" -gt 0 ]; then
+      echo "❌ $file 含真正 v2.2.x 角色命名 '$p' ($hits 处)"
+      ROLE_FAIL=$((ROLE_FAIL+1))
+    fi
+  done
+done
+if [ "$ROLE_FAIL" -eq 0 ]; then
+  echo "✅ 9 角色编号 v2.3.0 一致性检查通过（无旧命名残留）"
+else
+  echo "❌ 9 角色编号一致性检查失败（$ROLE_FAIL 处）"
+fi
+echo ""
+
 # 最终判定
-if [ "$FAIL" -eq 0 ] && [ "$MISSING" -eq 0 ] && [ "$HEADER_FAIL" -eq 0 ] && [ "$PIN_FAIL" -eq 0 ]; then
+if [ "$FAIL" -eq 0 ] && [ "$MISSING" -eq 0 ] && [ "$HEADER_FAIL" -eq 0 ] && [ "$PIN_FAIL" -eq 0 ] && [ "$ROLE_FAIL" -eq 0 ]; then
   echo "✅ 版本号一致性检查通过（v$EXPECTED）"
   exit 0
 else
