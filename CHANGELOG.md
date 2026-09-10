@@ -9,6 +9,22 @@
 
 ---
 
+## [v2.12.7] — 2026-09-10
+
+> 本版为 ClawHub 同版本不可覆盖引起的补发版：v2.12.6 已发布且不可覆盖，故将 v2.12.6 发布后的剩余修订以 v2.12.7 提交。
+
+### 一、外发同意 fail-closed 语义下沉到 dispatch 层
+
+- `references/_shared/dispatch-header.md` 新增「出网 deny-precedence（fail-closed）」条：检索类工具（`web_search` / `web_fetch` / `tavily_search` / `tavily_extract`）属 Phase 0「外发同意 4 选 1」管辖；主人选 ④「全部拒绝」时本次运行**不调用任何出网工具**，改纯本地（主人自带材料 + 本地推理）；「开工」不隐含外发同意；同意记录缺失 / 矛盾 / 不可读 = 按拒绝处理，停止并回报主控
+- `references/dispatch/T1-文献检索.md` 第 1.1 步同步：区分「未勾选中文数据源集成（但普通检索已授权）」与「主人选 ④全部拒绝」两种情形，后者不调用任何出网工具
+- 与 `references/_shared/关键协议.md` 既有 fail-closed 语义对齐，消除 dispatch 层与协议层的表述分叉（ClawHub T09 一致性审计回应）
+
+### 二、版本号元数据同步
+
+- 36 个含版本戳文件同步至 v2.12.7；净化包按同版本重建
+
+---
+
 ## [v2.12.6] — 2026-09-10
 
 ### 一、ClawHub 安全审计 11 项语义 finding 全量修订
