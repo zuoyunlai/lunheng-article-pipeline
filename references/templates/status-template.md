@@ -1,4 +1,6 @@
-> 版本：v2.12.8（自动同步 2026-09-10）
+> 版本：v2.12.9（自动同步 2026-09-10）
+> 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
+
 
 
 
@@ -77,6 +79,7 @@
 **当前活动**: <一句话描述>
 **最后更新**: YYYY-MM-DD HH:MM
 **软保障**: mechanical / prompt-level（Phase 0 确认：mechanical = 主控无特权工具；prompt-level = 宿主未机械 deny、主人已确认软保障运行）
+**加固状态**: mechanical / acknowledged-prompt-level（**spawn 前必填，fail-closed**：mechanical = 主人确认已加固；acknowledged-prompt-level = 主人已知悉子代理可能继承特权工具仍选择继续；**两者皆无 → 不得 spawn 子代理，走单主控降级模式或中止**）
 **叶子锁定**: mechanical / prompt-level（Phase 0 确认：mechanical = 宿主 `agents.defaults.subagents.maxSpawnDepth: 1`，直接子代理即叶子；prompt-level = 未锁 depth，靠任务书叶子声明 + 角色卡叶子纪律兑付。背景：OpenClaw 默认 depth=5，不加锁则子代理可自行 spawn，孙辈产物不上传主控）
 **M 门**: v2.2.12 / v2.5.x
 **数据信任档**: 全外发 / 混合 / 全人工（教训 #259，拓展，Phase 0 拍板）

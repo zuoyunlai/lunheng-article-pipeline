@@ -1,4 +1,6 @@
-> 版本：v2.12.8（自动同步 2026-09-10）
+> 版本：v2.12.9（自动同步 2026-09-10）
+> 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
+
 
 
 
@@ -51,13 +53,15 @@
 
 **Workspace 路径收口（回应 SkillSpector 「非声明主机访问」）**：
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树
-- **拒绝**：绝对路径（如 `/etc/passwd`<!-- safe-pattern: doc-example, 路径在「拒绝」清单里非真实访问 -->、`~/.ssh/`<!-- safe-pattern: doc-example, 同上 -->）、父路径穿越（`..`）、symlink 逃逸、主控工作区根目录外的访问
+- **拒绝**：绝对路径（含任何指向宿主敏感位置的路径：系统账号/密码存储文件、SSH 密钥目录、云凭据文件等）、父路径穿越（`..`）、symlink 逃逸、主控工作区根目录外的访问
 - 默认 cwd = workspace 根（**不设 `cwd_default`**，否则 run/ 被解析到 skill 目录内，教训 #255）——主控在 spawn 时必须显式传 `cwd: run/<项目名>/`（相对 workspace 根）且每次子代理任务首句必读 `references/_shared/关键协议.md` §workspace 边界
 - 实操：主控 spawn 时 `cwd: run/<项目名>/`；子代理拒绝改 cwd；产出写盘必须落在 `run/<项目名>/<子目录>/` 内
 - **完整写入清单（含周期性写入，回应审计 Missing User Warnings）**：本技能运行期间会创建/修改的路径只有三类——① `run/<项目名>/` 项目文件树（任务简报 / 文献卡 / 数据卡 / 案例卡 / 大纲 / 草稿 / 审计报告 / 定稿 / 图件 / 证据包 / 交付说明，约 15-25 个文件）；② `run/<项目名>/status.md`（主控独占写）；③ `run/<项目名>/.tmp/<角色>-heartbeat.md`（子代理心跳，启动时写 + 运行中每约 5 分钟追加一行）。**全部限当前 workspace 的 `run/<项目名>/` 内**：不写项目外、不写其他项目、不写宿主配置（`openclaw.json` 等由主人自行维护，本技能只读不写）。已向主人披露于 SKILL.md「执行前安全须知」+ QUICKSTART.md「重要警告」。
 
 **其他约束**：
 - 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证）。子代理工具面由**四层**决定：① 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`progress_card`/`cron`/`message`/`sessions_send`/`conversations_*`；每组 turn 从持久化的子代理 session envelope 重新推导，`allow`/`alsoAllow` 无法绕过）② **depth 层追剥**（子代理到 `maxSpawnDepth` 即叶子，追加剥 `sessions_spawn`/`subagents`/`sessions_list`/`sessions_history`；depth 策略在运行时权威——宿主改 cap，存量会话的递归工具面随之增减）③ **捕获主控有效工具策略快照**（主控未被剥的工具，子代理同样继承——主控若持有 exec 而宿主不加约束，子代理也可能继承 exec）④ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**论衡是纯 skill（主人拍板），任意 OpenClaw 配置开箱可用**——本机宿主 config **不作任何强制收紧要求**：config 只对本机生效，不会随 ClawHub 净化包分发；论衡定位是「说明书」不是「独立 agent」，任意具备 `sessions_spawn` + 检索工具的 OpenClaw agent 加载即可运行。**宿主加固推荐（论衡建议项，非运行前置条件）**：宿主可在 config 加两条机械加固（`tools.subagents.tools` 为 hot reload，改完即时生效）——① `tools.subagents.tools.deny: ["exec","process","browser","apply_patch","tts","video_generate","music_generate"]`（或按上表 5 档声明配 `allow` 最小集），把零 exec 从纪律层升级为**机械强制**；② `agents.defaults.subagents.maxSpawnDepth: 1` 把直接子代理锁成**叶子**，匹配论衡「角色卡 = 叶子 worker」架构（默认 5，不锁则子代理可自行再 spawn，见下文「叶子纪律」）。论衡**不做**强制前置要求（纯 skill 定位，任意配置开箱可用），但**推荐**加固——未加固时论衡按纪律层运行，并在 status.md「项目元数据」如实标注 `prompt-level`，**不声称**机械强制（fail-closed 诚实口径，回应 ClawHub T05）。零 exec 的纪律层保障（`全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则`），非机械强制。5 档分档（`metadata.subagent_tiers`）是技能声明的各角色最小工具集与部署建议，不再声称可作 spawn 传参。**论衡 v2.6.5→v2.6.9 五轮 ClawHub 扫描 CLEAN 是设计表述被认可的实证**：靠的是 SKILL.md 文本层明确表达（禁用 13 项 + fail-closed + 全文档零授权 + 跨文件证据链），扫描器读 SKILL.md 时认可设计表达。**v2.10.1 口径**：本机宿主 config 不作任何强制收紧要求（config 只对本机生效不进净化包）；设计表述上仍坚持「零 exec 纪律层 + 全文档零授权 + fail-closed」，**不**声称机械强制，**不**声称扫描器会自动给 Pass——扫描结果由 ClawHub 扫描器在每次 publish 时判定。
+
+> 🛡️ **未加固 ≠ 可直接开跑（v2.12.9 新增，回应 ClawHub A.I.G T05 fail-closed 要求）**：未加固时标 `prompt-level` 只解决了「诚实」，不解决「同意」。主控在**首次 spawn 子代理之前**必须走「加固状态确认」三选一并取得明示结论：① 已加固 → `enforcement: mechanical`；② 主人知情后选择继续 → `enforcement: acknowledged-prompt-level`；③ 不加固且不确认 → **不 spawn**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审）或中止。**未取得 ①/② 任一结论时不得 spawn 子代理。** 确认结果记入 status.md「项目元数据」段。全程**不读取**宿主 config 文件——加固与否由**主人声明**，详见 SKILL.md §执行能力边界「加固状态确认」。
 - 🔒 **运行前软保障自检**：Phase 0 派发第一批子代理前，主控执行一次软保障判定，结果记入 status.md「项目元数据」`**软保障**: mechanical / prompt-level`：
   1. **自查主控工具面**：主控自身不含 `exec/process/browser/apply_patch`（已被宿主策略剥除/deny）→ 子代理继承面必不含这些特权工具（教训 #202，：子代理工具面 = 平台硬剥 + 主控策略快照 − 宿主 config deny），机械层成立 → 记 `mechanical`，无需额外确认。
   2. 主控自身持有上述特权工具 → 子代理是否被宿主 `tools.subagents.tools.deny` 机械拦截**无法从技能侧证明**（技能无宿主 config 读取面）→ 记 `prompt-level`（论衡纪律层软保障），**不拒绝运行**——论衡是纯 skill，配置收紧是宿主可选机械加固，不是运行前置条件（主人拍板接受软保障）。

@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.12.8
+version: 2.12.9
 description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，任意OpenClaw配置开箱可用。零exec=不执行shell（纪律层软保障，13项特权工具永久禁用；宿主 config 可选机械加固），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/<项目名>/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
@@ -80,6 +80,11 @@ metadata:
 **纪律保障（零 exec）**：
 
 - 🔒 **论衡是纯 skill，任意 OpenClaw 配置开箱可用**：论衡定位是「说明书」不是「独立 agent」，任意具备 `sessions_spawn` + 检索工具的 OpenClaw agent 加载即可运行——config 加固是**建议项**不是运行前置条件。**推荐两条机械加固**（宿主 config，hot reload）：① `tools.subagents.tools.deny: ["exec","process","browser","apply_patch", ...]` → 零 exec 从纪律层升为**机械强制**（每 turn 重新推导，`allow`/`alsoAllow` 不能绕过）；② `agents.defaults.subagents.maxSpawnDepth: 1` → 直接子代理即**叶子**，匹配论衡「角色卡 = 叶子 worker」架构（默认 5，不锁则子代理可自行再 spawn）。未加固时论衡按纪律层运行并在 status.md 如实标注 `prompt-level`，**不声称**机械强制（fail-closed 诚实口径）。
+- 🛡️ **加固状态确认（spawn 前必走，fail-closed）**：主控在**首次 spawn 子代理之前**，必须向主人显式呈现当前加固状态（宿主是否已配上述两条），并取得**三选一**明示结论后才可 spawn：
+  - ① **已加固** → status.md 记 `enforcement: mechanical`，按纪律层 + 机械层双保障运行；
+  - ② **知情后选择继续** → status.md 记 `enforcement: acknowledged-prompt-level`（主人已知悉子代理可能继承主控特权工具，仍选择继续），并在项目交付时提示复核；
+  - ③ **不加固且不确认** → **不 spawn 子代理**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审，不派子代理）或中止本次运行，由主人二选一。
+  **禁止**在未取得 ①/② 任一结论时静默按 `prompt-level` 开跑——纪律层软保障**不等于**已获主人同意。
 - 🚫 **叶子纪律（角色卡不再委托）**：T1-T7/T9 = 叶子 worker——**不得**调用 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history` 派生或管理子代理；需要额外检索/人手 → 交接报告写「需求回执」交主控，由主控决定是否 spawn。机械版 = 宿主 `maxSpawnDepth: 1`，纪律版为兜底（见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md) §叶子纪律）。
 - 🔒 **零 exec 软保障**：论衡运行时全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则，**不**调 exec/process/browser/apply_patch/cron 等特权工具。
 - ℹ️ **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，不执行实际 shell 命令（bash 示例是给人类主人手动复核的参考命令，不是 agent 执行代码）。
@@ -160,7 +165,9 @@ metadata:
 
 不调 Firecrawl、不调万方 / 科情 / NSTL API（除非主人 Phase 0 显式勾选启用）。详见 [`references/_shared/中文数据源集成.md`](references/_shared/中文数据源集成.md)。
 
-**🔒 不读取宿主网关配置**：论衡运行不调用 `gateway` / `config` / 任何宿主配置读取工具——主控 documented 工具集无 gateway / config / agents_list / cron / message 类工具。宿主可单独配置 gateway 限权访问，与论衡运行无关。
+**🔒 不读取宿主网关配置（精确口径）**：论衡运行**不调用** `gateway` / `config` / 任何宿主配置读取工具，**不读取** `~/.openclaw/openclaw.json` 等宿主配置文件——主控 documented 工具集无 gateway / config / agents_list / cron / message 类工具。宿主可单独配置 gateway 限权访问，与论衡运行无关。
+
+> **与「加固状态确认」不冲突（回应审计 Intent-Code Divergence）**：上段说的是**论衡不主动读取宿主配置文件**；「加固状态确认」走的是**主人声明**路径（Phase 0 由主人告知是否已加固），**不是**读 config、也不把加固当运行前置条件。宿主加固是论衡写给**主人的部署建议**，不是论衡的运行时依赖——两者层级不同，勿混为一谈。
 
 **主人拒绝任一外发项** → 主控调整方案并重做 Phase 0 确认。
 

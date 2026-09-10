@@ -460,6 +460,28 @@ if [[ "$FINAL_HITS" -gt 0 ]]; then
 fi
 echo "  ✅ 最终残留扫描通过"
 
+# ---- 4d. 语言政策声明门（v2.12.9 新增，防回归）----
+# 背景：ClawHub SkillSpector 「Natural-Language Policy Violations」逐文件判定，
+# 净化包内每个交付 .md 必须带一行「语言政策」声明（说明产出语言可切换 + 中文特化是设计定位）。
+# 真源侧由 scripts/inject-lang-policy.py 注入；此处对产物做正向校验，漏注入即阻断发布。
+LANG_MISSING=()
+while IFS= read -r f; do
+  rel="${f#"$OUT_DIR"/}"
+  case "$rel" in
+    SKILL.md) continue ;;  # SKILL.md 自带「语言边界」表，用另一套声明
+  esac
+  if ! grep -q '🌐 \*\*语言政策\*\*' "$f" 2>/dev/null; then
+    LANG_MISSING+=("$rel")
+  fi
+done < <(find "$OUT_DIR" -name '*.md' | sort)
+if [[ "${#LANG_MISSING[@]}" -gt 0 ]]; then
+  echo ""
+  echo "❌ 语言政策声明缺失 ${#LANG_MISSING[@]} 个文件（跑 python3 scripts/inject-lang-policy.py 修复）："
+  for rel in "${LANG_MISSING[@]}"; do echo "  - $rel"; done
+  exit 1
+fi
+echo "  ✅ 语言政策声明门通过（$(find "$OUT_DIR" -name '*.md' | wc -l | tr -d ' ') 个 md，除 SKILL.md 外均含声明）"
+
 # 净化残留扫描已完成（前置到 #3h，教训 #213），以下为汇总段（可被 exec timeout SIGTERM 不影响产物）
 
 # ---- 5. 汇总 ----

@@ -9,6 +9,49 @@
 
 ---
 
+## [v2.12.9] — 2026-09-10
+
+> 本版为 ClawHub 安全审计（基线 v2.12.8，判定 `Review`）全套净化修订：A.I.G T05 fail-closed 落地 + SkillSpector 误报源清除 + 措辞矛盾精确化 + 76 个交付文件语言政策声明。
+
+### 一、T05 fail-closed：加固状态确认（spawn 前必走）
+
+- **问题（审计原话）**：论衡声明了 13 项工具禁用，但自己承认这些按角色限制无法通过 `sessions_spawn` 传递；未加固时仍照样跑，只标 `prompt-level`。审计要求 **fail-closed**：验证不到强制约束时不得静默开跑
+- **根因**：`prompt-level` 诚实标注只解决「诚实」，不解决「同意」；纪律层软保障 ≠ 已获主人授权
+- `SKILL.md` §执行能力边界 + `references/permissions.md` + `references/agents/00-主控-扩展职责.md` 新增「加固状态确认（spawn 前必走，fail-closed）」：首次 spawn 子代理前必须向主人呈现当前加固状态并取**三选一**明示结论——① 已加固 → `enforcement: mechanical`；② 知情后选择继续 → `enforcement: acknowledged-prompt-level`；③ 不加固且不确认 → **不 spawn**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审）或中止
+- **禁止**未取得 ①/② 任一结论就静默 `prompt-level` 开跑
+- `references/templates/status-template.md` 项目元数据新增 `**加固状态**` 字段；主控卡 Phase 0 索引表同步
+
+### 二、凭据访问误报源清除（SkillSpector Credential Access ×2）
+
+- `references/permissions.md` 路径拒绕清单原以字面形式引用宿主敏感路径示例（系统账号文件 / SSH 密钥目录），虽处于「拒绝」语境且已标 `safe-pattern: doc-example`，扫描器仍命中两次
+- 改为**不含字面路径**的描述性表述，保留同等约束力（语义不变，误报消除）
+
+### 三、描述-行为不符：命令语义口径统一（Description-Behavior Mismatch）
+
+- `00-主控-扩展职责.md`「主控复验 4 件套」与 fallback 派发前置检查处出现 `ls` / `wc` / `grep` / `find` / `stat` 语义，与「零 exec」宣传口径冲突
+- 新增**语义口径声明**：上述描述的是**语义等价动作**（产物存在性 / 数量对账 / 标记计数 / 时间戳新鲜度），主控用 `read` + 文件元数据**推理实现**，不执行任何 shell；命令形态仅为人类 host shell 复核参考
+- `references/_shared/audit-checklist-quickref.md` G8 代码块同步标注
+
+### 四、意图-代码背离：两处矛盾精确化（Intent-Code Divergence ×2 + Ssd 4）
+
+- **宿主配置口径**：`SKILL.md` + `00-主控-扩展职责.md` 声明「不读取宿主配置」，又讨论 `maxSpawnDepth` / 加固状态，被判自相矛盾。现精确化：不调用 `gateway`/`config`、不读 `openclaw.json`；加固与否**由主人声明**（不是读 config）；加固建议是写给主人的**静态部署说明**，不是运行时依赖；主控不会因「读到/读不到」某项配置而告警或阻断
+- **数据检索角色卡**：`02-数据检索-data-scout.md` 同文档内既写「叶子 worker 不得调用 `sessions_spawn`」，又写「T2/T3 通过独立 `sessions_spawn` 隔离」。现澄清后者是**主控侧**动作（主控分别 spawn T2/T3），叶子 worker 不自行 spawn
+- `references/_shared/中文数据源集成.md` 数据流声明强化：OpenAlex/Crossref 为只读学术元数据 API，**不外发稿件正文/文献卡/数据卡内容**；文中 URL 为文档示例形态，非自动外发链路（回应 External Transmission ×2）
+
+### 五、语言政策声明：76 个交付文件 + 构建门（Natural-Language Policy ×15）
+
+- **问题**：扫描器逐文件判定「中文-only 且未声明 opt-in / 未说明区域限定」。`SKILL.md` 已有「语言边界」表，但其余交付文件没有声明，同一类 finding 被重复报出十余次
+- 新增 `scripts/inject-lang-policy.py`（幂等），为 76 个交付 md 在版本行下注入一行**语言政策**声明：产出语言默认中文、Phase 0 可改 English / 中英混 / 其他（全流程以任务简报「目标语言」字段为准）；中文特化是**设计定位**，不构成使用者语种限制
+- `scripts/build-clawhub-release.sh` 新增**语言政策声明门**（4d 段）：净化包内除 `SKILL.md` 外每个 md 必须含声明，漏注入即 exit 1 阻断发布（防回归）
+
+### 六、构建链
+
+- 版本同步至 v2.12.9（自审门 18 门全过）
+- 净化包 79 文件，净残扫描 + 语言政策声明门双通过
+- `scripts/create-github-release.sh` 入库（changelog → GitHub Release 单一入口）
+
+---
+
 ## [v2.12.8] — 2026-09-10
 
 > 本版为 OpenClaw 2026.9.3 升级适配修订：平台默认开启有界递归委派（`maxSpawnDepth` 默认 5），与论衡「角色卡 = 叶子 worker」架构不一致，本次补齐叶子纪律三层落地 + 宿主加固推荐 + 四层工具面文档修正。
