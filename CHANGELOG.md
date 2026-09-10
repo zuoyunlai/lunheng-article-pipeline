@@ -9,6 +9,59 @@
 
 ---
 
+## [v2.12.6] — 2026-09-10
+
+### 一、ClawHub 安全审计 11 项语义 finding 全量修订
+
+ClawHub 对 v2.12.5 净化包的安全审计给出 11 项语义 finding（高 3 / 中 7 / 低 1），按类修订：
+
+**Intent-Code Divergence（高 / 中）**
+- 路径校验伪代码缺括号：`strip-anchor-residue.py` 的空括号清理规则误删无参函数调用括号，6 文件 13 处。拆分全角/半角规则并保护 `identifier()` 形态；新增自审门 P（净化链代码保真）防复发
+- T5 自审门表述改为「主控逐项 `read` 核验，不执行任何脚本」，明确开发者侧脚本仅主人本地手工运行
+
+**Description-Behavior Mismatch（高 / 中）**
+- SKILL.md 明示口径：`零 exec ≠ 零出网`——零 exec 只约束不执行 shell，不等于不向外发数据；默认启用的检索工具仍经 Phase 0 明示同意
+- 检索层区分「默认启用」（OpenAlex / Crossref 第一梯队）与「默认关闭 opt-in」（二/三梯队、Firecrawl），后者需显式勾选
+- SVG 转换模板声明 `pandoc / rsvg-convert` 仅由主人手工执行，论衡不调用
+- 数据卡 / 案例卡 / 角色卡统一写入范围：仅限 `run/<项目名>/` 子树
+- 封面 `image_generate` 统一为默认关闭，仅主人 Phase 0 勾选后调用，发送内容提前告知
+
+**Missing User Warnings（中 / 低）**
+- 执行韧化协议补充心跳写入位置与周期的用户告知
+- SKILL.md「执行前安全须知」说明将创建/修改约 15-25 个文件，范围限 `run/<项目名>/`
+
+**Natural-Language Policy Violations（中）**
+- SKILL.md 新增语言边界声明；所有角色卡 / T8 终检明确输出语言以任务简报目标语言为准，不限非中文用户使用
+
+### 二、净化链代码保真修复（教训 #300）
+
+- `strip-anchor-residue.py` 正则同时匹配半角括号，误删所有无参函数调用括号，净化包伪代码语义静默损坏（无扫描器报警）
+- 修复：拆分全角/半角规则，空括号清理排除 `标识符()` 形态；新增自审门 P 逐围栏校验 `(` / `)` 计数
+
+### 三、changelog 单一真源与完整性校验（P2）
+
+- 新增仓库内单一真源 `CHANGELOG.md`，自 GitHub Releases 回填 129 个版本章节，补全 v2.11.0 / v2.11.1 缺失条目
+- 新增 `scripts/changelog-check.py`：校验章节完整性、围栏闭合、tag 与 Release 一致性（`--check` / `--online` / `--fill` / `--report`）
+- 新增 `.github/workflows/changelog-check.yml` CI 工作流，定期在线校验 tag 与 Release 一致性
+- `build-clawhub-release.sh` 新增禁入守卫，确保 `CHANGELOG.md` 不进入净化包
+
+### 四、净化包占位符拦截（教训 #302）
+
+- 构建脚本最终残留扫描新增 5 类拦截：`\`shell 脚本\`` / `shell 脚本`（.sh 泛化规则留下的无宾语占位符）、`scripts/`（开发者脚本路径）、`论衡开发者脚本`、空白表格分隔行 `| | |`
+
+### 验证
+
+| 项目 | 结果 |
+|---|---|
+| 版本一致性 | 73 文件同步 / 门 C 36 文件一致 |
+| 自审门 | 18 PASS / 0 FAIL |
+| 净化包残留扫描 | 全通过，零残留 |
+| 净化包文件数 | 79（真源 137） |
+
+净化包路径：`outputs/clawhub-release/2.12.6`。
+
+---
+
 ## [v2.12.5] — 2026-09-10
 
 ### 一、语义锚点型版本注释逐条判断（36 文件 / 120 处）

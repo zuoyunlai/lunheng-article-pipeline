@@ -1,7 +1,7 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.12.5
+version: 2.12.6
 description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，任意OpenClaw配置开箱可用。零exec=不执行shell（纪律层软保障，13项特权工具永久禁用），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/<项目名>/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
