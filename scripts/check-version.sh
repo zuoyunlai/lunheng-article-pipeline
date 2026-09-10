@@ -216,8 +216,23 @@ echo "  ✅ 通过：$HEADER_PASS"
 echo "  ⚠️  缺少：$HEADER_FAIL"
 echo ""
 
+# ---- 附：安装命令 pin 一致性（教训 #297）----
+# 净化包由 build 强制同步 pin；真源侧 pin 必须在 bump 时一并改，否则用户按文档装到旧版。
+PIN_FILE="$ENTRY_DIR/QUICKSTART.md"
+PIN_FAIL=0
+if [ -f "$PIN_FILE" ]; then
+  PIN_VER="$(grep -oE '@zuoyunlai/lunheng-article-pipeline@[0-9]+\.[0-9]+\.[0-9]+' "$PIN_FILE" | head -1 | sed 's/.*@//' || true)"
+  if [ -n "$PIN_VER" ] && [ "$PIN_VER" != "$EXPECTED" ]; then
+    echo "❌ QUICKSTART 安装命令 pin=v$PIN_VER，与当前版本 v$EXPECTED 不一致（教训 #297）"
+    PIN_FAIL=1
+  else
+    echo "✅ QUICKSTART 安装命令 pin 与版本一致（v$EXPECTED）"
+  fi
+fi
+echo ""
+
 # 最终判定
-if [ "$FAIL" -eq 0 ] && [ "$MISSING" -eq 0 ] && [ "$HEADER_FAIL" -eq 0 ]; then
+if [ "$FAIL" -eq 0 ] && [ "$MISSING" -eq 0 ] && [ "$HEADER_FAIL" -eq 0 ] && [ "$PIN_FAIL" -eq 0 ]; then
   echo "✅ 版本号一致性检查通过（v$EXPECTED）"
   exit 0
 else

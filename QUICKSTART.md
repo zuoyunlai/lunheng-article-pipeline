@@ -18,12 +18,12 @@
 论衡是纯 skill，无需创建独立 agent：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.4  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
-> **宿主配置）**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**，token 统计走精确路径（子代理完成事件 `Stats:` 行 + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
+> **宿主配置**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**，token 统计走精确路径（子代理完成事件 `Stats:` 行 + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
 
 ---
 
@@ -174,7 +174,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 ## 🔧 三层防御体系
 
 | 层 | 性质 | 用途 |
-| | | |
+|---|---|---|
 | **M 门**（形式合规） | LLM 结构化自评（规则硬性、非机器强制） | 检查引用/数据/案例的形式完整性 |
 | **F 模式**（失败模式） | 面向用户的叙事 | 解释"为什么要这么做" |
 | **G 清单**（质量审计） | 面向审计员 | G0-G14 共 15 项检查 |
@@ -256,7 +256,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 
 ### Q3：论文可以被 ClawHub 安全扫描拒绝吗？
 
-**答：可能。** 论衡 v2.2.12 起所有 user-facing 警告已放文件顶部，Phase 0 同意关卡是金标准。详见教训 #266。
+**答：可能。** 论衡 v2.2.12 起所有 user-facing 警告已放文件顶部，Phase 0 同意关卡是金标准。详见 SKILL.md「外部服务与数据流声明」段。
 
 ---
 
@@ -265,7 +265,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.10.3  # pin 审计
 **答：迭代发布。** 详见论衡发布历史：
 - v2.0.5 → v2.1.7：连续 6 轮 ClawHub scanner findings 闭环
 - v2.1.8 → v2.2.12：P0+P1+P2 持续改进
-- v2.3.0：角色编号重构（教训 #275）+ README 内部冲突修复（教训 #275，+ #118）
+- v2.3.0：角色编号重构 + README 内部冲突修复
 
 论衡设计哲学：**安全是持续回应反馈的过程，不是发布前的完美**。
 

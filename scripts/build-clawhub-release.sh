@@ -294,6 +294,13 @@ while IFS= read -r -d '' f; do
   purify "$f"
 done < <(find "$OUT_DIR" -name '*.md' -print0)
 
+# ---- 3n. 安装命令版本 pin 同步（教训 #297）----
+# 净化包内 `openclaw skills install @...@X.Y.Z` 的 pin 必须等于本包版本，
+# 防止「包是 v2.12.4、安装命令还钉在 v2.10.3」这类用户可见的审计版本错配。
+if [[ -f "$OUT_DIR/QUICKSTART.md" ]]; then
+  sed -i -E "s|(@zuoyunlai/lunheng-article-pipeline)@[0-9]+\.[0-9]+\.[0-9]+|\1@$VERSION|g" "$OUT_DIR/QUICKSTART.md"
+fi
+
 # ---- 3e. 净化 SKILL.md description（去掉引用已剥离 scripts/ 的「自我维护」句）----
 SKILL_OUT="$OUT_DIR/SKILL.md"
 python3 - "$SKILL_OUT" <<'PYEOF'
@@ -358,18 +365,57 @@ echo "  ✅ 净化残留扫描通过"
 # ---- 4. 补「使用者视角」声明到 SKILL.md 顶部（回应 scanner 的 scope 疑虑）----
 SKILL_OUT="$OUT_DIR/SKILL.md"
 if [[ -f "$SKILL_OUT" ]]; then
+  # 源 SKILL.md 末尾无换行符时，追加段会与许可证句粘连（`---` 被解析为 setext H2）——先补换行
+  [[ -n "$(tail -c 1 "$SKILL_OUT")" ]] && echo >> "$SKILL_OUT"
   cat >> "$SKILL_OUT" <<EOF
 
 ---
 
-## 📦 本包为「使用者发布版」
+## 📦 关于本包
 
-> 此版本是从论衡「完整开发版」剥离开发者维护工具后的净化发布包。
-> - 已移除：版本同步脚本 / git 发布指令 / 历史审计记录 / 归档 / 备份 / CI
-> - 已澄清：教训沉淀为「建议待主人 review」，不自动写入共享状态
-> - 论衡完整设计（含自我维护机制）见 GitHub 仓库：https://github.com/zuoyunlai/lunheng-article-pipeline
+> 本包是论衡的使用者发布版，只含运行所需的文档与角色卡。
+> - 不含：版本同步脚本 / git 发布指令 / 历史审计记录 / 归档 / 备份 / CI
+> - 自检记录、经验沉淀与内部编号属维护者资产，不随包分发
+> - 论衡为纯 skill：LLM 推理 + 文件读写 + Web 检索，零 shell 执行
 EOF
 fi
+
+# ---- 4b. 内部痕迹清理（教训 #296：主控侧运维痕迹不对技能用户开放）----
+# 两步：① 剥「教训 #N」字面 / 文件名引用 / 本地路径 / 真源仓库；② 清剥离后残留的裸编号锚点。
+echo "🧹 清理内部痕迹（教训 #296）..." >&2
+bash "$SCRIPT_DIR/strip-internal-leakage.sh" "$OUT_DIR" >/dev/null
+python3 "$SCRIPT_DIR/strip-anchor-residue.py" "$OUT_DIR" >/dev/null
+
+# ---- 4c. 最终残留扫描（含「教训对用户不可见」铁律的兜底检查）----
+echo "🔍 最终残留扫描..." >&2
+FINAL_PATTERNS=(
+  '教训 #'
+  '教训编号'
+  '教训来源'
+  'audit-lessons'
+  'lessons\.md'
+  'github\.com/zuoyunlai'
+  '/home/zuoyunlai/'
+  '完整开发版'
+  '见相关算法'
+  '\(，\+ #'
+  '\( \+ #'
+  '裸 #N'
+)
+FINAL_HITS=0
+for pat in "${FINAL_PATTERNS[@]}"; do
+  hits=$({ grep -rE "$pat" --include='*.md' "$OUT_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+  if [[ "$hits" -gt 0 ]]; then
+    echo "  ❌ 内部痕迹残留：$pat（$hits 处）"
+    FINAL_HITS=$((FINAL_HITS + 1))
+  fi
+done
+if [[ "$FINAL_HITS" -gt 0 ]]; then
+  echo ""
+  echo "❌ 最终残留扫描未通过：$FINAL_HITS 项（教训 #296 铁律：教训是主控侧运维资产，不得进入发布包）"
+  exit 1
+fi
+echo "  ✅ 最终残留扫描通过"
 
 # 净化残留扫描已完成（前置到 #3h，教训 #213），以下为汇总段（可被 exec timeout SIGTERM 不影响产物）
 
