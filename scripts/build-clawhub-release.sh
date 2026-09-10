@@ -380,6 +380,9 @@ RESIDUAL_PATTERNS=(
   'shellcheckrc'
   'paper-ready-check\.(sh|py)'  # v2.12.0 新增：论衡开发者脚本不应出现在净化版（脚本随 scripts/ 整目录被剥，但散落 .md 引用必须脱钩）
   'check-version\.sh'           # v2.12.0 新增：开发者版本同步脚本不在净化版
+  'self-audit-gate\.sh'        # v2.12.6 新增：自审门脚本（防 project-archive-sop 等散落 .md 引用漏剥，同 check-version.sh 类）
+  'sync-version\.sh'           # v2.12.6 新增：版本同步脚本（同 check-version.sh 类）
+  'build-clawhub-release\.sh'  # v2.12.6 新增：净化包构建脚本自身（同 check-version.sh 类）
 )
 for pat in "${RESIDUAL_PATTERNS[@]}"; do
   # grep 无命中时返回 1；在 pipefail 下需显式吞掉该正常状态。
