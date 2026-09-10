@@ -262,9 +262,14 @@ def process_inline(line: str) -> str:
 
     # 5. 替换残迹收口：动词替换后，原 ASCII 空格会夹在中文之间
     #    （`双向 diff` → `双向 对比`、`写完 grep` → `写完 检查`）——
-    #    中文之间不留空格，仅在本行确实被改动时塌缩，避免误伤未改动行。
+    #    中文之间不留空格，仅在本行确实被改动时塌缩，避免误伤未改动行；
+    #    例外：`§ 二 组 A` 这类章号 + 序号 + 名称写法保留空格。
     if line != orig_line:
-        line = re.sub(r'([\u4e00-\u9fff])[ \t]+([\u4e00-\u9fff])', r'\1\2', line)
+        def _cjk(m):
+            if re.search(r'§\s*$', line[:m.start()]):
+                return m.group(0)
+            return m.group(1) + m.group(2)
+        line = re.sub(r'([\u4e00-\u9fff])[ \t]+([\u4e00-\u9fff])', _cjk, line)
 
     return line
 

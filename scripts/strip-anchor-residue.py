@@ -119,6 +119,13 @@ def strip_line(line: str) -> str:
     if touched:
         for pat, repl in TIDY:
             protected = pat.sub(repl, protected)
+        # 锚点删除后留下的「汉字 + 空格 + 汉字」空档 → 收口（教训 #298）
+        # 例外：`§ 二 组 A` 这类章号 + 序号 + 名称写法保留空格。
+        def _cjk(m):
+            if re.search(r'§\s*$', protected[:m.start()]):
+                return m.group(0)
+            return m.group(1) + m.group(2)
+        protected = re.sub(r'([\u4e00-\u9fff])[ \t]+([\u4e00-\u9fff])', _cjk, protected)
 
     for pat, repl in JUNK_TIDY:
         protected = pat.sub(repl, protected)

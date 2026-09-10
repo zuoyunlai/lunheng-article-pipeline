@@ -47,6 +47,19 @@ orig = content
 # ===== 阶段 1: 处理整段（行级 / 块级）=====
 # 必须先处理整段，否则行内删除可能留下空 bullet
 
+def collapse_cjk_space(line):
+    """删除 token 后留下「汉字 + 空格 + 汉字」的空档——中文之间不留空格。
+
+    例外：`§ 二 组 A` 这类「章号 + 序号 + 名称」全库统一写法，
+    前一字是 `§` 后的序号时保留空格（不被本条误收）。
+    """
+    def rep(m):
+        if re.search(r'§\s*$', line[:m.start()]):
+            return m.group(0)
+        return m.group(1) + m.group(2)
+    return re.sub(r'([\u4e00-\u9fff])[ \t]+([\u4e00-\u9fff])', rep, line)
+
+
 lines = content.split('\n')
 new_lines = []
 in_code = False
@@ -68,6 +81,7 @@ def process_line(line):
     return line
 
 for line in lines:
+    line_orig = line
     if line.strip().startswith('```'):
         # 代码块标记本身保留，但块内的"教训 #N"仍要清理
         in_code = not in_code
@@ -85,6 +99,8 @@ for line in lines:
         line = re.sub(r'（[ \t]+(?=\S)', '（', line)
         line = re.sub(r'[ \t]+）', '）', line)
         line = line.replace('教训索引', '编号索引')
+        if line != line_orig:
+            line = collapse_cjk_space(line)
         new_lines.append(line)
         continue
 
@@ -221,6 +237,9 @@ for line in lines:
     line = re.sub(r'[ \t]+）', '）', line)
     # 7b-3 内部产物名 → 使用者视图用词
     line = line.replace('教训索引', '编号索引')
+    # 7b-4 本次确实改动过本行 → 收口汉字间空格（教训 #298）
+    if line != line_orig:
+        line = collapse_cjk_space(line)
 
     new_lines.append(line)
 
