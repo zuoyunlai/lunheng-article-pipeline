@@ -627,6 +627,49 @@ else
 fi
 
 # =============================================================================
+# 门 P：净化脚本「代码保真」回归测试（v2.12.6 新增，教训 #300）
+# =============================================================================
+# 教训 #300：strip-anchor-residue.py 的空括号规则用 `[（(]` 同时匹配半角，
+#   导致代码块内**所有无参函数调用的括号被吃掉**（`resolve()` → `resolve`），
+#   代码语义静默损坏，无任何扫描器报警。v2.12.4 / v2.12.5 净化包 6 文件 13 处中招，
+#   并被 ClawHub 安全审计 v2.12.5 列为 Finding #1（Medium, 99%）。
+# 本门不扫产出（防误报），而是把探针文本喂给真净化链，断言不变量：
+#   1. 代码块内函数调用括号必须存活
+#   2. 锚点残留下的空全角括号必须仍被清除
+PROBE_DIR=$(mktemp -d)
+mkdir -p "$PROBE_DIR/probe"
+PROBE_N=999
+{
+  printf '%s\n' '```python'
+  printf '%s\n' 'base = Path(base_dir).resolve()'
+  printf '%s\n' 'candidate = (base / target_path).resolve()'
+  printf '%s\n' 'claims = [c.strip() for c in claim_pattern]'
+  printf '%s\n' 'hit = any(v >= 3 for v in pattern_a_count.values())'
+  printf '%s\n' 'wait_start = time.now()'
+  printf '%s\n' '```'
+  printf '%s\n' "主控记录 cases 需求，写入 status.md（教训 #${PROBE_N}）"
+} > "$PROBE_DIR/probe/probe.md"
+python3 "$SKILL_ROOT/scripts/strip-anchor-residue.py" "$PROBE_DIR/probe" >/dev/null 2>&1
+python3 "$SKILL_ROOT/scripts/strip-shell-commands.py" "$PROBE_DIR/probe/probe.md" >/dev/null 2>&1
+PROBE_OUT=$(cat "$PROBE_DIR/probe/probe.md" 2>/dev/null)
+rm -rf "$PROBE_DIR"
+GATE_P_FAIL=""
+for probe_tok in '.resolve()' 'c.strip()' 'values()' 'time.now()'; do
+  case "$PROBE_OUT" in
+    *"$probe_tok"*) ;;
+    *) GATE_P_FAIL="$GATE_P_FAIL [代码括号被吃:$probe_tok]" ;;
+  esac
+done
+case "$PROBE_OUT" in
+  *"status.md（）"*) GATE_P_FAIL="$GATE_P_FAIL [锚点残留空括号未清]" ;;
+esac
+if [ -z "$GATE_P_FAIL" ]; then
+  pass "门 P: 净化链代码保真（括号存活 + 残留清除）"
+else
+  fail "门 P: 净化链损伤代码或残留未清" "$GATE_P_FAIL"
+fi
+
+# =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit
