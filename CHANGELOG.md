@@ -9,6 +9,72 @@
 
 ---
 
+## [v2.12.11] — 2026-09-10
+
+> 本版为**全仓四路专项审计**的配套整改。审计对象 = 本地真源 HEAD `bef172b`（v2.12.10），四路只读扫描、报告单列于 `outputs/audits/20260910/`；整改后净化包重建三门全绿。
+
+### 〇、审计范围与基线
+
+| 专项 | 报告 | 扫描口径 | 真问题 |
+|---|---|---|---|
+| 口径漂移 | `drift-audit.md` | 加固二选一（mechanical / degraded）在全部文档中的旧表述残留 | **16**（P0×7 / P1×7 / P2×2） |
+| 执行衔接 | `flow-audit.md` | 阶段对齐 / 角色对齐 / 闸门衔接 / 交接产物 / 人在环 / 进度呈现 | **33**（P0×3 / P1×15 / P2×15） |
+| 净化链内泄漏 | `leak-audit.md` | 「门禁扫不到、消费者能看见」的语义缺口（净化包 + 真源） | **9**（P1×2 / P2×7） |
+| 交叉引用 | `xref-audit.md` | 1 084 个路径型引用（324 distinct）逐个解析 + 锚点 + 编号体系 | **14 断链 + 4 显示名陈旧 + 7 组锚点断指 + 2 编号缺口** |
+
+**核心判断（drift 原话）**：v2.12.10 只「加了新段」（`加固状态确认` / `enforcement`），旧「纯 skill 任意配置开箱可用 / 加固是建议项 / 不拒绝、不降级」母题未同批清理，形成同文件同章节自相矛盾；最集中漂移区 `SKILL.md:82/170`、`references/permissions.md:62/74`、`references/agents/00-主控-扩展职责.md:348/375/376/379/381`。
+
+### 一、口径漂移：加固模型全量统一（P0×7）
+
+- `QUICKSTART.md` / `SKILL.md` / `references/permissions.md` / `references/agents/00-主控-扩展职责.md` 删除全部「加固是建议项 / 不是运行前置条件 / 未加固按纪律层跑并标 `prompt-level` / 不拒绝、不降级」表述，统一为 **fail-closed 二选一**：读 config 核实通过 = `enforcement: mechanical`；任一缺失或读不到 = `degraded` → **不 spawn 子代理**，走单主控降级模式
+- 「不读取宿主配置」补**唯一例外**：spawn 前一次性「加固状态确认」会 `read` 一次 `~/.openclaw/openclaw.json`（只读、不改、不写项目外）——SKILL.md 路径收口段、主控卡、SKILL.md 网关配置段三处口径同步
+- `QUICKSTART.md` deny 示例由 4 项补全为 **13 项**（照抄旧示例的宿主必然 `degraded`）；「推荐加固（可选，但建议做）」→「（多 Agent 模式必配）」
+- `permissions.md` §「运行前软保障自检」→§「spawn 前加固核对」，字段名 `**软保障**: mechanical / prompt-level` → `**加固状态**: mechanical / degraded`
+- `status-template-lite.md`「项目元数据」段补 `**加固状态**` / `**叶子锁定**` 两字段（原文零命中）
+
+### 二、执行衔接：会「无故卡住」的缺口（P0×3 / P1×15 / P2×15）
+
+- **`status.md` 写入者收口贯穿**（执行韧化协议-design 3 处 + T5 角色卡 + T5 dispatch + T7 角色卡 + T3 dispatch + status-lite）：子代理只写自己的心跳文件 `.tmp/<角色>-heartbeat.md`，`status.md` 由**主控独占写**；T7 为只读档，只回报结论档位（通过 / 修订 ≤2 轮 / 升级主人）
+- **G14 终点与触发阶段**：`gates/14-中文AI痕迹-gate.md` Pass 分支「→ 继续 Phase 5」改为「→ 进入 T7 审计（Phase 4）；不直接进 Phase 5」（原文跳过审计闸门）；触发阶段统一 **Phase 3.6**（原 `00-主控-扩展职责.md` / `status-template.md` 写 4.5，与 yaml `t6_g14` 相反 → 会卡在 T7 前等一个永不来的报告）
+- **T9 时序**：改为「T7.5 完整性门通过后、T8 终检前」；排除项改「❌ T8 终检后」（原写「仅 Phase 4.5 终稿前 / T7 审计前」，与真源相反）
+- **T7 前置条件**：删「T5 v3 修订稿完成」硬条件（修订轮次 0 时不存在 v3）→ 与同文件后文对齐为「T6 与 G14（enabled 时）针对同一 `current_draft` 完成」
+- **Phase 2.5 选项枚举单源**：`phase-order.yaml` 补 `decisions: [approved, revision_requested, restart_phase]`；checkpoint-card 补 D 项（重新定题）；status-template 对齐
+- **`drafts/current_draft.md` 写入者**：`phase-3-details.md` 明确由**主控** `write` 复制（保留 `draft_id` / `draft_version` 绑定，作为 T6/G14/T7/T9 统一输入）
+- **人在环超时兜底**：Phase 0 / 2.5 / 3.5 / 5 + G14 Warning 三选一的「无应答」补兜底——主人 **60 分钟**（默认）无应答 → 主控写 status `pending_owner` 并**告警挂起**（不静默推进）；Phase 5 复用「不答 = 接受当前定稿」；配额耗尽补 ③ 安全终止项
+- **`progress_card` 强制更新点补 3 行**：Phase 3.5 拍板离开 / T9 完成 / Phase 4.4 配图完成（原 plan 13 步 vs 更新点 10 行，漏点后侧栏永久停在 `in_progress`）
+- **其他错配校正**：T1 文献 8-15 → **8-12 条**（主题特殊允许 8-15 并在交接报告说明）｜T4 轻量档边界与角色卡对齐（≤2000 字必可省）｜C1-C7 统一为**七维**（原同卡「七维 / 五维」自相矛盾）｜T8 输入 `final/figures/*.mmd` → `final/图件/*.svg`｜T9 先行者清单路径 `outputs/` → `literature/`｜status 台账阈值「>8 分钟」→ 角色分级阈值表｜心跳口径「每 30 秒」→「启动 30 秒内 + 每约 5 分钟」｜`[C-空]` 由「等待主人回答」改「记录 + 告知（不等待）并继续」｜`M-Gate-Report-v2.2.1.json` → `v2.2.12.json`
+- **`phase-order.yaml`**：版本随 SKILL.md 同步（原停 v2.6.3）、新增 `pre_spawn_enforcement` 节点（fail-closed）+ 文档层别名映射（Phase 3.6 = `t6_g14` / 4.2 = `audit_revision` / 4.5 = `t9_review`）、`trigger_conditions` 两条触发器改自解释名
+
+### 三、净化链内泄漏（P1×2 + P2×7）
+
+- `references/_shared/路径校验规范.md`：删除「ClawHub T05 复审」整行（净化包内唯一 `subprocess` 命中，暴露复审流程 + 净化脚本机制 + 版本演化史）；同文件「与本地开发者脚本 `path-canonical.py` 同源」改纯描述（该脚本净化包已剥，引用包内不存在文件）
+- `scripts/build-clawhub-release.sh` 残留扫描规则补漏：§十四维护者发布 SOP 两小节（含 `> **根因**` 引块）整段剥离、`scripts/` 路径前缀扫描、维护者语汇（ClawHub / 净化包 / 净化脚本…）拦截；剥离规则命中数自检新增 **critical / warn 分级**（真源有、产物为 0 才放行）
+- 其余收口：`M-Gate-Algorithm*` 附录指向被 `--exclude` 的 `archive/` 目录 → 改中性说明；`pipeline-readme.md` 孤儿 TOC 条目收口；`phase-order.yaml` 头注释去「开发者维护真源 / 实测 #4」内部编号；`QUICKSTART.md` 安装围栏显式标注「以下命令由**主人手动执行**，技能本体零 exec」（消除 ClawHub 反复误报的裸命令面）；`.safe-pattern-manifest.json` 豁免注记去扫描史（v2.10.1 / v2.10.3 复审语）
+
+### 四、交叉引用完整性
+
+- 9 处 `scripts/论文可发表性检查脚本.*` 断链（T8 dispatch / 08 角色卡 / 可发表性判定表）→ 改正为真实存在的 `scripts/paper-ready-check.*`（原文件名在仓库历史中**从未存在**，T8 按名核对必然找不到 → 触发「不跳 M 门」铁律）
+- 5 处 `final/figures/*.mmd` → `final/图件/*.svg`（与主控卡 / M-Form-1 伪代码一致）
+- `glossary.md` 显示名陈旧 → `glossary-full.md`；`glossary-full.md` 自指显示名同步
+- `SKILL.md` 流水线全景：补 **T2.5 / T7.5 完整性门**独立行（原仅在别行顺带提及 → 只读全景的主控不会主动跑）、配图行改 **Phase 4.4**（原「Phase 4.5」重复编号，与 alias `Phase 4.5 = t9_review` 冲突）
+- `references/_shared/教训索引.md` 收录教训 #300（净化脚本标点修补误伤函数调用）
+- `references/templates/G14检测报告-template.md` 后续动作「继续 Phase 5」→「进入 T7 审计（Phase 4）」
+
+### 五、构建链与验证
+
+- 版本同步：**36 个**含版本戳文件同步至 v2.12.11（自审门 门 C 口径）
+- 自审门（18 门）：**18 PASS / 0 FAIL**（配图/净化包未生成时门 G 为 commit 阶段正常态）
+- changelog 一致性：**134 tag / 134 章节**一致，当前版本 v2.12.11 已记录
+- 版本一致性：**72 文件**全部通过（顶部版本号 + install pin）
+- 净化包 **2.12.11**：**79 文件**（md 76 个；真源 151）——净化残留扫描 + 最终残留扫描 + 语言政策声明门（76 md，除 `SKILL.md` 外均含声明）**三门通过**，剥离规则命中数自检通过
+
+### 已知残留（显式披露，非门禁项）
+
+- `.safe-pattern-manifest.json` 仍随净化包分发（内容已去扫描史；属扫描器豁免清单，消费者无用）——待评估「从包中排除 vs 纳入扫描范围」
+- `permissions.md` / `SKILL.md` 中「回应 ClawHub A.I.G T05」类审计归因语仍在（措辞层，不影响运行与权限边界）
+
+---
+
 ## [v2.12.10] — 2026-09-10
 
 > 本版为 ClawHub 对**已发布 v2.12.9 净化包**的语义审计（`scanId: skill:lunheng-article-pipeline:2.12.9`；扫描 2026-09-10 19:58:11 → 20:15:09 CST；ClawScan 判定 `suspicious` / 置信度 medium）配套修订：加固模型收紧为二选一（mechanical / degraded）+ SkillSpector 语义真问题 5 类全修 + 构建链代码保真 + Release 单一入口脚本入库。

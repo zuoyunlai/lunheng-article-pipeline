@@ -49,9 +49,11 @@
 ### Phase 2.5 · 大纲确认
 - **已完成**：T1/T2/T3 检索 + T4 分析大纲
 - **待审材料**：`analysis/分析大纲.md`（+ `literature/` `data/` `case/` 目录可选附览）
-- **选项**：
-  - A. 确认大纲（进入 T5 写作）
-  - B. 修改大纲（主人指出方向，T4 重出）
+- **选项**（枚举真源：`phase-order.yaml` `phase2_5_outline.decisions`）：
+  - A. 确认大纲（进入 T5 写作）→ `approved`
+  - B. 修改大纲（主人指出方向，T4 重出）→ `revision_requested`
+  - C. 补充检索（缺口补检后重出大纲）→ `revision_requested`
+  - D. 重新定题（重大调整，返回 Phase 0）→ `restart_phase`
 - **必呈现**：建议图表位（数量/类型/数据源），三角验证状态（[L]+[D]+[C] 是否齐），**Phase 3.5 预授权**：A. 确认大纲且 Phase 3.5 到点仍呈现（默认）/ B. 确认大纲且 Phase 3.5 自动记「无补充」不再打扰（主人风格 continue-once-OK 时选，教训 #138 + ECS 实战）
 
 ### Phase 3.5 · 洞察补充
@@ -80,7 +82,7 @@
     - □ B. 前置要素（摘要 200-300 字 + 关键词 5-8 个 + 研究方法段）
     - □ C. AI 使用声明（论衡 G13 五要素：流水线角色 + 模型选择 + 人类决策 + 诚实透明 + 不试图隐瞒）
     - □ D. 国标引用（编号模式→GB/T 7714-2015；内联模式→APA/MLA）
-    - □ E. 图表 ≥ 5 张（5 节正文配 mermaid 图源 + 正文 ≥ 5 处图引用 + 数据溯源）
+    - □ E. 图表 ≥ 5 张（5 节正文配图件 SVG + 正文 ≥ 5 处图引用 + 数据溯源）
     - □ F. 致谢 + 先行者清单（致敬理论奠基 + 制度实践 + 数据源）
   - **默认全部启用**（学术长文 / 报告 / 论文标配）；主人可单选跳过任何项
   - **主控必呈现理由**：v2.11.0 实战主人 Phase 5 验收后 3 次重发现 P0，暴露 T8 主控亲为清单漏检「可发表性」+「图表」维度
@@ -173,7 +175,7 @@ progress_card 的 markdown 保持简洁：首行 progress bar（aria-label 含�
 
 ### 强制更新点清单
 
-主控在以下流水线节点**必须**更新 progress_card（不只人在环 4 节点；每节点更新后若 status.md 有 Inbox 残留，加高亮告警）。**这 10 个节点 = plan 字段 status 翻转的时刻**：节点完成 → 该步 `completed` + 下一节点 `in_progress`；owner checkpoint 节点在「等待主人拍板」期间保持 `in_progress`，拍板后才 `completed`。
+主控在以下流水线节点**必须**更新 progress_card（不只人在环 4 节点；每节点更新后若 status.md 有 Inbox 残留，加高亮告警）。**这 13 个节点 = plan 字段 status 翻转的时刻**：节点完成 → 该步 `completed` + 下一节点 `in_progress`；owner checkpoint 节点在「等待主人拍板」期间保持 `in_progress`，拍板后才 `completed`。
 
 | 节点 | 更新内容 |
 |---|---|
@@ -183,7 +185,10 @@ progress_card 的 markdown 保持简洁：首行 progress bar（aria-label 含�
 | Phase 2 分析完成 | 下一节点=Phase 2.5 人在环 |
 | Phase 2.5 大纲拍板 | 拍板结果 + 下一节点=T5 |
 | Phase 3 初稿完成 | 下一节点=Phase 3.5 人在环 |
+| Phase 3.5 洞察拍板 | 拍板结果 + 下一节点=T6∥G14 |
 | Phase 3.6 批判+检测完成 | 修订轮次判定 + 下一节点=T7 |
 | Phase 4 审计完成 | 审计结论 + 下一节点=T7.5 闸门 |
+| Phase 4.4/4.5 配图完成 | 配图完成 + 下一节点=T9 审稿 / T8 终检 |
 | T7.5 闸门通过 | 打钩 T7.5 ✅ + 下一节点=T9 |
+| T9 评审完成 | 评审结论 + 下一节点=T8 |
 | Phase 5 终检完成 | 终检结论 + 下一节点=Phase 5 人在环 |

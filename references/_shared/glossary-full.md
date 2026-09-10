@@ -1,4 +1,5 @@
-> 版本：v2.12.10（自动同步 2026-09-10）
+> 版本：v2.12.11（自动同步 2026-09-10）
+
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
 
@@ -171,7 +172,7 @@
   - G11：数据时效失效告警
   - G12：数据信任级别一致性
   - G13：AI 使用披露
-  - **G14：中文 AI 痕迹深度检测** —— 8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），触发阶段 Phase 4.5（终稿前 + T6 批判伙伴并行）。闸门定义：`references/gates/14-中文AI痕迹-gate.md`；检测器：`references/checkers/中文AI痕迹-checker.md`；报告模板：`references/templates/G14检测报告-template.md`。**非 GPTZero 类检测器** = 论衡自有判定标准（中文特化），可由主人在 Phase 0 显式关闭。
+  - **G14：中文 AI 痕迹深度检测** —— 8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），触发阶段 Phase 3.6（与 T6 批判伙伴同批，对同一 `current_draft` 并行；修订后由 `audit_revision.after_each` 重跑）。闸门定义：`references/gates/14-中文AI痕迹-gate.md`；检测器：`references/checkers/中文AI痕迹-checker.md`；报告模板：`references/templates/G14检测报告-template.md`。**非 GPTZero 类检测器** = 论衡自有判定标准（中文特化），可由主人在 Phase 0 显式关闭。
 - **单一真源**：`references/_shared/audit-checklist-quickref.md`
 
 ---
@@ -240,7 +241,7 @@
 
 ## 四、关键协议（详见 [`_shared/关键协议.md`](关键协议.md)）
 
-> **拆分**（第三方独立审查建议 #3）：关键协议段（原 L192-L282，共 91 行）拆到独立文件 [`_shared/关键协议.md`](关键协议.md)，按需加载。glossary.md 仅保留协议索引。
+> **拆分**（第三方独立审查建议 #3）：关键协议段（原 L192-L282，共 91 行）拆到独立文件 [`_shared/关键协议.md`](关键协议.md)，按需加载。本文件（glossary-full.md）仅保留协议索引。
 
 ### 关键协议索引
 
@@ -253,7 +254,7 @@
 
 ## 五、工具能力边界（详见 [`_shared/工具能力边界.md`](工具能力边界.md)）
 
-> **拆分**：工具能力边界段拆到独立文件，按需加载。glossary.md 仅保留工具索引。
+> **拆分**：工具能力边界段拆到独立文件，按需加载。本文件（glossary-full.md）仅保留工具索引。
 
 **详细工具清单**（17 项 ✅ / 13 项 ❌）见 [`_shared/工具能力边界.md`](工具能力边界.md)。
 **唯一真源**：[`SKILL.md`](../../SKILL.md) frontmatter `metadata.tools`（`base` / `coordinator_only` / `research_extra` / `opt_in` / `denied`）（按版本同步）。

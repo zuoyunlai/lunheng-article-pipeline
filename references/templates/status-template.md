@@ -1,4 +1,5 @@
-> 版本：v2.12.10（自动同步 2026-09-10）
+> 版本：v2.12.11（自动同步 2026-09-10）
+
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
 
@@ -68,14 +69,14 @@
 > **重写**（教训 #166，主控实测反馈）：原 markdown 表格 7 列 + 主控 edit 频繁失败（空格漂移 / old_string 不匹配 / 重复行 bug）。**改为「4 段结构化纯文本」+ key:value 字段**，主控用 `**当前**: X` → `**当前**: Y` 替换策略，零空格漂移、零编辑摩擦。
 >
 > 主控维护，每个角色交接时更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
-> 失败必须留原因；任一行停留 >8 分钟无进展 → 主控介入（按主控卡 §二十二 硬卡阈值表）。
+> 失败必须留原因；任一行停留超阈值无进展 → 主控介入（按主控卡 §二十二 硬卡阈值表，角色分级：T1-T3 10 / T4 12 / T5 15 / T6 15 / T7 12 / T9 10 / G14 8 分钟）。
 > **T3 案例检索任何量级必 spawn**（教训 #267）——含 0 条场景走空卡协议；T2 不再兼带案例，状态独立行。
 
 ## 一、项目元数据（key:value 替换，主控用 `**当前**: X` 策略）
 
 **项目名**: <项目名>
 **模式**: 学术论文 / 商业评论 / 行业分析 / 公众号深度长文
-**当前阶段**: Phase 0 / Phase 1 / Phase 1.5 / Phase 2 / Phase 2.5 / Phase 3 / Phase 3.5 / Phase 3.6 / Phase 4 / Phase 4.2 / Phase 4.5 / Phase 5
+**当前阶段**: Phase 0 / Phase 1 / Phase 1.5 / Phase 2 / Phase 2.5 / Phase 3 / Phase 3.5 / Phase 3.6 / Phase 4 / Phase 4.2 / Phase 4.4 / Phase 4.5 / Phase 5
 **当前活动**: <一句话描述>
 **最后更新**: YYYY-MM-DD HH:MM
 **加固状态**: mechanical / degraded（**spawn 前必填，fail-closed，v2.12.10 起二选一模型**：mechanical = 主控 read `~/.openclaw/openclaw.json` 核实 `tools.subagents.tools.deny` 含 13 项特权工具**且** `agents.defaults.subagents.maxSpawnDepth: 1` 两条均配齐；degraded = 任一缺失或读不到 config → **不得 spawn 子代理，走单主控降级模式**。原 acknowledged-prompt-level 中间档已删除）
@@ -101,7 +102,7 @@
 ## 人在环决策记录（四节点，缺一不可）
 
 - **Phase 0 定题**: decision=<start|补充信息|暂停|拒绝> / owner_confirmed_at=<时间> / evidence=01-任务简报.md
-- **Phase 2.5 大纲**: decision=<approved|revision_requested> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md
+- **Phase 2.5 大纲**: decision=<approved|revision_requested|restart_phase> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md
 - **Phase 3.5 洞察**: decision=<insight|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md
 - **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md
 
@@ -139,7 +140,7 @@
 - [ ] **M-Exist-1**（数据 URL 真实存在）
 - [ ] **M-Exist-2**（证据包完整性校验，教训 #169）
 - [ ] **M-Exist-3**（数据信任级别一致性）
-- [ ] **G14 中文 AI 痕迹闸**（Phase 4.5 触发）
+- [ ] **G14 中文 AI 痕迹闸**（Phase 3.6 触发，与 T6 同批）
 - [ ] **T2.5 数据完整性门**
 - [ ] **T7.5 审计完整性门**
 

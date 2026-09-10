@@ -1,7 +1,8 @@
-# 论衡阶段真源 v2.6.3
-# 这是流程顺序与阻断关系的开发者维护真源；运行时仍由主控使用 read/write/edit 执行。
-# v2.7.15：agent 报告节点增加 output_chars_max（报告回传长度硬上限，回应实测 #4；超限走分块协议，见 执行韧化协议-design.md § 报告长度上限与分块协议）
-version: 2.6.3
+# 论衡阶段真源（版本随 SKILL.md 同步）
+# 这是流程顺序与阻断关系的唯一真源；运行时由主控使用 read/write/edit 执行。
+# agent 报告节点含 output_chars_max（报告回传长度硬上限；超限走分块协议，见 执行韧化协议-design.md § 报告长度上限与分块协议）
+# 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_g14；Phase 4.2 = audit_revision；Phase 4.5 = t9_review
+version: 2.12.11
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline
@@ -11,6 +12,11 @@ pipeline:
   - id: phase0_definition
     kind: owner_checkpoint
     output: 01-任务简报.md
+    next: pre_spawn_enforcement
+  - id: pre_spawn_enforcement
+    kind: mechanical_checkpoint
+    owner: 主控
+    fail_closed: degraded
     next: retrieval
   - id: retrieval
     kind: parallel_agents
@@ -40,6 +46,7 @@ pipeline:
     next: phase2_5_outline
   - id: phase2_5_outline
     kind: owner_checkpoint
+    decisions: [approved, revision_requested, restart_phase]
     next: t5_draft_v1
   - id: t5_draft_v1
     kind: agent
@@ -50,12 +57,12 @@ pipeline:
     kind: owner_checkpoint
     decisions: [insight, no_insight]
     next: t6_g14
-  - id: t6_g14
+  - id: t6_g14   # 别名：文档层「Phase 3.6」
     kind: parallel_agents
     agents: [T6, G14]
-    input: current_draft
+    input: drafts/current_draft.md
     output_chars_max:
-      T6: 12000   # 批判报告（回应实测 #4：T6 v1 16k 超外化阈值被截）
+      T6: 12000   # 批判报告（回传长度上限；超出走分块协议）
       G14: 6000   # AI 痕迹检测报告
     next: t5_feedback_revision
   - id: t5_feedback_revision
@@ -65,10 +72,10 @@ pipeline:
   - id: t7_audit
     kind: agent
     agent: T7
-    input: current_draft
+    input: drafts/current_draft.md
     output_chars_max: 10000
     next: audit_revision
-  - id: audit_revision
+  - id: audit_revision   # 别名：文档层「Phase 4.2」
     kind: bounded_loop
     max_rounds: 2
     condition: T7_P0_or_P1
@@ -77,7 +84,7 @@ pipeline:
   - id: t7_5_integrity
     kind: mechanical_checkpoint
     next: t9_review
-  - id: t9_review
+  - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent
     condition: mode_default_or_owner_enabled
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；

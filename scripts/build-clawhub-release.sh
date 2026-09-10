@@ -38,6 +38,14 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 OUT_DIR="$OUT_ROOT/$VERSION"
+
+# ---- 扫描面：文本类文件全集（v2.12.11 起覆盖非 md 资产）----
+# 背景（leak-audit §四.2）：旧版所有残留扫描只认 `--include='*.md'`，
+#   `.safe-pattern-manifest.json` 与 `references/_shared/phase-order.yaml` 长期处于**盲区**
+#   （二者各含 1 项维护者内泄漏却无人报错）。
+# 选择「扩展扫描面」而非「逐文件补扫」：根因级修正——日后新增任何非 md 文本资产自动纳入。
+SCAN_INCLUDES=(--include='*.md' --include='*.json' --include='*.yaml' --include='*.yml' --include='*.txt' --include='*.toml')
+
 echo "🔧 生成 ClawHub 净化发布包 v$VERSION"
 echo "   源：$SKILL_ROOT"
 echo "   输出：$OUT_DIR"
@@ -234,13 +242,24 @@ s = re.sub(r'[^\n]*设计文档\.md[^\n]*\n', '', s)
 # 6. 任务简报模板「详见设计文档 原创性保证 + 」：删引用，保留写手卡
 s = s.replace('（详见设计文档 原创性保证 + 写手卡视角与精度铁律）', '（详见写手卡视角与精度铁律）')
 
-# 7. 剥离「版本一致性检查」的 commit/tag/push release workflow（scanner Context-Inappropriate Capability）
-s = re.sub(
-    r'- \*\*版本一致性检查[^\n]*\*\*：.*?(?=\n- \*\*)',
-    '- **版本一致性检查**：由开发者维护（版本升级时跑机械化自审），使用者无需关心。',
+# 7. 【v2.12.11 修复】整段删除 §十四 的「维护者发布 SOP」小节（规则 3h-7 静默失效，教训 #192 同型）
+#    旧版 re-search 目标是 bullet 形态 `- **版本一致性检查…**：`，而真源实际写法是
+#    heading 形态 `### 版本升级自审门（自指原则）`（经 3d 改名为 `### 版本一致性检查（自指原则）`）
+#    → **永不匹配，规则静默空转**（真源 grep `- **版本一致性检查` = 0 命中）。
+#    后果：`references/agents/00-主控-扩展职责.md` §十四 的「修订后必跑硬门三件套 /
+#    修订后必跑内容质量门脚本」两小节连同 `> **根因**` 引块整段留在包内，而编号命令清单
+#    已被 strip-shell-commands.py 剥走 → 只剩空冒号，形成「声称必跑脚本、却零 exec」的
+#    自相矛盾（leak-audit P1-1）。
+#    修法：从「版本升级自审门（自指原则）」起删到 §十四 末尾（下一个 `## ` 或 `---` 分隔前），
+#    仅保留「修订任务目标拆分 / 小修订主控直接 edit」两条使用者相关条目。
+s, _sop_n = re.subn(
+    r'### (?:版本升级自审门|版本一致性检查)（自指原则）.*?(?=\n## |\n---\n+## |\Z)',
+    '',
     s,
     flags=re.DOTALL
 )
+if _sop_n:
+    print(f'  §十四 维护者 SOP 整段删除（规则 3h-7）：{_sop_n} 处')
 
 open(path, 'w', encoding='utf-8').write(s)
 PYEOF
@@ -305,6 +324,44 @@ new_block = '''### 5.8 项目历史记录归档（v2.5.5 增，v2.7.4 措辞收�
 '''
 s, n = old_pattern.subn(new_block, s)
 open(path, 'w', encoding='utf-8').write(s)
+PYEOF
+
+  # 3m. 维护者叙事中性化（v2.12.11 新增，回应 leak-audit §四.1）
+  # 背景：FINAL_PATTERNS 本轮新增「维护者叙事词」后，真源里仍有若干**非本组文件**
+  #   （SKILL.md / permissions.md / glossary-full.md / dispatch/* / deliverables.md /
+  #   project-archive-sop.md 等）含 ClawHub T05 / SkillSpector / 扫描器 / 净化包 / 自审门 等语汇。
+  #   这些文件的**源侧**改写不属本组所有权（A/B 组负责）；若不在包内做中性化，最终残留扫描
+  #   会对整包 fail-loud → 阻断发布。故在此做**语义等价**替换：只换词，不改断定内容。
+  #   若 A/B 组已在源侧改掉，本步自然零命中（幂等）。
+  python3 - "$f" <<'PYEOF'
+import sys
+path = sys.argv[1]
+s = open(path, encoding='utf-8').read()
+orig = s
+
+# —— 平台审计编号 / 扫描器产品名 → 中性表述（长形态优先，避免断句）——
+s = s.replace('回应 ClawHub T09/审计', '回应平台审计')
+s = s.replace('回应 ClawHub T09 一致性审计', '回应平台一致性审计')
+s = s.replace('回应 ClawHub T05', '回应平台审计')
+s = s.replace('SkillSpector', '平台安全扫描')
+s = s.replace('A.I.G 扫描器', 'A.I.G 审计')
+s = s.replace('扫描器', '审核工具')
+s = s.replace('ClawHub T05', '平台审计')
+s = s.replace('ClawHub T09', '平台审计')
+s = s.replace('ClawHub 净化包', 'ClawHub 发布版')
+s = s.replace('净化脚本', '发布构建流程')
+s = s.replace('净化包', '发布版')
+# —— 「自审门」→「自检门」（保留门 A-P 命名体系，去掉维护者自指口径）——
+#    `自审门门 L` 先去叠字（否则替换后读作「自检门门 L」）
+s = s.replace('自审门门', '自检门')
+s = s.replace('自审门', '自检门')
+# —— 「修订 SOP」→「修订任务规范」（SOP 内史随 §十四 维护者小节一并剥离）——
+s = s.replace('修订 SOP 与', '修订任务规范与')
+s = s.replace('修订 SOP', '修订任务规范')
+
+if s != orig:
+    open(path, 'w', encoding='utf-8').write(s)
+    print(f'  维护者叙事中性化：{path}')
 PYEOF
 }
 
@@ -386,7 +443,7 @@ RESIDUAL_PATTERNS=(
 )
 for pat in "${RESIDUAL_PATTERNS[@]}"; do
   # grep 无命中时返回 1；在 pipefail 下需显式吞掉该正常状态。
-  hits=$({ grep -rE "$pat" --include='*.md' --include='*.txt' --include='*.toml' "$OUT_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+  hits=$({ grep -rE "$pat" "${SCAN_INCLUDES[@]}" "$OUT_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
   if [[ "$hits" -gt 0 ]]; then
     echo "  ⚠️ 净化表述残留：$pat（$hits 处）"
     RESIDUAL_HITS=$((RESIDUAL_HITS + 1))
@@ -444,10 +501,22 @@ FINAL_PATTERNS=(
   'scripts/'                    # v2.12.5 新增：净化包不应出现任何开发者脚本路径
   '论衡开发者脚本'              # v2.12.5 新增：开发者工具引用只应存在于真源，不入包
   '\| \| \|'                     # v2.12.5 新增：空白占位行（表格渲染崩坏同型）
+  # ---- v2.12.11 新增：维护者叙事词 ----
+  # 背景（leak-audit §四.1）：现有 3 道门只认字面 token（`教训 #` / `.sh` / `scripts/`），
+  #   对「维护者与平台审核博弈史」零覆盖：ClawHub T05 / SkillSpector / 五轮扫描 CLEAN /
+  #   commit 前必跑脚本 等均可整段逸出。以下词命中即 fail-loud。
+  '净化包|净化脚本'              # v2.12.11：双视图发布架构的内部叫法，使用者侧一律称「发布版」
+  'ClawHub T0[0-9]'              # v2.12.11：平台逐轮审计台账编号（T05/T09…）
+  'ClawScan|SkillSpector'        # v2.12.11：平台扫描器产品名，维护者叙事专有
+  '扫描器'                       # v2.12.11：扫描器博弈叙事（「五轮 CLEAN」「认可设计表达」等）
+  'commit 前'                    # v2.12.11：git 语境维护者动作，使用者无此动作
+  '必跑硬门'                     # v2.12.11：维护者发布 SOP 内史
+  '版本维护脚本'                 # v2.12.11：scripts/*.sh 被泛化后的维护者占位符
+  '自审门'                       # v2.12.11：维护者自指体系叫法，使用者侧称「自检门」
 )
 FINAL_HITS=0
 for pat in "${FINAL_PATTERNS[@]}"; do
-  hits=$({ grep -rE "$pat" --include='*.md' "$OUT_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+  hits=$({ grep -rE "$pat" "${SCAN_INCLUDES[@]}" "$OUT_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
   if [[ "$hits" -gt 0 ]]; then
     echo "  ❌ 内部痕迹残留：$pat（$hits 处）"
     FINAL_HITS=$((FINAL_HITS + 1))
@@ -481,6 +550,49 @@ if [[ "${#LANG_MISSING[@]}" -gt 0 ]]; then
   exit 1
 fi
 echo "  ✅ 语言政策声明门通过（$(find "$OUT_DIR" -name '*.md' | wc -l | tr -d ' ') 个 md，除 SKILL.md 外均含声明）"
+
+# ---- 4e. 剥离规则命中数自检（v2.12.11 新增，fail-loud）----
+# 背景（教训 #192 同型）：sed/regex 剥离规则的「re-search 目标形态」一旦与真源写法失配，
+#   规则会**静默空转**——不报错、不告警，只在包内留下维护者叙事。规则 3h-7 就这样从
+#   v2.11.x 空转到 v2.12.10（真源早已是 heading 形态，规则还在找 bullet 形态）。
+# 做法：对规则清单同时统计两侧命中数——真源（应 >0，否则规则已死/内容已同步删除）
+#   + 产物（必须 =0，否则剥离未生效）。关键规则任一不满足即 fail-loud；
+#   非关键规则仅告警（避免误伤「本就不存在」的合法规则）。
+echo "🔎 剥离规则命中数自检（教训 #192 同型）..." >&2
+# 格式：名称|正则|级别（critical/warn）
+RULE_CHECKS=(
+  '版本修订硬门段|### 修订后必跑硬门三件套|critical'
+  '版本修订质量门段|### 修订后必跑内容质量门脚本|critical'
+  '版本升级自审门小节|### 版本升级自审门|critical'
+  'commit 前表述|commit 前|critical'
+  '教训字面|教训 #[0-9]|critical'
+  '开发者脚本路径|scripts/|critical'
+  '凭据措辞收敛|需主人提供 API key|warn'
+  '跨平台等价命令表|跨平台等价命令|warn'
+)
+RULE_FAIL=0
+for entry in "${RULE_CHECKS[@]}"; do
+  IFS='|' read -r rname rpat rlevel <<<"$entry"
+  r_src=$( { grep -rE "$rpat" "${SCAN_INCLUDES[@]}" "$SKILL_ROOT/references" "$SKILL_ROOT/SKILL.md" "$SKILL_ROOT/QUICKSTART.md" "$SKILL_ROOT/README.md" 2>/dev/null || true; } | wc -l | tr -d ' ')
+  r_pkg=$( { grep -rE "$rpat" "${SCAN_INCLUDES[@]}" "$OUT_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+  printf '   [%-8s] %-22s 真源=%-4s 产物=%s\n' "$rlevel" "$rname" "$r_src" "$r_pkg"
+  if [[ "$r_src" -eq 0 ]]; then
+    echo "      ⚠️ 规则可能已失效：真源零命中（真源写法变更，或内容已同步删除）"
+    if [[ "$rlevel" == "critical" ]]; then RULE_FAIL=$((RULE_FAIL + 1)); fi
+  fi
+  if [[ "$r_pkg" -ne 0 ]]; then
+    echo "      ❌ 剥离未生效：产物仍含该形态 $r_pkg 处"
+    if [[ "$rlevel" == "critical" ]]; then RULE_FAIL=$((RULE_FAIL + 1)); fi
+  fi
+done
+if [[ "$RULE_FAIL" -gt 0 ]]; then
+  echo ""
+  echo "❌ 剥离规则自检未通过（$RULE_FAIL 项）：规则与真源形态失配，或规则未生效"
+  echo "   修法：核对 build-clawhub-release.sh 中该规则 re-search 目标 vs 真源当前写法；"
+  echo "   若真源已同步删除该内容，请把该条目从 RULE_CHECKS 移除（勿留死规则）。"
+  exit 1
+fi
+echo "  ✅ 剥离规则自检通过"
 
 # 净化残留扫描已完成（前置到 #3h，教训 #213），以下为汇总段（可被 exec timeout SIGTERM 不影响产物）
 

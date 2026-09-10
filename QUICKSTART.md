@@ -1,4 +1,5 @@
-> 版本：v2.12.10（自动同步 2026-09-10）
+> 版本：v2.12.11（自动同步 2026-09-10）
+
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
 
@@ -21,10 +22,10 @@
 
 ## 📦 安装
 
-论衡是纯 skill，无需创建独立 agent：
+论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.10  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.11  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -37,12 +38,12 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.10  # 建议 pi
 
 - 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）
 - token 统计走精确路径（子代理完成事件 `Stats:` 行 + `session_status`）；拿不到精确值 = 平台异常，不估算
-- **⭐ 推荐加固（可选，但建议做）**：论衡设计假设「角色卡 = 叶子 worker」，而 OpenClaw 自 2026.9.3 起**默认开启有界递归委派**（子代理 depth 默认 5 → 实际拿到 `sessions_spawn` 等递归工具）。宿主可在 config 加两条（`tools.subagents.tools` hot reload，改完即时生效）：
+- **⭐ 推荐加固（多 Agent 模式必配）**：论衡设计假设「角色卡 = 叶子 worker」，而 OpenClaw 自 2026.9.3 起**默认开启有界递归委派**（子代理 depth 默认 5 → 实际拿到 `sessions_spawn` 等递归工具）。宿主可在 config 加两条（`tools.subagents.tools` hot reload，改完即时生效）：
   ```json5
-  { tools: { subagents: { tools: { deny: ["exec","process","browser","apply_patch"] } } },
+  { tools: { subagents: { tools: { deny: ["exec","process","browser","apply_patch","cron","video_generate","music_generate","tts","memory_store","skill_workshop","memory_forget","sessions_search","sessions_send"] } } },
     agents: { defaults: { subagents: { maxSpawnDepth: 1 } } } }
   ```
-  第一条把「零 exec」从纪律层升为**机械强制**；第二条把直接子代理锁成**叶子**，与论衡架构一致。未加固也能跑（论衡按纪律层兑付，并在 `status.md` 如实标注 `prompt-level`）——加固是加分项，不是前置条件
+  第一条把「零 exec」从纪律层升为**机械强制**；第二条把直接子代理锁成**叶子**，与论衡架构一致。未加固（或读不到 config）= 记 `enforcement: degraded`，**不 spawn 子代理**，走单主控降级模式。加固是 spawn 子代理的前置条件
 - 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 18/18 PASS，含门 G 正常态）
 
 ---
@@ -119,7 +120,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.10  # 建议 pi
 
 1. **Phase 0 两个「4 选 1」同意关卡**：
    - **1a. 定题确认 4 选 1**（Phase 0 启动前）：开工 / 补充信息 / 暂停 / 拒绝（**是否启动流水线**）
-   - **1b. 外部服务同意 4 选 1**（主控启动后）：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝（**外发数据范围**，详见 SKILL.md「外部服务与数据流声明」段）
+   - **1b. 外部服务同意 4 选 1**（主控启动后）：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝（**外发数据范围**，详见 SKILL.md「⚠️ 执行前安全须知 + 外部服务声明（精简合并）」段）
 2. **Phase 1 检索派发**：自动 spawn **T1∥T2∥T3**三个独立检索员，三方真并行（Phase 1.5 定向回查：条件触发——任务简报标 [Dxx 待复核] / 🔴 二手转引未回溯 / T9 证据强度低；触发则 spawn T1b 回查，未触发须记录 `not_triggered`，不可静默跳过）
 3. **Phase 2 分析派发**：自动派 **T4** 分析员生成大纲
 4. **Phase 2.5 主人确认**：主人过目大纲
@@ -259,7 +260,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.10  # 建议 pi
 
 ### Q2：数据来源可以是二手转引吗？
 
-**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/glossary-full.md)。**🟢🟡🔴 是「信任级别」标识**，**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`audit-checklist-quickref.md § G11`](references/_shared/audit-checklist-quickref.md)）：
+**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/glossary-full.md)。**🟢🟡🔴 是「信任级别」标识**，**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`references/_shared/audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md) 的 G11 条）：
 - 🟢 已发布公开数据（最高信任）
 - 🟡 主人投喂数据（中信任）
 - 🔴 二手转引（低信任，必须回溯一次文献 + 顶部标注）
@@ -268,7 +269,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.10  # 建议 pi
 
 ### Q3：论文可以被 ClawHub 安全扫描拒绝吗？
 
-**答：可能。** 论衡的 user-facing 警告一律放在文件顶部，Phase 0 同意关卡是金标准。详见 SKILL.md「外部服务与数据流声明」段。
+**答：可能。** 论衡的 user-facing 警告一律放在文件顶部，Phase 0 同意关卡是金标准。详见 SKILL.md「⚠️ 执行前安全须知 + 外部服务声明（精简合并）」段。
 
 ---
 

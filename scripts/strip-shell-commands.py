@@ -77,7 +77,7 @@ def strip_shell(s: str) -> str:
     # 实现：检测 "def check_" + "检查器" 标识，若匹配，把 python 围栏块替换为口诀+表格引导
     s = re.sub(
         r'```python\n(?:def check_\w+\(.*?\n)+.*?\n```',
-        '**【本地开发者脚本见 `scripts/论文可发表性检查脚本.py`，净化版无】** —— LLM 推理口诀 + 三列表已在上方。',
+        '**【本地质量检查工具见 `paper-ready-check`（发布版已剥离）】** —— LLM 推理口诀 + 三列表已在上方。',
         s,
         flags=re.DOTALL,
     )

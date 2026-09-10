@@ -1,4 +1,5 @@
-> 版本：v2.12.10（自动同步 2026-09-10）
+> 版本：v2.12.11（自动同步 2026-09-10）
+
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
 
@@ -50,7 +51,7 @@
 >
 > **v2.2.8 Phase D-1 重大变更**：本规约从「**4 个增量版本并存**」合并为「**1 个完整版**」（本文件约 12K tokens，主流程只读这一份）。
 >
-> 完整版包含 v2.2.0 基础 + v2.2.1 扩展（M-Form-6 + M-Exist-3 + M-Integrity-1/2）+ v2.2.1.2 算法升级（M-Form-3 + M-Exist-1 + M-Form-6 + M-Exist-3 双格式）+ v2.2.4 内联引用 + 补检索回填 + 修订轮流程约束。**3 个历史版本已归档到 `_shared/archive/M-Gate-Algorithm-legacy/`（仅做版本演进参考，不需主流程读取）**。
+> 完整版包含 v2.2.0 基础 + v2.2.1 扩展（M-Form-6 + M-Exist-3 + M-Integrity-1/2）+ v2.2.1.2 算法升级（M-Form-3 + M-Exist-1 + M-Form-6 + M-Exist-3 双格式）+ v2.2.4 内联引用 + 补检索回填 + 修订轮流程约束。**3 个历史版本已由维护者归档，不随发布包分发（仅做版本演进参考，不需主流程读取）**。
 >
 > **执行前置**：「同时读取 4 个版本」改为「**读取本完整版**」。节省 ~10K tokens 主流程加载。
 >
@@ -749,6 +750,6 @@ return (all_pass, fail_reasons)
 - **M-Gate-Report v2.2.4 输出格式**（JSON schema）：[`references/_shared/M-Gate-Algorithm-appendix.md §1`](M-Gate-Algorithm-appendix.md)
 - **论衡哲学化**（4 版本合并）：[`references/_shared/M-Gate-Algorithm-appendix.md §2`](M-Gate-Algorithm-appendix.md)
 - **教训沉淀**：[`references/_shared/M-Gate-Algorithm-appendix.md §3`](M-Gate-Algorithm-appendix.md)
-- **历史版本归档**：3 文件已归档到 `_shared/archive/M-Gate-Algorithm-legacy/`（README 已说明）。**主流程只读本完整版**，归档版仅做版本演进参考。
+- **历史版本归档**：3 个历史版本（基础版 / 增量版 / 算法升级版）已由维护者归档，不随发布包分发。**主流程只读本完整版**，归档版仅做版本演进参考。
 
 > **拆分理由**：主文件从 780 行降至 635 行（-19%），超 PERF-SIZE-004 800 行临界 145 行的缓冲。附录按需加载，主流程只读「13 个 M门规则 + 触发条件 + 伪代码」。
