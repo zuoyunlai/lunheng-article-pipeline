@@ -1,4 +1,5 @@
-> 版本：v2.12.7（自动同步 2026-09-10）
+> 版本：v2.12.8（自动同步 2026-09-10）
+
 
 
 
@@ -76,6 +77,7 @@
 **当前活动**: <一句话描述>
 **最后更新**: YYYY-MM-DD HH:MM
 **软保障**: mechanical / prompt-level（Phase 0 确认：mechanical = 主控无特权工具；prompt-level = 宿主未机械 deny、主人已确认软保障运行）
+**叶子锁定**: mechanical / prompt-level（Phase 0 确认：mechanical = 宿主 `agents.defaults.subagents.maxSpawnDepth: 1`，直接子代理即叶子；prompt-level = 未锁 depth，靠任务书叶子声明 + 角色卡叶子纪律兑付。背景：OpenClaw 默认 depth=5，不加锁则子代理可自行 spawn，孙辈产物不上传主控）
 **M 门**: v2.2.12 / v2.5.x
 **数据信任档**: 全外发 / 混合 / 全人工（教训 #259，拓展，Phase 0 拍板）
   - 全外发：默认 web_search + tavily_search 检索，主人不投喂一手数据

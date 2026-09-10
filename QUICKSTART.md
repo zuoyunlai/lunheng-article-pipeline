@@ -1,4 +1,5 @@
-> 版本：v2.12.7（自动同步 2026-09-10）
+> 版本：v2.12.8（自动同步 2026-09-10）
+
 
 
 
@@ -21,7 +22,7 @@
 论衡是纯 skill，无需创建独立 agent：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.7  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.8  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -34,7 +35,13 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.7  # 建议 pin
 
 - 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）
 - token 统计走精确路径（子代理完成事件 `Stats:` 行 + `session_status`）；拿不到精确值 = 平台异常，不估算
-- 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 15/15 PASS，含门 G 正常态）
+- **⭐ 推荐加固（可选，但建议做）**：论衡设计假设「角色卡 = 叶子 worker」，而 OpenClaw 自 2026.9.3 起**默认开启有界递归委派**（子代理 depth 默认 5 → 实际拿到 `sessions_spawn` 等递归工具）。宿主可在 config 加两条（`tools.subagents.tools` hot reload，改完即时生效）：
+  ```json5
+  { tools: { subagents: { tools: { deny: ["exec","process","browser","apply_patch"] } } },
+    agents: { defaults: { subagents: { maxSpawnDepth: 1 } } } }
+  ```
+  第一条把「零 exec」从纪律层升为**机械强制**；第二条把直接子代理锁成**叶子**，与论衡架构一致。未加固也能跑（论衡按纪律层兑付，并在 `status.md` 如实标注 `prompt-level`）——加固是加分项，不是前置条件
+- 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 18/18 PASS，含门 G 正常态）
 
 ---
 

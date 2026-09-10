@@ -1,8 +1,8 @@
 ---
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
-version: 2.12.7
-description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，任意OpenClaw配置开箱可用。零exec=不执行shell（纪律层软保障，13项特权工具永久禁用），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/<项目名>/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。<2000字建议直接用主控LLM。"
+version: 2.12.8
+description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，任意OpenClaw配置开箱可用。零exec=不执行shell（纪律层软保障，13项特权工具永久禁用；宿主 config 可选机械加固），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/<项目名>/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
     requires:
@@ -69,7 +69,7 @@ metadata:
 **论衡技能的工具边界（回应 ClawHub A.I.G T05 + SkillSpector 6 findings）**：
 
 - **主控 documented — 13 项**：read / write / edit + sessions_spawn / sessions_yield / sessions_history + subagents+ web_search / web_fetch / tavily_search / tavily_extract + session_status / progress_card。
-- **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：`research` T1-T3 = base + web_* + tavily_*；`analysis` T4 / `writing` T5 = base；`audit` T6-T7 / `review` T9+G14 = read only；T8 = []（主控亲完成）。
+- **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：`research` T1-T3 = base + web_* + tavily_*；`analysis` T4 / `writing` T5 = base；`audit` T6-T7 / `review` T9+G14 = read only；T8 = []（主控亲完成）。子代理工具面的**四层**（平台硬剥 / depth 追剥 / 主控策略快照 / 宿主 config）详见 [`references/permissions.md`](references/permissions.md)。
 - **Opt-in（默认禁止，Phase 0 主人明确同意才解锁）**：`image_generate`（封面生成）、`memory_get` / `memory_search` / `memory_recall`（记忆辅助）；解锁方式 = `run/<项目名>/status.md`「Phase 0 同意记录」段填写 `opt_in:` 清单，凭记录调阅。
 - **行为预授权**：配额耗尽未勾选 = 暂停等拍板（fail-closed）；G14 Warning 未勾选 = 暂停等主人 3 选 1；永不覆盖 `denied` 列表。
 - **禁用（`denied`）— 13 项永久**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / memory_forget / sessions_search / sessions_send。
@@ -79,7 +79,8 @@ metadata:
 
 **纪律保障（零 exec）**：
 
-- 🔒 **论衡是纯 skill，任意 OpenClaw 配置开箱可用**：本机宿主 config **不作任何强制收紧要求**——论衡定位是「说明书」不是「独立 agent」，任意具备 `sessions_spawn` + 检索工具的 OpenClaw agent 加载即可运行。这是设计定位，不是缺陷。
+- 🔒 **论衡是纯 skill，任意 OpenClaw 配置开箱可用**：论衡定位是「说明书」不是「独立 agent」，任意具备 `sessions_spawn` + 检索工具的 OpenClaw agent 加载即可运行——config 加固是**建议项**不是运行前置条件。**推荐两条机械加固**（宿主 config，hot reload）：① `tools.subagents.tools.deny: ["exec","process","browser","apply_patch", ...]` → 零 exec 从纪律层升为**机械强制**（每 turn 重新推导，`allow`/`alsoAllow` 不能绕过）；② `agents.defaults.subagents.maxSpawnDepth: 1` → 直接子代理即**叶子**，匹配论衡「角色卡 = 叶子 worker」架构（默认 5，不锁则子代理可自行再 spawn）。未加固时论衡按纪律层运行并在 status.md 如实标注 `prompt-level`，**不声称**机械强制（fail-closed 诚实口径）。
+- 🚫 **叶子纪律（角色卡不再委托）**：T1-T7/T9 = 叶子 worker——**不得**调用 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history` 派生或管理子代理；需要额外检索/人手 → 交接报告写「需求回执」交主控，由主控决定是否 spawn。机械版 = 宿主 `maxSpawnDepth: 1`，纪律版为兜底（见 [`references/_shared/关键协议.md`](references/_shared/关键协议.md) §叶子纪律）。
 - 🔒 **零 exec 软保障**：论衡运行时全文档零授权 + 自审门 M 门扫描 + 外部内容不可信原则，**不**调 exec/process/browser/apply_patch/cron 等特权工具。
 - ℹ️ **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，不执行实际 shell 命令（bash 示例是给人类主人手动复核的参考命令，不是 agent 执行代码）。
 - ℹ️ **token 成本统计**：子代理 token 来自**完成事件（completion event）末尾的 Stats line**——OpenClaw Announce payload 固定含 `Token usage`（input/output/total）+ `Runtime` + `Estimated cost`（宿主配 model pricing 时）+ `sessionKey`/`sessionId`。主控 `sessions_yield` 收到 completion event 时从末尾 Stats line 提取 Token usage 记入 status.md 4.7 表；主控自身 T8 终检前用 `session_status({sessionKey:"current"})` 拿精确值。**Stats line 缺失 = 平台异常**：该角色格标「Stats line 缺失」并告警主人，禁止估算/静默跳过（sessions_spawn 返回值无 stats 字段，教训 #256）。

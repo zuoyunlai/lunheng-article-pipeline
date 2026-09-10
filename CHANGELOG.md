@@ -9,6 +9,29 @@
 
 ---
 
+## [v2.12.8] — 2026-09-10
+
+> 本版为 OpenClaw 2026.9.3 升级适配修订：平台默认开启有界递归委派（`maxSpawnDepth` 默认 5），与论衡「角色卡 = 叶子 worker」架构不一致，本次补齐叶子纪律三层落地 + 宿主加固推荐 + 四层工具面文档修正。
+
+### 一、叶子纪律（核心：子代理不再委托）
+
+- **背景**：OpenClaw 2026.9.3 起默认开启有界递归委派，depth < `maxSpawnDepth` 的子代理实际拿到 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history`。而论衡主控只接**直接**子级（announce 链逐级上传），子代理自行 spawn 的孙辈产物不上传主控 = 产出静默丢失 + token 已花
+- **三层落地**（机械层优先，纪律层兑付）：① 宿主 `agents.defaults.subagents.maxSpawnDepth: 1`；② `references/_shared/关键协议.md` 新增 §叶子纪律（规则 + 三层冗余表 + 代价说明）；③ T1-T7/T9 角色卡头部 + `references/_shared/dispatch-header.md` 新增叶子声明；④ 主控 `00-主控-扩展职责.md` §三 任务书必含叶子声明 + leaf-lock 状态标注
+- `references/templates/status-template.md` 项目元数据新增 `**叶子锁定**` 字段（mechanical / prompt-level）
+
+### 二、宿主加固推荐（回应 ClawHub T05 fail-open）
+
+- `references/permissions.md` + `SKILL.md` + `QUICKSTART.md`：把宿主 config 加固从「已文档化的可选项」升级为**推荐部署项**（仍非运行前置条件，纯 skill 开箱可用定位不变），并明确 **fail-closed 诚实口径**：未加固时论衡按纪律层运行、如实标注 `prompt-level`，**不声称**机械强制
+- 两条推荐加固：① `tools.subagents.tools.deny: ["exec","process","browser","apply_patch", ...]` → 零 exec 升为机械强制；② `agents.defaults.subagents.maxSpawnDepth: 1` → 直接子代理即叶子
+
+### 三、文档漂移修正：子代理工具面「三层」→「四层」
+
+- 新增第②层 **depth 追剥**（到 `maxSpawnDepth` 即叶子，追加剥 `sessions_spawn`/`subagents`/`sessions_list`/`sessions_history`；depth 策略运行时权威，宿主改 cap 则存量会话递归工具面随之增减）
+- 第①层平台硬剥除补充「每 turn 从持久化的子代理 session envelope 重新推导，`allow`/`alsoAllow` 无法绕过」
+- 20 个含版本戳文件同步至 v2.12.8
+
+---
+
 ## [v2.12.7] — 2026-09-10
 
 > 本版为 ClawHub 同版本不可覆盖引起的补发版：v2.12.6 已发布且不可覆盖，故将 v2.12.6 发布后的剩余修订以 v2.12.7 提交。
