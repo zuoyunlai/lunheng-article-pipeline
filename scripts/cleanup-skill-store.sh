@@ -66,8 +66,6 @@ cd "$SKILL_ROOT"
 
 # 颜色
 RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 NC='\033[0m'
 
 # =============================================================================
@@ -103,7 +101,14 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
   # 1b. 备份 outputs/clawhub-release/ 老版本（保留最近 N 个）
   if [ -d outputs/clawhub-release ]; then
     mkdir -p "$BAK_DIR/clawhub-release"
-    KEEP_VERSIONS=$(ls outputs/clawhub-release/ 2>/dev/null | grep -v -- "--dry-run" | sort -V | tail -$KEEP)
+    KEEP_VERSIONS=$({
+      for entry in outputs/clawhub-release/*/; do
+        [ -d "$entry" ] || continue
+        ename=$(basename "$entry")
+        [ "$ename" = "--dry-run" ] && continue
+        printf '%s\n' "$ename"
+      done
+    } | sort -V | tail -n "$KEEP")
     DELETED=0
     for v in outputs/clawhub-release/*/; do
       vname=$(basename "$v")
@@ -125,7 +130,14 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
 elif [ "$DRY_RUN" == "true" ]; then
   echo "🔍 DRY_RUN 模式：列出待删目录（不实际删除）"
   echo "  outputs/archive/（如存在）"
-  ls outputs/clawhub-release/ 2>/dev/null | grep -v -- "--dry-run" | sort -V | awk -v keep=$KEEP '
+  {
+    for entry in outputs/clawhub-release/*/; do
+      [ -d "$entry" ] || continue
+      ename=$(basename "$entry")
+      [ "$ename" = "--dry-run" ] && continue
+      printf '%s\n' "$ename"
+    done
+  } | sort -V | awk -v keep="$KEEP" '
     { versions[NR]=$1; total=NR }
     END {
       for (i=1; i<=total; i++) {
