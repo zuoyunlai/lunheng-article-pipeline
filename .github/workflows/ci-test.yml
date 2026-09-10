@@ -22,10 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     name: M 门 13 项算法格式测试
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       
       - name: 设置 Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 版本号同步检查
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: 跑 check-version.sh
         run: |
           chmod +x scripts/check-version.sh
@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 自审门 8 门验证
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: 跑 self-audit-gate.sh
         run: |
           chmod +x scripts/self-audit-gate.sh

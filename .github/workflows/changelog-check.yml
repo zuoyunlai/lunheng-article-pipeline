@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout repository（fetch-depth 0：校验依赖本地版本 tag）
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 

@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # v2.11.1 修订（教训 #249 系列）：CI 不再维护独立的静态文件清单，
       # 直接调用 scripts/check-version.sh（单一真源），杜绝「sync 有但 check 漏」的清单漂移。
