@@ -591,6 +591,42 @@ else
 fi
 
 # =============================================================================
+# 门 O：Markdown 表格分隔行有效性（v2.12.4 新增，教训 #299）
+# =============================================================================
+# GFM 要求表格第二行只含 -、:、| 与空白；`| | |` 这类无短横线的分隔行
+# 会让整张表**不渲染成表格**（用户侧可见的排版崩坏）。
+# 此处全库扫描：表头行后的第一行若只由 | 与空白构成，即判定无效。
+TABLE_BAD=$(python3 - "$PWD" <<'PYEOF'
+import pathlib, re, sys
+root = pathlib.Path(sys.argv[1])
+bad = []
+for p in sorted(root.rglob('*.md')):
+    s = str(p.relative_to(root))
+    if s.startswith(('outputs/', '.git/')) or '/.git/' in s:
+        continue
+    lines = p.read_text(encoding='utf-8').split('\n')
+    incode = False
+    for i, l in enumerate(lines):
+        if l.lstrip().startswith('```'):
+            incode = not incode
+            continue
+        if incode or i == 0:
+            continue
+        prev, cur = lines[i - 1].strip(), l.strip()
+        if not (prev.startswith('|') and prev.endswith('|')):
+            continue
+        if cur.startswith('|') and cur.endswith('|') and not set(cur) - set('| \t'):
+            bad.append(f'{s}:{i + 1}')
+print(' '.join(bad[:5]) + (f' …(+{len(bad) - 5})' if len(bad) > 5 else ''))
+PYEOF
+)
+if [ -z "$TABLE_BAD" ]; then
+  pass "门 O: Markdown 表格分隔行有效性（表头后无「| | |」型无效行）"
+else
+  fail "门 O: 发现无效表格分隔行（表格不会渲染）" "$TABLE_BAD"
+fi
+
+# =============================================================================
 # 门 G：双端 md5 一致性（净化包 = 净化包指纹校验）
 # =============================================================================
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit
