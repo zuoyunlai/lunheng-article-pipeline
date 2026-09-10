@@ -29,11 +29,12 @@ test:
 	@echo "✓ 测试完成"
 
 lint:
+	@command -v shellcheck >/dev/null 2>&1 || { echo "❌ 未找到 shellcheck（Debian/Ubuntu: sudo apt install shellcheck）；缺工具会静默跳过全部 Shell 检查，故此处 fail-loud" >&2; exit 1; }
 	@echo "运行 ShellCheck..."
 	shellcheck scripts/*.sh || true
 	@echo ""
 	@echo "检查 Python 语法..."
-	python -m py_compile scripts/*.py tests/*.py
+	python3 -m py_compile scripts/*.py tests/*.py
 	@echo "✓ 代码检查完成"
 
 format:
