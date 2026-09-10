@@ -75,11 +75,16 @@ for line in lines:
         continue
     if in_code:
         # 代码块内也要清理"教训 #N"等内部泄漏引用
+        # （dispatch 派发文件 / M 门伪代码块的整体正文都在围栏内，教训 #298）
         line = re.sub(r'教训 #\d+(?:\.\d+)?', '', line)
         line = re.sub(r'教训 #N', '', line)
         line = re.sub(r'\[[^\]]*?\d{4}-\d{2}-\d{2}[^\]]*?\]', '', line)
         line = re.sub(r'audit-lessons\.md|lessons\.md', '实战经验记录.md', line)
         line = re.sub(r'论衡开发版|github\.com/zuoyunlai/lunheng', '', line)
+        # 与正文同源的收口规则（空格残迹 / 内部产物名）
+        line = re.sub(r'（[ \t]+(?=\S)', '（', line)
+        line = re.sub(r'[ \t]+）', '）', line)
+        line = line.replace('教训索引', '编号索引')
         new_lines.append(line)
         continue
 
@@ -205,6 +210,17 @@ for line in lines:
     line = re.sub(r'\[\s*\]', '', line)   # 完全空的方括号
     line = re.sub(r'。。+', '。', line)   # 双重句号
     line = re.sub(r'  +', ' ', line)
+
+    # ===== 阶段 7b: 剥离副作用收口（教训 #298）=====
+    # 7b-1 加粗标记后被剥出空格：`> ** 根因**：` → `> **根因**：`
+    #      仅限「开标记」（前面是空白/行首/括号）——`>` 不入类，否则会误吞
+    #      闭标记后的正常空格（`<reject>** |` → `<reject>**|`）
+    line = re.sub(r'(^|[\s（(【「『])\*\*[ \t]+(?=\S)', r'\1**', line)
+    # 7b-2 括号内被剥出孤立空格：`（ 实战）` → `（实战）`、`（opt_in ）` → `（opt_in）`
+    line = re.sub(r'（[ \t]+(?=\S)', '（', line)
+    line = re.sub(r'[ \t]+）', '）', line)
+    # 7b-3 内部产物名 → 使用者视图用词
+    line = line.replace('教训索引', '编号索引')
 
     new_lines.append(line)
 

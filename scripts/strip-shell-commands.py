@@ -36,6 +36,8 @@ VERB_PATTERNS = [
     (r'\bdiff\b', '对比'),
     (r'\bcp\b', '复制'),
     (r'\bmv\b', '移动'),
+    (r'rm -rf', '删除目录'),
+    (r'\brm\b', '删除'),
 ]
 
 
@@ -210,6 +212,7 @@ def strip_shell(s: str) -> str:
 
 def process_inline(line: str) -> str:
     """处理正文行内的 shell 命令（反引号内 + 裸动词）"""
+    orig_line = line
 
     # 1. 反引号内的 shell 命令 → 自然语言
     def replace_backtick(m):
@@ -256,6 +259,12 @@ def process_inline(line: str) -> str:
     # 4. ~/.openclaw 主机路径 → 泛化（v2.5.2 新增，scanner 命中点）
     line = re.sub(r'~/\.openclaw[^\s`>}\])]*', '`<OpenClaw数据目录>`', line)
     line = re.sub(r'`<OpenClaw数据目录>`/[^\s`]*', '`<OpenClaw数据目录>`', line)
+
+    # 5. 替换残迹收口：动词替换后，原 ASCII 空格会夹在中文之间
+    #    （`双向 diff` → `双向 对比`、`写完 grep` → `写完 检查`）——
+    #    中文之间不留空格，仅在本行确实被改动时塌缩，避免误伤未改动行。
+    if line != orig_line:
+        line = re.sub(r'([\u4e00-\u9fff])[ \t]+([\u4e00-\u9fff])', r'\1\2', line)
 
     return line
 
