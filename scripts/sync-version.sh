@@ -231,6 +231,26 @@ for sync in "${SYNCS[@]}"; do
   fi
 done
 
+# ---- 安装命令 pin 同步（教训 #297）----
+# check-version.sh 会校验 QUICKSTART 的 @zuoyunlai/...@x.y.z pin，但上面的循环
+# 遇到「头部已有本版本号」就直接 skip，导致 bump 后 pin 停在旧版且永远不被修。
+# 故 pin 必须独立同步，不能搭头部的车。
+PIN_FILE="$ENTRY_DIR/QUICKSTART.md"
+if [ -f "$PIN_FILE" ]; then
+  OLD_PIN="$(grep -oE '@zuoyunlai/lunheng-article-pipeline@[0-9]+\.[0-9]+\.[0-9]+' "$PIN_FILE" | head -1 || true)"
+  if [ -n "$OLD_PIN" ] && [ "$OLD_PIN" != "@zuoyunlai/lunheng-article-pipeline@$EXPECTED" ]; then
+    if [ "$DRY_RUN" == true ]; then
+      echo "📝 将修改：QUICKSTART.md（安装 pin $OLD_PIN → v$EXPECTED）"
+    else
+      sed -i -E "s|@zuoyunlai/lunheng-article-pipeline@[0-9]+\.[0-9]+\.[0-9]+|@zuoyunlai/lunheng-article-pipeline@$EXPECTED|g" "$PIN_FILE"
+      echo "✅ 更新：QUICKSTART.md（安装 pin → v$EXPECTED）"
+    fi
+    UPDATED=$((UPDATED+1))
+  else
+    echo "⏭️  跳过：QUICKSTART.md（安装 pin 已是 v$EXPECTED）"
+  fi
+fi
+
 echo ""
 echo "✂️  版本栈精简（保留最近 5 个）"
 if [ "$DRY_RUN" == true ]; then
