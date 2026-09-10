@@ -72,6 +72,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/_shared/M-Gate-渐进式验证-*.md' \
     --exclude 'references/templates/README-模板拆分方案.md' \
     --exclude 'README.md' \
+    --exclude 'CHANGELOG.md' \
     --exclude 'tests' \
     --exclude 'references/设计文档.md' \
     --exclude 'references/设计文档-架构.md' \
@@ -103,6 +104,7 @@ else
   rm -f "$OUT_DIR/.gitignore"
   rm -f "$OUT_DIR/references/templates/README-模板拆分方案.md"
   rm -f "$OUT_DIR/README.md"
+  rm -f "$OUT_DIR/CHANGELOG.md"
   rm -f "$OUT_DIR/references/设计文档.md" "$OUT_DIR/references/设计文档-架构.md" "$OUT_DIR/references/设计文档-哲学.md"
   rm -f "$OUT_DIR"/RELEASE-*.md
   rm -f "$OUT_DIR"/references/_shared/版本升级自审门-*.md
@@ -112,6 +114,23 @@ else
     rm -f "$OUT_DIR/$f"
   done
 fi
+
+# ---- 2b. 净化包禁入清单守卫（P2「changelog 完整化」新增）----
+# CHANGELOG.md / README.md 含「教训 #N」编号与真源仓库链接，属主控侧运维资产
+# （铁律：教训不对技能用户开放）。它们不在净化包内时才安全；此处做 fail-closed 守卫，
+# 避免日后新增顶层文档时被 rsync 默认带入、直到最终残留扫描才炸。
+FORBIDDEN_IN_PACKAGE=(
+  'CHANGELOG.md'
+  'README.md'
+  'CONTRIBUTING.md'
+  'SECURITY.md'
+)
+for f in "${FORBIDDEN_IN_PACKAGE[@]}"; do
+  if [[ -f "$OUT_DIR/$f" ]]; then
+    echo "❌ 净化包禁入文件被带入：$f（含内部痕迹，会触发最终残留扫描并在用户侧泄漏）" >&2
+    exit 1
+  fi
+done
 
 # ---- 3. 文档净化（sed 替换，剥离「开发者维护」表述）----
 purify() {

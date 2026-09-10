@@ -1,0 +1,53 @@
+name: changelog 完整性检查（P2「changelog 完整化」）
+
+on:
+  workflow_dispatch:
+    inputs:
+      online:
+        description: '追加校验「每个版本 tag 都有 GitHub Release」'
+        type: boolean
+        default: true
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'CHANGELOG.md'
+      - 'SKILL.md'
+      - 'scripts/changelog-check.py'
+      - '.github/workflows/changelog-check.yml'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - 'CHANGELOG.md'
+      - 'SKILL.md'
+      - 'scripts/changelog-check.py'
+      - '.github/workflows/changelog-check.yml'
+  schedule:
+    # 每周一 09:00（北京）跑一次在线覆盖校验：防止「打了 tag 忘建 Release」的静默缺口
+    - cron: '0 1 * * 1'
+
+jobs:
+  changelog-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository（fetch-depth 0：校验依赖本地版本 tag）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: changelog 离线校验（每个版本 tag 都有章节 + 当前版本已记录）
+        run: |
+          echo "=== 调用 scripts/changelog-check.py --check ==="
+          python3 ./scripts/changelog-check.py --check
+
+      - name: changelog 在线覆盖校验（每个版本 tag 都有 GitHub Release）
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== 调用 scripts/changelog-check.py --online ==="
+          python3 ./scripts/changelog-check.py --online
+
+      - name: 篇幅报告（informational，不阻塞）
+        if: always()
+        run: python3 ./scripts/changelog-check.py --report || true

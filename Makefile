@@ -1,6 +1,6 @@
 # 论衡开发工具 Makefile（P1-5 修订 2026-09-08）
 
-.PHONY: help test lint format audit clean install
+.PHONY: help test lint format audit changelog-check clean install
 
 help:
 	@echo "论衡开发工具"
@@ -11,8 +11,9 @@ help:
 	@echo "  make lint       - 运行代码检查（ShellCheck + Python 语法）"
 	@echo "  make format     - 格式化 Python 代码（black + isort）"
 	@echo "  make audit      - 运行自审门"
+	@echo "  make changelog-check - 校验 changelog 完整性（每个版本 tag 都有章节）"
 	@echo "  make clean      - 清理临时文件"
-	@echo "  make all        - 运行全部检查（lint + test + audit）"
+	@echo "  make all        - 运行全部检查（lint + test + audit + changelog-check）"
 
 install:
 	@echo "安装依赖..."
@@ -43,6 +44,11 @@ audit:
 	bash scripts/self-audit-gate.sh
 	@echo "✓ 自审门完成"
 
+changelog-check:
+	@echo "校验 changelog 完整性..."
+	python3 scripts/changelog-check.py --check
+	@echo "✓ changelog 完整性校验完成（--online 可追加校验 GitHub Release 覆盖）"
+
 clean:
 	@echo "清理临时文件..."
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
@@ -52,7 +58,7 @@ clean:
 	find . -type f -name ".coverage" -delete
 	@echo "✓ 清理完成"
 
-all: lint test audit
+all: lint test audit changelog-check
 	@echo ""
 	@echo "✅ 全部检查通过！"
 

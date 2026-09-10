@@ -219,13 +219,14 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.1  # pin 审计
 | v2.7.0 | 2026-09-07 | 人在环 | Checkpoint Card + T8 独立角色卡 + 安全收敛 |
 | v2.10.0 | 2026-09-08 | 审计治理 | 章节级 M 门 + T4→T5 准并行 + 独立审计修订 |
 | v2.11.0 | 2026-09-09 | 实战机制化 | 主控执行协议机制化（教训 #238/#239）|
+| v2.11.1 | 2026-09-09 | 一致性 | 文档/脚本一致性缺陷全修（check-version 补 17 项 + CI 改调单一真源）|
 | v2.12.0 | 2026-09-09 | 判据单源 | 判据单源 + 内容质量门脚本化 + 双视图同步（教训 #251/#252/#253）|
-| v2.12.1 | 2026-09-09 | — | 瘦身重构（-41.8%）+ cwd_default 陷阱修复 + 教训索引补全（教训 #255）|
-| v2.12.2 | 2026-09-09 | — | token 统计假前提修复（教训 #256）+ 版本一致性盲区补入 |
+| v2.12.1 | 2026-09-09 | 瘦身重构 | 瘦身重构（-41.8%）+ cwd_default 陷阱修复 + 教训索引补全（教训 #255）|
+| v2.12.2 | 2026-09-09 | 假前提修复 | token 统计假前提修复（教训 #256）+ 版本一致性盲区补入 |
 | v2.12.3 | 2026-09-09 | 安全审计 | ClawHub T05 修复：路径校验改 in-process、净化脚本不碰代码块（教训 #257）|
 | v2.12.4 | 2026-09-09 | 编号统一 | 教训编号体系统一（方案 A）+ 净化包剥离后残留清零 + 自审门 O |
 | **v2.12.5** | **2026-09-10** | **当前** | **语义锚点型版本注释清理（36 文件 / 120 处）+ 安装 pin 同步补入 sync 脚本** |
-完整 changelog 见 [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases)。教训沉淀 256 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
+完整 changelog 见仓库内 [CHANGELOG.md](CHANGELOG.md)（逐版本全量记录；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 为同一内容的发布视图）。教训沉淀 256 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
 
 ---
 
