@@ -23,6 +23,9 @@ install:
 test:
 	@echo "运行测试套件..."
 	cd tests && pytest -v --tb=short
+	@echo ""
+	@echo "运行 capability-assert 测试..."
+	bash scripts/test-capability-assert.sh
 	@echo "✓ 测试完成"
 
 lint:

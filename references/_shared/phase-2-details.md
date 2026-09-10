@@ -365,6 +365,6 @@ A：判断是「调整」还是「重新定题」：
 
 ## 参考文档
 
-- 分析大纲模板：`references/templates/分析大纲-template-full.md`
+- 分析大纲格式：见本文档「分析大纲必备要素」节（模板内容已内联，无单独模板文件）
 - T4 派发话术：`references/dispatch/T4-分析.md`
 - Checkpoint 卡片模板：`references/templates/checkpoint-card-template.md`

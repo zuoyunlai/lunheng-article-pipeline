@@ -60,6 +60,7 @@
 
 **spawn 后** 立即 `subagents(action=list)` 确认 runId 在 active runs；不在 = 重试 ≤2 次。
 **yield 超时** 3 分钟无事件 = 查 subagent 状态 + sessions_history；状态正常继续 yield，状态异常补 spawn。
+**超时取消（kill）** 子代理超硬卡阈值 → `subagents(action=cancel, taskId=<来自 list 的 taskId>)` 终止（零 exec 下唯一合法终止方式，不 exec kill 进程）；取消后再 `subagents(action=list)` 复核是否真停（取消可能不完整，未停则重试 cancel，幂等）。
 **完成事件幂等** 收到 Done 先查 status.md 是否已 Done，是 = duplicate 忽略。
 
 > 完整设计者文档：见 `执行韧化协议-design.md`（改造要点 + 伪代码对比 + 历史演变）

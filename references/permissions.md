@@ -17,7 +17,7 @@
 
 **论衡技能的工具边界（回应 ClawHub A.I.G T05 + SkillSpector 6 findings）**：
 
-**主控 documented（`metadata.tools.declared`）— 13 项**：
+**主控 documented（`base` + `coordinator_only` + `research_extra` 三档）— 13 项**：
 - read / write / edit（项目文件 I/O）
 - sessions_spawn / sessions_yield / sessions_history（子代理编排）+ subagents（仅看本技能 spawn 的子代理，不枚举宿主可见会话）
 - web_search / web_fetch / tavily_search / tavily_extract（检索，T1-T3 子代理共享，与 allow_research 一致）
@@ -64,4 +64,4 @@
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，**不执行实际 shell 命令**——算法文档中的 bash 示例是给人类主人手动复核的参考命令，**不是 agent 执行代码**（回应 SkillSpector 「models list 命令执行」指控）
 - ℹ️  **零 exec ≠ 零核验**：论衡所有「检查/计数/比对/核验」动作都由 agent 用 `read` 读取文件 + LLM 逐项判定完成；文档中出现的命令式短句（检查/计数/求差集/校验哈希等）是**检查规则的速记**，等价动作一律走 read/write/edit 工具，任何角色都不执行也不「模拟」shell 命令——宿主工具策略（config `tools.subagents` / profile / deny）才是真实权限边界
 - ℹ️  **建议运行环境**：禁用 exec 的 agent（保持论衡「零 exec」哲学）
-- ℹ️  **token 成本统计（精确机制）**：子代理 token 来自**完成事件**的 `Stats:` 行（`tokens N in/out • prompt/cache N`），主控 `sessions_yield` 收到 completion event 时提取记录（**sessions_spawn 返回值无 stats 字段**，教训 #256）；**主控自身** T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）。**成本统计是可观测性字段，不是交付闸门**：禁止估算
+- ℹ️  **token 成本统计（精确机制）**：子代理 token 来自**完成事件（completion event）末尾的 Stats line**（`Token usage` input/output/total + `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`），主控 `sessions_yield` 收到 completion event 时提取记录（**sessions_spawn 返回值无 stats 字段**，教训 #256）；**主控自身** T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）。**成本统计是可观测性字段，不是交付闸门**；但 Stats line 缺失须标「Stats line 缺失」告警，禁止估算/静默跳过

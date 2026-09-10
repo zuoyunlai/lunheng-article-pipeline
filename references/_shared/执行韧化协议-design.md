@@ -38,11 +38,11 @@
 每段 ack 在 status.md 阶段行末尾追加： `[ack N% HH:MM] <一句话说进度>`。
 
 **完成 ack 的 token 消耗由主控记录（精确机制）**：
-角色完成 ack **不**回传自己的 token（子代理拿不到：sessions_spawn 返回值无 stats 字段，教训 #256）。token 由**主控**在 `sessions_yield` 收到 completion event 时从 `Stats:` 行提取（`tokens N in/out • prompt/cache N`）记入 status.md 4.7 表：
-- **输入**：`tokens.in`（精确值，来自 completion Stats）
-- **输出**：`tokens.out`（精确值，来自 completion Stats）
-- **prompt/cache**：如有则记，否则留空
-- **v2.12.2 重写根因**（教训 #256）：v2.6.1 起文档误把来源写成「sessions_spawn stats」（沿袭教训 #192 的误记），实测 spawn 返回值无 stats。拿不到精确值 = 平台异常（completion event 缺 Stats 行），不填「未配置」。
+角色完成 ack **不**回传自己的 token（子代理拿不到：sessions_spawn 返回值无 stats 字段，教训 #256）。token 由**主控**在 `sessions_yield` 收到 completion event 时从事件末尾 Stats line 提取 `Token usage` 记入 status.md 4.7 表：
+- **输入**：`Token usage` 的 input（精确值，来自 completion 末尾 Stats line）
+- **输出**：`Token usage` 的 output（精确值，来自 completion 末尾 Stats line）
+- **总计**：`Token usage` 的 total（input + output）
+- **v2.12.2 重写根因**（教训 #256）：v2.6.1 起文档误把来源写成「sessions_spawn stats」（沿袭教训 #192 的误记），实测 spawn 返回值无 stats。拿不到精确值 = 平台异常（completion event 缺 Stats line），不填「未配置」/「N/A」。
 
 **示例（写手 4758 字）：**
 ```
@@ -228,7 +228,7 @@ spawn 任何子代理后，主控**不能只等完成事件**：
 
 #### ✅ 主流程诊断（白名单工具，仅限 self-spawn 子代理）
 
-**论衡主流程实际能跑的诊断**（用 read 工具推理 / 用 progress_card 打钩，全部是 `metadata.tools.declared` 白名单工具）：
+**论衡主流程实际能跑的诊断**（用 read 工具推理 / 用 progress_card 打钩，全部是 `metadata.tools` 声明的白名单工具）：
 - `subagents(action=list)` —— 看当前 session 有没有真的 spawn 出子代理、runId / sessionKey 在不在 active（宿主强制 self-spawn 列表）
 - `sessions_history(sessionKey=...)` —— **仅限查看论衡自己 spawn 的子代理会话产物**（`subagent:xxx` sessionKey，来自 spawn 返回或 subagents 列表），**不跨会话读取、不抓取其他 session 的隐藏状态**
 - `progress_card` 打钩「§ 4.1 spawn 验证」「§ 4.2 watchdog 自查」「§ 4.3 幂等检查」

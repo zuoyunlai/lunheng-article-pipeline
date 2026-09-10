@@ -56,15 +56,46 @@ ClawHub 对 v2.12.5 净化包的安全审计给出 11 项语义 finding（高 3 
 - **修复**：角色编号旧命名检查迁入 `scripts/check-version.sh`（单一真源，本地与 CI 同一判定）；豁免改为语义判定（`→ Tn` 箭头映射 / `原 T` / `应改` / `重构标注`），CI 内联步骤删除
 - **验证**：本地负例注入确认能捕获真违规（注入 `T5 审计` 行 → FAIL），还原后 72/72 通过
 
+### 六、全量深度审计修复（10 项实战问题）
+
+v2.12.6 冻结后对流水线做全量深度审计，修复实战复盘提出的 10 项问题（P0×2 / P1×5 / P2×3）：
+
+**P0（2 项）**
+- **字数计算标准化**：新增「论衡字」标准化公式（中文字符×0.97 + 英文单词×0.5 + 数字×0.3），`字数判定表.md` 明确 T7/T8 双口径报数，统一分级判定，早发现早修复
+- **执行韧化协议子代理空响应健康检测**：明确 `subagents(action=cancel, taskId=<id>)` 为合法终止方式（零 exec 下唯一），新增子代理空响应自动重试兑底（≤3 次，均失败触发主控兑底）
+
+**P1（5 项）**
+- **M-Integrity-1（T2.5 闸门）数据卡完整性增强**：所有数据卡必含 required_fields，数字型数据卡必须有 URL 或标注无 URL 原因（修漏检）
+- **反方回应段硬标准**：≥200 字纯中文（`字数判定表.md` §〇），T5 写手强制 + T7 审计检测
+- **G14 中文 AI 痕迹检测阈值分级**：0-15 / 16-30 / 31-60 / 61-100，明确 AI 辅助写作判定（减误报）
+- **progress_card 强制更新点**：10 个关键节点必更新（解决进度更新不稳定）
+- **spawn 绝对路径转换**：相对 `run/<项目名>/` 必须转 workspace 根绝对路径（防 `/root/` 误解析）
+
+**P2（3 项）**
+- **taskName 命名规范**：`[a-z][a-z0-9_-]*`，数字开头自动加 `task_` 前缀（防平台拒绝）
+- **status.md 主控独占写入**：子代理仅写心跳文件，主控读心跳后更新 status（解并发写冲突）
+- **Phase 3.5 决策超时**：默认 1 小时无响应自动选默认选项（不补充继续），防流程永久卡住
+
+### 七、人在环交互体验增强
+
+- **progress_card `plan` 字段承载阶段清单**：13 步（phase-order.yaml 节点序列）用工具原生 checklist 渲染，最多一个 `in_progress`，状态翻转纪律「完成→`completed` + 下一节点 `in_progress`」
+- **等待主人拍板状态显式呈现**：进入 owner checkpoint 时 progress_card 置「⏸ 等待主人拍板 @ Phase X」+ 不虚增进度，拍板后才 `completed`
+- **`ask_user` 可选增强**：Phase 2.5 / 3.5 纯枚举单选用 native 点选（approved/revision_requested、insight/no_insight），Phase 0 / 5 保留文本，不支持渠道自动回退
+
+### 八、token 统计修复（呈现失效根因）
+
+- **根因**：文档多处把子代理 token 来源误写为「`Stats:` 行（`tokens N in/out • prompt/cache N`）」——实际 OpenClaw completion event 末尾 Stats line = `Token usage`（input/output/total）+ `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`，**无 prompt/cache 字段**（那是 context breakdown 的）。主控按错格式找不到 → 填「N/A 未回精确值」；实测 20 个项目仅 1 个有 token 段、交付说明全无成本指标
+- **修复**：11 处格式纠正（SKILL.md / permissions / dispatch-header / status-template / deliverables / 08-终检 / T8-终检 / 交接报告-lite / 执行韧化协议-design）；交付说明「成本指标」硬性化为 T8 终检强制字段（缺=不过）；progress_card 加「💰 累计 token」行（写作过程侧栏可见）；Stats line 缺失标告警、禁止估算/静默跳过
+
 ### 验证
 
 | 项目 | 结果 |
 |---|---|
-| 版本一致性 | 73 文件同步 / 门 C 36 文件一致 / 角色编号检查通过 |
-| 自审门 | 17 PASS / 0 FAIL（门 G 净化包 md5 差异属 sed 替换预期）|
-| CI | 版本号一致性 / changelog 完整性 / 算法测试 均 success（Code Quality ShellCheck 为存量债，非本次引入）|
+| 版本一致性 | 全文件同步 / 角色编号检查通过（check-version.sh）|
+| 自审门 | 17 PASS / 0 FAIL（门 O 表格分隔行有效 / 门 P 净化链保真）|
+| CI | 版本号一致性 / changelog 完整性 / 算法测试 / capability-assert 均 success（Code Quality ShellCheck 为存量债，非本次引入）|
 | 净化包残留扫描 | 全通过，零残留 |
-| 净化包文件数 | 79（真源 141） |
+| 净化包文件数 | 79（真源 141，本次增量后以重新构建为准）|
 
 净化包路径：`outputs/clawhub-release/2.12.6`。
 

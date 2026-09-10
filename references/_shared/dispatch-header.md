@@ -27,4 +27,4 @@
 > - `tool_error` / `protocol` = 工具调用错误，产物可能部分
 > - `status=incomplete` = 显式未完成
 
-> **token 统计**：子代理 token 由**完成事件**的 `Stats:` 行提供（精确值，主控 `sessions_yield` 时提取），取代 v2.5.18 三级降级。**sessions_spawn 返回值无 stats 字段**（教训 #256）。
+> **token 统计**：子代理 token 由**完成事件（completion event）末尾的 Stats line** 提供——精确值，固定含 `Token usage`（input/output/total）+ `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`，主控 `sessions_yield` 收到 completion event 时提取记入 status.md 4.7 表，取代 v2.5.18 三级降级。**Stats line 缺失 = 平台异常**：标「Stats line 缺失」告警，禁止估算/静默跳过。**sessions_spawn 返回值无 stats 字段**（教训 #256）。

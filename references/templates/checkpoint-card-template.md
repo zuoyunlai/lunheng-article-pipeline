@@ -96,21 +96,62 @@
 
 ---
 
+## ask_user 可选增强（枚举决策点，非强制）
+
+主控能力白名单含 `ask_user`（结构化提问，native 控件 + 单选 + free text 兜底）。对**纯枚举单选**的人环节点，可用 ask_user 替代纯文本 A/B/C/D，交互更利落（点选、免手打、结构化回填）：
+
+- **适用**：Phase 2.5 大纲（`approved`/`revision_requested` 二选一）、Phase 3.5 洞察（`insight`/`no_insight` 二选一）——单一决策、枚举闭合。
+- **不适用（保留文本）**：Phase 0（外发范围四选一 + 可选服务三项 + 定题四态 = 多问题组合）、Phase 5（可发表性 6 选项 + 多格式导出 + 补改意见自由文本 = 多维度 + 需自由表达）。
+- **铁律**：ask_user 只约束「选项枚举」，不取消自由表达（free text 自动兜底）；拍板结果同样写入 status.md「人在环决策记录」段，与文本路径**等价**。
+- **降级**：宿主/渠道不支持 ask_user（如部分 messaging 渠道无 native 控件）→ 自动回退文本 Checkpoint Card，不阻塞。
+
+---
+
 ## progress_card 联动规范（模块 4）
 
 > **用途**：解决「progress_card 与 Checkpoint Card 分离」——侧栏看进度，对话流做决策，双向同步。
 
 ### 分层嵌套
 
-- `progress_card`（OpenClaw 侧栏）= 流水线总览：当前 Phase / 下一节点 / 距离终稿几个节点
+- `progress_card`（OpenClaw 侧栏）= 流水线总览：**markdown 字段**放进度条 + 当前/下一节点一句话 + 告警；**plan 字段**放阶段清单（工具原生 checklist，UI 渲染为 ✓/🔄/○）
 - `Checkpoint Card`（对话流文本）= 决策点详情：材料 + 选项 A/B/C/D
+
+### plan 字段规范（阶段清单，工具原生）
+
+progress_card 的 **plan** 字段承载流水线阶段清单——比在 markdown 里手打 emoji 阶段列表更规范、可被 UI 原生渲染为 checklist。每步 `{step, status}`，status 三态：`pending` / `in_progress` / `completed`，**全清单最多一个 `in_progress` = 当前阶段**（否则 UI 无法定位「现在卡在哪」）。
+
+论衡 plan 步骤 = phase-order.yaml 节点序列（13 步）：
+
+| # | step | 人在环 |
+|---|---|---|
+| 1 | Phase 0 定题 | ✅ |
+| 2 | Phase 1 检索（T1∥T2∥T3） | |
+| 3 | T2.5 完整性闸门 | |
+| 4 | Phase 2 分析（T4） | |
+| 5 | Phase 2.5 大纲确认 | ✅ |
+| 6 | Phase 3 初稿（T5 v1） | |
+| 7 | Phase 3.5 洞察补充 | ✅ |
+| 8 | Phase 3.6 批判+检测（T6+G14+修订） | |
+| 9 | Phase 4 审计（T7） | |
+| 10 | T7.5 完整性闸门 | |
+| 11 | T9 同行评审（条件启用） | |
+| 12 | T8 终检 | |
+| 13 | Phase 5 终稿验收 | ✅ |
+
+- **T9 未启用**（mode 非 default 且主人未勾选）：该步从 plan 移除（或标 `completed` 跳过），不占 `in_progress`。
+- **状态翻转纪律**：一个节点真正完成（status.md 该节点 ✅ Done）→ plan 该步 `completed` + 下一节点 `in_progress` + 其余 `pending`。**禁止一次翻转多步**。
 
 ### 双向同步
 
-Checkpoint Card 拍板后，主控**立即**更新 progress_card：
-1. 当前 Checkpoint 节点标 ✅
-2. 下一节点标 🔄 In Progress
-3. 更新 progress bar 的 value/max
+**进入 owner checkpoint（等待主人）时**，主控**立即**把 progress_card 置为「等待」态：
+1. plan：该 checkpoint 节点标 `in_progress`（**不标 `completed`——还没拍板**）
+2. markdown 告警行：`⏸ 等待主人拍板 @ <Phase X>`
+3. **不推进** progress bar 的 value（决策未落，不虚增进度）
+
+**Checkpoint Card 拍板后**，主控**立即**更新 progress_card：
+1. plan：该 checkpoint 节点 `completed`，下一节点 `in_progress`
+2. markdown：清除「等待主人」告警，写拍板结果一句话
+3. 更新 progress bar 的 value/max（value = 已完成 Phase 序号）
 
 ### aria-label 模板
 
@@ -123,8 +164,25 @@ Checkpoint Card 拍板后，主控**立即**更新 progress_card：
 
 ### markdown 字段约束
 
-progress_card 的 markdown 保持简洁：首行 progress bar（aria-label 含阶段名 + 进度）→ 当前 Phase 一句话 + 下一节点一句话 → 有异常/降级时加一行告警。**不**在 progress_card 重复 Checkpoint Card 的完整选项（那是对话流职责）。
+progress_card 的 markdown 保持简洁：首行 progress bar（aria-label 含阶段名 + 进度）→ 当前 Phase 一句话 + 下一节点一句话 → **累计 token 一行**（`💰 累计 <Σ> tokens`，Σ = status.md 4.7 表已记录各角色之和 + 主控 session_status 当前值）→ 有异常/降级时加一行告警。**不**在 progress_card 重复 Checkpoint Card 的完整选项（那是对话流职责）。
 
 ### 漏跳检测告警
 
 主控调 progress_card 时，强制检查 status.md 状态机所有 Inbox 节点——若「本会话完成 A 但 B 未启动」，加一行高亮告警：`⚠️ 检测到 <B> 未启动（Inbox），疑似漏跳`。
+
+### 强制更新点清单
+
+主控在以下流水线节点**必须**更新 progress_card（不只人在环 4 节点；每节点更新后若 status.md 有 Inbox 残留，加高亮告警）。**这 10 个节点 = plan 字段 status 翻转的时刻**：节点完成 → 该步 `completed` + 下一节点 `in_progress`；owner checkpoint 节点在「等待主人拍板」期间保持 `in_progress`，拍板后才 `completed`。
+
+| 节点 | 更新内容 |
+|---|---|
+| Phase 0 定题完成 | 当前=检索准备，下一节点=T1∥T2∥T3 |
+| Phase 1 检索完成 | 三方完成标记 + 下一节点=T2.5 闸门 |
+| T2.5 闸门通过 | 打钩 T2.5 ✅ + 下一节点=T4 |
+| Phase 2 分析完成 | 下一节点=Phase 2.5 人在环 |
+| Phase 2.5 大纲拍板 | 拍板结果 + 下一节点=T5 |
+| Phase 3 初稿完成 | 下一节点=Phase 3.5 人在环 |
+| Phase 3.6 批判+检测完成 | 修订轮次判定 + 下一节点=T7 |
+| Phase 4 审计完成 | 审计结论 + 下一节点=T7.5 闸门 |
+| T7.5 闸门通过 | 打钩 T7.5 ✅ + 下一节点=T9 |
+| Phase 5 终检完成 | 终检结论 + 下一节点=Phase 5 人在环 |

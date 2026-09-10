@@ -114,12 +114,12 @@
 
 ### T8 - 终检（主控亲完成）
 
-> ⚠️ **v2.3.0 关键澄清**：T8 终检由 T0 主控亲自完成（不 spawn 子代理）。v2.7.0 起有独立角色卡 [`08-终检-final-inspector.md`](agents/08-终检-final-inspector.md)（职责单一真源）。论衡有 10 张角色卡。
+> ⚠️ **v2.3.0 关键澄清**：T8 终检由 T0 主控亲自完成（不 spawn 子代理）。v2.7.0 起有独立角色卡 [`08-终检-final-inspector.md`](../agents/08-终检-final-inspector.md)（职责单一真源）。论衡有 10 张角色卡。
 
 - **职责**：交付物完整性 + 引用闭环 + AI 使用披露 + 主控签字
 - **输出**：`final/定稿.md` + `final/交付说明.md`
 - **不 spawn 子代理**：T0 主控亲自完成
-- **见 T8 独立角色卡** [`08-终检-final-inspector.md`](agents/08-终检-final-inspector.md)（此前散落在主控卡 + 扩展职责）
+- **见 T8 独立角色卡** [`08-终检-final-inspector.md`](../agents/08-终检-final-inspector.md)（此前散落在主控卡 + 扩展职责）
 
 ---
 
@@ -209,7 +209,7 @@
   2. 顶部标注 `[二手转引]` 警告
   3. **T7** 审计 G12 专项检查
 - **禁止场景**：核心论据、统计数据、精确数字
-- **终稿导出**：emoji 标记仅限工作稿；导出 latex/docx/pdf 前按 [`_shared/format-export.md`](_shared/format-export.md) §四·五 清洗为正文括注，禁止 emoji 进交付稿（学术严肃性）
+- **终稿导出**：emoji 标记仅限工作稿；导出 latex/docx/pdf 前按 [`_shared/format-export.md`](format-export.md) §四·五 清洗为正文括注，禁止 emoji 进交付稿（学术严肃性）
 
 ### 基线引用 [D-基-xx-xx] 格式
 
@@ -234,25 +234,25 @@
 
 ---
 
-## 四、关键协议（详见 [`_shared/关键协议.md`](_shared/关键协议.md)）
+## 四、关键协议（详见 [`_shared/关键协议.md`](关键协议.md)）
 
-> **拆分**（第三方独立审查建议 #3）：关键协议段（原 L192-L282，共 91 行）拆到独立文件 [`_shared/关键协议.md`](_shared/关键协议.md)，按需加载。glossary.md 仅保留协议索引。
+> **拆分**（第三方独立审查建议 #3）：关键协议段（原 L192-L282，共 91 行）拆到独立文件 [`_shared/关键协议.md`](关键协议.md)，按需加载。glossary.md 仅保留协议索引。
 
 ### 关键协议索引
 
-- **Phase 0 同意关卡**→ [`_shared/关键协议.md`](_shared/关键协议.md)
-- **0 条空卡协议**→ [`_shared/关键协议.md`](_shared/关键协议.md)
-- **三检索员并行独立运行**→ [`_shared/关键协议.md`](_shared/关键协议.md)
-- **修订回环 ≤2 轮降级**（教训 #270，+ #276）→ [`_shared/关键协议.md`](_shared/关键协议.md)
-- **完成验证铁律**（教训 #263）→ [`_shared/关键协议.md`](_shared/关键协议.md)
-- **执行韧化协议**→ [`_shared/关键协议.md`](_shared/关键协议.md)
+- **Phase 0 同意关卡**→ [`_shared/关键协议.md`](关键协议.md)
+- **0 条空卡协议**→ [`_shared/关键协议.md`](关键协议.md)
+- **三检索员并行独立运行**→ [`_shared/关键协议.md`](关键协议.md)
+- **修订回环 ≤2 轮降级**（教训 #270，+ #276）→ [`_shared/关键协议.md`](关键协议.md)
+- **完成验证铁律**（教训 #263）→ [`_shared/关键协议.md`](关键协议.md)
+- **执行韧化协议**→ [`_shared/关键协议.md`](关键协议.md)
 
-## 五、工具能力边界（详见 [`_shared/工具能力边界.md`](_shared/工具能力边界.md)）
+## 五、工具能力边界（详见 [`_shared/工具能力边界.md`](工具能力边界.md)）
 
 > **拆分**：工具能力边界段拆到独立文件，按需加载。glossary.md 仅保留工具索引。
 
-**详细工具清单**（15 项 ✅ / 11 项 ❌）见 [`_shared/工具能力边界.md`](_shared/工具能力边界.md)。
-**唯一真源**：[`SKILL.md`](../SKILL.md) frontmatter `metadata.tools.declared` / `metadata.tools.denied`（按版本同步）。
+**详细工具清单**（17 项 ✅ / 13 项 ❌）见 [`_shared/工具能力边界.md`](工具能力边界.md)。
+**唯一真源**：[`SKILL.md`](../../SKILL.md) frontmatter `metadata.tools`（`base` / `coordinator_only` / `research_extra` / `opt_in` / `denied`）（按版本同步）。
 
 ## 六、教训沉淀体系
 
