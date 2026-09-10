@@ -11,7 +11,15 @@
 
 ## [v2.12.9] — 2026-09-10
 
-> 本版为 ClawHub 安全审计（基线 v2.12.8，判定 `Review`）全套净化修订：A.I.G T05 fail-closed 落地 + SkillSpector 误报源清除 + 措辞矛盾精确化 + 76 个交付文件语言政策声明。
+> 本版为 ClawHub 安全审计（基线 v2.12.8，判定 `Review`）全套净化修订：A.I.G T05 fail-closed 落地 + SkillSpector 误报源清除 + 措辞矛盾精确化 + 76 个交付文件语言政策声明 + Release 单一入口脚本入库。
+
+### 〇、审计基线（本版修复对象）
+
+- **审计对象**：已发布的 v2.12.8 净化包；**判定** `Review`（结论原话：「不是恶意的，但需复核」）
+- **静态分析**：`No suspicious patterns detected`——本版全部命中来自**语义审计**（静态层已放行，Pass/Review ≠ 零问题）
+- **A.I.G**（`skill-scan`）：`Findings (1)` —— **T05 · Unauthorized Access and Privilege Escalation（Warning；文档内 Risk Level Medium）**「Subagents May Inherit Excessive Privileges Without Mandatory Mechanical Enforcement」，位置 `SKILL.md:82-84` + `references/permissions.md:27,49-54`
+- **SkillSpector**：`Findings (58)`；审计页按类别聚合**展示 25 条**——`Natural-Language Policy Violations` 17 / `Credential Access` 2（High，均 `doc-example` 误报源）/ `External Transmission` 2 / `Intent-Code Divergence` 2 / `Ssd 4` 1 / `Description-Behavior Mismatch` 1；展示条目严重级 = High 2 + Medium 23
+- **处置**：4 类真实问题全修 + 1 类误报源清除；`Ssd 4` 与 `Intent-Code Divergence` **同根**（「不得检查宿主配置/边界」与「讨论递归委派可用性 + 加固状态」的表述冲突），由 §四 同一处精确化覆盖
 
 ### 一、T05 fail-closed：加固状态确认（spawn 前必走）
 
@@ -19,7 +27,8 @@
 - **根因**：`prompt-level` 诚实标注只解决「诚实」，不解决「同意」；纪律层软保障 ≠ 已获主人授权
 - `SKILL.md` §执行能力边界 + `references/permissions.md` + `references/agents/00-主控-扩展职责.md` 新增「加固状态确认（spawn 前必走，fail-closed）」：首次 spawn 子代理前必须向主人呈现当前加固状态并取**三选一**明示结论——① 已加固 → `enforcement: mechanical`；② 知情后选择继续 → `enforcement: acknowledged-prompt-level`；③ 不加固且不确认 → **不 spawn**，改走**单主控降级模式**（主控独自顺序完成检索→分析→写作→自审）或中止
 - **禁止**未取得 ①/② 任一结论就静默 `prompt-level` 开跑
-- `references/templates/status-template.md` 项目元数据新增 `**加固状态**` 字段；主控卡 Phase 0 索引表同步
+- **与「纯 skill 开箱可用」定位的取舍**：审计 remediation 原文要求「**Require** host-level denial of privileged tools」+「**Require** `maxSpawnDepth: 1`」。论衡保留「任意 OpenClaw 配置开箱可用」定位（主人拍板），**不**把宿主加固设为运行前置，改以 **spawn 前三选一** 兑付 fail-closed——③「不加固且不确认」即**不 spawn**（降级为单主控顺序模式或中止）；即 fail-closed 落在「验证不到就不开跑」，而非「强制宿主改 config」
+- `references/templates/status-template.md` 项目元数据新增 `**加固状态**` 字段（取值 `mechanical` / `acknowledged-prompt-level`）；主控卡 Phase 0 索引表同步
 
 ### 二、凭据访问误报源清除（SkillSpector Credential Access ×2）
 
@@ -32,23 +41,37 @@
 - 新增**语义口径声明**：上述描述的是**语义等价动作**（产物存在性 / 数量对账 / 标记计数 / 时间戳新鲜度），主控用 `read` + 文件元数据**推理实现**，不执行任何 shell；命令形态仅为人类 host shell 复核参考
 - `references/_shared/audit-checklist-quickref.md` G8 代码块同步标注
 
-### 四、意图-代码背离：两处矛盾精确化（Intent-Code Divergence ×2 + Ssd 4）
+### 四、意图-代码背离 / 状态一致性：三处矛盾精确化（Intent-Code Divergence ×2 + Ssd 4 ×1 + External Transmission ×2）
 
 - **宿主配置口径**：`SKILL.md` + `00-主控-扩展职责.md` 声明「不读取宿主配置」，又讨论 `maxSpawnDepth` / 加固状态，被判自相矛盾。现精确化：不调用 `gateway`/`config`、不读 `openclaw.json`；加固与否**由主人声明**（不是读 config）；加固建议是写给主人的**静态部署说明**，不是运行时依赖；主控不会因「读到/读不到」某项配置而告警或阻断
 - **数据检索角色卡**：`02-数据检索-data-scout.md` 同文档内既写「叶子 worker 不得调用 `sessions_spawn`」，又写「T2/T3 通过独立 `sessions_spawn` 隔离」。现澄清后者是**主控侧**动作（主控分别 spawn T2/T3），叶子 worker 不自行 spawn
+- **状态一致性（审计条目 `Ssd 4`）**：与本组同根，审计原话指「要求 agent 不去检查宿主配置/边界，同时又在讨论递归委派可用性与加固状态」。§一 的「加固与否**由主人声明**、不读 config、加固建议是静态部署说明」精确化同时消解该条（`SKILL.md` + `00-主控-扩展职责.md` §十五点五「不读取宿主配置」补澄清句）
 - `references/_shared/中文数据源集成.md` 数据流声明强化：OpenAlex/Crossref 为只读学术元数据 API，**不外发稿件正文/文献卡/数据卡内容**；文中 URL 为文档示例形态，非自动外发链路（回应 External Transmission ×2）
 
-### 五、语言政策声明：76 个交付文件 + 构建门（Natural-Language Policy ×15）
+### 五、语言政策声明：76 个交付文件 + 构建门（Natural-Language Policy Violations，审计页 17 条，为条目最集中一类）
 
-- **问题**：扫描器逐文件判定「中文-only 且未声明 opt-in / 未说明区域限定」。`SKILL.md` 已有「语言边界」表，但其余交付文件没有声明，同一类 finding 被重复报出十余次
-- 新增 `scripts/inject-lang-policy.py`（幂等），为 76 个交付 md 在版本行下注入一行**语言政策**声明：产出语言默认中文、Phase 0 可改 English / 中英混 / 其他（全流程以任务简报「目标语言」字段为准）；中文特化是**设计定位**，不构成使用者语种限制
-- `scripts/build-clawhub-release.sh` 新增**语言政策声明门**（4d 段）：净化包内除 `SKILL.md` 外每个 md 必须含声明，漏注入即 exit 1 阻断发布（防回归）
+- **问题**：扫描器**逐文件**判定「中文-only 且未声明 opt-in / 未说明区域限定」。`SKILL.md` 已有「语言边界」表，但其余交付文件没有声明，同一类 finding 被重复报出十余次（本类占审计页展示条目的三分之二）
+- 新增 `scripts/inject-lang-policy.py`（140 行，幂等）——为 **76 个**交付 md 在版本行下注入一行**语言政策**声明：产出语言默认中文、Phase 0 可改 English / 中英混 / 其他（全流程以任务简报「目标语言」字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是**设计定位**，不构成使用者语种限制
+- **注入范围与 7 项例外**（`EXCLUDE_REL`）：`SKILL.md`（自带「语言边界」表，用另一套声明）、`CHANGELOG.md`、`references/设计文档{,-架构,-哲学}.md`、`references/_shared/教训索引.md`、`references/templates/README-模板拆分方案.md` 不注入；脚本按 `MARKER` 判重，重复运行不产生双重声明
+- `scripts/build-clawhub-release.sh` 新增**语言政策声明门**（4d 段，防回归）：对净化包内**每个** md 正向校验是否含 `🌐 **语言政策**`，缺失即打印文件清单并 exit 1；唯一豁免 `SKILL.md`。实测净化包 76 个 md 中 75 个含声明（1 个例外 = `SKILL.md`）
+- 净化包规模：真源 148 文件 → 净化包 **79 文件**（其中 md 76 个）
 
-### 六、构建链
+### 六、发布链与构建链
 
-- 版本同步至 v2.12.9（自审门 18 门全过）
-- 净化包 79 文件，净残扫描 + 语言政策声明门双通过
-- `scripts/create-github-release.sh` 入库（changelog → GitHub Release 单一入口）
+- **版本同步**：**36 个**含版本戳文件同步至 v2.12.9（自审门 门 C 口径）
+- **自审门（18 门）**：**17 PASS / 0 FAIL** + 门 G ⚠ 警告（净化包 md5 与真源不一致，属**预期**——净化链对 `SKILL.md` / `QUICKSTART.md` / `references/_shared/glossary-full.md` 做替换）
+- **净化包 2.12.9**：79 文件（md 76 个），净化残留扫描 + 最终残留扫描 + 语言政策声明门**三门通过**；开发者工具（`scripts/` / `Makefile` / `tests/` / `docs/` / `.github/` / `CHANGELOG.md` 等）全部剥离
+- **`scripts/create-github-release.sh` 入库**（233 行；**开发者工具，净化包已剥**）：把「建 Release」从「靠人记」变成一条命令，修复教训 #307「推 tag ≠ 建 Release」缺口——正文要手工粘、标题要手工拼，于是 v2.3.11 / v2.11.0 / v2.11.1 / v2.12.8 均曾漏建或正文漂移
+  - **三条铁律机械化**：① 正文单一真源 = 逐字提取 `CHANGELOG.md` 对应章节（不产生第二份真相）；② 标题单一格式 = `论衡 <tag> — <摘要>`，摘要取自该 tag 的发版提交 subject（约定 `release: <tag> — <摘要>`）；③ 已存在则 `gh release edit` **同步**（修正文/标题漂移），不新建、不覆盖历史
+  - **开关**：`--dry-run`（本地零副作用预览）/ `--check`（只比对「CHANGELOG 章节 vs 线上 Release 正文」，漂移即 exit 1）/ `--no-dispatch`（不触发 `changelog-check.yml` 在线校验）；退出码 0 = 完成/一致，1 = 漂移或缺 Release，2 = 环境或用法不满足
+- **开发工具链修复（commit `457c7e9`）**：`Makefile` lint 目标裸 `python` → `python3`（本机仅装 python3，退出码 127 被 `|| true` 吞掉 = 「检查通过」是假的，教训 #310），并加 shellcheck 缺失前置守卫 fail-loud；实测 `make lint` 退出码 0
+
+### 验证
+
+- `bash scripts/self-audit-gate.sh` → `PASS: 17  FAIL: 0`（+ 门 G 预期警告）
+- `python3 scripts/changelog-check.py --check` → 133 tag / 133 CHANGELOG 章节一致；当前版本 v2.12.9 已记录
+- `bash scripts/create-github-release.sh --check` → 线上 Release 正文 = CHANGELOG 章节正文（**逐字一致**）
+- `clawhub publish --dry-run` → `would-publish` / slug `lunheng-article-pipeline` / displayName「论衡 — 严肃长文流水线」/ fileCount 78 / 线上 latest 仍为 2.12.8（**2.12.9 待发布**）
 
 ---
 
