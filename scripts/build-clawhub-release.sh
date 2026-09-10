@@ -313,6 +313,22 @@ while IFS= read -r -d '' f; do
   purify "$f"
 done < <(find "$OUT_DIR" -name '*.md' -print0)
 
+# ---- 3o. DEV-ONLY 段落剥离（v2.12.5 新增）----
+# 真源用 <!-- DEV-ONLY-START --> ... <!-- DEV-ONLY-END --> 标记「只服务维护者」的段落
+# （构建/验证管线说明 + 开发者脚本全文）。净化包必须整段移除：否则 shell 剥离规则会把
+# `xxx.sh` 打成 `shell 脚本` 这类无宾语占位符（ClawHub 审计 F2/F6 命中点，且句子残缺）。
+# 对应用户侧修复：T5 自审门段落改为「read 核验清单」，不再声明跑脚本。
+echo "🧹 剥离 DEV-ONLY 段落..." >&2
+find "$OUT_DIR" -name '*.md' -exec python3 -c '
+import re, sys
+for path in sys.argv[1:]:
+    s = open(path, encoding="utf-8").read()
+    new = re.sub(r"<!--\s*DEV-ONLY-START.*?DEV-ONLY-END\s*-->\n?", "", s, flags=re.DOTALL)
+    if new != s:
+        open(path, "w", encoding="utf-8").write(new)
+        print("  剥离 DEV-ONLY：", path)
+' {} +
+
 # ---- 3n. 安装命令版本 pin 同步（教训 #297）----
 # 净化包内 `openclaw skills install @...@X.Y.Z` 的 pin 必须等于本包版本，
 # 防止「包是 v2.12.4、安装命令还钉在 v2.10.3」这类用户可见的审计版本错配。
@@ -420,6 +436,11 @@ FINAL_PATTERNS=(
   '\(，\+ #'
   '\( \+ #'
   '裸 #N'
+  '`shell 脚本`'                # v2.12.5 新增：.sh 泛化规则留下的无宾语占位符（审计 F2/F6）
+  'shell 脚本'                  # v2.12.5 新增：同上（无引号变体）
+  'scripts/'                    # v2.12.5 新增：净化包不应出现任何开发者脚本路径
+  '论衡开发者脚本'              # v2.12.5 新增：开发者工具引用只应存在于真源，不入包
+  '\| \| \|'                     # v2.12.5 新增：空白占位行（表格渲染崩坏同型）
 )
 FINAL_HITS=0
 for pat in "${FINAL_PATTERNS[@]}"; do

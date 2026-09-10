@@ -2,7 +2,7 @@
 name: lunheng-article-pipeline
 displayName: 论衡 — 严肃长文流水线
 version: 2.12.5
-description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill（主人拍板），任意OpenClaw配置开箱可用；零exec是纪律层软保障（13项特权工具禁用+全文档零授权+M门扫描+外部内容不可信）。Phase 0 4选1 fail-closed；image_generate/Firecrawl/二线中文源默认关闭Phase 0 opt-in；写入限run/<项目名>/。<2000字建议直接用主控LLM。"
+description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，任意OpenClaw配置开箱可用。零exec=不执行shell（纪律层软保障，13项特权工具永久禁用），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/<项目名>/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。<2000字建议直接用主控LLM。"
 metadata:
   openclaw:
     requires:
@@ -36,7 +36,18 @@ metadata:
 - 文章需要「人在环」把关：大纲确认后再写，终稿人工审
 - 主人愿意等 1-3 小时
 
-**定位**：中文学术/深度长文专用流水线——中文特化（G14 AI 痕迹闸 / GB/T 7714-2015 引用规范 / Top 3 中文期刊建议 / 中文新闻源）是**设计定位**，不是 locale 缺陷。语言选择是 Phase 0 显式步骤（见启动清单第 3 步），所有同意/隐私/流程提示以中文呈现。
+**定位**：中文学术/深度长文专用流水线——中文特化（G14 AI 痕迹闸 / GB/T 7714-2015 引用规范 / Top 3 中文期刊建议 / 中文新闻源优先）是**设计定位**，不是 locale 缺陷。
+
+**语言边界（显式声明，回应审计 Natural-Language Policy 类发现）**：
+
+| 维度 | 默认 | 主人在 Phase 0 可改 |
+|------|--------|------------------|
+| 成品语言 | 中文 | ✅ 可指定 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）|
+| 交互/提示语言 | 中文（角色卡与模板文本本身为中文）| ✅ 非中文使用者可要求主控提供关键提示的英文摘要 |
+| 证据源语言 | 中文 + 英文（默认双轨：中文源优先，英文源并行）| ✅ 可指定其他语种重点检索 |
+| 引用格式 | GB/T 7714-2015（中文期刊）| ✅ 可换 APA / MLA / Chicago 等（Phase 0 声明目标期刊模板）|
+
+> 即：**角色卡/模板用中文书写 ≠ 只服务中文使用者**。产出语言由任务简报「目标语言」字段决定；非中文目标下，主控与各角色按该字段交付，T8 终检同样按目标语言核验，不以角色卡的中文措辞为由拒给其他语言产物。
 
 **字数分层**：
 
@@ -62,6 +73,7 @@ metadata:
 - **Opt-in（默认禁止，Phase 0 主人明确同意才解锁）**：`image_generate`（封面生成）、`memory_get` / `memory_search` / `memory_recall`（记忆辅助）；解锁方式 = `run/<项目名>/status.md`「Phase 0 同意记录」段填写 `opt_in:` 清单，凭记录调阅。
 - **行为预授权**：配额耗尽未勾选 = 暂停等拍板（fail-closed）；G14 Warning 未勾选 = 暂停等主人 3 选 1；永不覆盖 `denied` 列表。
 - **禁用（`denied`）— 13 项永久**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / memory_forget / sessions_search / sessions_send。
+- 🔍 **零 exec ≠ 零出网（精确口径，回应审计 Intent-Code Divergence）**：零 exec 只约束「不执行 shell、不调 exec/process」，**不等于**「不向外部发送任何数据」。检索类工具（web_search / tavily_search / web_fetch / tavily_extract）是**默认启用**的对外检索能力，仅发送「检索关键词 + 目标 URL」，**须经 Phase 0「外部服务同意 4 选 1」明示同意后才执行**（主人选 ④全部拒绝 → 本次运行不调用检索工具，改主人自带材料 + 本地模型推理）。与之并列的是**默认关闭 + 勾选才启用**的 opt-in 项：`image_generate`（封面）、Firecrawl、二三线中文源（万方/科情/NSTL）、记忆辅助。两类性质不同，勿混为一谈。
 
 **Workspace 路径收口（回应 SkillSpector）**：read/write/edit 仅允许 `run/<项目名>/` 子树；拒绝绝对路径、父路径穿越（`..`）、symlink 逃逸、工作区外访问。**默认 cwd = workspace 根**（不设 `cwd_default`，否则 run/ 会被解析到 skill 目录内，教训 #255）——spawn 子代理时显式传 `cwd: run/<项目名>/`（相对 workspace 根），子代理首句必读 `references/_shared/关键协议.md` §workspace 边界。
 
@@ -131,11 +143,21 @@ metadata:
 
 - **敏感信息**：主人提供的【项目名/主题/纲要】可能含敏感信息（如未公开研究 / 商业机密）——这些会通过外部服务发出。**如敏感请用脱敏措辞 + 改 SVG 封面 + 本地 Ollama 推理**
 - **主人投喂的一手材料**（访谈记录 / 田野调查数据 / 内部文档 / 客户信息）：投喂前主人需确认已取得知情同意，且**必须脱敏**（人名/机构名/可识别信息替换为代号）；论衡对投喂材料的存储/引用/传播不承担合规责任，**主人是数据处理的责任方**
-- **封面图像生成与数据外发披露**：封面生成 `image_generate` **默认关闭**；默认调用宿主配置的图像 provider 一次，**论衡文档不规定也不执行多 vendor 路由**；勾选即按宿主配置执行。如不愿外发图像 prompt，请选 SVG 矢量封面（本地程序化生成，零外发）
+- **封面图像生成与数据外发披露**：封面生成 `image_generate` **默认关闭**——**仅当主人在 Phase 0 勾选「启用封面生成」后才调用一次**。调用时**离开本机的数据 = 图像 prompt（含主题关键词、品牌/调性描述，可能含项目上下文字样）**，发送至宿主 OpenClaw 配置的图像 provider（可能为 OpenAI / Google / MiniMax 等，以宿主配置为准）；**论衡文档不规定也不执行多 vendor 路由或跨厂商降级**。如不愿外发图像 prompt，请选 SVG 矢量封面（主控本地 `write` 程序化生成，零外发）或主人自备图片
 
 **主控 Phase 0 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**），写入 `01-任务简报.md`「外部服务同意记录」段作为审计追溯依据。
 
-**默认检索层 = 仅第一梯队 OpenAlex / Crossref**（公开学术元数据 API，只发检索关键词）+ web_search + tavily_search。不调 Firecrawl、不调万方 / 科情 / NSTL API。第二三梯队**默认关闭**，需主人 Phase 0 显式勾选启用并自配 API key。详见 [`references/_shared/中文数据源集成.md`](references/_shared/中文数据源集成.md)。
+**检索层口径（区分「默认启用」与「默认关闭」两类，回应审计 Description-Behavior Mismatch）**：
+
+| 类别 | 工具 | 默认状态 | 离开本机的数据 |
+|------|------|---------|--------------|
+| 检索（默认层）| `web_search` / `tavily_search` / `web_fetch` / `tavily_extract` | **默认启用**（Phase 0 告知并可拒绝）| 检索关键词 + 目标 URL |
+| 学术元数据（可选层）| OpenAlex / Crossref | **随「启用中文数据源集成」勾选后才用**（只读公开 API，无需 Key）| 仅检索关键词（不发送个人信息/机密数据）|
+| 封面（opt-in）| `image_generate` | **默认关闭** | 图像 prompt（见上条）|
+| 二三线中文源 / 抓取 | 万方 / 科情 / NSTL / Firecrawl | **默认关闭** | 视所启用服务而定；凭据须在宿主环境外部配置 |
+| 记忆辅助（opt-in）| `memory_get` / `memory_search` / `memory_recall` | **默认关闭** | 访问本地记忆库（无 LLM vendor 外发）|
+
+不调 Firecrawl、不调万方 / 科情 / NSTL API（除非主人 Phase 0 显式勾选启用）。详见 [`references/_shared/中文数据源集成.md`](references/_shared/中文数据源集成.md)。
 
 **🔒 不读取宿主网关配置**：论衡运行不调用 `gateway` / `config` / 任何宿主配置读取工具——主控 documented 工具集无 gateway / config / agents_list / cron / message 类工具。宿主可单独配置 gateway 限权访问，与论衡运行无关。
 
