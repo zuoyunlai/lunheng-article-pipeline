@@ -15,6 +15,7 @@
 > **零 exec 哲学护栏**：论衡 agent 全部禁 `exec` / `process` / `browser` / `apply_patch` / `cron` / `video_generate` / `music_generate` / `tts` / `memory_store` / `skill_workshop` / `memory_forget` / `sessions_search` / `sessions_send`（永久拒绝，Phase 0 同意不能豁免）。
 
 > - `allow_research`（T1/T2/T3）: `["read","write","edit","web_search","web_fetch","tavily_search","tavily_extract"]`
+> - **出网 deny-precedence（fail-closed）**：上述检索类工具（web_search / web_fetch / tavily_search / tavily_extract）属「外发同意 4 选 1」管辖。主人选 ④「全部拒绝」时，本次运行**不调用任何出网工具**，改纯本地（主人自带材料 + 本地推理）；「开工」不隐含外发同意；同意记录缺失/矛盾/不可读 = 按拒绝处理，停止并回报主控（见 [`关键协议.md`](关键协议.md)「4 选 1（外发同意）选项」）。
 > - `allow_analysis`（T4）: `["read","write","edit"]`
 > - `allow_writing`（T5）: `["read","write","edit"]`
 > - `allow_audit`（T6/T7）: `["read"]` — **只读**，不写/不改/不出网/不调记忆/不调图像/不 spawn 子会话
