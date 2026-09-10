@@ -22,7 +22,7 @@
 
 ## 二、Word / PDF 转换
 
-> **v2.5.0 多格式导出**：详见 [`../_shared/format-export.md`](../_shared/format-export.md)（默认 `--format md` 零额外 token；选 `latex/docx/pdf` 按 pandoc + rsvg-convert 命令生成）
+> **多格式导出**：详见 [`../_shared/format-export.md`](../_shared/format-export.md)（默认 `--format md` 零额外 token；选 `latex/docx/pdf` 按 pandoc + rsvg-convert 命令生成）
 
 | 项 | 操作 |
 |----|------|

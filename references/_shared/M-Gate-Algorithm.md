@@ -40,7 +40,7 @@
 
 # M 门算法规约（论衡当前主流程完整版）
 
-> **v2.2.15 渐进式执行模式（已合并入本文档）**：把 13 项 M 门从「T8 一次性全跑」改为「5 阶段分批执行 + T8 兜底」，P0 错误提前暴露（Phase 1.5 而非 T8），节省 30-50% 工作量。详见本文档 M-Form / M-Exist / M-Integrity 各阶段描述。
+> **渐进式执行模式（已合并入本文档）**：把 13 项 M 门从「T8 一次性全跑」改为「5 阶段分批执行 + T8 兜底」，P0 错误提前暴露（Phase 1.5 而非 T8），节省 30-50% 工作量。详见本文档 M-Form / M-Exist / M-Integrity 各阶段描述。
 >
 > **v2.2.8 Phase D-1 重大变更**：本规约从「**4 个增量版本并存**」合并为「**1 个完整版**」（本文件约 12K tokens，主流程只读这一份）。
 >
@@ -48,7 +48,7 @@
 >
 > **执行前置**：「同时读取 4 个版本」改为「**读取本完整版**」。节省 ~10K tokens 主流程加载。
 >
-> **v2.10.0 章节级增量验证（新增）**：文件级变更检测升级为**章节级**——把 Markdown 按 `## ` 二级标题拆章节，识别「改了哪一章」而非「改了哪个文件」。修订轮（v2→v3）只改一章时，主控只需对该章节重跑引用类 M 门（M-Form-1/M-Exist-1/M-Form-6），未变更章节复用上轮结果。**定位**：章节级聚焦是**主控 LLM 的推理思路**（M 门本就是 LLM 推理，见下方诚实声明）——修订轮时先定位「哪些章节变了」，再只对这些章节重跑引用类 M 门，未变章节复用上轮结果，不必全文重跑。本地开发辅助脚本 `scripts/incremental_m_gate.py`（新增 `SectionChangeDetector`，用法 `python scripts/incremental_m_gate.py <项目目录> [--no-section-level]`）给主人手工复核变更范围用，**净化包剥离 scripts/，不依赖此脚本运行**。
+> **章节级增量验证**：文件级变更检测升级为**章节级**——把 Markdown 按 `## ` 二级标题拆章节，识别「改了哪一章」而非「改了哪个文件」。修订轮（v2→v3）只改一章时，主控只需对该章节重跑引用类 M 门（M-Form-1/M-Exist-1/M-Form-6），未变更章节复用上轮结果。**定位**：章节级聚焦是**主控 LLM 的推理思路**（M 门本就是 LLM 推理，见下方诚实声明）——修订轮时先定位「哪些章节变了」，再只对这些章节重跑引用类 M 门，未变章节复用上轮结果，不必全文重跑。本地开发辅助脚本 `scripts/incremental_m_gate.py`（新增 `SectionChangeDetector`，用法 `python scripts/incremental_m_gate.py <项目目录> [--no-section-level]`）给主人手工复核变更范围用，**净化包剥离 scripts/，不依赖此脚本运行**。
 
 ---
 
@@ -72,7 +72,7 @@ M 门 13 项伪代码是「**主控 LLM 推理模拟执行**」，不是真 shel
 | **M-Form（形式合规）** | **80-90%** | LLM 推理判定格式（编号/标签/章节结构），错判可能性低 |
 | **M-Exist（存在性）** | **70-85%** | LLM 推理判定文件存在 + 编号对应，错判可能性中（特别是大文档） |
 | **M-Integrity（阶段闸门）** | **85-95%** | LLM 推理判定主控 checkpoint，错判可能性低 |
-| **sha256 完整性（M-Exist-2 修订）** | **v2.5.5 默认不验** | 主人可选手工 `sha256sum` 后填回，论衡 LLM 不实际计算（zero exec 哲学） |
+| **sha256 完整性（M-Exist-2 修订）** | **默认不验** | 主人可选手工 `sha256sum` 后填回，论衡 LLM 不实际计算（zero exec 哲学） |
 
 ### 3. 已知漏洞（实战暴露）
 
@@ -89,7 +89,7 @@ M 门 13 项伪代码是「**主控 LLM 推理模拟执行**」，不是真 shel
 ### 5. 「机械化硬门」四字的修订
 
 - **原表述**：「M 机械化硬门 = 论衡质量的兜底」
-- **v2.5.6 修订**（诚实化）：**「M 门 = LLM 结构化判定，非机器强制」**——「机械化」是设计意图（结构化/可复用），不是实际机制（真 shell 调用）
+- **修订**（诚实化）：**「M 门 = LLM 结构化判定，非机器强制」**——「机械化」是设计意图（结构化/可复用），不是实际机制（真 shell 调用）
 
 ### 6. 替代方案
 
@@ -131,11 +131,11 @@ M 门 13 项伪代码是「**主控 LLM 推理模拟执行**」，不是真 shel
 
 **借鉴出处**：vincentjiang06 paper-writer objective/verify gate 硬约束理念 + ARS M1-M7 失败模式组织。
 
-**v2.2.1 扩展**（教训 #271）：数据信任级别 + 阶段闸门 — vincentjiang06 paper-writer Trust Boundary + ARS Stage 2.5/4.5 论衡化。
+**扩展**（教训 #271）：数据信任级别 + 阶段闸门 — vincentjiang06 paper-writer Trust Boundary + ARS Stage 2.5/4.5 论衡化。
 
 **v2.2.1.2 升级**（教训 #272，+ #291 + #292 + #293）：4 个算法 bug 实战修正 + 数据卡双格式支持。
 
-**v2.2.4 升级**（AI安全隐患实战 + 深度长文定位）：内联引用模式分支 + 补检索回填校验 + 修订轮流程约束。
+**升级**（AI安全隐患实战 + 深度长文定位）：内联引用模式分支 + 补检索回填校验 + 修订轮流程约束。
 
 ---
 
@@ -179,7 +179,7 @@ else
     return {"通过": False, "失败原因": "正文 + SVG 内嵌文本均无任何引用标注"}
 ```
 
-**v2.5.17 关键扩展（教训 #184 实战）**：SVG 内的 `<text>` / `<desc>` / `<title>` / `<tspan>` 节点现视为事实层（M-Gate 核验覆盖），与正文 .md 同等待遇。这是为了防止「正文中正、SVG 中错」的双线不一致（SVG 残留 3 处」）。
+**关键扩展（教训 #184 实战）**：SVG 内的 `<text>` / `<desc>` / `<title>` / `<tspan>` 节点现视为事实层（M-Gate 核验覆盖），与正文 .md 同等待遇。这是为了防止「正文中正、SVG 中错」的双线不一致（SVG 残留 3 处」）。
 
 **人类验证示例**（可选，主人手动复核用）：
 ```bash
@@ -542,7 +542,7 @@ orphan = sorted(set(endnote) - set(intext))
 return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 ```
 
-**v2.2.4 补检索回填校验分支**（当流水线发生过补检索时触发）：
+**补检索回填校验分支**（当流水线发生过补检索时触发）：
 
 ```
 1. 判断是否发生补检索：检查 run/<项目名>/literature/ 是否有「补检索-*.md」文件
@@ -565,7 +565,7 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 
 ### M-Exist-2: 证据包完整性校验（原「证据包文件完整性 sha256」，教训 #169）
 
-**v2.5.5 重写原因**：
+**重写原因**：
 - 原「M-Exist-2 证据包文件完整性 sha256」设计是「理想」但**实战中 sha256 字段永远占位**（主人不手动跑 `sha256sum`）
 - 论衡「零 exec 哲学」= LLM 不能跑 sha256 实际计算（仅可读文件验证非空）
 - 实战中占位符 `[SHA256-PENDING:HOST-VERIFY]` 永远不会被回填 = 字段形同虚设
@@ -599,7 +599,7 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 | **Windows CMD** | `certutil -hashfile file.md SHA256` |
 | **Python（任意平台）** | `hashlib.sha256(open(file,'rb').read()).hexdigest()` |
 
-**v2.5.5 能力边界澄清**：
+**能力边界澄清**：
 - 论衡 agent **不能** 直接计算 sha256（不在工具白名单内）
 - 主控 LLM 能用 `read` 读全文做「文件非空/章节结构/数据卡格式」验证（**这是 LLM 推理，不是 sha256**）
 - 真正 sha256 由人类主人在 host shell **手动计算后回填**到「证据包指纹」段
@@ -610,7 +610,7 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 
 ### M-Exist-3: 数据信任级别一致性 diff
 
-**v2.5.17 关键扩展（教训 #184 实战）**：SVG 文本节点（`text`/`desc`/`title`/`tspan`）现视为事实层，内嵌的 `[Dxx]` / `[Cxx]` 信任级别与 md 正文同等 diff。防“正文修了 SVG 没修”双线不一致。
+**关键扩展（教训 #184 实战）**：SVG 文本节点（`text`/`desc`/`title`/`tspan`）现视为事实层，内嵌的 `[Dxx]` / `[Cxx]` 信任级别与 md 正文同等 diff。防“正文修了 SVG 没修”双线不一致。
 
 **v2.2.1 算法**：grep -oE '\[D[0-9]+\]' final/定稿.md → **不支持表格行 [1.x] 引用**。
 
@@ -621,7 +621,7 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 1. 正文引用提取：
    - 标准格式 [Dxx]：grep -oE '\[D[0-9]+\]' final/定稿.md → set_intext_d
    - 表格格式 [1.x]：grep -oE '\[1\.[0-9]+|\[2\.[0-9]+' final/定稿.md → set_intext_table
-   - **v2.5.17 扩展**：SVG 内嵌文本纳入（final/图件/*.svg 的 text/desc/title/tspan 节点）→ set_svg_d
+   - **扩展**：SVG 内嵌文本纳入（final/图件/*.svg 的 text/desc/title/tspan 节点）→ set_svg_d
 
 2. 数据卡条目提取：
    - 标准格式 [Dxx]：grep -oE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md → set_card_d
@@ -639,7 +639,7 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 5. 判定：所有 diff 空 + 信任级别全填 → 通过；任一非空 → 失败
 
 伪代码：
-# v2.5.17 扩展：SVG 内嵌文本节点视为事实层，纳入 [Dxx] / [Cxx] 提取与 diff
+# 扩展：SVG 内嵌文本节点视为事实层，纳入 [Dxx] / [Cxx] 提取与 diff
 draft_text = read("final/定稿.md")
 svg_text = extract_text_nodes("final/图件/*.svg")  # text/desc/title/tspan 节点合并
 all_text = draft_text + "\n" + svg_text
@@ -662,7 +662,7 @@ return (all_pass, leaked, orphan, missing_trust)
 
 ### M-Integrity-1: T2.5 完整性门（T2 数据检索 → T4 分析前）
 
-> **v2.2.10 重要修正**：原版逻辑矛盾 — M-Integrity-1 在 T2→T4 之间，大纲（T4 产物）尚不存在却需查「数据条目数 ≥ 大纲 D 列数」。修正为查任务简报（Phase 0 已产物化）子问题的数据需求数。
+> **重要修正**：原版逻辑矛盾 — M-Integrity-1 在 T2→T4 之间，大纲（T4 产物）尚不存在却需查「数据条目数 ≥ 大纲 D 列数」。修正为查任务简报（Phase 0 已产物化）子问题的数据需求数。
 
 ```
 算法步骤（主控 LLM 兜底执行）：
@@ -671,20 +671,20 @@ return (all_pass, leaked, orphan, missing_trust)
    标准 [Dxx] 计数：grep -cE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md
    表格 [1.x] 计数：grep -cE '^\| [0-9]+\.[0-9]+ \|' final/证据包/数据卡.md
    两者取并集 dedupe
-3. **v2.2.10 修正**：提取任务简报子问题数据需求数
+3. **修正**：提取任务简报子问题数据需求数
    从 01-任务简报.md 「研究问题」段读取每个子问题的「需找数据点 ≥N」
    需求总数 = Σ 子问题数据需求数
    （不再 grep analysis/分析大纲.md，因 T4 尚未产出）
 4. 数据条目数 >= 任务简报需求总数 → 数据完整 → 通过；否则 → 触发 T2 重检索
 5. 信任级别完整性：M-Form-6 exit 0 → 通过；否则 → 触发 T2 补标注
 6. 信任级别一致性：M-Exist-3 exit 0 → 通过；否则 → 触发 T2 补数据卡
-7. **v2.2.17 修复（教训 #123）**：sha256 指纹为**可选验证**——主控发占位符 `[SHA256-PENDING:HOST-VERIFY]` 到 `final/交付说明.md`「证据包指纹」段，**不**作为闸门强制项。主人需手动在 host shell 跑 `sha256sum final/证据包/*.md >> final/交付说明.md`（参考 `_shared/m_exist_1_diff.sh`）。**该步骤不是 agent 执行的代码，是人类验证示例。**
-8. **v2.2.10 新增（教训 #106）**：数据卡头部「共 N 条」声明 vs 实际 grep 计数一致性
+7. **修复（教训 #123）**：sha256 指纹为**可选验证**——主控发占位符 `[SHA256-PENDING:HOST-VERIFY]` 到 `final/交付说明.md`「证据包指纹」段，**不**作为闸门强制项。主人需手动在 host shell 跑 `sha256sum final/证据包/*.md >> final/交付说明.md`（参考 `_shared/m_exist_1_diff.sh`）。**该步骤不是 agent 执行的代码，是人类验证示例。**
+8. **新增（教训 #106）**：数据卡头部「共 N 条」声明 vs 实际 grep 计数一致性
    头部声明：grep -oE '共 [0-9]+ 条' final/证据包/数据卡.md
    实际计数：步骤 2 的双格式并集 dedupe
    不一致 → 标 Failed（防 T2 未自检 + T4 人工 grep 才发现的延后问题）
 9. 判定：7 项全通过 → T2.5 ✅ 派发 T4；任一失败 → T2.5 ❌ 不派发 T4
-   **v2.3.2 删「主人签字 Phase 1」（教训 #136）**：T2.5 是纯机械化闸门，主人签字只在 Phase 0（4 选 1 同意关卡）/ Phase 2.5（大纲确认）/ Phase 5（终稿）三节点；检索完成→T4 之间**不应**打断主人
+   **删「主人签字 Phase 1」（教训 #136）**：T2.5 是纯机械化闸门，主人签字只在 Phase 0（4 选 1 同意关卡）/ Phase 2.5（大纲确认）/ Phase 5（终稿）三节点；检索完成→T4 之间**不应**打断主人
 
 伪代码：
 data_card = 'final/证据包/数据卡.md'
@@ -696,7 +696,7 @@ trust_exist_ok = check_M_Exist_3(data_card, 'final/定稿.md')
 sha256_pending = emit_placeholder_sha256(data_card)  # v2.2.17：发占位符 [SHA256-PENDING:HOST-VERIFY]，**不**作为闸门强制项
 header_consistent = check_header_vs_actual_count(data_card)  # v2.2.10 新增
 all_pass = data_ok and trust_form_ok and trust_exist_ok and header_consistent  # v2.3.2 删 owner_signed（主人签字不在 T2.5 闸门，教训 #136）
-# v2.2.17 修复 F03 + F05：sha256 不是“必填门”，是“可选验证”（主人手动跑）
+# 修复 F03 + F05：sha256 不是“必填门”，是“可选验证”（主人手动跑）
 return (all_pass, fail_reasons, sha256_pending)
 ```
 
@@ -715,8 +715,8 @@ return (all_pass, fail_reasons, sha256_pending)
 6. 论文交付物 vs 操作员报告独立隔离：
    - final/定稿.md（论文）不含 audits/ / final/交付说明.md 内容
    - final/交付说明.md / audits/（报告）不混入 final/定稿.md
-7. **v2.3.3 删「主人签字 Phase 5」（教训 #138）**：T7.5 是纯机械化闸门（T7 审计 → T8 终检），主人签字在 Phase 5（T8 终检交付后主人验收），**不在** T7.5 闸门里；原「如有修订回环 ≤2 轮降级触发则主人读局限性.md」逻辑，改为 T8 终检交付时一并请主人验收（含局限性声明）
-8. **v2.2.4 修订轮流程约束**：检查本轮修订是否由独立写手子代理执行
+7. **删「主人签字 Phase 5」（教训 #138）**：T7.5 是纯机械化闸门（T7 审计 → T8 终检），主人签字在 Phase 5（T8 终检交付后主人验收），**不在** T7.5 闸门里；原「如有修订回环 ≤2 轮降级触发则主人读局限性.md」逻辑，改为 T8 终检交付时一并请主人验收（含局限性声明）
+8. **修订轮流程约束**：检查本轮修订是否由独立写手子代理执行
    - 证据：status.md 修订回环记录写明「spawn 独立写手 vN 执行」
    - 若发现主控代执行 → 打回修订轮，强制 spawn 独立写手
    - 例外：主控直接 edit 定点修复（<5 处纯校对类）不视为违反

@@ -39,7 +39,7 @@
 
 # 角色：分析员 Analyst（T4）
 
-> **v2.3.0 重构**：原 T3 → T4（流水线 Phase 顺序对齐）。教训 #275。
+> **重构**：原 T3 → T4（流水线 Phase 顺序对齐）。教训 #275。
 
 > **核心概念定义见** [`../_shared/glossary-core.md`](../_shared/glossary-core.md)
 

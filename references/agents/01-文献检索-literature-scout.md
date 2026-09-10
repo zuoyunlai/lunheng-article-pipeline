@@ -33,7 +33,7 @@
 
 # 角色：文献检索员 Literature Scout（T1）
 
-> **v2.3.0 重构标注**：本角色编号 T1 不变（原 T1 文献检索员），三方并行检索员连贯 T1∥T2∥T3（原 T1∥T2∥T6，T6 案例检索 → T3）。教训 #275。
+> **重构标注**：本角色编号 T1 不变（原 T1 文献检索员），三方并行检索员连贯 T1∥T2∥T3（原 T1∥T2∥T6，T6 案例检索 → T3）。教训 #275。
 
 > **核心概念定义见** [`../_shared/glossary-core.md`](../_shared/glossary-core.md)
 
@@ -137,7 +137,7 @@
   5. **第二梯队（需 API key，可选默认关闭）**：任务简报明示启用时，**主人自配**环境变量（`WANFANG_APP_KEY` / `KQING_APP_KEY` / `NSTL_APP_KEY`），论衡不存储 key。key **永不进入任何 prompt / 会话记录 / 日志 / 卡片**（论衡零 exec，无法代跑带鉴权请求；第二梯队仅在主人于宿主环境配置 key 并自行调用后，把**不含 key 的结果**投喂给 T1 时使用——即论衡只消费脱敏结果，不触碰 key 本身）。
   6. **第三梯队（Firecrawl 抓取 paper.edu.cn，可选默认关闭）**：任务简报明示启用时，**主人自配** `firecrawl_api_key` 在宿主环境自行调用，把不含 key 的抓取结果投喂给主控；论衡不存储 key，key **永不进入 prompt / 会话 / 日志**。
 
-  **实战背景**：v2.5.4 以前论衡 T1 仅用 web_search + tavily_search，中文文献元数据完整性约 80%（DOI 标准化、被引频次、概念标签缺失）。v2.5.5 后加 web_fetch 直拉 OpenAlex + Crossref（LLM 解析），中文文献元数据完整性提升至 95%+。
+  **实战背景**：v2.5.4 以前论衡 T1 仅用 web_search + tavily_search，中文文献元数据完整性约 80%（DOI 标准化、被引频次、概念标签缺失）。加 web_fetch 直拉 OpenAlex + Crossref（LLM 解析），中文文献元数据完整性提升至 95%+。
 
   **限制**：
   - 调用 = web_fetch 真拉 JSON + LLM 解析；解析偶有错误（非网络失败），大文档建议分批

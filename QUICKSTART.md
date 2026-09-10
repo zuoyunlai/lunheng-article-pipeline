@@ -256,7 +256,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.4  # 建议 pin
 
 ### Q3：论文可以被 ClawHub 安全扫描拒绝吗？
 
-**答：可能。** 论衡 v2.2.12 起所有 user-facing 警告已放文件顶部，Phase 0 同意关卡是金标准。详见 SKILL.md「外部服务与数据流声明」段。
+**答：可能。** 论衡的 user-facing 警告一律放在文件顶部，Phase 0 同意关卡是金标准。详见 SKILL.md「外部服务与数据流声明」段。
 
 ---
 

@@ -84,7 +84,7 @@
 
 ## 四、触发流程
 
-**v2.6.3 修订**：G14 只有两态：`enabled` 或 `disabled_by_owner`。Phase 0 选择 `disabled_by_owner` 后全项目不运行，并在 `final/交付说明.md` 披露；选择 `enabled` 时，每个进入 T7 的 `current_draft` 版本都必须运行并在报告头绑定 `draft_id` / `draft_version`。
+**修订**：G14 只有两态：`enabled` 或 `disabled_by_owner`。Phase 0 选择 `disabled_by_owner` 后全项目不运行，并在 `final/交付说明.md` 披露；选择 `enabled` 时，每个进入 T7 的 `current_draft` 版本都必须运行并在报告头绑定 `draft_id` / `draft_version`。
 
 **触发节点**：每个进入 T7 的稿件版本各触发一次；修订产生新版本时重新触发。T8 只核对报告是否存在和版本绑定，不重复运行。
 

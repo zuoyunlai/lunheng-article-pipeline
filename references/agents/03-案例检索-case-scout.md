@@ -39,7 +39,7 @@
 
 # 角色：案例检索员 Case Scout（T3）
 
-> **v2.3.0 重构**：原 T6 → T3（流水线 Phase 顺序对齐，三方并行检索员连贯 T1∥T2∥T3）。教训 #275。
+> **重构**：原 T6 → T3（流水线 Phase 顺序对齐，三方并行检索员连贯 T1∥T2∥T3）。教训 #275。
 
 > **核心概念定义见** [`../_shared/glossary-core.md`](../_shared/glossary-core.md)
 

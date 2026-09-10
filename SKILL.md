@@ -160,7 +160,7 @@ Phase 4 审计        T7 → audits/审计报告-vN.md（G0-G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.5 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（默认关闭；vendor 路由为宿主配置行为）
 Phase 4.5 审稿      T9 同行评审（= yaml t9_review 独立节点，在 T7.5 完整性门后、T8 终检前；行业/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject）
-Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（v2.5.0 多格式导出：默认 md，按需选 --format latex/docx/pdf；项目收尾归档按 [_shared/project-archive-sop.md](references/_shared/project-archive-sop.md)，主控出归档清单、主人手工执行（零 exec））
+Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（多格式导出：默认 md，按需选 --format latex/docx/pdf；项目收尾归档按 [_shared/project-archive-sop.md](references/_shared/project-archive-sop.md)，主控出归档清单、主人手工执行（零 exec））
 ```
 
 > **Phase 详细操作按需加载**：[`phase-1-details.md`](references/_shared/phase-1-details.md)（检索边界 / 强相关性 / 三角验证 / 数据信任 3 档）、[`phase-2-details.md`](references/_shared/phase-2-details.md)（退化场景）、[`phase-3-details.md`](references/_shared/phase-3-details.md)（写作铁律 10 项 + 洞察补充 + T6/G14 + 修订回环）。
@@ -281,4 +281,4 @@ T7 / T9 / G14 报告头部显式写 `修订回环 = N/2`；T8 终检按此表仲
 
 本技能以 **MIT License** 发布 — Copyright (c) 2026 左运来 (zuoyunlai)。
 
-完整文本见 [`LICENSE`](LICENSE)。允许商业使用、修改、分发，需保留版权声明。论衡 v2.5.2 起固化为双视图发布架构（本地真源 + ClawHub 净化包），受 MIT License 约束。
+完整文本见 [`LICENSE`](LICENSE)。允许商业使用、修改、分发，需保留版权声明。论衡采用双视图发布架构（本地真源 + ClawHub 净化包），受 MIT License 约束。
