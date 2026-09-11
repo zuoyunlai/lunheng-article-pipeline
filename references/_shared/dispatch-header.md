@@ -38,4 +38,6 @@
 > - `tool_error` / `protocol` = 工具调用错误，产物可能部分
 > - `status=incomplete` = 显式未完成
 
+> - **先别急着报 degraded：平台会先自动重试**（v2.12.27 补）——模型侧对 `429` / 过载等**临时故障自动恢复**（限流最多 **10 次**、其他瞬时故障 **8 次 / 90 秒窗口**，指数退避 + 抖动）；**只有平台已给出终态失败**时才报 `degraded`，否则会把平台本可吸收的抖动误报成降级。**计费失败 / 认证错误 / provider 拒答不进重试预算**（这类直接报）；「用量窗口耗尽」才直接走 auth-profile / 模型 fallback。
+> - **超时分层（v2.12.27 补）**：① `agent.wait` 默认 **30s**（只等、不终止运行）② **模型空闲看门狗**：云 **120s** / 自托管 **300s**（无响应分片即中止请求）③ provider HTTP 超时（`models.providers.<id>.timeoutSeconds`）④ 运行总预算（平台默认 48h）⑤ 本 skill 角色级硬卡（见 SKILL.md 硬卡阈值表）。**判因时先分清是哪一层** —— 「模型空闲中止」≠「子代理静默」，不要一律记成 spawn 失败。
 > **token 统计**：子代理 token 由**完成事件（completion event）末尾的 Stats line** 提供——精确值，固定含 `Token usage`（input/output/total）+ `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`，主控 `sessions_yield` 收到 completion event 时提取记入 status.md 4.7 表，取代 v2.5.18 三级降级。**Stats line 缺失 = 平台异常**：标「Stats line 缺失」告警，禁止估算/静默跳过。**sessions_spawn 返回值无 stats 字段**（教训 #256）。
