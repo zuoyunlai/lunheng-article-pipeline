@@ -9,6 +9,44 @@
 
 ---
 
+## [v2.12.17] — 2026-09-11
+
+> 本版回应 **v2.12.16 发版时实测到的两处发版链缺陷**：tag 被发版后的 changelog/index 补提交前移时，Release 标题的摘要**静默丢失**、退化为「论衡 <tag>」；以及 `--help` 会把 `set -euo pipefail` 当帮助文本打印。两者都属「不报错、只是变坏」的静默退化（同型：教训 #254 / #307），本版一并机械化修掉。
+
+### 一、缺陷 1：tag 前移 → 标题摘要丢失（v2.12.16 实际发生）
+
+`scripts/create-github-release.sh` 的标题铁律是「论衡 <tag> — <摘要>」，摘要取自 **tag 所指提交** 的 subject（约定 `release: <tag> — <摘要>`）。v2.12.16 的真实提交序列：
+
+| 提交 | subject |
+|---|---|
+| `3ed370d` | `release: v2.12.16 — 归档保留策略去删除指令（…）` |
+| `be9f0a5` | `changelog: 补 v2.12.16 章节（Release 正文单一真源）` |
+| `88f7f48` | `changelog+index: v2.12.16 补 #328（…）` ← **tag 落此** |
+
+发版后追加 changelog/index 补提交会把 tag 前移（为让 tag 树含章节正文），此时 `git log -1 --format=%s <tag>` 读到的是补提交 subject、不匹配发版约定 → 标题**静默退化**为「论衡 v2.12.16」，需人工 `gh release edit` 才恢复摘要。缺陷特征是「约定失效时不报错、只是变短」，不查不看都发现不了。
+
+### 二、缺陷 2：`--help` 打印 `set -euo pipefail`
+
+`usage()` 原为 `sed -n '3,30p' "$0"`——把 header 注释块**硬编码为第 3-30 行**。本次修改 header（新增回退说明）后行号漂移，第 30 行已越过注释块，`set -euo pipefail` 被当帮助文本打印。
+
+### 三、修法
+
+| # | 位置 | 修法 |
+|---|---|---|
+| 1 | `create-github-release.sh` 第 3 步 | 约定不匹配时**回退扫描 tag 可达 log**，取最近一条同 tag 的发版 subject 作摘要（不跨 tag，避免错摘上一版摘要）；命中即打印「📝 标题来源：回退命中：…」，仍无命中才退化并显式告警 |
+| 2 | 同上（取首行） | 用变量首行取法 `MATCHES%%$'\n'*`，**不用 `\| head -1`**：`set -o pipefail` 下 grep 先退会触发 SIGPIPE、管道整体非零，回退会**静默失效**——这正是本缺陷最隐蔽的一层 |
+| 3 | `usage()` | 改为按 header 注释块边界输出（`NR<3` 起、首个非 `#` 行前止），header 增删不再漂移 |
+| 4 | 脚本 header「② 标题」 | 同步写清回退语义（含 v2.12.16 实例），避免下一次仍靠人记 |
+
+### 四、验收
+
+- `bash scripts/create-github-release.sh --help` 输出以 header 注释开头、**不含** `set -euo pipefail`
+- 对已前移的 tag `v2.12.16` 跑 `--dry-run`：日志为「回退命中：…」，标题含「— 归档保留策略去删除指令（ClawHub 2.12.15 扫描唯一残留）」（修复前退化为「论衡 v2.12.16」）
+- 自审门 **21 PASS / 0 FAIL**；`check-version.sh` v2.12.17 全一致；`changelog-check.py --check` 通过
+- 本版 Release 正文 = 本节逐字（`create-github-release.sh --check` 退出 0）
+
+---
+
 ## [v2.12.16] — 2026-09-11
 
 > 本版回应 **v2.12.15 发布后的平台扫描回读**（扫描对象＝已发布 v2.12.15）。T05 削面生效：clawscan 的 findings 与 summary 中「宿主未加固」归因**完全消失**，`static-analysis` clean。但 summary 指向一条**真缺陷**——某 template 指示删除旧稿，与包内「agent 不执行删除」承诺冲突。本版修掉它。

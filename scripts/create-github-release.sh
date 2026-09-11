@@ -10,8 +10,10 @@
 #
 # 本脚本把「建 Release」变成一条命令，并把三条铁律机械化：
 #   ① 正文单一真源 = CHANGELOG.md 对应章节（逐字提取，非人工粘贴，不产生第二份真相）
-#   ② 标题单一格式 = 「论衡 <tag> — <摘要>」，摘要取自该 tag 的 commit subject
-#      （发版提交约定 `release: <tag> — <摘要>`，取破折号之后部分）
+#   ② 标题单一格式 = 「论衡 <tag> — <摘要>」，摘要取自 tag 所指提交的 subject（约定
+#      `release: <tag> — <摘要>`，取破折号之后部分）；若 tag 已被发版后的 changelog/index
+#      补提交前移（v2.12.16 实际发生，摘要丢失需手工 gh release edit），回退取 tag 可达
+#      历史中最近一条同 tag 的发版 subject；仍无命中才退化为「论衡 <tag>」并在日志提示
 #   ③ 已存在则 edit 同步（修复正文/标题漂移），不新建、不覆盖历史
 #
 # 用法：
@@ -39,7 +41,8 @@ DISPATCH=true
 TAG=""
 
 usage() {
-  sed -n '3,30p' "$0" | sed 's/^# \{0,1\}//'
+  # 打印第 3 行起、到 header 注释块末尾（首个非 # 行前）——不硬编码行号，header 增删不漂移
+  awk 'NR < 3 { next } /^#/ { sub(/^# /, ""); sub(/^#/, ""); print; next } { exit }' "$0"
 }
 
 while [ $# -gt 0 ]; do
@@ -84,19 +87,41 @@ if ! git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; t
 fi
 
 # ---- 3. 标题：commit subject 约定 `release: <tag> — <摘要>` ----
+# 摘要在 tag 可达历史里就近取：发版后追加的 changelog/index 补提交会把 tag 前移，
+# 直接读 tag 提交的 subject 会静默退化成「论衡 <tag>」。v2.12.16 实际发生过——tag 从
+# `release: v2.12.16 — 归档保留策略去删除指令（…）` 移到 `changelog: 补 v2.12.16 章节`，
+# 摘要丢失，需手工 `gh release edit` 才恢复。故约定不匹配时回退扫描 tag 可达 log。
+RELEASE_RE="^release:[[:space:]]*${TAG}[[:space:]]*—[[:space:]]*(.+)$"
 SUBJECT="$(git log -1 --format=%s "$TAG" 2>/dev/null || true)"
-TITLE=""
-if printf '%s' "$SUBJECT" | grep -qE "^release:[[:space:]]*${TAG}[[:space:]]*—[[:space:]]*(.+)$"; then
+SUMMARY=""
+SOURCE=""
+if printf '%s' "$SUBJECT" | grep -qE "$RELEASE_RE"; then
   SUMMARY="$(printf '%s' "$SUBJECT" | sed -E "s/^release:[[:space:]]*${TAG}[[:space:]]*—[[:space:]]*//")"
+  SOURCE="$TAG 的 commit subject（release: <tag> — <摘要>）"
+else
+  # 回退：取 tag 可达历史中最近一条同 tag 的发版 subject（不跨 tag，避免错摘上一版摘要）。
+  # 不用 `| head -1`：pipefail 下 grep 先退会被 SIGPIPE 打断、管道整体非零，回退静默失效。
+  MATCHES="$(git log --format=%s "$TAG" 2>/dev/null | grep -E "$RELEASE_RE" || true)"
+  if [ -n "$MATCHES" ]; then
+    FIRST_MATCH="${MATCHES%%$'\n'*}"
+    SUMMARY="$(printf '%s' "$FIRST_MATCH" | sed -E "s/^release:[[:space:]]*${TAG}[[:space:]]*—[[:space:]]*//")"
+    SOURCE="回退命中：$TAG 可达历史中最近一条 release 提交（$FIRST_MATCH）"
+  fi
+fi
+
+TITLE=""
+if [ -n "$SUMMARY" ]; then
   TITLE="论衡 $TAG — $SUMMARY"
-  echo "📝 标题来源：$TAG 的 commit subject（release: <tag> — <摘要>）"
-elif printf '%s' "$SUBJECT" | grep -qE "^release:[[:space:]]*${TAG}[[:space:]]*$"; then
-  TITLE="论衡 $TAG"
-  echo "⚠️  commit subject 无「— <摘要>」部分，标题退化为「论衡 $TAG」"
+  echo "📝 标题来源：$SOURCE"
 else
   TITLE="论衡 $TAG"
-  echo "⚠️  $TAG 的 commit subject 未用发版约定：$SUBJECT"
-  echo "    → 标题退化为「论衡 $TAG」（建议发版提交写成：release: $TAG — <摘要>）"
+  if printf '%s' "$SUBJECT" | grep -qE "^release:[[:space:]]*${TAG}[[:space:]]*$"; then
+    echo "⚠️  commit subject 无「— <摘要>」部分且 $TAG 可达历史无更近的 release 提交，标题退化为「论衡 $TAG」"
+  else
+    echo "⚠️  $TAG 的 commit subject 未用发版约定：$SUBJECT"
+    echo "    → 且 $TAG 可达历史中无 ^release: $TAG — <摘要> 形式的提交，标题退化为「论衡 $TAG」"
+    echo "    （建议发版提交写成：release: $TAG — <摘要>）"
+  fi
 fi
 echo "📌 标题：$TITLE"
 
