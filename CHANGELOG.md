@@ -9,6 +9,61 @@
 
 ---
 
+## [v2.12.18] — 2026-09-11
+
+> 本版回应 **skillspector 对 v2.12.15 的 17 条 issue**：平台 clawscan 判 clean/benign，但 skillspector 报 suspicious / score 82 / severity CRITICAL。逐条复核后，12 条为检测器覆盖与策略类假阳性，**5 条为真实内部矛盾**（SDI），本版一次性收口。随动补 **教训 #329**：扫描报告的「中间态」不可当结论。
+
+### 一、背景：扫描报告须两次取证
+
+v2.12.16 回读时我读到的是一份**尚未写完的中间态报告**（`manifest.completedAt` 09:56:47，而我 09:42 读取）：`clawscan` 仅 5 字段、`skillspector`/`virustotal` 均为 `null`（5 字节）。平台随后补全，终态为：
+
+| 层 | 结果 |
+|---|---|
+| clawscan（LLM 审查） | clean / benign / high |
+| static-analysis | clean（0 findings） |
+| virustotal | clean（0 malicious / 0 suspicious / 64 undetected） |
+| skillspector | **suspicious · score 82 · severity CRITICAL · 17 issues** |
+
+⇒ 该中间态下的结论已全部回收；教训 #329 固化「结论前先读 manifest 完成时间 + 字段完整性断言」。
+
+### 二、17 条拆解
+
+**假阳性 / 策略类 12 条**（clawscan 均标 `expected`）：AE1×1（引用文件未完整检视＝分析器覆盖局限）、AE4×2（中英混排＝正常中文文档）、E1×2（OpenAlex / Crossref 文档示例）SQP-3×7（默认中文输出＝中文长文技能设计）。
+
+**真实内部矛盾 5 条**：
+
+| # | 文件 | 矛盾 |
+|---|---|---|
+| 1 | `references/agents/08-终检-final-inspector.md` | 声明「T8 不是子代理、不 spawn」⟷ 修复逻辑指示「spawn T5」 |
+| 2 | `references/gates/14-中文AI痕迹-gate.md` | 「默认不等主人」⟷ 「默认 = 暂停等待，无默认选项」 |
+| 3 | `references/pipeline-readme.md` | Phase 5 导出「跑 pandoc + rsvg-convert」⟷ 零 exec |
+| 4 | `references/templates/status-template.md` | 「归档全由主人手动」⟷ 「T8 自动归档」 |
+| 5 | `references/pipeline-readme.md` | 同行自称「不读不写宿主配置」+ 把 gateway 改 `openclaw.json` 写成路径 |
+
+### 三、修法
+
+| # | 修法 |
+|---|---|
+| 1 | 新增「spawn 边界」澄清段：**T8 核验阶段不 spawn**（核验亲为）；失败项修订由**主控退出 T8 模式后**派发 T5——两处表述都加阶段限定 |
+| 2 | 括注改为「不默认自动继续」（原「默认不等主人」与下一行「默认=暂停等待」自相矛盾） |
+| 3 | 补「**由主人手动跑** pandoc + rsvg-convert（论衡零 exec，agent 不执行任何导出命令）」 |
+| 4 | 术语消歧：方法论足迹改称「**留档（快照副本，非移动、非删除）**」，与 §5.8 工作流外的「结题归档」显式区分 |
+| 5 | 宿主配置行改为「**主人本人**…；论衡 agent 不读、不写、不修改宿主配置，**也不发起或参与此操作**（工具名仅说明主人自助路径，非 agent 可用动作）」 |
+
+### 四、验收
+
+- 5 类语义**全仓反向断言** = 0 残留（真源侧）
+- 自审门 **21 PASS / 0 FAIL**；`check-version.sh` v2.12.18 全一致
+- `quick_validate.py` → `Skill is valid!`；净化包生成零删除/审计类残留
+- 本版 Release 正文 = 本节逐字（`create-github-release.sh --check` 退出 0）
+
+### 五、随动
+
+- **教训 #329**：扫描报告的「中间态」不可当结论（结论前读 `manifest.completedAt/updatedAt` + 字段完整性断言；`null` 与 5 字节一律判「未完成」）→ 主工作区 `memory/lessons.md`；`教训索引.md` 最大编号 #328 → #329
+- 本版为 **v2.12.16 / v2.12.17 / v2.12.18 三版合并的 ClawHub 发布对象**（前两版仅发 GitHub、未发 ClawHub）
+
+---
+
 ## [v2.12.17] — 2026-09-11
 
 > 本版回应 **v2.12.16 发版时实测到的两处发版链缺陷**：tag 被发版后的 changelog/index 补提交前移时，Release 标题的摘要**静默丢失**、退化为「论衡 <tag>」；以及 `--help` 会把 `set -euo pipefail` 当帮助文本打印。两者都属「不报错、只是变坏」的静默退化（同型：教训 #254 / #307），本版一并机械化修掉。
