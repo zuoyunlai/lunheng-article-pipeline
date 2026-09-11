@@ -36,12 +36,12 @@
 | # | 类别 | 工具 / 服务 | 默认状态 | 离开本机的数据 |
 |---|------|-------------|---------|--------------|
 | ① | 检索（默认层）| `web_search` / `tavily_search` / `web_fetch` / `tavily_extract` | **默认启用**（Phase 0 告知并可拒绝）| 检索关键词 + 目标 URL |
-| ② | 学术元数据（可选层）| OpenAlex / Crossref | **随「启用中文数据源集成」勾选后才用**（只读公开 API，无需 Key）| 仅检索关键词（不发送个人信息/机密数据）|
+| ② | 学术元数据（**默认层**）| OpenAlex / Crossref | **默认启用**（Phase 0 告知并可拒绝；只读公开 API，无需 Key）| 仅检索关键词（不发送个人信息/机密数据）|
 | ③ | 封面（opt-in）| `image_generate` | **默认关闭** | 图像 prompt（见上条）|
-| ④ | 二三线中文源 / 抓取 | 万方 / 科情 / NSTL / Firecrawl | **默认关闭** | 视所启用服务而定；凭据须在宿主环境外部配置 |
+| ④ | 抓取层（可选）| Firecrawl（paper.edu.cn） | **默认关闭** | 视所启用服务而定；凭据须在宿主环境外部配置 |
 | ⑤ | 记忆辅助（opt-in）| `memory_get` / `memory_search` / `memory_recall` | **默认关闭** | 访问本地记忆库（无 LLM vendor 外发）|
 
-不调 Firecrawl、不调万方 / 科情 / NSTL API（除非主人 Phase 0 显式勾选启用）。详见 [`references/_shared/中文数据源集成.md`](中文数据源集成.md)。
+不调 Firecrawl（除非主人 Phase 0 显式勾选启用）。**原第二梯队（万方 / 科情 / NSTL）已于本修订取消**（需 API key + 申请/付费/机构门槛，长期未被使用）。详见 [`references/_shared/中文数据源集成.md`](中文数据源集成.md)。
 
 **🔒 不读取宿主网关配置（精确口径）**：论衡运行**不调用** `gateway` / `config` / 任何宿主配置读取工具，**不读取** `~/.openclaw/openclaw.json` 等宿主配置文件——主控 documented 工具集无 gateway / config / agents_list / cron / message 类工具。宿主可单独配置 gateway 限权访问，与论衡运行无关。**无例外**（v2.12.13 起删除原「spawn 前加固核对」例外：论衡在任何阶段都不读宿主配置）。
 
