@@ -10,7 +10,7 @@
 
   --check    离线校验（默认）：每个版本 tag 在 CHANGELOG.md 有对应章节；当前版本已记录
   --online   追加在线校验：每个版本 tag 在 GitHub 有对应 Release（需 gh CLI 已登录）
-  --fill     从 GitHub Releases 回填 CHANGELOG.md 缺失章节（逐字保留 Release 正文）
+  --fill     从 GitHub Releases 回填 CHANGELOG.md 缺失章节（逐字保留 Release 正文；幂等，可安全重跑）
   --report   列出 Release 正文过短的章节（篇幅不均匀，供人工判断是否重写）
 
 调用：python3 scripts/changelog-check.py [--check|--online|--fill|--report]
@@ -192,6 +192,36 @@ def cmd_check(online):
     return fail
 
 
+def strip_section_separator(section):
+    """剥掉章节尾部的 `---` 分隔行及其周围空行（--fill 幂等的关键）。
+
+    `split_changelog()` 按 `^## [` 切章节，章节文本**天然包含紧跟其后的分隔行**
+    （它落在本条章节与下一条 `## [` 之间）。若把它原样写回、又在后面补一条 `---`，
+    则每次 --fill 都为每个章节累积一条分隔行——v2.12.17 实测：142 章节的提交态
+    184 行 `---` → 跑一次 326 → 再跑 468（每次净增「章节数」行），既掩盖真实变更，
+    也让 --fill 无法安全重跑（教训 #330）。故写回前先归一化尾部，分隔行由 cmd_fill 统一补。
+
+    注意：`---` 之间有空行，故**不能**用相邻行重复判断，只能按行尾逐个剥离。
+    """
+    lines = section.splitlines()
+    while lines and lines[-1].strip() in ("", "---"):
+        lines.pop()
+    return "\n".join(lines)
+
+
+def render_changelog(header, sections):
+    """把 (头部块, {版本: 章节文本}) 渲染成 CHANGELOG 全文（纯函数，便于回归测试）。
+
+    幂等约束：输出里每个版本章节恰好带一条 `---` 分隔行——章节自带的尾部 `---`
+    先由 strip_section_separator 剥掉，再由本函数统一补写，故 render(render(x)) == render(x)。
+    """
+    ordered = sorted(sections, key=version_key, reverse=True)
+    out = [header.rstrip("\n"), ""]
+    for v in ordered:
+        out += [strip_section_separator(sections[v]), "", "---", ""]
+    return "\n".join(out).rstrip("\n") + "\n"
+
+
 def cmd_fill():
     releases = fetch_releases()
     released = {r["tag_name"]: r for r in releases}
@@ -210,11 +240,7 @@ def cmd_fill():
                 closed.append(tag)
 
     # 非版本 tag 的 Release（如 full-repo-consistency-audit-…）不进 CHANGELOG
-    ordered = sorted(known, key=version_key, reverse=True)
-    out = [header.rstrip("\n"), ""]
-    for v in ordered:
-        out += [known[v].rstrip("\n"), "", "---", ""]
-    CHANGELOG.write_text("\n".join(out).rstrip("\n") + "\n", encoding="utf-8")
+    CHANGELOG.write_text(render_changelog(header, known), encoding="utf-8")
 
     if added:
         print(f"✅ 回填 {len(added)} 个章节：{', '.join(sorted(added, key=version_key))}")
@@ -223,7 +249,7 @@ def cmd_fill():
     if closed:
         print(f"⚠️  {len(closed)} 个章节的 Release 正文围栏未闭合，已在本文件补齐闭合围栏："
               f"{', '.join(sorted(closed, key=version_key))}")
-    print(f"   共 {len(ordered)} 个版本章节 → {CHANGELOG.relative_to(SKILL_ROOT)}")
+    print(f"   共 {len(known)} 个版本章节 → {CHANGELOG.relative_to(SKILL_ROOT)}")
     return 0
 
 

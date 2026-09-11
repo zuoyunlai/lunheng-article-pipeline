@@ -2,7 +2,7 @@
 # 这是流程顺序与阻断关系的唯一真源；运行时由主控使用 read/write/edit 执行。
 # agent 报告节点含 output_chars_max（报告回传长度硬上限；超限走分块协议，见 执行韧化协议-design.md § 报告长度上限与分块协议）
 # 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_g14；Phase 4.2 = audit_revision；Phase 4.5 = t9_review
-version: 2.12.18
+version: 2.12.19
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline
