@@ -24,14 +24,13 @@
 - 问题 A
 - 问题 B
 
-## 5. token 消耗（由主控记录）
-- 说明：token 消耗由**主控**在 `sessions_yield` 收到本子代理 completion event 时，从事件末尾 Stats line 提取 `Token usage`（input/output/total）记录，**子代理无需也回传不了自己的 token**（sessions_spawn 返回值无 stats 字段，教训 #256）
-
-## 6. 下一步
+## 5. 下一步
 - 阶段 X 的预期任务
 
 ## 6. 状态机更新（status.md 对应行）
+（由主控代写）
 
+## 7. AI 使用披露（T5 写手 + T8 主控必填）
 - 本文由论衡 AI 写作流水线生成
 - 核心论点：主人原创洞察（任务简报第 X 行）
 - 检索证据：全部真实（[Lxx]/[Dxx]/[Cxx] 编号可追溯）
@@ -40,5 +39,7 @@
 ---
 
 **精简版结束**
+
+> **token 消耗不属子代理回报段**：由**主控**在收到本子代理 completion event 时，从事件末尾 Stats line 提取 `Token usage`（input/output/total）记录（`sessions_spawn` 返回值无 stats 字段，教训 #256）。
 
 > 完整版（含文末四节完整性自检）见 [`交接报告-template.md`](交接报告-template.md)

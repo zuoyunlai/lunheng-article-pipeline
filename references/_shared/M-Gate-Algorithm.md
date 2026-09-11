@@ -258,7 +258,7 @@ draft_text = read("final/定稿.md")
 # 元数据泄露检查词
 metadata_leaks = [
     "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8",
-    "交接报告", "六要素", "论衡主控", "子代理", "反哺报告", "角色卡"
+    "交接报告", "七段", "论衡主控", "子代理", "反哺报告", "角色卡"
 ]
 
 found = [word for word in metadata_leaks if word in draft_text]
