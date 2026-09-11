@@ -5,7 +5,7 @@ metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 从顶层迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName
     # （“Unexpected key(s)”）；metadata 为官方允许键，其下未知子键被忽略。读版本的所有脚本已同步支持缩进写法。
-    version: 2.12.24
+    version: 2.12.25
     requires:
       bins: []
   tools:
