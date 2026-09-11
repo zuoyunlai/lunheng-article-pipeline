@@ -9,6 +9,47 @@
 
 ---
 
+## [v2.12.16] — 2026-09-11
+
+> 本版回应 **v2.12.15 发布后的平台扫描回读**（扫描对象＝已发布 v2.12.15）。T05 削面生效：clawscan 的 findings 与 summary 中「宿主未加固」归因**完全消失**，`static-analysis` clean。但 summary 指向一条**真缺陷**——某 template 指示删除旧稿，与包内「agent 不执行删除」承诺冲突。本版修掉它。
+
+### 一、扫描回读结论（v2.12.15）
+
+| 层 | v2.12.13 | v2.12.15 | 判断 |
+|---|---|---|---|
+| clawscan verdict | `suspicious`（confidence high）| `suspicious`（confidence high）| verdict 未变 |
+| clawscan **T05「宿主未加固」** | `[T05] unexpected`（findings + summary 均点名）| **完全消失** | ✅ 削面生效 |
+| clawscan summary 主题 | 「默认多 Agent 可能让 worker 继承宿主特权工具」 | 「某 template 指示删除旧稿」 | 归因已换 |
+| static-analysis | clean | clean | — |
+| skillspector / virustotal | 有产物（issueCount 15） | **报告内为 `null`**（引擎未回写） | ⚠️ 该层无法对照 |
+
+> ⚠️ **字段缺失 ≠ 检测通过**：v2.12.15 的 clawscan 报告只剩 `checkedAt / confidence / status / summary / verdict` 五个字段，`dimensions` / `findings` / `guidance` 全部缺失（v2.12.13 三者齐备）。故本版只能做「summary 语义 + static-analysis」两层对照，**不能**逐条比 findings——已在结论中如实标注该不确定性。
+
+### 二、修掉的唯一真缺陷：归档保留策略的「删除指令」
+
+扫描 summary 原文：*one template can direct deletion of older drafts despite the package's no-deletion guarantee*。
+
+该缺陷**在 v2.12.13 即存在**（当时为 `instruction_scope: note`），v2.12.15 修错了文件——改的是 `project-archive-sop.md`（该文其实一直是自洽的），真凶在：
+
+| 位置 | 原文 | 修法 |
+|---|---|---|
+| `references/templates/任务简报-template.md` | 「主控 Phase 5 终检时按策略清理（**删除** v{N-2} 及更早）」「**删除**中间态」 | 改「**建议保留** … 主控按策略**产出待清理清单**」；新增一句「清理动作不由 agent 执行」 |
+| `references/agents/00-主控-扩展职责.md` §二十五 | 标题「Archive **清理**策略」；表头「处理」列写「删除 …」 | 标题改「Archive **保留建议清单**」；表头拆「建议保留 / **建议清理（主人执行）**」；SOP 第 4 步改「agent 在任何阶段都不执行删除 …… 由主人在 host shell 手动执行」 |
+
+- 真源侧「删除 v{N-2}」「删除中间态」「按策略清理」残留实测 **0**
+- 与 `status-template.md`「论衡工作流本身不执行任何 cleanup」承诺**全库对齐**
+
+### 三、随动修正与教训沉淀
+
+- **教训索引最大编号 #319 → #327**，新增 **#326**（脚本「成功退出」≠「按请求执行」：`sync-version.sh` 不吃版本参数、真源是 SKILL.md frontmatter，传参被静默忽略 ⇒ 差点发出错标包）、**#327**（替换式净化规则只能抹「字面写法」、抹不掉「同一个概念」）。门 H 反向差集（索引声明 vs 主真源含「论衡」标题的最大编号）随动通过
+- **build 剥离规则 3h-7b 目标跟改标题**（`Archive 清理策略` → `Archive 保留建议清单`）：真源改标题后原 re-search 目标失配，规则自检报「规则已死亡」——按规则自身修法**改目标**而非标 `allow_empty`（内容仍在，只是换了名）
+
+### 四、验收
+
+自审门 **21 PASS / 0 FAIL** · pytest **48 passed** · `quick_validate`「Skill is valid!」 · `check-version` v2.12.16 全一致 · 净化包 **81 文件**（删除指令类 6 项 + 历史 9 类残留**实测全 0**）· 剥离规则自检 **27 条全过**（生效 17 / allow_empty 10）。
+
+---
+
 ## [v2.12.15] — 2026-09-11
 
 > 本版回应 **ClawHub 平台安全扫描的残余项**（扫描对象＝已发布 v2.12.13）。扫描实测：clawscan `unexpected` **4 → 1**、skillspector **21 → 15 条**、最高严重度 **HIGH → MEDIUM**、`static-analysis` clean——v2.12.13 的整改生效。剩余 16 条按三类处理：**A 类真缺陷 7 项修掉**、**B 类 8 项明确不改**、**T05 温和削面**。
