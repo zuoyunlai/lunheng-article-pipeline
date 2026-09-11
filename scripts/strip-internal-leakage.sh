@@ -167,7 +167,13 @@ for line in lines:
                             else '', line)
     # 形态 6c: 方括号清理后只剩日期/编号元数据（如 `[xxx · 2026-08-13 ]`），整段删除
     line = re.sub(r'\[[^\]]*?\d{4}-\d{2}-\d{2}[^\]]*?\]', '', line)
-    line = re.sub(r'\[\s*[·・，,]?\s*\]', '', line)
+    # v2.12.23（教训 #335 同族）：YAML 值位置的空数组 `key: []` 是**有效结构**（空集合），
+    #   不是「清理残迹」——本规则会把它删成 `key:`（null）。实测受害者：
+    #   `metadata.openclaw.requires.bins: []` → `bins:`。故对「纯 `key: []` 行」豁免。
+    #   注：单跑本脚本用「文件」当参数是空转（它只接目录），排查时必须让它在目录上跑，
+    #   否则会得出「本脚本无问题」的错误结论（本次就为此绕了一圈）。
+    if not re.match(r'^\s*[A-Za-z_.-]+:\s*\[\s*\]\s*$', line):
+        line = re.sub(r'\[\s*[·・，,]?\s*\]', '', line)
 
     # 形态 7: 裸 #N 编号（教训引用上下文中）
     line = re.sub(r'漏检 #\d+(?:\.\d+)?', '漏检若干教训', line)
@@ -223,9 +229,18 @@ for line in lines:
     line = re.sub(r'[，,；;]+\s*。', '。', line)
     line = re.sub(r'^[ \t]*[。，,；;]+\s*$', '', line)
     line = re.sub(r'\[\s+]', '[]', line)  # 空方括号里的多余空格
-    line = re.sub(r'\[\s*\]', '', line)   # 完全空的方括号
+    # v2.12.23（教训 #335 同族）：YAML 值位置的空数组 `key: []` 是**有效结构**（含义＝空集合），
+    #   不是「清理残迹」——旧规则一律删除，把 `metadata.openclaw.requires.bins: []` 变成
+    #   `bins:`（null）。故对「纯 `key: []` 行」豁免。
+    if not re.match(r'^\s*[A-Za-z_.-]+:\s*\[\s*\]\s*$', line):
+        line = re.sub(r'\[\s*\]', '', line)   # 完全空的方括号
     line = re.sub(r'。。+', '。', line)   # 双重句号
-    line = re.sub(r'  +', ' ', line)
+    # v2.12.23（教训 #335）：只塌缩**句中**的连续空格，保留行首缩进。
+    #   旧实现 `re.sub(r'  +', ' ', line)` 不区分行首缩进与句中空格，把 frontmatter 的
+    #   2/4/6 层缩进一律压成 1 个空格 → YAML 层级被摧毁（metadata.openclaw 变 null，
+    #   version/requires/tools 全被拉成 metadata 的直接子项）。
+    #   代码围栏内的内容被掩码保护所以幸免——差异只在「在不在围栏里」。
+    line = re.sub(r'(?<=\S)  +', ' ', line)
 
     # ===== 阶段 7b: 剥离副作用收口（教训 #298）=====
     # 7b-1 加粗标记后被剥出空格：`> ** 根因**：` → `> **根因**：`

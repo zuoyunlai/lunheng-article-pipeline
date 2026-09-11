@@ -10,6 +10,53 @@
 
 ---
 
+## [v2.12.23] — 2026-09-11
+
+> 本版修掉 **v2.12.22 包审时查出的两处包形态缺陷**（均为 **长期既有**，≥ v2.12.9 就在，与 v2.12.19–22 无关），并把 **#333 的构建侧根治**补上（排除清单 + 反向断言）。
+
+### 一、包内 `SKILL.md` frontmatter 层级被摧毁（最严重）
+
+净化链阶段 7 的空白收口规则 `re.sub(r'  +', ' ', line)` **不区分「行首缩进」与「句中空格」**，把 frontmatter 的 2/4/6 层缩进一律压成 1 个空格：
+
+| 位置 | 真源 | 修复前包内 |
+|---|---|---|
+| `metadata:` 下 | 2 空格 `openclaw:` | 1 空格 |
+| `openclaw:` 下 | 4 空格 `version:` / `requires:` | 1 空格 |
+| `requires:` 下 | 6 空格 `bins:` | 1 空格 |
+
+后果（YAML 解析实测）：`metadata.openclaw` = **null**，`version` / `requires` / `tools` / `base` / `denied` 全被拉成 `metadata` 的**直接子项**——声明的工具策略在包形态下已不是机器可读结构。
+
+**为何潜伏至今**：同一文件里代码围栏内的缩进（如 `M-Gate-Algorithm.md` 的 python 4 空格）**完好**——围栏内容被掩码保护。差异只在「在不在围栏里」，而破坏只是「缩进少一格」，**纯文本 diff 完全看不出**；官方校验器至终仍报 `Skill is valid!`。
+
+**修法**：前瞻锚定只塌缩句中空格 `re.sub(r'(?<=\S)  +', ' ', line)`。
+
+### 二、两条断链（全包 266 条相对链接中的 2 条）
+
+| 文件 | 错误 | 修法 |
+|---|---|---|
+| `references/permissions.md` | 自指链接 `[references/permissions.md](references/permissions.md)`（本文件内再写 `references/` 前缀） | 该文即「完整版」，改为无链接的陈述 |
+| `references/_shared/glossary-full.md` | `[project-archive-sop.md](references/_shared/project-archive-sop.md)`（同目录文件多写了前缀） | 改为 `](project-archive-sop.md)` |
+
+### 三、#333 构建侧根治
+
+| # | 改动 |
+|---|---|
+| 1 | rsync 排除清单补 `memory` / `AGENTS.md` / `SOUL.md` / `USER.md` / `IDENTITY.md`；并新增与分支无关的统一 `rm -rf` 清理（覆盖 `cp -a` 回退路径） |
+| 2 | 新增**反向断言**：包内每个文件必须可追溯到 `git ls-files`；出现未跟踪残留即 `exit 1`（只比文件数看不出泄漏——81 在泄漏时同样「正常」） |
+
+### 四、验收
+
+- frontmatter：包内 `yaml.safe_load` 后 `metadata.openclaw.version == 2.12.23`（层级恢复，实测）
+- 断链：包内相对链接 **0 断链**（修复前 2）
+- 泄漏：包内无 `memory/` / 四个工作区人格文件；反向断言通过
+- 自审门 **21 PASS / 0 FAIL**（门 H 联动 `#335`）；`check-version.sh` v2.12.23 全一致；`pytest` 全绿
+
+### 五、随动
+
+- **教训 #335**：净化链的「连续空格塌缩」不区分行首缩进 → 包内 YAML frontmatter 层级被整体摧毁；`教训索引.md` 最大编号声明 #334 → #335
+
+---
+
 ## [v2.12.22] — 2026-09-11
 
 > 本版修一个**闸门自锁**：发版前置闸的 ②「编号占用」与 `create-github-release.sh` 的「tag 必须先存在」互斥，导致**正常发版路径必然被自己的闸拦死**，只剩 `--skip-preflight` 能走通。教训 #334。

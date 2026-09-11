@@ -96,6 +96,11 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude '__pycache__' \
     --exclude '*.pyc' \
     --exclude 'RELEASE-*.md' \
+    --exclude 'memory' \
+    --exclude 'AGENTS.md' \
+    --exclude 'SOUL.md' \
+    --exclude 'USER.md' \
+    --exclude 'IDENTITY.md' \
     "$SKILL_ROOT/" "$OUT_DIR/"
 else
   cp -a "$SKILL_ROOT/." "$OUT_DIR/"
@@ -124,6 +129,37 @@ else
   for f in "${DEV_TOOL_FILES[@]}"; do
     rm -f "$OUT_DIR/$f"
   done
+fi
+
+# ---- 2a. 工作区私有文件剔除（v2.12.23，教训 #333）----
+# 背景：净化包排除清单是「白名单式逐项列举」，新增任何非内容目录/文件都默认**入包**。
+#   实测 2026-09-11：子链把记忆按 cwd 相对路径写成 `仓库/memory/`，另有 4 个工作区人格文件
+#   （AGENTS.md / SOUL.md / USER.md / IDENTITY.md）落入仓库根 → 干净克隆构建 81 文件、
+#   实盘树直接构建就多打包 → 主控侧运维笔记与人格文件直接上架。
+#   本步与上面的 --exclude 双保险（rsync 分支走 --exclude，cp -a 分支靠本步）。
+rm -rf "$OUT_DIR/memory" "$OUT_DIR/AGENTS.md" "$OUT_DIR/SOUL.md" "$OUT_DIR/USER.md" "$OUT_DIR/IDENTITY.md"
+
+# ---- 2a'. 反向断言（v2.12.23，教训 #333）：包内文件必须全部可追溯到 git 跟踪文件 ----
+# 只比文件数（81）看不出问题——81 这个数字在泄漏时同样「正常」。故用集合差集 fail-closed：
+# 任何「在包内但未被 git 跟踪」的文件 = 未跟踪残留入包，立即停构建。
+if git -C "$SKILL_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+  _PF_TRACKED="$(mktemp -t lunheng-tracked.XXXXXX)"
+  _PF_PKG="$(mktemp -t lunheng-pkg.XXXXXX)"
+  # 注：必须用 `-z` 取原样路径——git 默认 core.quotePath=true 会把非 ASCII 路径转义
+  #（「主控」→「\344\270\273」），与 find 的原始路径对不上 → 中文名文件全被误判「未跟踪」
+  #（本断言首版实测踩过：69 个中文名文件假阳性）。
+  git -C "$SKILL_ROOT" ls-files -z | tr '\0' '\n' | LC_ALL=C sort > "$_PF_TRACKED"
+  ( cd "$OUT_DIR" && find . -type f | sed 's|^\./||' ) | LC_ALL=C sort > "$_PF_PKG"
+  _PF_UNTRACKED="$(LC_ALL=C comm -13 "$_PF_TRACKED" "$_PF_PKG" || true)"
+  rm -f "$_PF_TRACKED" "$_PF_PKG"
+  if [[ -n "$_PF_UNTRACKED" ]]; then
+    echo "❌ 净化包含有**未跟踪文件**（教训 #333：未跟踪残留默认入包）——" >&2
+    printf '%s\n' "$_PF_UNTRACKED" | sed 's/^/   - /' >&2
+    echo "   修法：把该文件移出仓库 / 加进 .gitignore / 在排除清单里显式 --exclude。" >&2
+    echo "   注意：版本号/构建产物目录不应出现此错；出现即说明有非技能内容混进了仓库树。" >&2
+    exit 1
+  fi
+  echo "✅ 反向断言通过：包内文件全部可追溯到 git 跟踪文件"
 fi
 
 # ---- 2b. 净化包禁入清单守卫（P2「changelog 完整化」新增）----
