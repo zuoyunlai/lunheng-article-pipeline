@@ -5,7 +5,7 @@ metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 从顶层迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName
     # （“Unexpected key(s)”）；metadata 为官方允许键，其下未知子键被忽略。读版本的所有脚本已同步支持缩进写法。
-    version: 2.12.23
+    version: 2.12.24
     requires:
       bins: []
   tools:
@@ -129,7 +129,7 @@ metadata:
 
 **T9 同行评审**（行业/学术默认开启，公众号默认关闭）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject。
 
-**G14 中文 AI 痕迹深度检测闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）；0-2 类 Pass / 3-4 类 Warning 触发 T5 修订 1 轮 / 5+ 类 Fail 触发 T5 修订 2 轮。**主人在 Phase 0 可显式关闭 G14**。
+**G14 中文 AI 痕迹深度检测闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）；0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮。**主人在 Phase 0 可显式关闭 G14**。
 
 ---
 

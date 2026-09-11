@@ -1,4 +1,4 @@
-> 版本：v2.12.23（自动同步 2026-09-11）
+> 版本：v2.12.24（自动同步 2026-09-11）
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -14,7 +14,7 @@
 论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.23  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.24  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -162,7 +162,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.23  # 建议 pi
 | **T8 终检** | 交付物完整性 + AI 使用披露 | Phase 5 |
 | **T9 同行评审** | 预演期刊审稿（6 维度评分 → accept/minor/major/reject） | Phase 4.5（行业分析/学术默认开启；公众号默认关闭，主人可选） |
 
-> **G14 中文 AI 痕迹闸**：Phase 3.6 与 T6 同批并行。8 类检测（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning 触发修订 / 5+ 类 Fail 强制修订。
+> **G14 中文 AI 痕迹闸**：Phase 3.6 与 T6 同批并行。8 类检测（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 强制修订。
 
 完整角色定义：详见 [`glossary-full.md § 一 核心角色`](references/_shared/glossary-full.md)
 
