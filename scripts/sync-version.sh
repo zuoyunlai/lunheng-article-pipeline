@@ -160,6 +160,9 @@ SYNCS=(
   "_shared/phase-order.yaml|yamlversion"
 )
 
+# v2.12.20（教训 #331）：header 模式改为「排队 + 末尾一次性归一化」，写入路径统一由
+#   scripts/normalize-version-header.py 承担（幂等）。
+HEADER_FILES=()
 UPDATED=0
 SKIPPED=0
 
@@ -180,47 +183,25 @@ for sync in "${SYNCS[@]}"; do
     continue
   fi
 
-  # 检查是否已包含当前版本号
-  if head -1 "$full_path" | grep -qE "v$EXPECTED"; then
+  # 检查是否已包含当前版本号（replace / yamlversion 专用）
+  # v2.12.20（教训 #331）：header 模式**不能**在此提前 continue——「头部已有本版本号」
+  # 恰恰是历史累积空行最严重的文件（每次发版都被跳过归一化），跳过等于永远清不掉。
+  # header 模式一律排进 HEADER_FILES，由 normalize-version-header.py 幂等处理。
+  if [ "$mode" != "header" ] && head -1 "$full_path" | grep -qE "v$EXPECTED"; then
     echo "⏭️  跳过：$file（已包含 v$EXPECTED）"
     SKIPPED=$((SKIPPED+1))
     continue
   fi
-
   if [ "$mode" == "header" ]; then
-    # 在文件顶部插入版本号
+    # v2.12.20（教训 #331）：旧实现用
+    #   sed -i "${CLOSE_LINE}a\ ... \ ..."
+    # 追加版本戳行——sed 的 `a\` 把尾部续行当成文本内容，等于多写一个空行；末尾的
+    # trim() 只裁剪多余的版本行、不管空行 → 每个受管文件每次 sync 净增 1 个空行
+    # （实测 README.md：v2.12.10 = 0 个 → v2.12.19 = 9 个；教训索引 47 个）。
+    # 现在只排队；写入与归一化由 normalize-version-header.py 一次性完成（幂等）。
+    HEADER_FILES+=("$full_path")
     if [ "$DRY_RUN" == true ]; then
-      echo "📝 将修改：$file（顶部插入 v$EXPECTED）"
-    else
-      # 备份原文件
-      cp "$full_path" "$full_path.bak.$(date +%Y%m%d-%H%M%S)"
-
-      # 检测文件是否为 YAML frontmatter（第 1 行是 `---`）
-      # 若是，则在 frontmatter 关闭 `---` 之后插入（不破坏 frontmatter 结构）
-      # 若否，则在第 1 行前插入（原行为）
-      if head -1 "$full_path" | grep -qE "^---$"; then
-        # 找第 2 个 `---`（frontmatter 关闭），在它后面插入
-        # 使用 awk 找到第 2 个 `---` 的行号（从 1 开始）
-        CLOSE_LINE=$(awk 'BEGIN{n=0} /^---$/{n++; if(n==2){print NR; exit}}' "$full_path")
-        if [ -n "$CLOSE_LINE" ]; then
-          # 在关闭 `---` 之后插入（行号 +1）
-          sed -i "${CLOSE_LINE}a\\
-> 版本：v$EXPECTED（自动同步 $(date +%Y-%m-%d)）\\
-" "$full_path"
-        else
-          # 兜底：只找到一个 `---`，按第 1 行前插入
-          sed -i "1i\\
-> 版本：v$EXPECTED（自动同步 $(date +%Y-%m-%d)）\\
-" "$full_path"
-        fi
-      else
-        # 非 frontmatter 文件，按原逻辑在第 1 行前插入
-        sed -i "1i\\
-> 版本：v$EXPECTED（自动同步 $(date +%Y-%m-%d)）\\
-" "$full_path"
-      fi
-
-      echo "✅ 更新：$file（顶部插入 v$EXPECTED）"
+      echo "📝 将归一化：$file（版本戳 v$EXPECTED + 文件头元数据块）"
     fi
     UPDATED=$((UPDATED+1))
   elif [ "$mode" == "replace" ]; then
@@ -274,41 +255,20 @@ for PIN_FILE in "${PIN_FILES[@]}"; do
 done
 
 echo ""
-echo "✂️  版本栈精简（保留最近 5 个）"
+echo "✂️  文件头归一化（版本戳 / 语言政策行，空行收敛为「各行之间恰好 1 空行」）"
 if [ "$DRY_RUN" == true ]; then
   echo "（DRY-RUN 模式，未实际修改）"
 else
-  # v2.5.6 P0 修复：直接 find 所有 .md 文件 trim（避免 SYNCS 路径拼接复杂逻辑）
-  # 用 find 拿到所有 .md 文件的绝对路径（排除 .git/outputs/archive）
-  python3 - <<'TRIMEOF'
-import os
-def trim(path, keep=1):
-    """保留最前 keep 个版本行（版本行从上往下「新→旧」，最前=最新）"""
-    with open(path, encoding='utf-8') as f:
-        lines = f.read().split('\n')
-    version_idx = [i for i, line in enumerate(lines) if line.startswith('> 版本：')]
-    if len(version_idx) <= keep:
-        return 0
-    keep_set = set(version_idx[:keep])
-    remove_set = set(version_idx[keep:])
-    out = [line for i, line in enumerate(lines) if i not in remove_set]
-    with open(path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(out))
-    return len(remove_set)
-
-trimmed = 0
-for root, dirs, files in os.walk('.'):
-    dirs[:] = [d for d in dirs if d not in ('.git', 'outputs', 'archive')]
-    for name in files:
-        if not name.endswith('.md'):
-            continue
-        path = os.path.join(root, name)
-        n = trim(path, 1)
-        if n > 0:
-            print(f"  -{n} 行  {path}")
-            trimmed += n
-print(f"✅ 清理 {trimmed} 行旧版本记录（每文件保留最近 1 个 = 收敛单行）")
-TRIMEOF
+  # v2.12.20（教训 #331）：旧实现（内联 trim() heredoc）只删多余的 `> 版本：` 行、
+  # 不管它们之间累积的空行；且 os.walk('.') 依赖调用时的工作目录。现统一交给
+  # normalize-version-header.py：以 SKILL_ROOT 为根遍历，写入前先剥净
+  # 「版本戳行 + 其后的连续空行」再补写成规范形态 → 连跑两次零 diff。
+  NORMALIZE_ARGS=(--root "$SKILL_ROOT" --version "$EXPECTED" --date "$(date +%Y-%m-%d)")
+  if [ ${#HEADER_FILES[@]} -gt 0 ]; then
+    python3 "$SCRIPT_DIR/normalize-version-header.py" "${NORMALIZE_ARGS[@]}" --update "${HEADER_FILES[@]}"
+  else
+    python3 "$SCRIPT_DIR/normalize-version-header.py" "${NORMALIZE_ARGS[@]}"
+  fi
 fi
 
 echo ""
