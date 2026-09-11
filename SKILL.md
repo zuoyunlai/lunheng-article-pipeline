@@ -78,7 +78,7 @@ metadata:
 | 0 | `agents/00-主控-扩展职责.md` | 🟡（先读「按需加载索引」表，进对应 Phase 再读对应节）|
 | 1 | `SKILL.md` + `pipeline-readme.md` + `_shared/glossary-full.md` | 🔴（入口必读）|
 | 2 | `_shared/phase-order.yaml` | 🔴（流程顺序与阻断关系的**唯一真源**，与本文件全景冲突时以 yaml 为准）|
-| 2 | `_shared/M-Gate-Algorithm.md` | 🟠（**分片必读**：M-Form / M-Exist / M-Integrity 伪代码段必读；附录与 JSON schema 按需，见 [`M-Gate-Algorithm-appendix.md`](references/_shared/M-Gate-Algorithm-appendix.md)）|
+| 2 | `_shared/M-Gate-Algorithm.md` | 🟠（**分片必读**：M-Form / M-Exist / M-Integrity 伪代码段**逐段必读、一段不少**；「分片」只为避免一次性加载全文的 token 开销，**不表示跳读或检视不完整**；附录与 JSON schema 按需，见 [`M-Gate-Algorithm-appendix.md`](references/_shared/M-Gate-Algorithm-appendix.md)）|
 | 3 | `failure-modes.md` / `字数判定表.md` / `模型候选池.md` 等 `_shared/` 文档 | 🟡（按需分片）|
 
 完整分层清单 + 每层触发时机见 [`00-主控-扩展职责.md`](references/agents/00-主控-扩展职责.md)「主控必读文档清单」段。
