@@ -113,6 +113,8 @@
 ## progress_card 联动规范（模块 4）
 
 > **用途**：解决「progress_card 与 Checkpoint Card 分离」——侧栏看进度，对话流做决策，双向同步。
+>
+> ⚠️ **渠道 progress 模式去重（v2.12.27 补）**：若宿主开启 `channels.<channel>.streaming.mode: "progress"`，**渠道内已有一条实时进度草稿**（含子代理活动行）。此时 `progress_card` **只作侧栏总览**，**不要在正文/对话里重复贴进度** —— 两处同时呈现会造成信息噪音与不一致。官方依据：`docs/concepts/progress-drafts.md`。
 
 ### 分层嵌套
 

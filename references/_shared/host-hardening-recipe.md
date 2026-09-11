@@ -100,6 +100,26 @@ OpenClaw 提供了**三条机械路径**可把档位真正锁死。
 配合 `sessionRoot`（或显式 cwd）指向 `run/<项目名>/`，可获得**平台级路径 containment**（含 symlink 逃逸拦截）—— 比第①层的"提示词拒绝绝对路径/父穿越"更强。
 
 > ⚠️ 权限模式与会话绑定，**不是每次 spawn 都能逐档指定**；以官方文档与实际会话结构为准。`full` 需 `operator.admin`。
+## 三·补 配方 6：让子代理活动对主人可见（渠道 progress 草稿）
+
+论衡一次长跑会 spawn 多个角色（T1∥T2∥T3 → T4 → T5 → …）。默认情况下**主人只看到主控的阶段级进度**（`progress_card` 侧栏 + `status.md`），而**子代理的活动写在磁盘心跳里，主人看不到**。
+
+平台提供**渠道级进度草稿**：`channels.<channel>.streaming.mode: "progress"` —— 一条消息**原地编辑**、实时更新，且**原生把子代理 spawn / 活动事件变成一行**（每个 worker 复用一行；「给 worker 发消息」单独成条，因为**发消息 ≠ worker 已启动**）。
+
+```json5
+{
+  channels: {
+    telegram: { streaming: { mode: "progress" } },   // Telegram 默认即 progress
+    discord:  { streaming: { mode: "progress" } },   // Discord 需显式开（默认 off）
+  },
+}
+```
+
+- **收益**：主人能实时看到「T1 搜索中 / T5 写作中」等 worker 级活动，**论衡零改动**。
+- 相关旋钮：`progress.toolProgress`（默认 `false`，开了才有滚动工具日志）/ `progress.maxLines`（默认 `8`）/ `progress.commentary`（注释泳道，默认 `false`）。
+- ⚠️ **开启后注意去重**：渠道已有实时草稿时，`progress_card` **只作侧栏总览**，不要在正文重复贴进度（见 `templates/checkpoint-card-template.md`「progress_card 联动规范」）。
+- 官方依据：`docs/concepts/progress-drafts.md`。
+
 ## 四、验证与诊断
 
 ```bash

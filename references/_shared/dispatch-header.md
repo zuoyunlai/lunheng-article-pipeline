@@ -16,6 +16,7 @@
 > - 若与本档白名单一致 ⇒ 在交接报告「做了什么」首句写 `能力自检：通过（<档位>）`，随后正常开工。
 > - **不得**因为「平台默认开了递归委派」就使用越权工具（见上方叶子纪律）。
 > - 本自检**只报告、不改权限**（skill 无权改宿主配置）；它的价值是让越权**可被观测、可被阻断**。
+> - **官方依据（v2.12.27 补）**：平台明写「**messages to workers get separate entries because sending a message does not prove that a worker started running**」（`docs/concepts/progress-drafts.md`）—— 与本「启动自检」+ 主控侧 spawn watchdog 解决的是**同一个问题**（防「以为它跑着」）。因此自检必须由**子代理自己**报，**不能**由主控的 spawn 成功回执推断。
 > - `allow_analysis`（T4）: `["read","write","edit"]`
 > - `allow_writing`（T5）: `["read","write","edit"]`
 > - `allow_audit`（T6/T7）: `["read"]` — **只读**，不写/不改/不出网/不调记忆/不调图像/不 spawn 子会话
