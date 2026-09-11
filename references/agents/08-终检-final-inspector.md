@@ -1,4 +1,5 @@
-> 版本：v2.12.13（自动同步 2026-09-11）
+> 版本：v2.12.14（自动同步 2026-09-11）
+
 
 
 
@@ -190,7 +191,7 @@ T8 = 主控的**技术终检人格**。主控在 Phase 5 切换到 T8 模式执�
 
 - **执行韧化协议**：T8 继承主控的零 exec 哲学，不执行 shell 命令
 - **工具边界**：`read` + `write` + `edit`（小幅修补）+ `session_status`（Token 汇总）+ `progress_card`（状态更新），不 spawn 子代理
-- **M 门算法**：执行前必读 [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md)
+- **M 门算法**（🟠 **分片必读**）：执行前必读 [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md) 的 M-Form / M-Exist / M-Integrity 伪代码段；附录（JSON schema）按需 → [`_shared/M-Gate-Algorithm-appendix.md`](../_shared/M-Gate-Algorithm-appendix.md)
 - **T8.5 外发许可**：T8 终检通过 + 主人 Phase 5 签字 → T8.5 GRANTED → 流水线终结
 
 > **删主人签字 Phase 5**（教训 #138）：主人签字在 Phase 5 终稿交付时，不在 T8 终检内部。T8 终检是技术核验，主人验收是业务决策，两步分离。

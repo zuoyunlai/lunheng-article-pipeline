@@ -128,6 +128,10 @@ VERSION_FILES=(
   "references/_shared/关键协议.md"
   "references/_shared/教训索引.md"
   "references/_shared/模型候选池.md"
+  # v2.12.14 SKILL.md 瘦身外移文件（批次 4.6/4B）
+  "references/_shared/pipeline-overview.md"
+  "references/_shared/asset-index.md"
+  "references/_shared/external-services.md"
 )
 VERSION_MISSING=""
 for f in "${VERSION_FILES[@]}"; do
@@ -140,7 +144,7 @@ for f in "${VERSION_FILES[@]}"; do
   fi
 done
 if [ -z "$VERSION_MISSING" ]; then
-  pass "门 C: 36 文件版本号 v$EXPECTED_VERSION 一致"
+  pass "门 C: ${#VERSION_FILES[@]} 文件版本号 v$EXPECTED_VERSION 一致"
 else
   fail "门 C: 版本号不一致" "期望 v$EXPECTED_VERSION, 不一致:$VERSION_MISSING"
 fi

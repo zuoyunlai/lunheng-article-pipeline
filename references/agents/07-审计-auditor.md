@@ -1,4 +1,5 @@
-> 版本：v2.12.13（自动同步 2026-09-11）
+> 版本：v2.12.14（自动同步 2026-09-11）
+
 
 
 
@@ -83,7 +84,7 @@
 
 > **审计员启动必读**：审计是论衡核心质量关卡，必查项 + M 门 + F 模式 三层验证。
 
-- **M 门算法**：详见 [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md) + [`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md)
+- **M 门算法**（🟠 **分片必读**）：[`_shared/M-Gate-Algorithm.md`](../_shared/M-Gate-Algorithm.md)（M-Form / M-Exist / M-Integrity 伪代码段必读）+ [`_shared/M-Gate-Algorithm-appendix.md`](../_shared/M-Gate-Algorithm-appendix.md)（JSON schema 等附录，按需）
 - **审计必查项 G0-G14**：详见 [`_shared/audit-checklist-quickref.md`](../_shared/audit-checklist-quickref.md) + [`_shared/audit-checklist-quickref.md`](../_shared/audit-checklist-quickref.md)
 - **G14 中文 AI 痕迹检测**：T7 必查当前 `draft_id` / `draft_version` 对应的 G14 报告。`g14_status=disabled_by_owner` 时不要求报告，但必须在交付说明披露；`g14_status=enabled` 时缺报告或版本不一致即阻断 T7。Warning/Fail 的修订按审计修订轮上限处理，不得用默认值静默放行。**关键边界**：G14 是「风格净化」不替代 T7 的「事实核验」——T7 主战场仍是 G1-G13 形式/事实核验，G14 仅做风格合规性检查。闸门定义：`gates/14-中文AI痕迹-gate.md`。
 - **元叙事自指式豁免段标注（回应实测 #2）**：审计元叙事/自指式类警告时，**先判定命中段类型再打分**——结构必写段（先行者文献「本文差异化」段 / AI 使用声明段 / 摘要限定语 / 主人洞察理论贡献段，清单与写手卡同源）内的自指表述**豁免不计警告**，标 `[豁免段]`；叙事段命中才计分，标 `[叙事段]`。豁免的是段不是词：必写段外仍按 ≤1/段；必写段内同一自指连用 ≥3 次仍标 `[叙事段]` 计分。**T7 报告引用 T6 C6 / 写手卡「元叙事清理清单」同源执行，不另立新清单**（防豁免清单漂移成第三份）。

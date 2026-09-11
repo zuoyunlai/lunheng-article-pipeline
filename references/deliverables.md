@@ -1,4 +1,5 @@
-> 版本：v2.12.13（自动同步 2026-09-11）
+> 版本：v2.12.14（自动同步 2026-09-11）
+
 
 
 
@@ -148,7 +149,7 @@
 - **T7 必跑**，exit 0 才能返回
 - 借鉴 vincentjiang06 objective/verify gate 硬约束理念的论衡化实现——「**形式合规 ≠ 存在性合规 ≠ 信任一致**」
 
-**M 门算法完整规约 + 诚实声明**：[`M-Gate-Algorithm.md`](_shared/M-Gate-Algorithm.md)（含「**M 门 = LLM 推理判定，非机器强制**」诚实声明，教训 #177）。**自审门门 L**保证 8+3+2 = 13 项的应用文档描述与算法文档一致；M-Gate-Report JSON schema 在 [`M-Gate-Algorithm-appendix.md`](_shared/M-Gate-Algorithm-appendix.md)。
+**M 门算法完整规约 + 诚实声明**（🟠 **分片必读**：M-Form / M-Exist / M-Integrity 伪代码段必读，附录按需）：[`M-Gate-Algorithm.md`](_shared/M-Gate-Algorithm.md)（含「**M 门 = LLM 推理判定，非机器强制**」诚实声明，教训 #177）。**自审门门 L**保证 8+3+2 = 13 项的应用文档描述与算法文档一致；M-Gate-Report JSON schema 在 [`M-Gate-Algorithm-appendix.md`](_shared/M-Gate-Algorithm-appendix.md)。
 
 ## 常规修订 ≤2 轮硬约束（教训 #270，+ #276）
 
