@@ -12,7 +12,7 @@
 
 ### G14 中文 AI 痕迹检测器
 
-> **何时用**：与 T6 对同一个 `current_draft` 同批调用；主人在 Phase 0 选择 `disabled_by_owner` 则全项目不 spawn。
+> **何时用**：与 T6 对同一个 `current_draft` 同批调用；`auto`（中文 + 学术/商业评论/行业分析命中）必跑、`selfcheck`（轻量档）走内置自检、`n/a`（纯外语交付）不适用；仅当主人**显式要求关闭**（`exempted_by_owner`）才全项目不 spawn，且须在交付说明披露。
 
 ```
 请以「G14 中文 AI 痕迹检测器」身份检测 [drafts/current_draft.md]（主控已写入当前权威版本，保留 `draft_id` / `draft_version` 绑定）的 AI 生成痕迹。

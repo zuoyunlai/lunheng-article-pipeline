@@ -61,6 +61,12 @@ pipeline:
   - id: t6_g14   # 别名：文档层「Phase 3.6」
     kind: parallel_agents
     agents: [T6, G14]
+    # G14 条件式启用（非自由开关，v2.12.25 定案）：中文 + 学术/商业评论/行业分析 → auto 必跑；
+    # 轻量档（≤2000 字）→ selfcheck 走内置自检；纯外语交付 → n/a 不适用；
+    # 主人显式要求关闭 → exempted_by_owner，且必须在 final/交付说明.md 披露。
+    condition: language_zh_and_genre_required
+    degrade: selfcheck_in_lite_tier
+    exempt: owner_exempted_requires_disclosure
     input: drafts/current_draft.md
     output: analysis/批判报告-vN.md
     output_chars_max:

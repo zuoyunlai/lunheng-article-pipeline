@@ -31,13 +31,15 @@
 
 **检索层口径（区分「默认启用」与「默认关闭」两类）**：
 
-| 类别 | 工具 | 默认状态 | 离开本机的数据 |
-|------|------|---------|--------------|
-| 检索（默认层）| `web_search` / `tavily_search` / `web_fetch` / `tavily_extract` | **默认启用**（Phase 0 告知并可拒绝）| 检索关键词 + 目标 URL |
-| 学术元数据（可选层）| OpenAlex / Crossref | **随「启用中文数据源集成」勾选后才用**（只读公开 API，无需 Key）| 仅检索关键词（不发送个人信息/机密数据）|
-| 封面（opt-in）| `image_generate` | **默认关闭** | 图像 prompt（见上条）|
-| 二三线中文源 / 抓取 | 万方 / 科情 / NSTL / Firecrawl | **默认关闭** | 视所启用服务而定；凭据须在宿主环境外部配置 |
-| 记忆辅助（opt-in）| `memory_get` / `memory_search` / `memory_recall` | **默认关闭** | 访问本地记忆库（无 LLM vendor 外发）|
+> **本表是「外发类别」的唯一真源（共 5 类）**：SKILL.md / `permissions.md` / 任务简报模板 / `关键协议.md` 一律**引用本表**，**不得各自重列**——重列必然漂移（历史上曾出现 4 份互斥清单：本表 5 类 / SKILL.md 外发口径 4 类 / SKILL.md Opt-in 行与 frontmatter 2 类 / description 4 类且各项不同）。
+
+| # | 类别 | 工具 / 服务 | 默认状态 | 离开本机的数据 |
+|---|------|-------------|---------|--------------|
+| ① | 检索（默认层）| `web_search` / `tavily_search` / `web_fetch` / `tavily_extract` | **默认启用**（Phase 0 告知并可拒绝）| 检索关键词 + 目标 URL |
+| ② | 学术元数据（可选层）| OpenAlex / Crossref | **随「启用中文数据源集成」勾选后才用**（只读公开 API，无需 Key）| 仅检索关键词（不发送个人信息/机密数据）|
+| ③ | 封面（opt-in）| `image_generate` | **默认关闭** | 图像 prompt（见上条）|
+| ④ | 二三线中文源 / 抓取 | 万方 / 科情 / NSTL / Firecrawl | **默认关闭** | 视所启用服务而定；凭据须在宿主环境外部配置 |
+| ⑤ | 记忆辅助（opt-in）| `memory_get` / `memory_search` / `memory_recall` | **默认关闭** | 访问本地记忆库（无 LLM vendor 外发）|
 
 不调 Firecrawl、不调万方 / 科情 / NSTL API（除非主人 Phase 0 显式勾选启用）。详见 [`references/_shared/中文数据源集成.md`](中文数据源集成.md)。
 

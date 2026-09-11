@@ -32,6 +32,7 @@
 - `image_generate` — 封面生成专用，**默认关闭**，主控在 Phase 0 问「是否需要生成封面」答「是」才开
 - `memory_get` / `memory_search` / `memory_recall` — **默认关闭**：**默认工作流不读任何 Agent 工作区记忆文件**，写作偏好一律由主人 Phase 0 写入任务简报「写作偏好」字段；仅当主人在 Phase 0 显式勾选「启用记忆辅助」并点名允许读取的文件/用途时才解锁，且须记入 status.md「Phase 0 同意记录」；T6/T7 调 `memory_recall` 需宿主在 config 层为其子代理临时放行（不放行则主控代查回传）
 - 解锁方式：主控在 status.md「Phase 0 同意记录」段填写 `opt_in: [image_generate: yes, memory: yes]`，凭此记录而非凭 prompt 调阅
+- **层级说明**：本节 = **工具级 opt-in（4 个工具）**；**服务级外发类别（5 类）的唯一真源 = [`_shared/external-services.md` 逐类表](_shared/external-services.md)** —— 本节不重列服务级类别（重列必漂移）。
 
 **行为授权（非工具，Phase 0 预授权记录，默认全部关闭）**：
 - **配额耗尽预授权**：主人预勾选「配额耗尽时授权 X（换 provider 重试 / 白名单接力）」后，配额事件发生时主控按预授权选项直接执行并事后通报；**未勾选 = 必须暂停等主人拍板**（fail-closed）。预授权仅限白名单工具路径，**永不覆盖 exec/process 等永久拒绝**

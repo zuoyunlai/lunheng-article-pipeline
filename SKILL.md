@@ -1,6 +1,6 @@
 ---
 name: lunheng-article-pipeline
-description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，任意 OpenClaw 配置开箱可用：默认多Agent模式（T1∥T2∥T3三方并行检索+三角验证），单主控为可选降级；子代理工具面由宿主 OpenClaw 决定。零exec=不执行shell（19项特权工具禁用；论衡不要求、也不附带任何宿主配置项），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的opt-in项：image_generate封面/Firecrawl/二三线中文源/记忆辅助。会写盘：约15-25个文件，范围限run/项目名/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。不足2000字建议直接用主控LLM。"
+description: "严肃长文流水线（学术/商业评论/行业分析/公众号深度长文）。三角验证+M门+F失败模式防御+数据信任3档+修订≤2轮。论衡是纯skill，任意 OpenClaw 配置开箱可用：默认多Agent模式（T1∥T2∥T3三方并行检索+三角验证），单主控为可选降级；子代理工具面由宿主 OpenClaw 决定。零exec=不执行shell（19项特权工具禁用；论衡不要求、也不附带任何宿主配置项），但≠零出网：检索（web_search/tavily_search/web_fetch）为默认启用项，经Phase 0「外部服务同意4选1」明示同意后执行，主人可选全部拒绝。默认关闭的 opt-in 项（服务级 4 类，逐类真源见技术文档）：学术元数据 / 封面生成 / 二三线中文源与抓取 / 记忆辅助。会写盘：约15-25个文件，范围限run/项目名/+status.md+心跳文件（均在工作区内）。默认中文输出，目标语言Phase 0可改。不足2000字建议直接用主控LLM。"
 metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 从顶层迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName
@@ -13,6 +13,7 @@ metadata:
     base: ["read", "write", "edit"]
     coordinator_only: ["sessions_spawn", "sessions_yield", "sessions_history", "subagents", "session_status", "progress_card"]
     research_extra: ["web_search", "web_fetch", "tavily_search", "tavily_extract"]
+    # 工具级 opt-in（4 个 OpenClaw 工具）。服务级外发类别（5 类）真源 = references/_shared/external-services.md，不在此声明（层级分离，不混列）
     opt_in: ["image_generate", "memory_get", "memory_search", "memory_recall"]
     denied: ["exec", "process", "browser", "apply_patch", "cron", "video_generate", "music_generate", "tts", "memory_store", "skill_workshop", "memory_forget", "sessions_search", "sessions_send", "computer", "nodes", "terminal", "portal", "dashboard", "mobile_ui"]
   subagent_tiers:
@@ -50,7 +51,10 @@ metadata:
 - **主控 documented — 13 项**：read / write / edit + sessions_spawn / sessions_yield / sessions_history + subagents + 4 个检索工具 + session_status / progress_card（清单真源 = frontmatter `metadata.tools`）。
 - **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：`research` T1-T3 / `analysis` T4 / `writing` T5 / `audit` T6-T7 / `review` T9+G14；T8 = []。工具面**四层模型**（平台硬剥 / depth 追剥 / 主控策略快照 / 宿主 config）见 [`permissions.md`](references/permissions.md)。
 - **禁用（`denied`）— 19 项特权工具**：exec / process / browser / apply_patch / cron 及图像、音视频、记忆、子代理检索、设备与桌面控制类；**真源 = frontmatter `metadata.tools.denied`**。
-- **Opt-in（默认禁止，Phase 0 明确同意才解锁）**：`image_generate`（封面）、`memory_get` / `memory_search` / `memory_recall`（记忆辅助）；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 清单调阅。**行为预授权**：配额耗尽 / G14 Warning 未勾选 = 暂停等主人拍板（fail-closed）；永不覆盖 `denied`。
+- **两个层级别混（本修订起显式区分）**：
+  - **工具级 opt-in（4 个 OpenClaw 工具，默认禁止）**：`image_generate`（封面）、`memory_get` / `memory_search` / `memory_recall`（记忆辅助）；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 清单调阅（真源 = frontmatter `metadata.tools.opt_in`）。
+  - **服务级外发同意（5 类，逐项知情同意）**：①检索层（默认启用）②学术元数据 ③封面 ④二三线中文源与抓取 ⑤记忆辅助 —— **唯一真源 = [`external-services.md` 检索层口径逐类表](references/_shared/external-services.md)**；本文件 / 模板 / 权限文档一律**引用不重列**（各自重列必漂移，历史曾出现 4 份互斥清单）。
+  - **行为预授权**：配额耗尽 / G14 Warning 未勾选 = 暂停等主人拍板（fail-closed）；永不覆盖 `denied`。
 - 🔍 **零 exec ≠ 零出网**：零 exec 只约束「不执行 shell、不调 exec/process」，**不等于**「不外发数据」。检索类工具（web_search / tavily_search / web_fetch / tavily_extract）**默认启用**，仅发送「检索关键词 + 目标 URL」，须经 Phase 0「外部服务同意 4 选 1」明示同意后才执行（选 ④全部拒绝 → 本次不调检索工具，改主人自带材料 + 本地模型推理）。
 - 🔒 **权限边界声明**：论衡是纯 skill——**任意 OpenClaw 配置开箱可用**，不要求、也不附带任何宿主配置项或加固配方。子代理与主控的工具面由宿主 OpenClaw 决定；论衡不读取、不修改宿主配置，也不对宿主的权限设定作任何前提假设。需要收紧子代理权限时，请自行参见 OpenClaw 官方文档的 subagents 配置说明（宿主职责）。敏感题材可切**单主控模式**（代价：无三角验证、无独立审计、无修订回环，默认关闭 G14）。
 - 🚫 **叶子纪律**：T1-T7/T9 = 叶子 worker——**不得**调用 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history`；需要额外检索/人手 → 交接报告写「需求回执」交主控。
@@ -90,6 +94,13 @@ metadata:
 7. **文件修改安全流程**：**禁止 `sed -i`**（静默清空文件教训 #265）——用 `edit` 精确 oldText 匹配；改前 `cp` 备份、改后 `diff` 验证
 8. **硬卡阈值表**：T1-T3 10 分钟 / T4 12 分钟 / T5 15 分钟 / T6-T7 12-15 分钟 / G14 8 分钟
 
+**Phase 0 的「默认项」与「条件项」（本修订起定案 —— 别再做成自由开关）**：
+
+- **默认启用（无开关）**：**方法论足迹面板**（`status.md` 每阶段自动更新；按档位裁剪字段集）—— 边际成本≈0，且承载「方法论透明」设计卖点。
+- **按条件自动启用（无自由开关）**：**G14 闸** —— 中文 + 学术/商业评论/行业分析 → 必跑；轻量档（≤2000 字快稿）→ 走内置「G14 自检」；纯外语交付 → **不适用**（非「关闭」）；主人显式要求关闭 → 走「豁免 + 交付说明披露」窄口。
+- **真正可选的**：外发同意（5 类逐项）、期刊匹配 / 中文数据源梯队 / 多格式导出（3 项 6 选项）、Phase 5「方法论附录」。
+- **设计约束（可选项准入）**：可选项只留给「**有真实成本或真实取舍**」的东西（外发数据 / 花钱的 API / 额外产物）；**零成本的质量门与透明度项由条件决定，不由偏好决定**。
+
 ---
 
 ## ⚠️ 执行前安全须知 + 外部服务声明（精简）
@@ -98,7 +109,7 @@ metadata:
 
 **主控 Phase 0 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**），写入 `01-任务简报.md`「外部服务同意记录」段。
 
-**外发口径**：检索层（web_search / tavily_search / web_fetch / tavily_extract）**默认启用**，外发 = 检索关键词 + 目标 URL；学术元数据（OpenAlex / Crossref，无需 Key）、封面、二三线中文源与抓取、记忆辅助均**默认关闭 / 勾选才用**（凭据须在宿主环境外部配置）。主题/纲要可能含机密——**如敏感请用脱敏措辞 + SVG 封面 + 本地 Ollama 推理**；投喂材料须先取得知情同意且**必须脱敏**，**主人是数据处理的责任方**。**🔒 不读取宿主网关配置**（不调 `gateway` / `config`，不读 `~/.openclaw/openclaw.json`，**无例外**）。主人拒绝任一外发项 → 调整方案并重做 Phase 0 确认。
+**外发口径（类别唯一真源 = [`external-services.md` 逐类表，5 类](references/_shared/external-services.md)）**：① 检索层（web_search / tavily_search / web_fetch / tavily_extract）**默认启用**，外发 = 检索关键词 + 目标 URL；② 学术元数据（OpenAlex / Crossref，无需 Key）、③ 封面、④ 二三线中文源与抓取、⑤ 记忆辅助 —— **②–⑤ 默认关闭 / 勾选才用**（凭据须在宿主环境外部配置）。主题/纲要可能含机密——**如敏感请用脱敏措辞 + SVG 封面 + 本地 Ollama 推理**；投喂材料须先取得知情同意且**必须脱敏**，**主人是数据处理的责任方**。**🔒 不读取宿主网关配置**（不调 `gateway` / `config`，不读 `~/.openclaw/openclaw.json`，**无例外**）。主人拒绝任一外发项 → 调整方案并重做 Phase 0 确认。
 
 > 📚 **完整版**（心跳写入协议 / 审计反哺不自动 commit / Maintainer-only 分区 / 失败回滚 / 封面外发完整披露 / 逐类外发数据表）→ [`external-services.md`](references/_shared/external-services.md)。
 
