@@ -109,7 +109,7 @@ metadata:
 
 **主控 Phase 0 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**），写入 `01-任务简报.md`「外部服务同意记录」段。
 
-**外发口径（类别唯一真源 = [`external-services.md` 逐类表，5 类](references/_shared/external-services.md)）**：① 检索层（web_search / tavily_search / web_fetch / tavily_extract）**默认启用**，外发 = 检索关键词 + 目标 URL；② 学术元数据（OpenAlex / Crossref）**默认启用**（无需 Key，仅发检索关键词）；③ 封面、④ 抓取层（Firecrawl）、⑤ 记忆辅助 —— **③–⑤ 默认关闭 / 勾选才用**（凭据须在宿主环境外部配置）；**原「二三线中文源（万方/科情/NSTL）」已于本修订取消**。主题/纲要可能含机密——**如敏感请用脱敏措辞 + SVG 封面 + 本地 Ollama 推理**；投喂材料须先取得知情同意且**必须脱敏**，**主人是数据处理的责任方**。**🔒 不读取宿主网关配置**（不调 `gateway` / `config`，不读 `~/.openclaw/openclaw.json`，**无例外**）。主人拒绝任一外发项 → 调整方案并重做 Phase 0 确认。
+**外发口径（类别唯一真源 = [`external-services.md` 逐类表，5 类](references/_shared/external-services.md)）**：① 检索层（web_search / tavily_search / web_fetch / tavily_extract）**默认启用**，外发 = 检索关键词 + 目标 URL；② 学术元数据（OpenAlex / Crossref）**默认启用**（无需 Key，仅发检索关键词）；③ 封面、④ 抓取层（Firecrawl）、⑤ 记忆辅助 —— **③–⑤ 默认关闭 / 勾选才用**（凭据须在宿主环境外部配置）；**原「二三线中文源（万方/科情/NSTL）」已于本修订取消**。⚠️ **本行只是「服务类别」轴**：「**大模型推理全文**（草稿/卡片/大纲全文 → 当前模型 provider）」是**另一条轴（数据形态）**、且是最敏感项，**不在类别轴内**，两轴合见 [`关键协议.md §4 选 1`](references/_shared/关键协议.md)。主题/纲要可能含机密——**如敏感请用脱敏措辞 + SVG 封面 + 本地 Ollama 推理**；投喂材料须先取得知情同意且**必须脱敏**，**主人是数据处理的责任方**。**🔒 不读取宿主网关配置**（不调 `gateway` / `config`，不读 `~/.openclaw/openclaw.json`，**无例外**）。主人拒绝任一外发项 → 调整方案并重做 Phase 0 确认。
 
 > 📚 **完整版**（心跳写入协议 / 审计反哺不自动 commit / Maintainer-only 分区 / 失败回滚 / 封面外发完整披露 / 逐类外发数据表）→ [`external-services.md`](references/_shared/external-services.md)。
 
