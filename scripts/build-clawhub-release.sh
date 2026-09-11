@@ -264,20 +264,20 @@ s, _sop_n = re.subn(
 if _sop_n:
     print(f'  §十四 维护者 SOP 整段删除（规则 3h-7）：{_sop_n} 处')
 
-# 7b. 【v2.12.13 新增】整段删除 §二十五「Archive 清理策略」（含删除类 SOP）
+# 7b. 【v2.12.13 新增，v2.12.16 跟改标题】整段删除 §二十五「Archive 保留建议清单」（旧名「Archive 清理策略」；含删除类 SOP）
 #   根因（审计 §一.9 / pkg-audit P1-1）：原规则 3l 的 re-search 目标是 `### 5.8 Archive 清理记录`，
 #   真源已无此标题 → 规则静默空转（真源 0 命中），而 §二十五 本就不在任何规则射程内
 #   → 「主控 … 清理 drafts/archive/」「保留 N 文件，删 M 文件」等删除类 SOP 整段漏入包，
 #   与包内 status-template.md「论衡工作流本身不执行任何 cleanup」直接矛盾。
 #   修法：按标题整段删除（到下个 `## ` 标题前）。
 s, _arch_n = re.subn(
-    r'## 二十五、Archive 清理策略.*?(?=\n## )',
+    r'## 二十五、Archive 保留建议清单.*?(?=\n## )',
     '',
     s,
     flags=re.DOTALL
 )
 if _arch_n:
-    print(f'  §二十五 Archive 清理策略整段删除（规则 3h-7b）：{_arch_n} 处')
+    print(f'  §二十五 Archive 保留建议清单整段删除（规则 3h-7b）：{_arch_n} 处')
 
 open(path, 'w', encoding='utf-8').write(s)
 PYEOF
@@ -608,7 +608,7 @@ RULE_CHECKS=(
   '版本修订硬门段|### 修订后必跑硬门三件套|critical|no'
   '版本修订质量门段|### 修订后必跑内容质量门脚本|critical|no'
   '版本升级自审门小节|### 版本升级自审门|critical|no'
-  'Archive清理策略|Archive 清理策略|critical|no'
+  'Archive保留建议清单|Archive 保留建议清单|critical|no'
   'commit 前表述|commit 前|critical|no'
   '教训字面|教训 #[0-9]|critical|no'
   '开发者脚本路径|scripts/|critical|no'
