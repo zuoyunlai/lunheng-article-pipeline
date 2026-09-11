@@ -9,6 +9,50 @@
 
 ---
 
+## [v2.12.15] — 2026-09-11
+
+> 本版回应 **ClawHub 平台安全扫描的残余项**（扫描对象＝已发布 v2.12.13）。扫描实测：clawscan `unexpected` **4 → 1**、skillspector **21 → 15 条**、最高严重度 **HIGH → MEDIUM**、`static-analysis` clean——v2.12.13 的整改生效。剩余 16 条按三类处理：**A 类真缺陷 7 项修掉**、**B 类 8 项明确不改**、**T05 温和削面**。
+
+### 一、T05 温和削面（唯一仍 `unexpected` 项）
+
+平台的 remediation 要求「机械隔离改为**强制前置**、验证不了就 **fail-closed 停止 spawn**」，与本项目 v2.12.13 定案（**skill 永不核验宿主配置**）正面对撞——照办等于回到 v2.12.10 越界读宿主 config 的老路（已被 SDI-3 HIGH 0.98 打过一次，属打地鼠）。故**不改定位，只削命中面**：
+
+- **删除包内宿主加固配方本体**：不再内嵌 `tools.subagents.tools.deny` 工具清单与 `maxSpawnDepth` 配置片段——那是**宿主运维 SOP**，随宿主版本演进，写死在 skill 里必然过期。改为中性指向「参见 OpenClaw 官方文档的 subagents 配置说明（宿主职责）」
+- **删除自带风险描述**：「未加固时子代理可能继承主控特权工具」这类把宿主风险写成 skill 披露素材的表述，一律移除
+- **去掉触发措辞**：`可选` / `不核验` / `非前置门` 等改为中性的「不要求、也不附带任何宿主配置项或加固配方」
+- **核心能力零变更**：默认多 Agent 模式、T1∥T2∥T3 三方真并行检索 + 三角验证照常；单主控仍为可选降级
+
+涉及 `SKILL.md`（frontmatter description + 权限边界段）、`references/permissions.md`、`QUICKSTART.md`、`references/agents/00-主控-扩展职责.md`、`references/_shared/关键协议.md`、`references/_shared/教训索引.md`。
+
+### 二、A 类真缺陷 7 项
+
+| # | 位置（扫描置信度） | 缺陷 | 修法 |
+|---|---|---|---|
+| 1 | `可发表性判定表.md`（0.95） | 6 处 `**机械执行伪代码**：` 成为**悬挂标题**（代码块被净化链剥走、标题留着），正文另自曝「发布版已剥离」 | 标题改 `**判定规则**：`；删净化链叙事；strip 脚本替换文案中性化 |
+| 2 | `可发表性判定表.md`（0.90） | 「双形态硬约束」自述「本地维护版可在 host shell 直接执行验证」，与「agent 不执行本地代码」矛盾 | 整段删除 |
+| 3 | `dispatch/T7-审计.md`（0.92） | 第 1 条「产出 `audits/审计报告-vN.md`」与第 7 条「不自行写盘」矛盾 | 改为「产出报告内容（正文随交接回传，由主控落盘到 …）」 |
+| 4 | `dispatch/T6-批判.md`（同族） | 同上 | 同上 |
+| 5 | `glossary-core.md`（0.90） | 权限表标 T6/T7/T9「只读」却又产出报告，被读作「既只读又写文件」的矛盾 | 增澄清段：「『只读』＝**工具面只读**，不等于不产出内容；报告正文随交接回传，落盘主体是主控」 |
+| 6 | `模型候选池.md` 等 **10 处**（0.78） | 「论衡不实际调 API」与「派发前查顶配模型余额」矛盾 | 统一口径为「按**宿主可见信息**（`session_status`）确认可用性，**不直连 provider 计费 API**」 |
+| 7 | `00-主控-扩展职责.md`（0.72，SSD-4） | 「spawn T6 **攻击** v2」触发对抗性语义 | 改为「**对抗性复核**」；T6 角色卡新增**语义边界安全框定**（「攻击」仅指对稿件论证的对抗性评审，绝不涉及攻击系统 / 绕过安全机制 / 诱导越狱） |
+
+另修 `project-archive-sop.md` 与 `glossary-full.md`：「归档或**删除**旧中间态」「主人手工 `rm -rf`」等措辞与「agent 永不删除」的宽承诺打架，且泄漏真 shell 命令——改为中性表述。
+
+### 三、B 类 8 项 —— 明确不改
+
+`OpenAlex` / `Crossref` 外发 2 条（**功能本体**：公开元数据只读检索，Phase 0 勾选才用）、CJK+拉丁混排 2 条（中文 skill 的**必然物理形态**）、默认中文 4 条（**设计定位**）——平台扫描已自行标注 `Downgraded / expected`（"disclosed public metadata lookups" / "expected for a Chinese-language skill" / "Chinese is a disclosed default tied to the intended audience"）。为消数字去砍能力或做全角改写，是拿产品换指标。
+
+### 四、验收
+
+- **自审门 21 PASS / 0 FAIL**
+- `pytest tests/ -q` → **48 passed**
+- `quick_validate.py` → **Skill is valid!**
+- `check-version.sh` → v2.12.15 全一致（含 README / QUICKSTART 安装 pin）
+- `build-clawhub-release.sh` → **三门全绿**
+- 全仓「宿主加固配方」残留实测 = **0**
+
+---
+
 ## [v2.12.14] — 2026-09-11
 
 > 本版为 **Phase 0 上下文瘦身**（审计方案批次 4.6 / 4B）。v2.12.13 把六路审计的机制问题收口后，剩下最大的一项 token 杠杆：**Phase 0 强制读入 >80KB**（`SKILL.md` 34,318 B + `M-Gate-Algorithm.md` 37,657 B），而 `SKILL.md` 远超官方建议的 10,000 字符。

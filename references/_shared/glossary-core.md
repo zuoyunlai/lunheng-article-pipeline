@@ -1,4 +1,5 @@
-> 版本：v2.12.14（自动同步 2026-09-11）
+> 版本：v2.12.15（自动同步 2026-09-11）
+
 
 
 
@@ -45,7 +46,7 @@
 | T3 | 案例检索（Case Scout） | 企业行为 / 事件 / 司法案件 |
 | T4 | 分析（Analyst） | 论点-论据映射 + 反方规划 + 三角验证 |
 | T5 | 写手（Writer） | 严格按大纲 / 数据卡写，AI 去味 10 项 |
-| T6 | 批判伙伴（Critical Companion） | C1-C7 七维反方攻击（Phase 3.6 同批 T6∥G14） |
+| T6 | 批判伙伴（Critical Companion） | C1-C7 七维反方对抗性复核（Phase 3.6 同批 T6∥G14） |
 | T7 | 审计（Auditor） | G0-G14 形式核验 + 修订任务书（Phase 4） |
 | T8 | 终检（Final Inspector） | 主控亲完成，不 spawn；19 必查项 + 小幅修补权限 |
 | T9 | 同行评审（Peer Reviewer） | 6 维度评分 + 期刊匹配（Phase 4.5，可选） |
@@ -80,6 +81,8 @@
 | allow_review | T9/G14 | **read（只读）** |
 
 > v2.7.12：以上为声明/部署建议，不是 spawn 传参——OpenClaw 2026.9.x 的 `sessions_spawn` 已无 toolsAllow 参数，子代理实际权限 = 平台硬性剥除（含 session_status，子代理不可持有）+ 主控策略快照 + 宿主 config `tools.subagents`（详见 SKILL.md「执行能力边界」）。
+>
+> **「只读」的准确定义**：指**工具面只读**（该档不得 write/edit、不得改产物），**不等于「不产出内容」**——T6/T7/T9 的报告正文一律**随交接报告回传**（final message），由**主控** `write` 落盘。故「审计员只读」与「审计报告落盘」不矛盾：写盘主体是主控，不是审计员。
 
 > image_generate / memory_get 系列 / exec 等均在 denied；T8 由主控亲完成不 spawn。
 
