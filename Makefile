@@ -12,6 +12,7 @@ help:
 	@echo "  make format     - 格式化 Python 代码（black + isort）"
 	@echo "  make audit      - 运行自审门"
 	@echo "  make changelog-check - 校验 changelog 完整性（每个版本 tag 都有章节）"
+	@echo "  make preflight  - 发版前置闸（两查一停：在飞链 / 编号占用 / 工作区干净）"
 	@echo "  make clean      - 清理临时文件"
 	@echo "  make all        - 运行全部检查（lint + test + audit + changelog-check）"
 
@@ -53,6 +54,12 @@ changelog-check:
 	python3 scripts/changelog-check.py --check
 	@echo "✓ changelog 完整性校验完成（--online 可追加校验 GitHub Release 覆盖）"
 
+# 发版前置闸（教训 #332，两查一停）——任何对外发版动作（push / tag / Release / 净化包）之前必跑
+# 本链自身会话 key 用 LUNHENG_PREFLIGHT_SELF_SESSION 传入，否则本链会被闸算作在飞链（失败关闭）。
+# 指定目标编号：make preflight PREFLIGHT_TAG=v2.12.21（默认取 SKILL.md frontmatter 版本）
+preflight:
+	@bash scripts/release-preflight.sh $(PREFLIGHT_TAG)
+
 clean:
 	@echo "清理临时文件..."
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
@@ -78,8 +85,9 @@ build-release:
 	bash scripts/build-clawhub-release.sh
 	@echo "✓ 发布包构建完成"
 
-# 完整发布流程（版本同步 + 审计 + 构建）
-release: sync-version all build-release
+# 完整发布流程（发版前置闸 + 版本同步 + 审计 + 构建）
+# 闸在最前：工作区不干净 / 有在飞链 / 编号被占 ⇒ 一步都不做（发版是收口动作，不是推进动作）
+release: preflight sync-version all build-release
 	@echo ""
 	@echo "✅ 发布准备完成！"
 	@echo "下一步: git commit + git tag + git push"

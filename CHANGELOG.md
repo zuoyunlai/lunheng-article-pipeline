@@ -5,7 +5,48 @@
 - **排序**：版本倒序（最新在前）。查找某一版本：`grep -n '^## \[v2.12' CHANGELOG.md`
 - **章节标题**：`## [<tag>] — <发布日期>`；正文＝该版本 Release 正文逐字保留（早期 Release 由 GitHub 自动生成，正文天然偏薄，`python3 scripts/changelog-check.py --report` 可列出）。
 - **发版流程**：建 GitHub Release 后执行 `python3 scripts/changelog-check.py --fill` 回填本节；也可直接手写章节。`--check` 校验「每个版本 tag 都有章节 + 围栏闭合 + 当前版本已记录」，`--online` 追加校验「每个版本 tag 都有 GitHub Release」。
+- **发版前置闸（教训 #332）**：任何对外发版动作（push / tag / GitHub Release / 净化包）前先跑 `bash scripts/release-preflight.sh <tag>`——两查一停：**在飞链**（同项目 `status=running` 会话）/ **编号占用**（本地 tag + `git ls-remote --tags` 双向）/ **工作区干净**（`git status --porcelain`），任一不过即非 0 退出（10/11/12）；通过时打印「远端 master / 本地 HEAD / tag 区间 / 在飞链=0」四行现状。`scripts/create-github-release.sh` 的写路径已强制调用本闸，`--dry-run` / `--check` 不进闸。闸只读：不自行 push / 打 tag / 建 Release。
 - **非版本 tag**（`full-repo-consistency-audit-2026-09-06`、`before-batch1-optimization`）不进入本表。
+
+---
+
+## [v2.12.21] — 2026-09-11
+
+> 本版加一道**发版前置闸**：并发会话链未收口时，从机制上拒绝抢发版。教训 #332 的直读证据是版本谱系被劈成两半——远端 `master` = `eb7dc46`(v2.12.18)、本地 `HEAD` = `958278e`(v2.12.20)，**本地领先远端两版**，v2.12.19 / v2.12.20 的 tag **本地远端都没有**，净化包只到 2.12.18。
+
+### 一、问题：发版被当成单链的「下一步」
+
+版本号、tag、远端 master、净化包目录都是**单点共享资源**；并行修订链并存时，「先发我的、让后来者再补」在版本谱系上**不可交换**：后发的版本会落在落后的远端基线上，tag / Release 的先后关系与内容对应关系一并错乱。旧链路里没有任何一层检查「同仓库上是否还有在飞的链」。
+
+### 二、机制：发版前置闸「两查一停」
+
+新增 `scripts/release-preflight.sh`——**只读拒绝器**（不 push / 不打 tag / 不建 Release / 不改任何 ref），三查任一不过即非 0 退出，绝不静默通过：
+
+| 查 | 判据 | 不过的处置 |
+|---|---|---|
+| ① 在飞链 | 同项目（`spawnedCwd` 在本仓内，或 label / cwd 命中「论衡 / lunheng」）且 `status=running` 的会话与子会话数 = 0 | 退出码 **10**：打印清单 + 「如何等」；本链自身用 `--self-session` 排除，幽灵 running 才可 `--exclude`（会打印在报告里） |
+| ② 编号占用 | 目标 tag 在本地（`git tag -l`）与远端（`git ls-remote --tags`，含带注解 tag 的 `^{}` 解引用行）双向查均未占用 | 退出码 **11**：要求换号（编号复用会让 tag/Release 与内容错位） |
+| ③ 工作区干净 | `git status --porcelain` 为空（未跟踪文件默认同样计入） | 退出码 **12**：等收口并提交，或先清理（`--allow-untracked` 是显式放松，打印在报告里） |
+
+**通过时打印四行现状**，让人一眼看出谱系是否对齐：远端 master（含最近 tag）/ 本地 HEAD（领先、落后提交数）/ tag 区间（本地独有 = 未推、远端独有 = 未取）/ 在飞链 = 0。
+
+**失败关闭**：在飞链清单取不到（命令失败）或结构不可解析时**拒绝**并退出 2——查不到在飞链就不能声称「没有在飞链」，不按 0 条放行。
+
+### 三、接入点
+
+| 位置 | 接入方式 |
+|---|---|
+| `scripts/create-github-release.sh` | 建 / 改 Release（写远端）前强制调用本闸，未过则拒绝执行并透传退出码 10/11/12；`--dry-run` / `--check` 为只读路径不进闸；`--skip-preflight` 是「已确认无并发链」的补救旁路，打印醒目警告 |
+| `Makefile` | 新增 `make preflight`；`make release` 第一步即过闸（顺序：preflight → sync-version → all → build-release） |
+| 维护者 SOP | `references/agents/00-主控-扩展职责.md` §十四 新增「发版前置闸『两查一停』」小节（含为何**不**挂 `sync-version.sh` 入口：升版号常在「工作区不净」时才被触发，挂上去会自锁） |
+
+### 四、验收
+
+- 新增 `tests/test_release_preflight.py`：**12 项离线回归**（零网络零 gh），远端用 `--remote-file` 注入（= fake ls-remote）、在飞链用 `--sessions-file` 注入（= fake 在飞链清单），每个用例在 `tmp_path` 新建独立假仓库。覆盖「全干净 ⇒ 通过（rc=0 且含四行现状）」「有在飞链 ⇒ 拒绝（rc=10）」「编号被占（本地 / 远端 / 注解 tag `^{}`）⇒ 拒绝（rc=11）」「工作区不净 ⇒ 拒绝（rc=12）」「清单不可解析 ⇒ 失败关闭（rc=2）」「`--self-session` / `--exclude` / `--allow-untracked` 放松路径」「拒绝时必有可读原因」「闸零 ref 变更」。
+- 实测（本仓）：闸正确拒绝本次发版检查——在飞链 2 条（含本链自身与一条仅报告型 automation）+ 工作区 3 条未提交/未跟踪，退出码 10。
+- `bash scripts/check-version.sh` 全一致；`bash scripts/self-audit-gate.sh` 全 PASS；`cd tests && pytest -q` 全通过；`python3 scripts/changelog-check.py --check` 退出 0。
+
+随动：SKILL.md 版本号升位 v2.12.20 → v2.12.21、全仓版本戳同步、本节 CHANGELOG、教训 #332（主真源 `memory/lessons.md` + 本仓教训索引 `references/_shared/教训索引.md`）。
 
 ---
 

@@ -18,13 +18,22 @@
 #
 # 用法：
 #   bash scripts/create-github-release.sh [<tag>] [--dry-run|--check] [--no-dispatch]
+#                                       [--skip-preflight]
 #
-#   <tag>          默认 = SKILL.md frontmatter 的当前版本（v<version>）
-#   --dry-run      只打印将执行的动作 + 正文预览，不做任何写操作（本地零副作用）
-#   --check        只比对「CHANGELOG 章节 vs 线上 Release 正文」，不写
-#   --no-dispatch  建/改后不触发 changelog-check.yml 的在线校验
+#   <tag>            默认 = SKILL.md frontmatter 的当前版本（v<version>）
+#   --dry-run        只打印将执行的动作 + 正文预览，不做任何写操作（本地零副作用）
+#   --check          只比对「CHANGELOG 章节 vs 线上 Release 正文」，不写
+#   --no-dispatch    建/改后不触发 changelog-check.yml 的在线校验
+#   --skip-preflight 跳过 release-preflight.sh 前置闸（**仅限**已确认无并发链的补救场景，
+#                    如线上正文漂移修复；会打印醒目警告，且不进 --dry-run/--check）
+#
+# 写操作（建 / 改 Release）前强制跑 scripts/release-preflight.sh（教训 #332「两查一停」）：
+#   在飞链 / 编号占用 / 工作区干净任一不过 → 本脚本拒绝执行，退出码透传（10/11/12）。
+#   本链自身的会话 key 用环境变量 LUNHENG_PREFLIGHT_SELF_SESSION 传入，否则闸会把
+#   本链也算作在飞链而拒绝（失败关闭，不替人猜哪条是自己）。
 #
 # 退出码：0 = 完成/一致 / 1 = 漂移或缺 Release（--check）/ 2 = 环境或用法不满足
+#         / 10 = 前置闸：在飞链未收口 / 11 = 前置闸：编号已占用 / 12 = 前置闸：工作区不净
 # 依赖：bash + git + python3 + gh（gh 需已登录，见 `gh auth status`）
 # =============================================================================
 
@@ -38,6 +47,7 @@ WORKFLOW_FILE="changelog-check.yml"
 DRY_RUN=false
 CHECK_ONLY=false
 DISPATCH=true
+PREFLIGHT=true
 TAG=""
 
 usage() {
@@ -50,6 +60,7 @@ while [ $# -gt 0 ]; do
     --dry-run)    DRY_RUN=true ;;
     --check)      CHECK_ONLY=true ;;
     --no-dispatch) DISPATCH=false ;;
+    --skip-preflight) PREFLIGHT=false ;;
     -h|--help)    usage; exit 0 ;;
     -*)           echo "❌ 未知参数：$1（试 --help）" >&2; exit 2 ;;
     *)            if [ -n "$TAG" ]; then
@@ -233,6 +244,36 @@ PYEOF
     rm -f "$LIVE_FILE"
     exit 1
   fi
+fi
+
+# ---- 6.5 发版前置闸（教训 #332）：写远端前先「两查一停」----
+# 在飞链 / 编号占用 / 工作区干净任一不过就拒绝——Release 是收口动作，不是推进动作。
+# --dry-run / --check 是只读路径，不进闸（它们的语义就是不写远端）；写路径默认必过闸。
+if [ "$DRY_RUN" = true ] || [ "$CHECK_ONLY" = true ]; then
+  echo "⏭️  前置闸跳过（$([ "$DRY_RUN" = true ] && echo --dry-run || echo --check) 为只读路径，零远端写入）"
+  echo ""
+elif [ "$PREFLIGHT" = true ]; then
+  PREFLIGHT_SH="$SCRIPT_DIR/release-preflight.sh"
+  if [ ! -f "$PREFLIGHT_SH" ]; then
+    echo "❌ 缺前置闸脚本：$PREFLIGHT_SH（发版拒绝执行；补回后可重跑）" >&2
+    exit 2
+  fi
+  echo "🚦 发版前置闸（release-preflight.sh，教训 #332）..."
+  echo ""
+  if bash "$PREFLIGHT_SH" "$TAG"; then
+    echo ""
+  else
+    rc=$?
+    echo "" >&2
+    echo "❌ 前置闸未通过（退出码 $rc）→ 本脚本不建 / 不改 Release" >&2
+    echo "   10=在飞链未收口 / 11=编号已占用 / 12=工作区不净（详见上方报告）" >&2
+    exit "$rc"
+  fi
+  echo ""
+else
+  echo "⚠️  --skip-preflight：已跳过发版前置闸（在飞链 / 编号占用 / 工作区干净均未核验）" >&2
+  echo "   仅限已确认无并发链的补救场景使用，不得作为常规发版路径" >&2
+  echo ""
 fi
 
 # ---- 7. 建 / 同步 Release ----
