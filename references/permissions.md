@@ -28,6 +28,13 @@
 
 > ⚠️ **执行层真源**：OpenClaw 2026.9.x 的 `sessions_spawn` **无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证），上表是**声明/部署建议**，不是可传参数。子代理实际工具面 = 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_*`）− 主控有效工具策略快照 + 宿主 config `tools.subagents.tools.allow/deny`（全局，无法按 spawn 逐档）。档位间差异在工具层不可逐子表达时，以 prompt 约束 + 只读路径约束兜底。`session_status`/`progress_card` 是**主控侧**可观测性工具，不给子代理。
 
+**能力自检**：五档白名单**不能被机械强制**（无 `toolsAllow`），因此本修订把它改成「**可观测 + 可阻断**」三件套：
+1. **主控侧（Phase 0 必走）**：核验自身可见工具是否**超出** documented 集；超限项逐条记入 `status.md`「能力自检」段，并在 Phase 0 **向主人披露**（不阻断——主控工具面由宿主决定）。
+2. **子代理侧（每次 spawn 首步）**：按 [`_shared/dispatch-header.md`](_shared/dispatch-header.md)「启动自检」核验自身工具面；发现越权 → **停止、不写盘**、回报 `capability_excess`。
+3. **阻断规则**：主控收到 `capability_excess` → **不采纳该产物**；越权涉及 `exec`/`process`/`browser`/`terminal`/`sessions_*` ⇒ **该档停用**，改走主控亲为或单主控模式；全部记入 status.md 并告知主人。
+
+> **诚实边界**：本自检**不改变权限**（skill 不读不改宿主配置），只让越权可被观测、可被阻断，**不能替代宿主侧加固**。
+
 **Opt-in（默认禁止，Phase 0 主人明确同意才解锁，`metadata.tools.opt_in`）**：
 - `image_generate` — 封面生成专用，**默认关闭**，主控在 Phase 0 问「是否需要生成封面」答「是」才开
 - `memory_get` / `memory_search` / `memory_recall` — **默认关闭**：**默认工作流不读任何 Agent 工作区记忆文件**，写作偏好一律由主人 Phase 0 写入任务简报「写作偏好」字段；仅当主人在 Phase 0 显式勾选「启用记忆辅助」并点名允许读取的文件/用途时才解锁，且须记入 status.md「Phase 0 同意记录」；T6/T7 调 `memory_recall` 需宿主在 config 层为其子代理临时放行（不放行则主控代查回传）

@@ -44,6 +44,20 @@
 
 > 仅有材料、主控代判、子代理声称已确认，均不构成决策；`no_insight` 是明确决策，不是跳过。
 
+## 能力自检（Phase 0 首次 spawn 前填；越权回报即时追加）
+
+**主控工具面**: 与 documented 集一致 ⬜ / 超限 ⬜：<逐项列出>（超限即向主人披露）
+
+| 档位 | 角色 | 自检结果 | 越权工具（如有） | 处置 |
+|---|---|---|---|---|
+| allow_research | T1/T2/T3 | ⬜ 未报 / ✅ 通过 / ⚠️ 越权 | — | — |
+| allow_analysis | T4 | ⬜ | — | — |
+| allow_writing | T5 | ⬜ | — | — |
+| allow_audit | T6/T7 | ⬜ | — | — |
+| allow_review | T9/G14 | ⬜ | — | — |
+
+> 自检口径见 [`permissions.md`](../../permissions.md)「能力自检」与 [`dispatch-header.md`](../_shared/dispatch-header.md)「启动自检」；**本表不记录宿主配置明细**（论衡不读宿主配置）。
+
 ## 二、角色状态（key:value 替换，每角色一行）
 
 > **维护规则**：主控用 `**T<n> 角色**: ⬜ Inbox` → `**T<n> 角色**: ✅ Done (时间)` 替换。**禁止** 用表格行替换，零空格漂移风险。

@@ -9,7 +9,13 @@
 > 🚫 **叶子纪律（我不是主控，不得再委托）**：我**不得**调用 `sessions_spawn` 派生子代理，也**不得**用 `subagents` / `sessions_list` / `sessions_history` 查看或管理其他会话——论衡架构里角色卡 = 叶子 worker。平台可能默认开启递归委派，我**可能拿得到**这些工具，但**未被授权**使用它们。需要额外检索/人手 → 在**交接报告**写「需求回执」给主控，由主控决定是否 spawn（子代理自行 spawn 的孙辈结果不上传主控 = 产出静默丢失）。完整规则见 [`关键协议.md`](关键协议.md) §叶子纪律。
 
 > - `allow_research`（T1/T2/T3）: `["read","write","edit","web_search","web_fetch","tavily_search","tavily_extract"]`
-> - **出网 deny-precedence（fail-closed）**：上述检索类工具（web_search / web_fetch / tavily_search / tavily_extract）属「外发同意 4 选 1」管辖。主人选 ④「全部拒绝」时，本次运行**不调用任何出网工具**，改纯本地（主人自带材料 + 本地推理）；「开工」不隐含外发同意；同意记录缺失/矛盾/不可读 = 按拒绝处理，停止并回报主控（见 [`关键协议.md`](关键协议.md)「4 选 1（外发同意）选项」）。
+> - **同意门（fail-closed，逐调用过）**：所有外发 / opt-in 工具（检索类、图像、抓取、记忆）**调用前**必须先核对任务简报 §0 的结构化同意记录（两轴逐项取值）；放行判据与阻断动作见 [`关键协议.md`](关键协议.md) §确定性同意门。主人选 ④ 时**一次都不调**；记录缺失/含糊/不一致 = 按拒绝处理，停止并回报主控。
+
+> 🧪 **启动自检（第一步，先于任何读写）**：开工前先看**我实际拿到的工具面**，对照自己那一档的白名单：
+> - 若出现**本档白名单之外**的工具（尤其 `exec` / `process` / `browser` / `terminal` / `secrets` / `gateway` / `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history`）⇒ **立即停止：不读、不写、不 spawn**，在 final message 返回 `{"status":"capability_excess","role":"<我的角色>","unexpected":["<工具名>"]}`，由主控裁决。
+> - 若与本档白名单一致 ⇒ 在交接报告「做了什么」首句写 `能力自检：通过（<档位>）`，随后正常开工。
+> - **不得**因为「平台默认开了递归委派」就使用越权工具（见上方叶子纪律）。
+> - 本自检**只报告、不改权限**（skill 无权改宿主配置）；它的价值是让越权**可被观测、可被阻断**。
 > - `allow_analysis`（T4）: `["read","write","edit"]`
 > - `allow_writing`（T5）: `["read","write","edit"]`
 > - `allow_audit`（T6/T7）: `["read"]` — **只读**，不写/不改/不出网/不调记忆/不调图像/不 spawn 子会话
