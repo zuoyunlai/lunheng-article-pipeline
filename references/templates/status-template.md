@@ -56,7 +56,7 @@
 | allow_audit | T6/T7 | ⬜ | — | — |
 | allow_review | T9/G14 | ⬜ | — | — |
 
-> 自检口径见 [`permissions.md`](../../permissions.md)「能力自检」与 [`dispatch-header.md`](../_shared/dispatch-header.md)「启动自检」；**本表不记录宿主配置明细**（论衡不读宿主配置）。
+> 自检口径见 [`permissions.md`](../permissions.md)「能力自检」与 [`dispatch-header.md`](../_shared/dispatch-header.md)「启动自检」；**本表不记录宿主配置明细**（论衡不读宿主配置）。
 
 ## 二、角色状态（key:value 替换，每角色一行）
 

@@ -27,6 +27,12 @@
 
 > ⏱️ **spawn watchdog（v2.12.27，回应复盘 R-V2-26-02）**：spawn 任何角色后 **spawn watchdog 时长内若无产物**（**具体时长见 SKILL.md 硬卡阈值表**；v2.12.27 增列 8 分钟），主控在 00-主控-扩展职责.md「spawn 超时兜底」段执行 → **主控亲写兜底 + status.md 记 `failed_silent_watchdog` + 告知主人**；**不重试 spawn 同一任务**。8 min 阈值依据：v2.12.26 实战 T4 静默临界点 ≈ 130k tokens / 5min（v2.12.23 8.5k tokens / 6m 仍产物的对比），留 3 min 余量。**声明式立场不保证 spawn 可靠性** —— spawn 跟踪状态机延迟属 OpenClaw 平台责任（v2.12.26 实战：T4 5m57s+128k tokens 0 产物、spawn 失败率 25% vs v2.12.23 12.5% 恶化 12.5pp），论衡内容侧升级无法根除，watchdog **仅是降级兜底、非可靠性保证**。
 
+> 📜 **平台契约（v2.12.27 补写依据 —— 都是我们已在做、但未写明出处的事）**：
+> - **不轮询**：启动后**等 completion 事件**，**禁止**用 `exec` sleep / `sessions_list` 搭轮询循环（官方操作准则：「start child work once and wait for completion events」）。
+> - **终答后到达的 completion** → 回**静默标记 `NO_REPLY`**（不另发可见消息）。
+> - **回传硬上限**：completion 回传 findings **≤ 4096 字符** / 单条结果 **≤ 512** / 路由通知 **≤ 1024**（平台硬上限，**超限即被截断且不报错**）→ **大报告一律写盘**，回传只带**摘要 + 产物路径 + 「已写盘」声明**。
+> - **announce 逐层传递**：每层只见**直接子代**的 announce（论衡仅 1 层，不受影响）。
+
 > **错误码语义分层（教训 #285）**：子代理报错时区分「资源/认证层错误」vs「产物缺失」，避免主控误判兜底：
 > - `HTTP 401/403/429` / `quota exceeded` / 欠费 = **资源/认证层错误**，产物**可能已完整写盘**——若已写盘，返回 degraded 时**附带产物路径**，主控先 `read` 验证再决定是否兜底
 > - `tool_error` / `protocol` = 工具调用错误，产物可能部分

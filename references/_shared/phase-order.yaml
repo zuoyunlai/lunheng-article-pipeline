@@ -1,6 +1,7 @@
 # 论衡阶段真源（版本随 SKILL.md 同步）
 # 这是流程顺序与阻断关系的唯一真源；运行时由主控使用 read/write/edit 执行。
-# agent 报告节点含 output_chars_max（报告回传长度硬上限；超限走分块协议，见 执行韧化协议-design.md § 报告长度上限与分块协议）
+# agent 报告节点含 output_chars_max（**双上限**：`output_chars_max` = 报告**写盘**上限；**回传**上限恒为平台硬上限 4096 字符，见 执行韧化协议-exec.md § 报告长度上限与分块协议）
+# 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
 # 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_g14；Phase 4.2 = audit_revision；Phase 4.5 = t9_review
 version: 2.12.26
 owner_checkpoints:
@@ -43,7 +44,7 @@ pipeline:
     kind: agent
     agent: T4
     output: analysis/分析大纲.md
-    output_chars_max: 12000
+    output_chars_max: 12000   # 写盘上限（回传另受平台 4096 字符硬上限约束）
     next: phase2_5_outline
   - id: phase2_5_outline
     kind: owner_checkpoint

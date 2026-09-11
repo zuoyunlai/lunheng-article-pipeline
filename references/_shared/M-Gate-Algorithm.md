@@ -327,9 +327,10 @@ data_card_text = read("final/证据包/数据卡.md")
 
 import re
 
-# 标准格式检查（[Dxx] 编号）
-d_entries_std = re.findall(r'^\*\*\[D\d+\]', data_card_text, re.MULTILINE)
-trust_std = re.findall(r'信任级别：(已发布|主人投喂|二手转引)', data_card_text)
+# 标准格式检查（[Dxx] 编号；兼容随包模板三种写法：`**[D01]` / `### [D01]` / 行首 `[D01]`）
+d_entries_std = re.findall(r'^\s*(?:\*\*|#{2,4}\s*)?\[D\d+\]', data_card_text, re.MULTILINE)
+# 信任级别：容忍加粗与 emoji 修饰（模板有 `信任级别：` 与 `**信任级别**: 🟢 已发布` 两种写法）
+trust_std = re.findall(r'信任级别[^\n]{0,16}?(已发布|主人投喂|二手转引)', data_card_text)
 
 # 表格 fallback 检查（1.x 表格格式）
 d_entries_table = re.findall(r'^\| \d+\.\d+ \|', data_card_text, re.MULTILINE)
@@ -684,7 +685,7 @@ return (all_pass, fail_reasons, sha256_pending)
 ```
 算法步骤（主控 LLM 兜底执行）：
 1. 检查审计报告最新版：ls audits/审计报告-vN.md → N 取最大 → 必须存在
-2. P0/P1 清单已列：grep -E '^- \*\*P0|^- \*\*P1' audits/审计报告-vN.md → 必须有 ≥1 条
+2. P0/P1 清单已**显式列出**：读 audits/审计报告-vN.md → **P0/P1 条目数可为 0**（审计零缺陷是正常结果，不是失败）；**但必须显式写「本轮无 P0/P1」**，不得留空或以未列示代替；出现 P0/P1 条目时须逐条列明。
 3. M 门（M-Form 8 项 + M-Exist 3 项）全部 exit 0：读 M-Gate-Report-v2.2.12.json → 全部 true
 4. 证据包 sha256 指纹段存在：读 final/交付说明.md「证据包指纹」段 → 必须有 sha256 **占位符** `[SHA256-PENDING:HOST-VERIFY]`（人类可选在 host shell 手动计算后回填真实哈希，占位符即视为通过——agent 不执行 sha256，不把 sha256 作闸门强制项）
 5. 信任级别一致性：M-Exist-3 exit 0 → 通过
