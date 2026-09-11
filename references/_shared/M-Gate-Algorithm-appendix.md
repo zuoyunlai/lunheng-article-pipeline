@@ -92,10 +92,10 @@
   },
 
   "证据包_sha256指纹": {
-    "数据卡.md": "<sha256 或 待补>",
-    "案例卡.md": "<sha256 或 待补>",
-    "文献卡.md": "<sha256 或 待补>",
-    "先行者清单.md": "<sha256 或 待补>"
+    "数据卡.md": "[SHA256-PENDING:HOST-VERIFY]",
+    "案例卡.md": "[SHA256-PENDING:HOST-VERIFY]",
+    "文献卡.md": "[SHA256-PENDING:HOST-VERIFY]",
+    "先行者清单.md": "[SHA256-PENDING:HOST-VERIFY]"
   },
 
   "判定": "✅ 通过" | "❌ 失败",

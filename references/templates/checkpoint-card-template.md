@@ -123,7 +123,7 @@
 
 progress_card 的 **plan** 字段承载流水线阶段清单——比在 markdown 里手打 emoji 阶段列表更规范、可被 UI 原生渲染为 checklist。每步 `{step, status}`，status 三态：`pending` / `in_progress` / `completed`，**全清单最多一个 `in_progress` = 当前阶段**（否则 UI 无法定位「现在卡在哪」）。
 
-论衡 plan 步骤 = phase-order.yaml 节点序列（13 步）：
+论衡 plan 步骤 = phase-order.yaml 节点序列（**步数以该文件为准，不在此硬编码**）：
 
 | # | step | 人在环 |
 |---|---|---|

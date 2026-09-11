@@ -69,6 +69,9 @@ pipeline:
     degrade: selfcheck_in_lite_tier
     exempt: owner_exempted_requires_disclosure
     input: drafts/current_draft.md
+    output:
+      T6: analysis/批判报告-vN.md
+      G14: audits/G14-检测报告-vN.md
     output: analysis/批判报告-vN.md
     output_chars_max:
       T6: 12000   # 批判报告（回传长度上限；超出走分块协议）
@@ -76,7 +79,7 @@ pipeline:
     next: t5_feedback_revision
   - id: t5_feedback_revision
     kind: conditional_agent
-    owner: T5
+    agent: T5
     condition: T6_or_G14_requires_revision
     next: t7_audit
   - id: t7_audit

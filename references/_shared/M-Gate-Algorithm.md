@@ -61,7 +61,7 @@ M 门 13 项伪代码是「**主控 LLM 推理模拟执行**」，不是真 shel
 
 如主人需要真正机器强制校验，可选：
 - **OpenClaw runtime 加 M-Gate 工具**（类似 OpenAlex 路径 B：MCP server）
-- **主人手工跑 `bash scripts/m-gate-check.sh`**（从 M-Gate 伪代码派生 bash 脚本，但不在论衡 agent 工具白名单内）
+- **主人手工跑 `bash scripts/m-gate-check.sh`**（从 M-Gate 伪代码派生 bash 脚本，但**不在论衡 agent 工具白名单内；发布版亦不含 `scripts/` 目录**）
 
 ---
 
@@ -151,7 +151,7 @@ references_unique = sorted(set(references))
 # 判定
 if len(references_unique) > 0:
     return {"通过": True, "引用数": len(references_unique), "SVG 文本节点纳入": len(svg_texts)}
-else
+else:
     return {"通过": False, "失败原因": "正文 + SVG 内嵌文本均无任何引用标注"}
 ```
 
@@ -722,4 +722,4 @@ return (all_pass, fail_reasons)
 - **教训沉淀**：[`references/_shared/M-Gate-Algorithm-appendix.md §3`](M-Gate-Algorithm-appendix.md)
 - **历史版本归档**：3 个历史版本（基础版 / 增量版 / 算法升级版）已由维护者归档，不随发布包分发。**主流程只读本完整版**，归档版仅做版本演进参考。
 
-> **拆分理由**：主文件从 780 行降至 635 行（-19%），超 PERF-SIZE-004 800 行临界 145 行的缓冲。附录按需加载，主流程只读「13 个 M门规则 + 触发条件 + 伪代码」。
+> **拆分理由（历史记录）**：**当时**主文件从 780 行降至 635 行（-19%），超 PERF-SIZE-004 800 行临界 145 行；**此后随修订增长，当前行数以文件实际为准**（不在文中硬编码行数）的缓冲。附录按需加载，主流程只读「13 个 M门规则 + 触发条件 + 伪代码」。
