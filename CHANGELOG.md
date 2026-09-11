@@ -1,5 +1,7 @@
 # Changelog
 
+> ⚠️ **历史链接说明**：本文件保留逐版本**全量记录**。部分历史条目链接指向 `docs/` 或 `../outputs/` 中的**当时产物**（发布说明 / 审计报告 / 设计方案），这些文件**已随清理移除或归档**，链接可能失效——**属史料，不影响当前使用**。当前版本行为以 [`SKILL.md`](SKILL.md) 与 `references/` 为准。
+
 论衡（`lunheng-article-pipeline`）版本变更记录。**本文件是仓库内 changelog 的单一真源**；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 是同一内容的发布视图。
 
 - **排序**：版本倒序（最新在前）。查找某一版本：`grep -n '^## \[v2.12' CHANGELOG.md`

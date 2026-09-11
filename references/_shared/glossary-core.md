@@ -16,7 +16,7 @@
 | T5 | 写手（Writer） | 严格按大纲 / 数据卡写，AI 去味 10 项 |
 | T6 | 批判伙伴（Critical Companion） | C1-C7 七维反方对抗性复核（Phase 3.6 同批 T6∥G14） |
 | T7 | 审计（Auditor） | G0-G14 形式核验 + 修订任务书（Phase 4） |
-| T8 | 终检（Final Inspector） | 主控亲完成，不 spawn；19 必查项 + 小幅修补权限 |
+| T8 | 终检（Final Inspector） | 主控亲完成，不 spawn；48 必查项（可发表性判据，见 `可发表性判定表.md`）+ 小幅修补权限 |
 | T9 | 同行评审（Peer Reviewer） | 6 维度评分 + 期刊匹配（Phase 4.5，可选） |
 
 ## 数据信任 3 档

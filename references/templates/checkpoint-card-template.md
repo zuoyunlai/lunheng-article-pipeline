@@ -48,7 +48,7 @@
 
 ### Phase 2.5 · 大纲确认
 - **已完成**：T1/T2/T3 检索 + T4 分析大纲
-- **待审材料**：`analysis/分析大纲.md`（+ `literature/` `data/` `case/` 目录可选附览）
+- **待审材料**：`analysis/分析大纲.md`（+ `literature/` `data/` `cases/` 目录可选附览）
 - **选项**（枚举真源：`phase-order.yaml` `phase2_5_outline.decisions`）：
   - A. 确认大纲（进入 T5 写作）→ `approved`
   - B. 修改大纲（主人指出方向，T4 重出）→ `revision_requested`

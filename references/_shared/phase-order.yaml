@@ -34,7 +34,7 @@ pipeline:
     decisions: [triggered, not_triggered]
     output_if_triggered: literature/回查报告-vN.md
     required_record: status.md
-    after_trigger: rerun_t2_5_integrity
+    after_trigger: rerun_t2_5_integrity   # 动作名（非节点 id）：触发后重跑 t2_5_integrity 闸门
     next: t2_5_integrity
   - id: t2_5_integrity
     kind: mechanical_checkpoint
@@ -63,7 +63,7 @@ pipeline:
     kind: parallel_agents
     agents: [T6, G14]
     # G14 条件式启用（非自由开关，v2.12.25 定案）：中文 + 学术/商业评论/行业分析 → auto 必跑；
-    # 轻量档（≤2000 字）→ selfcheck 走内置自检；纯外语交付 → n/a 不适用；
+    # 轻量档（2000-3000 字，口径真源 = 字数判定表.md）→ selfcheck 走内置自检；纯外语交付 → n/a 不适用；
     # 主人显式要求关闭 → exempted_by_owner，且必须在 final/交付说明.md 披露。
     condition: language_zh_and_genre_required
     degrade: selfcheck_in_lite_tier
@@ -90,11 +90,18 @@ pipeline:
     kind: bounded_loop
     max_rounds: 2
     condition: T7_P0_or_P1
-    after_each: [rerun_g14_if_enabled, rerun_t7]
+    after_each: [rerun_g14_if_enabled, rerun_t7]   # 动作名（非节点 id）：重跑 G14（若启用）/ 重跑 t7_audit
     next: t7_5_integrity
   - id: t7_5_integrity
     kind: mechanical_checkpoint
     owner: 主控
+    next: t9_review
+  - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
+    kind: owner_agent
+    agent: T0
+    output: final/图件/
+    condition: figures_approved_by_owner   # Phase 2.5 拍板图位数 > 0
+    note: 主控亲为（不 spawn）：按 Phase 2.5 拍板数手写 SVG（templates/图表-SVG-template.md），零外发
     next: t9_review
   - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent

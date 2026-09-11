@@ -69,7 +69,7 @@ M-Form-3 failed: temp_id pattern detected in output
 
 | 项 | 内容 |
 |---|---|
-| **触发** | M-Integrity-1 在 T2→T3 之间要求检查大纲，但大纲当时不存在 |
+| **触发** | M-Integrity-1 在 T2→T4 之间要求检查大纲，但大纲当时不存在 |
 | **原报错** | `M-Integrity-1 failed: outline not found at T2→T3 transition` |
 | **友好版** | `❌ 大纲检查时序矛盾<br>【发生了什么】主控在 T2 完成后立即检查大纲，但大纲是 T3 产物<br>【为什么】早期版本有时序 bug（教训 #103）<br>【怎么解决】1) 跳过 M-Integrity-1 直至 T3 完成  2) 这是已修复的问题，无需主控手动处理` |
 
