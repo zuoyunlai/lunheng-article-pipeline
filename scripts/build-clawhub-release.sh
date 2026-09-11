@@ -30,7 +30,7 @@ OUT_ROOT="$SKILL_ROOT/outputs/clawhub-release"
 # ---- 版本号 ----
 VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
-  VERSION="$(grep -m1 '^version:' "$SKILL_ROOT/SKILL.md" | sed 's/version:[[:space:]]*//' | tr -d '"')"
+  VERSION="$(grep -m1 -E '^[[:space:]]*version:' "$SKILL_ROOT/SKILL.md" | sed 's/^[[:space:]]*version:[[:space:]]*//' | tr -d '"')"
 fi
 if [[ -z "$VERSION" ]]; then
   echo "❌ 无法确定版本号，请显式传入：bash scripts/build-clawhub-release.sh 2.3.9" >&2
@@ -166,7 +166,7 @@ while i < len(lines):
         while j < len(lines) and lines[j].startswith('> 版本：'):
             j += 1
         # 用当前版本单行替代
-        out.append(f'> 版本：v{version}（发布净化版，自动同步）\n')
+        out.append(f'> 版本：v{version}（发布版，与 SKILL.md version: 同步）\n')
         i = j
         continue
     out.append(line)
@@ -263,6 +263,21 @@ s, _sop_n = re.subn(
 )
 if _sop_n:
     print(f'  §十四 维护者 SOP 整段删除（规则 3h-7）：{_sop_n} 处')
+
+# 7b. 【v2.12.13 新增】整段删除 §二十五「Archive 清理策略」（含删除类 SOP）
+#   根因（审计 §一.9 / pkg-audit P1-1）：原规则 3l 的 re-search 目标是 `### 5.8 Archive 清理记录`，
+#   真源已无此标题 → 规则静默空转（真源 0 命中），而 §二十五 本就不在任何规则射程内
+#   → 「主控 … 清理 drafts/archive/」「保留 N 文件，删 M 文件」等删除类 SOP 整段漏入包，
+#   与包内 status-template.md「论衡工作流本身不执行任何 cleanup」直接矛盾。
+#   修法：按标题整段删除（到下个 `## ` 标题前）。
+s, _arch_n = re.subn(
+    r'## 二十五、Archive 清理策略.*?(?=\n## )',
+    '',
+    s,
+    flags=re.DOTALL
+)
+if _arch_n:
+    print(f'  §二十五 Archive 清理策略整段删除（规则 3h-7b）：{_arch_n} 处')
 
 open(path, 'w', encoding='utf-8').write(s)
 PYEOF
@@ -361,6 +376,20 @@ s = s.replace('自审门', '自检门')
 # —— 「修订 SOP」→「修订任务规范」（SOP 内史随 §十四 维护者小节一并剥离）——
 s = s.replace('修订 SOP 与', '修订任务规范与')
 s = s.replace('修订 SOP', '修订任务规范')
+
+# —— v2.12.13 新增：双视图发布架构内部叫法中性化（教训 #321 / #296 同型）——
+#   背景：构建脚本 3a 自己注入的页脚文案「发布净化版」进入 67 个文件，却不在
+#   FINAL_PATTERNS 覆盖内（规则只防手写，不防自己写）；真源侧 `净化版`/`双视图`/`strip 剥除`
+#   亦有多处直入包内。长形态优先替换，避免断句。
+import re as _re
+s = _re.sub(r'ClawHub T\d+', '平台审计', s)
+s = s.replace('净化版代码块被 strip 剥除后', '发布版代码块剥离后')
+s = s.replace('代码块被 strip 剥除', '代码块被剥离')
+s = s.replace('strip 剥除', '代码块剥离')
+s = s.replace('净化版', '发布版')
+s = s.replace('双视图硬约束', '双形态硬约束')
+s = s.replace('双视图发布架构', '双形态发布架构')
+s = s.replace('双视图', '双形态')
 
 if s != orig:
     open(path, 'w', encoding='utf-8').write(s)
@@ -516,6 +545,12 @@ FINAL_PATTERNS=(
   '必跑硬门'                     # v2.12.11：维护者发布 SOP 内史
   '版本维护脚本'                 # v2.12.11：scripts/*.sh 被泛化后的维护者占位符
   '自审门'                       # v2.12.11：维护者自指体系叫法，使用者侧称「自检门」
+  # ---- v2.12.13 新增：双视图发布架构内部叫法（构建脚本自身注入的页脚 + 判定表自述）----
+  # 背景（教训 #321）：构建脚本 3a 给自己注入的页脚文案「发布净化版」进入 67 个文件，
+  #   却不在 FINAL_PATTERNS 覆盖内（规则只防手写，不防自己写）。
+  '净化版'                       # v2.12.13：双视图发布架构内部叫法
+  'strip 剥除'                   # v2.12.13：剥除链内部术语（可发表性判定表:20 同型）
+  '双视图'                       # v2.12.13：双视图发布架构内部叫法
 )
 FINAL_HITS=0
 for pat in "${FINAL_PATTERNS[@]}"; do
@@ -562,40 +597,73 @@ echo "  ✅ 语言政策声明门通过（$(find "$OUT_DIR" -name '*.md' | wc -l
 #   + 产物（必须 =0，否则剥离未生效）。关键规则任一不满足即 fail-loud；
 #   非关键规则仅告警（避免误伤「本就不存在」的合法规则）。
 echo "🔎 剥离规则命中数自检（教训 #192 同型）..." >&2
-# 格式：名称|正则|级别（critical/warn）
+# 格式：名称|正则|级别(critical/warn)|allow_empty(yes/no)
+#   allow_empty=yes：该规则真源命中数**允许为 0**（内容已同步删除，或规则仅作产物侧回归守卫保留）；
+#     标 yes 必须能说明理由（教训 #320：门写了却不生效 = 静默空转，比没门更危险）。
+# 判定（v2.12.13 收紧，全量覆盖 purify() 规则）：
+#   · 真源命中 = 0 且 allow_empty=no → **fail**（规则死亡：目标写法已变，须修规则/改标注）
+#   · 产物命中 ≠ 0 → **一律 fail**（剥离未生效，直接阻断发布；不再区分级别）
 RULE_CHECKS=(
-  '版本修订硬门段|### 修订后必跑硬门三件套|critical'
-  '版本修订质量门段|### 修订后必跑内容质量门脚本|critical'
-  '版本升级自审门小节|### 版本升级自审门|critical'
-  'commit 前表述|commit 前|critical'
-  '教训字面|教训 #[0-9]|critical'
-  '开发者脚本路径|scripts/|critical'
-  '凭据措辞收敛|需主人提供 API key|warn'
-  '跨平台等价命令表|跨平台等价命令|warn'
+  # —— 关键门段（critical：一旦失配即代表整段维护者内容漏入包）——
+  '版本修订硬门段|### 修订后必跑硬门三件套|critical|no'
+  '版本修订质量门段|### 修订后必跑内容质量门脚本|critical|no'
+  '版本升级自审门小节|### 版本升级自审门|critical|no'
+  'Archive清理策略|Archive 清理策略|critical|no'
+  'commit 前表述|commit 前|critical|no'
+  '教训字面|教训 #[0-9]|critical|no'
+  '开发者脚本路径|scripts/|critical|no'
+  # —— v2.12.13 新增：维护者叙事 / 双视图叫法（产物侧必为 0）——
+  '净化包叫法|净化包|critical|no'
+  '净化脚本叫法|净化脚本|critical|no'
+  '自审门叫法|自审门|critical|no'
+  '修订SOP叫法|修订 SOP|critical|no'
+  '平台台账编号|ClawHub T0[0-9]|critical|no'
+  '净化版叫法|净化版|critical|no'
+  '双视图叫法|双视图|critical|no'
+  'strip剥除叫法|strip 剥除|critical|yes'  # 4.1 已源侧中性化（真源 0 命中属预期）；保留作产物侧回归守卫
+  # —— warn 级：内容可能已同步删除（allow_empty=yes），保留为产物侧回归守卫 ——
+  '凭据措辞收敛|需主人提供 API key|warn|no'
+  '跨平台等价命令表|跨平台等价命令|warn|no'
+  '反哺未沉淀表述|没有自动沉淀到写手禁做清单|warn|no'
+  '自动沉淀表述|实战教训自动沉淀|warn|yes'
+  '主动写入表述|主控\*\*必须主动\*\*写入论衡工作区|warn|yes'
+  '旧版一致性检查文件名|版本一致性检查-v2\.3\.0|warn|yes'
+  '旧版M-Gate文件名|M-Gate-渐进式验证-v2\.2\.15|warn|yes'
+  '相似项目复用段|相似项目复用检查|warn|yes'
+  '二梯队API key|可选启二梯队知网/万方/科情需提供 API key|warn|yes'
+  '旧版5.8清理记录|### 5\.8 Archive 清理记录|warn|yes'
+  '扫描器叫法|扫描器|warn|yes'
+  'SkillSpector叫法|SkillSpector|warn|yes'
 )
 RULE_FAIL=0
+RULE_EMPTY=0
 for entry in "${RULE_CHECKS[@]}"; do
-  IFS='|' read -r rname rpat rlevel <<<"$entry"
+  IFS='|' read -r rname rpat rlevel rallow <<<"$entry"
   r_src=$( { grep -rE "$rpat" "${SCAN_INCLUDES[@]}" "$SKILL_ROOT/references" "$SKILL_ROOT/SKILL.md" "$SKILL_ROOT/QUICKSTART.md" "$SKILL_ROOT/README.md" 2>/dev/null || true; } | wc -l | tr -d ' ')
   r_pkg=$( { grep -rE "$rpat" "${SCAN_INCLUDES[@]}" "$OUT_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
-  printf '   [%-8s] %-22s 真源=%-4s 产物=%s\n' "$rlevel" "$rname" "$r_src" "$r_pkg"
+  printf '   [%-8s] %-24s 真源=%-4s 产物=%s\n' "$rlevel" "$rname" "$r_src" "$r_pkg"
   if [[ "$r_src" -eq 0 ]]; then
-    echo "      ⚠️ 规则可能已失效：真源零命中（真源写法变更，或内容已同步删除）"
-    if [[ "$rlevel" == "critical" ]]; then RULE_FAIL=$((RULE_FAIL + 1)); fi
+    if [[ "$rallow" == "yes" ]]; then
+      echo "      ℹ️ 真源零命中（allow_empty=yes，作为产物侧回归守卫保留）"
+      RULE_EMPTY=$((RULE_EMPTY + 1))
+    else
+      echo "      ❌ 规则已死亡：真源零命中且未标注 allow_empty（须修规则或改标注）"
+      RULE_FAIL=$((RULE_FAIL + 1))
+    fi
   fi
   if [[ "$r_pkg" -ne 0 ]]; then
     echo "      ❌ 剥离未生效：产物仍含该形态 $r_pkg 处"
-    if [[ "$rlevel" == "critical" ]]; then RULE_FAIL=$((RULE_FAIL + 1)); fi
+    RULE_FAIL=$((RULE_FAIL + 1))
   fi
 done
 if [[ "$RULE_FAIL" -gt 0 ]]; then
   echo ""
   echo "❌ 剥离规则自检未通过（$RULE_FAIL 项）：规则与真源形态失配，或规则未生效"
   echo "   修法：核对 build-clawhub-release.sh 中该规则 re-search 目标 vs 真源当前写法；"
-  echo "   若真源已同步删除该内容，请把该条目从 RULE_CHECKS 移除（勿留死规则）。"
+  echo "   若确已同步删除该内容，请把该条目第 4 字段标 yes 并写明理由（勿留无标注死规则）。"
   exit 1
 fi
-echo "  ✅ 剥离规则自检通过"
+echo "  ✅ 剥离规则自检通过（共 ${#RULE_CHECKS[@]} 条：生效 $(( ${#RULE_CHECKS[@]} - RULE_EMPTY )) 条 / allow_empty $RULE_EMPTY 条）"
 
 # 净化残留扫描已完成（前置到 #3h，教训 #213），以下为汇总段（可被 exec timeout SIGTERM 不影响产物）
 

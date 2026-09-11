@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-paper-ready-check.py —— 论衡 v2.12.0 可发表性 36 项检查器
+paper-ready-check.py —— 论衡 v2.12.0 可发表性 48 项检查器
 
 教训 #252（2026-09-09）：把内容质量门从 SKILL.md 散文层迁回机器可执行层。
 本脚本 = references/_shared/可发表性判定表.md 的本地开发者版执行器。
@@ -256,7 +256,7 @@ def main():
         print(f'❌ {final_md} 不存在')
         sys.exit(1)
 
-    print(f'🔍 论衡 v2.12.0 可发表性 36 项检查 · 项目: {project}')
+    print(f'🔍 论衡 v2.12.0 可发表性 48 项检查 · 项目: {project}')
     print(f'   定稿: {final_md}')
     print('=' * 70)
 

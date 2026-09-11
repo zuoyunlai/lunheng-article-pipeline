@@ -1,4 +1,5 @@
-> 版本：v2.12.12（自动同步 2026-09-10）
+> 版本：v2.12.13（自动同步 2026-09-11）
+
 
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
@@ -69,7 +70,7 @@
 >
 > **重写**（教训 #166，主控实测反馈）：原 markdown 表格 7 列 + 主控 edit 频繁失败（空格漂移 / old_string 不匹配 / 重复行 bug）。**改为「4 段结构化纯文本」+ key:value 字段**，主控用 `**当前**: X` → `**当前**: Y` 替换策略，零空格漂移、零编辑摩擦。
 >
-> 主控维护，每个角色交接时更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
+> 主控维护（**独占写**），读 `run/<项目名>/.tmp/<角色>-heartbeat.md` 后更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
 > 失败必须留原因；任一行停留超阈值无进展 → 主控介入（按主控卡 §二十二 硬卡阈值表，角色分级：T1-T3 10 / T4 12 / T5 15 / T6 15 / T7 12 / T9 10 / G14 8 分钟）。
 > **T3 案例检索任何量级必 spawn**（教训 #267）——含 0 条场景走空卡协议；T2 不再兼带案例，状态独立行。
 
@@ -80,11 +81,7 @@
 **当前阶段**: Phase 0 / Phase 1 / Phase 1.5 / Phase 2 / Phase 2.5 / Phase 3 / Phase 3.5 / Phase 3.6 / Phase 4 / Phase 4.2 / Phase 4.4 / Phase 4.5 / Phase 5
 **当前活动**: <一句话描述>
 **最后更新**: YYYY-MM-DD HH:MM
-**加固状态**: mechanical / degraded（**spawn 前必填，fail-closed，v2.12.10 起二选一模型**：mechanical = 主控 read `~/.openclaw/openclaw.json` 核实 `tools.subagents.tools.deny` 含 13 项特权工具**且** `agents.defaults.subagents.maxSpawnDepth: 1` 两条均配齐；degraded = 任一缺失或读不到 config → **不得 spawn 子代理，走单主控降级模式**。原 acknowledged-prompt-level 中间档已删除）
-**机械加固核对**（mechanical 时必填，原样记录读到的 deny 列表防口头声明与实际漂移）：
-- deny 列表：[exec, process, browser, apply_patch, cron, video_generate, music_generate, tts, memory_store, skill_workshop, memory_forget, sessions_search, sessions_send]
-- maxSpawnDepth: 1
-**叶子锁定**: mechanical / degraded（同上，mechanical = 宿主 maxSpawnDepth=1；degraded = 未锁，禁止 spawn，走单主控降级）
+**运行模式**: 多 Agent / 单主控（**spawn 前必填**。多 Agent = 默认，按角色卡 spawn（T1∥T2∥T3 三方真并行）；单主控 = 主人显式要求的降级模式，主控独自顺序完成，**不 spawn**。**不记录宿主配置明细、不记 deny 原文、不声称已加固**——论衡不读宿主配置，也不要求主人提供 deny 列表原文）
 **M 门**: v2.2.12 / v2.5.x
 **数据信任档**: 全外发 / 混合 / 全人工（教训 #259，拓展，Phase 0 拍板）
   - 全外发：默认 web_search + tavily_search 检索，主人不投喂一手数据

@@ -32,7 +32,7 @@ else
 fi
 
 # 从 SKILL.md frontmatter 读取版本号（单一真源）
-EXPECTED=$(grep -E '^version:' "$SKILL_MD" | head -1 | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
+EXPECTED=$(grep -E '^[[:space:]]*version:' "$SKILL_MD" | head -1 | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 
 if [ -z "$EXPECTED" ]; then
   echo "❌ 无法从 SKILL.md 读取版本号"
@@ -218,17 +218,24 @@ echo ""
 
 # ---- 附：安装命令 pin 一致性（教训 #297）----
 # 净化包由 build 强制同步 pin；真源侧 pin 必须在 bump 时一并改，否则用户按文档装到旧版。
-PIN_FILE="$ENTRY_DIR/QUICKSTART.md"
+# v2.12.13（方案 1.7）：pin 载体改**多文件列表**——README.md:193 曾落后 11 版（@2.12.1）
+#   而门只覆盖 QUICKSTART.md 一个文件 → 旧口径下永远查不出。
+PIN_FILES=("$ENTRY_DIR/QUICKSTART.md" "$ENTRY_DIR/README.md")
 PIN_FAIL=0
-if [ -f "$PIN_FILE" ]; then
+for PIN_FILE in "${PIN_FILES[@]}"; do
+  [ -f "$PIN_FILE" ] || continue
+  PIN_NAME="$(basename "$PIN_FILE")"
   PIN_VER="$(grep -oE '@zuoyunlai/lunheng-article-pipeline@[0-9]+\.[0-9]+\.[0-9]+' "$PIN_FILE" | head -1 | sed 's/.*@//' || true)"
-  if [ -n "$PIN_VER" ] && [ "$PIN_VER" != "$EXPECTED" ]; then
-    echo "❌ QUICKSTART 安装命令 pin=v$PIN_VER，与当前版本 v$EXPECTED 不一致（教训 #297）"
+  if [ -z "$PIN_VER" ]; then
+    echo "❌ $PIN_NAME 未找到安装命令 pin（应含 @zuoyunlai/lunheng-article-pipeline@$EXPECTED）"
+    PIN_FAIL=1
+  elif [ "$PIN_VER" != "$EXPECTED" ]; then
+    echo "❌ $PIN_NAME 安装命令 pin=v$PIN_VER，与当前版本 v$EXPECTED 不一致（教训 #297）"
     PIN_FAIL=1
   else
-    echo "✅ QUICKSTART 安装命令 pin 与版本一致（v$EXPECTED）"
+    echo "✅ $PIN_NAME 安装命令 pin 与版本一致（v$EXPECTED）"
   fi
-fi
+done
 echo ""
 
 # ---- 附：9 角色编号 v2.3.0 旧命名残留（教训 #116）----

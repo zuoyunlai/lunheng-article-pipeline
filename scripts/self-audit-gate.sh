@@ -81,7 +81,7 @@ fi
 # =============================================================================
 # 门 C：版本号一致性（36 文件清单 = SKILL.md + 8 角色卡 + 闸门 + 检测器 + 共享协议 + 模板 + README + QUICKSTART）
 # =============================================================================
-EXPECTED_VERSION=$(grep -m1 '^version:' SKILL.md | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
+EXPECTED_VERSION=$(grep -m1 -E '^[[:space:]]*version:' SKILL.md | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 VERSION_FILES=(
   "SKILL.md" "README.md" "QUICKSTART.md"
   "references/_shared/glossary-full.md" "references/pipeline-readme.md"
@@ -252,6 +252,24 @@ if [ -f "$LESSONS_SRC" ]; then
     pass "门 H: 教训编号引用全部在主真源有定义（引用 $REF_COUNT 个编号）"
   else
     fail "门 H: 教训编号引用在主真源缺定义" "$MISSING_LESSONS —— 请补录到 $LESSONS_SRC"
+  fi
+
+  # v2.12.13 新增（方案 1.6）：**反向差集**——索引声明的「当前最大编号 #N」必须等于主真源中
+  #   标题含「论衡」教训的**实际最大编号**。原门 H 是单向（论衡引用 → 真源），漏掉「真源已有
+  #   新教训、索引未跟」这一侧：#317/#318/#319 已入真源，索引声明仍停在 #316 却 PASS（审计 consist 路）。
+  #   注：不用「含论衡标题 ⊆ 索引编号」判据——索引设计是「主题分类 + 编号范围」的 curated 集
+  #   （见 `教训索引.md` 开头原则），非全枚举，该判据会永久误报 19 条历史教训。
+  IDX_DECL_MAX=$(grep -oE '当前最大编号 \*\*#[0-9]+\*\*' "references/_shared/教训索引.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
+  SRC_MAX=$(grep -E '^#{2,4} (教训 )?#[0-9]+.*论衡' "$LESSONS_SRC" 2>/dev/null \
+            | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | sort -n | tail -1)
+  if [ -n "$IDX_DECL_MAX" ] && [ -n "$SRC_MAX" ]; then
+    if [ "$IDX_DECL_MAX" -lt "$SRC_MAX" ]; then
+      fail "门 H: 教训索引最大编号落后主真源（反向差集）" "索引声明 #$IDX_DECL_MAX < 主真源实际 #$SRC_MAX —— 请更新 references/_shared/教训索引.md"
+    else
+      pass "门 H: 教训索引最大编号与主真源一致（#$IDX_DECL_MAX）"
+    fi
+  else
+    warn "门 H: 未能解析索引声明编号（$IDX_DECL_MAX）或主真源编号（$SRC_MAX），跳过反向差集"
   fi
 else
   warn "门 H: 主真源不可达（$LESSONS_SRC），跳过教训编号差集检查"
@@ -448,20 +466,25 @@ M_INTEGRITY_DEFINED=$(grep -cE '^### M-Integrity-[0-9]+:' references/_shared/M-G
 # 期望表述：「M-Form N 项」「M-Exist N 项」中 N 与算法文档匹配。
 # 仅检测明确「总项数 = N」的表述（如「M-Form 共 6 项」「（6 项）」），不含
 # 「v2.2.0 5 项 + 新增 = 8」这类合法的「原版 N 项 + 新增」拆分表述。
-for doc in references/deliverables.md references/agents/00-主控-扩展职责.md references/templates/status-template.md; do
+# v2.12.13（方案 1.5）：补 `references/_shared/audit-checklist-quickref.md`——该文件是**最高风险单点**
+#   （G8 双重编号 + M-Form 项数 6 vs 8），却不在门 L 描述一致性扫描面内；
+#   且下方 `[ -f ] || continue` 会对缺失文件**静默跳过**（门 R 已加存在性反向校验）。
+for doc in references/deliverables.md references/agents/00-主控-扩展职责.md references/templates/status-template.md references/_shared/audit-checklist-quickref.md; do
   [ -f "$SKILL_ROOT/$doc" ] || continue
   doc_name=$(basename "$doc")
   for wrong_count in 5 6 7; do
     if [ "$wrong_count" -lt "$M_FORM_DEFINED" ] 2>/dev/null; then
-      # 只匹配「共 N 项」「总 N 项」「（N 项）」这类明确表总项数的表述
-      if grep -qE "M-Form.*共 ${wrong_count} 项|M-Form.*总 ${wrong_count} 项|（${wrong_count} 项）" "$SKILL_ROOT/$doc" 2>/dev/null; then
+      # 只匹配**同一行内含 M-Form** 的「共 N 项」「总 N 项」「（N 项）」表述
+      # （v2.12.13 修：原第三条 alternative `（N 项）` 无上下文锚，会把同文件里无关的
+      #   `M-Integrity 阶段闸门（2 项）` 误判为 M-Form 漂移——门自身缺陷，1.5 扩大扫描面后暴露）
+      if grep -E 'M-Form' "$SKILL_ROOT/$doc" 2>/dev/null | grep -qE "共 ${wrong_count} 项|总 ${wrong_count} 项|（${wrong_count} 项）"; then
         GATE_L_FAIL="$GATE_L_FAIL [$doc_name 含过时 M-Form 总项数表述（应 ${M_FORM_DEFINED} 项，非 ${wrong_count} 项）]"
       fi
     fi
   done
   wrong_count=2
   if [ "$wrong_count" -lt "$M_EXIST_DEFINED" ] 2>/dev/null; then
-    if grep -qE "M-Exist.*共 ${wrong_count} 项|M-Exist.*总 ${wrong_count} 项|（${wrong_count} 项）" "$SKILL_ROOT/$doc" 2>/dev/null; then
+    if grep -E 'M-Exist' "$SKILL_ROOT/$doc" 2>/dev/null | grep -qE "共 ${wrong_count} 项|总 ${wrong_count} 项|（${wrong_count} 项）"; then
       GATE_L_FAIL="$GATE_L_FAIL [$doc_name 含过时 M-Exist 总项数表述（应 ${M_EXIST_DEFINED} 项，非 ${wrong_count} 项）]"
     fi
   fi
@@ -691,7 +714,7 @@ if [ -d "$PURIFY_DIR" ]; then
   GATE_G_FAIL=""
   # 硬校验 1：包内版本号 == 真源版本号（防「包是真源旧版」静默发布）
   if [ -f "$PURIFY_DIR/SKILL.md" ]; then
-    PUR_VER=$(grep -m1 '^version:' "$PURIFY_DIR/SKILL.md" | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
+    PUR_VER=$(grep -m1 -E '^[[:space:]]*version:' "$PURIFY_DIR/SKILL.md" | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
     [ "$PUR_VER" != "$EXPECTED_VERSION" ] && GATE_G_FAIL="$GATE_G_FAIL [包内版本 $PUR_VER ≠ 真源 $EXPECTED_VERSION]"
   else
     GATE_G_FAIL="$GATE_G_FAIL [包内缺 SKILL.md]"
@@ -763,6 +786,71 @@ if [ -z "$GATE_Q_FAIL" ]; then
   pass "门 Q: 净化可见面无审计归因语（${#Q_FILES[@]} md，10 类 token）"
 else
   fail "门 Q: 净化可见面残留审计归因语" "$GATE_Q_FAIL"
+fi
+
+# =============================================================================
+# 门 R：门有效性自证（v2.12.13 新增，方案 1.8 / 教训 #320）
+# -----------------------------------------------------------------------------
+# 背景：本次审计抓到的两个最严重缺陷（Archive SOP 漏入 / 67 页脚逸出）都不是
+#   「门没写」，而是「门写了但空转」——规则目标文本已不存在，grep 永不命中，
+#   于是门永远 PASS。**静默空转比没门更危险**（有门 = 假安全感）。
+# 查三项：
+#   R.1 门 L 描述一致性扫描的文档列表**逐个存在**（原 `[ -f ] || continue` 对
+#       缺失文件静默跳过 → 文档改名即门失效）；
+#   R.2 关键门正则**有效性自证**：对每条 fail-loud 正则构造「必中样本」，
+#       grep 必须命中样本（证明正则未写坏 / 未被转义破坏）；
+#   R.3 构建脚本规则清单**格式与基数**自证（4 字段、条数 > 0）。
+# =============================================================================
+GATE_R_FAIL=""
+R_RULE_TOTAL=0
+R_FINAL_TOTAL=0
+
+# --- R.1：门 L 文档列表存在性 ---
+GATE_L_DOCS=(
+  references/deliverables.md
+  references/agents/00-主控-扩展职责.md
+  references/templates/status-template.md
+  references/_shared/audit-checklist-quickref.md
+)
+for d in "${GATE_L_DOCS[@]}"; do
+  [ -f "$SKILL_ROOT/$d" ] || GATE_R_FAIL="$GATE_R_FAIL [门 L 扫描文档缺失：$d（原逻辑会静默跳过）]"
+done
+
+# --- R.2：关键门正则有效性自证（名称~正则~必中样本）---
+GATE_R_PROBES=(
+  '零exec口径~零 exec~零 exec'
+  '教训引用~教训 #[0-9]+~教训 #320'
+  'M-Form 定义行~^### M-Form-[0-9]+:~### M-Form-1:'
+  '审计归因语~SkillSpector|ClawScan~SkillSpector'
+  '教训索引行~^\| #[0-9]+ ~| #320 |'
+  '剥离目标·净化包~净化包~净化包'
+)
+for probe in "${GATE_R_PROBES[@]}"; do
+  IFS='~' read -r pname ppat psample <<<"$probe"
+  if ! printf '%s\n' "$psample" | grep -qE "$ppat" 2>/dev/null; then
+    GATE_R_FAIL="$GATE_R_FAIL [正则已失效：$pname（必中样本未命中，正则=$ppat）]"
+  fi
+done
+
+# --- R.3：构建脚本规则清单格式与基数自证 ---
+BUILD_SH="$SKILL_ROOT/scripts/build-clawhub-release.sh"
+if [ -f "$BUILD_SH" ]; then
+  R_RULE_TOTAL=$(sed -n '/^RULE_CHECKS=(/,/^)/p' "$BUILD_SH" | grep -cE "^[[:space:]]*'[^']+\|[^|]+\|(critical|warn)\|(yes|no)'")
+  R_FINAL_TOTAL=$(sed -n '/^FINAL_PATTERNS=(/,/^)/p' "$BUILD_SH" | grep -cE "^[[:space:]]*'")
+  if [ "$R_RULE_TOTAL" -eq 0 ]; then
+    GATE_R_FAIL="$GATE_R_FAIL [构建脚本 RULE_CHECKS 为空或格式不符（规则清单已失效）]"
+  fi
+  if [ "$R_FINAL_TOTAL" -eq 0 ]; then
+    GATE_R_FAIL="$GATE_R_FAIL [构建脚本 FINAL_PATTERNS 为空（残留扫描门已失效）]"
+  fi
+else
+  GATE_R_FAIL="$GATE_R_FAIL [构建脚本缺失：scripts/build-clawhub-release.sh]"
+fi
+
+if [ -z "$GATE_R_FAIL" ]; then
+  pass "门 R: 门有效性自证通过（门 L 文档 ${#GATE_L_DOCS[@]} 个齐备 / 正则探针 ${#GATE_R_PROBES[@]} 条命中 / 构建规则 $R_RULE_TOTAL 条格式合法）"
+else
+  fail "门 R: 存在空转风险的门或规则" "$GATE_R_FAIL"
 fi
 
 # =============================================================================

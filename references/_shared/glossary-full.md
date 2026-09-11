@@ -1,4 +1,5 @@
-> 版本：v2.12.12（自动同步 2026-09-10）
+> 版本：v2.12.13（自动同步 2026-09-11）
+
 
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
@@ -257,7 +258,7 @@
 
 > **拆分**：工具能力边界段拆到独立文件，按需加载。本文件（glossary-full.md）仅保留工具索引。
 
-**详细工具清单**（17 项 ✅ / 13 项 ❌）见 [`_shared/工具能力边界.md`](工具能力边界.md)。
+**详细工具清单**（**13 项默认可用 + 4 项 opt-in（默认关闭） / 19 项禁用**）见 [`_shared/工具能力边界.md`](工具能力边界.md)。
 **唯一真源**：[`SKILL.md`](../../SKILL.md) frontmatter `metadata.tools`（`base` / `coordinator_only` / `research_extra` / `opt_in` / `denied`）（按版本同步）。
 
 ## 六、教训沉淀体系
@@ -276,27 +277,14 @@
 
 ---
 
-## 七、版本号管理（5 层发布同步）
+## 七、版本号一致性
 
-> **真源唯一**：论衡只有一个真源——skill 目录 `references/`（见 §十一「真源 vs 副本」）。本节的「4 层」是**发布同步的 4 个目标**，不是 4 个真源。
-> **更新**：原「5 层」→「4 层」——skill 化后论衡不再依赖 OpenClaw 配置（openclaw.json），原第 3 层取消。
+> **真源唯一**：论衡只有一个真源——skill 目录 `references/`（见 §十一「真源 vs 副本」）。
 
-### 第 1 层：Git（真源版本控制）
+- 本技能声明的版本号在 `SKILL.md` frontmatter 的 `metadata.openclaw.version`（**版本号单一真源**）。
+- 各文档顶部的版本戳与之一致；版本不一致属于打包缺陷，使用者无需处理。
 
-> ⚠️ **澄清**：以下命令是**人类维护者（技能作者）发布新版本时手工执行的维护流程**，不是技能运行时指令——论衡 agent 在文章写作流水线中不执行任何 git 写操作（commit/tag/push），git 仅限项目本地版本快照。
-
-### 第 2 层：技能文档（18 文件版本号同步）
-- `SKILL.md` frontmatter `version: X.Y.Z`（版本号单一真源）
-- `scripts/sync-version.sh` 同步 18 文件顶部版本号
-- `scripts/check-version.sh` 验证一致性
-
-### 第 3 层：GitHub（Release + description）
-- **GitHub Releases**：每版必建 `gh release create`（教训：曾漏建；维护者手工执行）
-- repo description：`gh repo edit`（含版本号；维护者手工执行）
-
-### 第 4 层：ClawHub 发布版
-- `scripts/build-clawhub-release.sh` 生成净化包（维护者手工执行）
-- `clawhub publish` 上传 + security scan（维护者手工执行）
+> **发布流程属维护者内务**（版本同步、发布、平台上传、仓库管理等），**不在使用面披露**；使用者只需按已发布版本安装使用。
 
 ---
 

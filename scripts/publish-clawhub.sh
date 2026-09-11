@@ -31,7 +31,7 @@ if [[ "${1:-}" == "--yes" ]]; then
 fi
 
 if [[ -z "$VERSION" ]]; then
-  VERSION="$(grep -m1 '^version:' "$SKILL_ROOT/SKILL.md" | sed 's/version:[[:space:]]*//' | tr -d '"')"
+  VERSION="$(grep -m1 -E '^[[:space:]]*version:' "$SKILL_ROOT/SKILL.md" | sed 's/^[[:space:]]*version:[[:space:]]*//' | tr -d '"')"
 fi
 [[ -z "$VERSION" ]] && { echo "❌ 无法确定版本号（传参或 SKILL.md frontmatter）" >&2; exit 1; }
 

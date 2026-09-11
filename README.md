@@ -1,4 +1,5 @@
-> 版本：v2.12.12（自动同步 2026-09-10）
+> 版本：v2.12.13（自动同步 2026-09-11）
+
 
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
@@ -134,7 +135,7 @@
 
 **T9 同行评审**：论文投稿前的「预演审稿人」，6 维度（原创性/方法论/证据强度/论证结构/写作质量/引文规范，总分 30）→ accept / minor / major / reject 建议。**期刊匹配助手**：基于 T9 评分 + 主题关键词，从 25 中文 CSSCI/北大核心 + 12 英文 SSCI 数据库输出 Top 3 + 综合匹配度（主题契合 50% + 风格匹配 30% + T9 评分 20%）。**行业分析/学术论文默认开启**，公众号默认关闭（主人可选）。详见 [`09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md)。
 
-**G14 中文 AI 痕迹深度检测闸**：Phase 4.5 与 T6 并行。8 类检测维度（学术模板语/句式同质化/学术套话高频/破折号滥用/三项排比/人称错位/个人辨识度缺失/党报话语堆砌），LLM 推理判定（**零 exec**）。0-2 类 Pass / 3-4 类 Warning 触发修订 1 轮 / 5+ 类 Fail 触发 2 轮。详见 [`14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md)。
+**G14 中文 AI 痕迹深度检测闸**：**Phase 3.6 与 T6 同批并行**。8 类检测维度（学术模板语/句式同质化/学术套话高频/破折号滥用/三项排比/人称错位/个人辨识度缺失/党报话语堆砌），LLM 推理判定（**零 exec**）。0-2 类 Pass / 3-4 类 Warning 触发修订 1 轮 / 5+ 类 Fail 触发 2 轮。详见 [`14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md)。
 
 ### 三角验证（证据底座）
 
@@ -190,7 +191,7 @@ Phase 5  T8 主控亲终检 → final/定稿.md + 证据包/ + 交付说明.md
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.1  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.13  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

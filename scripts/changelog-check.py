@@ -41,7 +41,7 @@ def run(cmd, **kw):
 def current_version():
     """从 SKILL.md frontmatter 读取当前版本号（单一真源）。"""
     for line in SKILL_MD.read_text(encoding="utf-8").splitlines():
-        if line.startswith("version:"):
+        if line.strip().startswith("version:"):
             return line.split(":", 1)[1].strip().strip("\"'")
     print("❌ 无法从 SKILL.md frontmatter 读取版本号", file=sys.stderr)
     sys.exit(2)

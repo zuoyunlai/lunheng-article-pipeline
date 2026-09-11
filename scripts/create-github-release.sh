@@ -61,7 +61,7 @@ cd "$SKILL_ROOT"
 
 # ---- 1. 解析 tag（默认 = SKILL.md 当前版本，版本号单一真源）----
 if [ -z "$TAG" ]; then
-  VERSION="$(grep -m1 '^version:' SKILL.md | sed 's/^version:[[:space:]]*//; s/["'"'"']//g')"
+  VERSION="$(grep -m1 -E '^[[:space:]]*version:' SKILL.md | sed 's/^[[:space:]]*version:[[:space:]]*//; s/["'"'"']//g')"
   [ -n "$VERSION" ] || { echo "❌ 无法从 SKILL.md frontmatter 读取版本号" >&2; exit 2; }
   TAG="v$VERSION"
 fi

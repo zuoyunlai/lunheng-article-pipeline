@@ -15,8 +15,7 @@
 - 角色: T1 / T2 / **T3** 案例检索/ T4 分析/ T5 写手/ T6 批判/ T7 审计/ T8 终检主控亲完成
 - 启动时间: YYYY-MM-DD HH:MM
 - 当前模型: deepseek-v4-pro
-- **加固状态**: mechanical / degraded
-- **叶子锁定**: mechanical / degraded
+- **运行模式**: 多 Agent / 单主控
 
 ## 执行韧化记录
 

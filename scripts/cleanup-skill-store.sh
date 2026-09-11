@@ -200,7 +200,7 @@ fi
 # 3d. 净化包残留扫
 echo ""
 echo "  净化包残留扫..."
-SKILL_VERSION=$(grep -m1 '^version:' SKILL.md | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
+SKILL_VERSION=$(grep -m1 -E '^[[:space:]]*version:' SKILL.md | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 STALE=0
 while IFS= read -r f; do
   head -10 "$f" 2>/dev/null | grep -E "v${SKILL_VERSION%.*}\.[012]" > /tmp/fhead.txt

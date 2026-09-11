@@ -1,4 +1,5 @@
-> 版本：v2.12.12（自动同步 2026-09-10）
+> 版本：v2.12.13（自动同步 2026-09-11）
+
 
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
@@ -18,7 +19,7 @@
 
 > **所有 dispatch 头部公共内容**（子代理启动时按需读本文件 + 角色卡即可，避免一次加载全部派发话术）。
 
-> **零 exec 哲学护栏**：论衡 agent 全部禁 `exec` / `process` / `browser` / `apply_patch` / `cron` / `video_generate` / `music_generate` / `tts` / `memory_store` / `skill_workshop` / `memory_forget` / `sessions_search` / `sessions_send`（永久拒绝，Phase 0 同意不能豁免）。
+> **零 exec 哲学护栏**：论衡 agent 全部禁 `exec` / `process` / `browser` / `apply_patch` / `cron` / `video_generate` / `music_generate` / `tts` / `memory_store` / `skill_workshop` / `memory_forget` / `sessions_search` / `sessions_send` / `computer` / `nodes` / `terminal` / `portal` / `dashboard` / `mobile_ui`（论衡声明的禁用清单；真实隔离由宿主 config 机械层生效，Phase 0 同意不能豁免）。
 
 > 🚫 **叶子纪律（我不是主控，不得再委托）**：我**不得**调用 `sessions_spawn` 派生子代理，也**不得**用 `subagents` / `sessions_list` / `sessions_history` 查看或管理其他会话——论衡架构里角色卡 = 叶子 worker。平台默认开启递归委派（depth 默认 5），我可能「拿得到」这些工具，但**未被授权**用它。需要额外检索/人手 → 在**交接报告**写「需求回执」给主控，由主控决定是否 spawn（子代理自行 spawn 的孙辈结果不上传主控 = 产出静默丢失）。完整规则见 [`关键协议.md`](关键协议.md) §叶子纪律。
 

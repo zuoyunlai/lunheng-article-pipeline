@@ -41,7 +41,7 @@ if [ "$1" == "--dry-run" ]; then
 fi
 
 # 从 SKILL.md frontmatter 读取版本号（单一真源）
-EXPECTED=$(grep -E '^version:' "$SKILL_MD" | head -1 | sed -E 's/version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
+EXPECTED=$(grep -E '^[[:space:]]*version:' "$SKILL_MD" | head -1 | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 
 if [ -z "$EXPECTED" ]; then
   echo "❌ 无法从 SKILL.md 读取版本号"
@@ -249,21 +249,25 @@ done
 # check-version.sh 会校验 QUICKSTART 的 @zuoyunlai/...@x.y.z pin，但上面的循环
 # 遇到「头部已有本版本号」就直接 skip，导致 bump 后 pin 停在旧版且永远不被修。
 # 故 pin 必须独立同步，不能搭头部的车。
-PIN_FILE="$ENTRY_DIR/QUICKSTART.md"
-if [ -f "$PIN_FILE" ]; then
+# v2.12.13（方案 1.7）：pin 载体改**多文件列表**——README.md 也是 pin 载体
+#   （README.md:193 `@2.12.1` 曾落后 11 版而从未被同步）。
+PIN_FILES=("$ENTRY_DIR/QUICKSTART.md" "$ENTRY_DIR/README.md")
+for PIN_FILE in "${PIN_FILES[@]}"; do
+  [ -f "$PIN_FILE" ] || continue
+  PIN_NAME="$(basename "$PIN_FILE")"
   OLD_PIN="$(grep -oE '@zuoyunlai/lunheng-article-pipeline@[0-9]+\.[0-9]+\.[0-9]+' "$PIN_FILE" | head -1 || true)"
   if [ -n "$OLD_PIN" ] && [ "$OLD_PIN" != "@zuoyunlai/lunheng-article-pipeline@$EXPECTED" ]; then
     if [ "$DRY_RUN" == true ]; then
-      echo "📝 将修改：QUICKSTART.md（安装 pin $OLD_PIN → v$EXPECTED）"
+      echo "📝 将修改：$PIN_NAME（安装 pin $OLD_PIN → v$EXPECTED）"
     else
       sed -i -E "s|@zuoyunlai/lunheng-article-pipeline@[0-9]+\.[0-9]+\.[0-9]+|@zuoyunlai/lunheng-article-pipeline@$EXPECTED|g" "$PIN_FILE"
-      echo "✅ 更新：QUICKSTART.md（安装 pin → v$EXPECTED）"
+      echo "✅ 更新：$PIN_NAME（安装 pin → v$EXPECTED）"
     fi
     UPDATED=$((UPDATED+1))
   else
-    echo "⏭️  跳过：QUICKSTART.md（安装 pin 已是 v$EXPECTED）"
+    echo "⏭️  跳过：$PIN_NAME（安装 pin 已是 v$EXPECTED）"
   fi
-fi
+done
 
 echo ""
 echo "✂️  版本栈精简（保留最近 5 个）"
