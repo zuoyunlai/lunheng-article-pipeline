@@ -16,7 +16,7 @@
 
 **项目名**: <项目名>
 **模式**: 学术论文 / 商业评论 / 行业分析 / 公众号深度长文
-**当前阶段**: Phase 0 / Phase 1 / Phase 1.5 / Phase 2 / Phase 2.5 / Phase 3 / Phase 3.5 / Phase 3.6 / Phase 4 / Phase 4.2 / Phase 4.4 / Phase 4.5 / Phase 5
+**当前阶段**: Phase 0 / Phase 1 / Phase 1.5 / Phase 2 / Phase 2.5 / Phase 3 / Phase 3.5 / Phase 3.6 / **Phase 3.7** / Phase 4 / Phase 4.2 / Phase 4.4 / Phase 4.5 / Phase 5
 **当前活动**: <一句话描述>
 **最后更新**: YYYY-MM-DD HH:MM
 **运行模式**: 多 Agent / 单主控（**spawn 前必填**。多 Agent = 默认，按角色卡 spawn（T1∥T2∥T3 三方真并行）；单主控 = 主人显式要求的降级模式，主控独自顺序完成，**不 spawn**。**不记录宿主配置明细、不记 deny 原文、不声称已加固**——论衡不读宿主配置，也不要求主人提供 deny 列表原文）

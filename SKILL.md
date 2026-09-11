@@ -103,7 +103,7 @@ metadata:
 | `expectsCompletionMessage` | `true` | 需完成事件回传 |
 | `context` | `"isolated"` | 叶子 worker 原则（不带父上下文） |
 | `cleanup` | `"keep"` | 保留子会话供调试（平台默认即 keep） |
-| `cwd` | `run/<项目名>/` | 显式传（不设 `cwd_default`，教训 #255） |
+| `cwd` | **绝对路径** `<workspace>/run/<项目名>/` | **必须绝对路径** —— 禁相对拼接（防 `run/项目/run/项目/` 嵌套，v2.12.28 实测教训）；显式传（不设 `cwd_default`，教训 #255） |
 | `runTimeoutSeconds` | **按角色**（见上方硬卡阈值表） | 平台**机械**超时；与硬卡阈值同源 |
 | `visible` | **按档**：T5 / T7 → `true`；其余 → 默认（hidden） | 关键路径 dashboard 可见；并行检索员不刷屏 |
 

@@ -19,6 +19,7 @@ Phase 2 分析        T4 → analysis/分析大纲.md（论点-论据映射 + �
 Phase 2.5 大纲确认  主人过目大纲 + 拍板 T4 建议图表（图位/类型/数据源）（人在环！改方向成本最低）
 Phase 3 写作        T5 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、案例标[Cxx]、AI去味10项）
 Phase 3.5 洞察补充  主人过目 v1 → 主控问主人洞要补 → T5 v2 融入（人在环！教训 #263）
+Phase 3.7 预审计修订  **条件触发**（T6/G14 任一双闸否决 → T5 修订 → 复测）；**修完才进 Phase 4**（yaml `t5_feedback_revision`）
 Phase 3.6 批判      T6（攻击 v2 不是 v1，轻量档可跳过）∥ G14 中文 AI 痕迹闸同批并行（与 T6 对同一 current_draft 同批 spawn）→ 0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail
 Phase 4 审计        T7 → audits/审计报告-vN.md（G0-G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控

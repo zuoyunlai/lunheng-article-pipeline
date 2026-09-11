@@ -169,9 +169,11 @@ Phase 2.5 主人在环：确认大纲 + 拍板图表
 Phase 3  T5 写作   →  drafts/初稿-v{N}.md
 Phase 3.5 主人在环：呈现 v1 → 主人补充洞察或选择「无补充」→ 有补充才产 v2
 Phase 3.6 T6 批判  →  analysis/批判报告（攻击 v2，C1-C7 反方论证）
+Phase 3.7 预审计修订（条件触发：T6/G14 否决时；修完才进 Phase 4）
 Phase 4  T7 审计   →  audits/审计报告（G0-G14）
-Phase 4.2 修订回环   写手修订稿常规 ≤2 轮（例外通道须主人拍板）
-Phase 4.5 配图 + T9 审稿（G14 已于 Phase 3.6 与 T6 同批）
+Phase 4.2 修订回环   审计打回 → 写手修订稿常规 ≤2 轮（例外通道须主人拍板）
+Phase 4.4 配图      仅当 Phase 2.5 拍板有图位：主控 `write` 手写 SVG（本地零外发）
+Phase 4.5 T9 审稿   同行评审（G14 已于 Phase 3.6 与 T6 同批）
 Phase 5  T8 主控亲终检 → final/定稿.md + 证据包/ + 交付说明.md
 ```
 

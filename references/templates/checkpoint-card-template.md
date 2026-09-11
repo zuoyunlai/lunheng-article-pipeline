@@ -110,6 +110,14 @@
 
 ---
 
+## plan 标签真源纪律（v2.12.28 新增）
+
+> ⚠️ **plan / 进度标签必须取自 [`phase-order.yaml`](../_shared/phase-order.yaml) 的「别名映射」表 —— 主控不得自创标签。**
+>
+> - **无文档层编号的节点**：要么在 yaml 补编号（由维护者定），要么**不进 plan**；**不得**套用其他节点的编号。
+> - **反面实例（2026-09-11 实测）**：`t5_feedback_revision` 当时无编号 → 主控把它标成「Phase 4.2」（实为 `audit_revision` 的别名）→ 主控据此按 `audit_revision.next` 推进 → **整段跳过 `t7_audit`（Phase 4 T7 审计）**，论文在无审计状态下交付。
+> - **自检**：呈现任一 Phase 标签前，核对「该标签在 yaml 别名表里有对应节点 id」——对不上就停下来问主人，别猜。
+
 ## progress_card 联动规范（模块 4）
 
 > **用途**：解决「progress_card 与 Checkpoint Card 分离」——侧栏看进度，对话流做决策，双向同步。
