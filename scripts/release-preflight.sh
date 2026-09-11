@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# release-preflight.sh — 发版前置闸「两查一停」（教训 #332）
+# release-preflight.sh — 发版前置闸「两查一停」（教训 #332；v2.12.22 加 --allow-existing-tag，教训 #334）
 # =============================================================================
 # 背景（教训 #332，2026-09-11 实测错乱）：多条会话链并行修订同一仓库时，发版动作
 #   （升版号 / tag / push / GitHub Release / 净化包）被当成「本链的下一步」，没检查
@@ -13,6 +13,9 @@
 #      的会话与子会话 → 有则拒绝发版，打印清单 + 「如何等」
 #   ② 编号占用：目标 tag 在本地（git tag -l）与远端（git ls-remote --tags）双向查
 #      → 任一已占用即拒绝，要求换号
+#      （v2.12.22，教训 #334：该口径只在「分配新号之前」成立；一旦进入「tag 已创建、
+#       仅补发 Release」的写路径，tag 必然已存在 → 正常发版被自己的闸拦死。故新增
+#       --allow-existing-tag，把 ② 细化为「编号是否被**本链之外的**人占用」，写法路径专用。）
 #   ③ 工作区干净：git status --porcelain 非空即拒绝（未跟踪文件也算，见 --allow-untracked）
 #
 # 本脚本**只读**：不 push、不打 tag、不建 GitHub Release、不改任何 ref，可反复安全运行。
@@ -27,6 +30,17 @@
 #                        本链自身会被计入在飞链 → 拒绝（失败关闭，不替人猜哪条是自己）
 #   --exclude <key>      显式忽略某条在飞链（可重复）；忽略项会打印在报告里，不静默
 #   --allow-untracked    未跟踪文件不计入「工作区不净」（默认计入 = 严格口径）
+#   --allow-existing-tag ② 口径放松为「编号是否被**本链之外**的人占用」（教训 #334）：
+#                        目标 tag 已存在时不再一律拒绝，仅当**同时**满足
+#                          (a) 该 tag 指向的 commit 属于本链历史 = 待发布提交（默认 HEAD）
+#                              本身或其祖先；
+#                          (b) 远端同号（若有）指向同一对象（annotated tag 按 `^{}` 解引用比对）
+#                        时才放行；其余情形一律拒绝（失败关闭）。默认关闭 = 原严格口径，
+#                        放松生效时报告首行打印醒目提示。**调用点 = create-github-release.sh
+#                        的写路径**（那里第 2 步已强制「tag 必须先存在」，号已分配）。
+#   --expect-commit <rev>
+#                        放松模式下「待发布提交」的基准（默认 HEAD）。补发旧版 Release 时
+#                        显式指向该版本提交，避免与 HEAD 比对误拒。
 #   --sessions-file <f>  从文件读在飞链清单 JSON（离线 / 测试用 = fake 在飞链清单）
 #   --sessions-cmd <c>   覆盖在飞链采集命令（默认 openclaw sessions list --json ...）
 #   --remote-file <f>    从文件读 ls-remote 输出（离线 / 测试用 = fake ls-remote）
@@ -57,6 +71,8 @@ REMOTE_CMD="${LUNHENG_PREFLIGHT_REMOTE_CMD:-git ls-remote --heads --tags origin}
 SESSIONS_FILE=""
 REMOTE_FILE=""
 ALLOW_UNTRACKED=false
+ALLOW_EXISTING_TAG=false
+EXPECT_COMMIT=""
 TAG=""
 EXCLUDES=()
 
@@ -72,6 +88,9 @@ while [ $# -gt 0 ]; do
     --exclude)         [ -n "${2:-}" ] || { echo "❌ --exclude 需带会话 key" >&2; exit "$EXIT_USAGE"; }
                        EXCLUDES+=("$2"); shift ;;
     --allow-untracked) ALLOW_UNTRACKED=true ;;
+    --allow-existing-tag) ALLOW_EXISTING_TAG=true ;;
+    --expect-commit)   [ -n "${2:-}" ] || { echo "❌ --expect-commit 需带 revision" >&2; exit "$EXIT_USAGE"; }
+                       EXPECT_COMMIT="$2"; shift ;;
     --sessions-file)   SESSIONS_FILE="${2:-}"; shift ;;
     --sessions-cmd)    SESSIONS_CMD="${2:-}"; shift ;;
     --remote-file)     REMOTE_FILE="${2:-}"; shift ;;
@@ -225,24 +244,78 @@ fi
 printf '%s\n' "$REMOTE_OUT" \
   | awk '$2 ~ /^refs\/tags\// { n=$2; sub(/^refs\/tags\//, "", n); sub(/\^\{\}$/, "", n); if (n != "") print n }' \
   | sort -u > "$TMP_PF/remote_tags.txt"
+# 远端 tag → sha 映射（annotated tag 用 `^{}` 解引用行 = commit；轻量 tag 的 sha 即 commit）
+# 格式：<tag>\t<sha>\t<commit|tagobj>——放松模式要比对「远端同号是否同对象」
+printf '%s\n' "$REMOTE_OUT" \
+  | awk '$2 ~ /^refs\/tags\// { n=$2; sub(/^refs\/tags\//, "", n); if (n ~ /\^\{\}$/) { sub(/\^\{\}$/, "", n); print n "\t" $1 "\tcommit" } else { print n "\t" $1 "\ttagobj" } }' \
+  > "$TMP_PF/remote_tag_map.tsv"
 git tag -l | sort > "$TMP_PF/local_tags.txt"
 
 LOCAL_HIT="$(grep -Fx -- "$TAG" "$TMP_PF/local_tags.txt" || true)"
 REMOTE_HIT="$(grep -Fx -- "$TAG" "$TMP_PF/remote_tags.txt" || true)"
 
 echo "[2/3] 编号占用检查（目标 $TAG）"
+if [ "$ALLOW_EXISTING_TAG" = true ]; then
+  echo "      ⚠️  --allow-existing-tag 已生效（教训 #334）：② 口径 = 「编号是否被本链之外的人占用」"
+  echo "         放行条件（须同时满足）：(a) 该 tag 指向的 commit 属本链历史（待发布提交或其祖先）"
+  echo "                                   (b) 远端同号（若有）指向同一对象"
+  echo "         其余情形（tag 不在本链历史 / 远端同号不同对象 / 本地无 tag 而远端有）仍拒绝。"
+fi
+
 if [ -z "$LOCAL_HIT" ] && [ -z "$REMOTE_HIT" ]; then
   echo "      ✅ 本地未占用 / 远端未占用"
-else
+  FAIL_TAG=0
+elif [ "$ALLOW_EXISTING_TAG" != true ]; then
   echo "      ❌ 目标编号已被占用 —— 拒绝发版，请换号（教训 #332：单点共享资源不可覆盖）"
   [ -n "$LOCAL_HIT" ] && echo "         · 本地已有 tag：$LOCAL_HIT"
   [ -n "$REMOTE_HIT" ] && echo "         · 远端已有 tag：$REMOTE_HIT"
   echo "         · 换号后重跑本闸；不要复用已占用编号（tag/Release 先后关系会与内容错位）"
+  FAIL_TAG=1
+else
+  # ---- 放松模式：证「此号属本链」才放行（教训 #334：tag 已创建 → 补发 Release 的正路径）----
+  FAIL_TAG=1
+  if [ -z "$LOCAL_HIT" ]; then
+    echo "      ❌ 本地无 tag $TAG，远端已有 → 归属无法核验 —— 拒绝（失败关闭）"
+    echo "         · 远端已有 tag：$REMOTE_HIT；--allow-existing-tag 只在本地已有该 tag 时可证归属"
+    echo "         · 换号，或先核实该号确实属于本链（含提交对象一致）再处理"
+  else
+    LOCAL_OBJ="$(git rev-parse "refs/tags/$TAG" 2>/dev/null || true)"
+    LOCAL_SHA="$(git rev-parse "refs/tags/$TAG^{commit}" 2>/dev/null || true)"
+    RELEASE_POINT="${EXPECT_COMMIT:-HEAD}"
+    RELEASE_SHA="$(git rev-parse "${RELEASE_POINT}^{commit}" 2>/dev/null || true)"
+    if [ -z "$LOCAL_SHA" ] || [ -z "$RELEASE_SHA" ]; then
+      echo "      ❌ 无法解析 tag 或待发布提交的对象（$TAG / $RELEASE_POINT）—— 拒绝（失败关闭）"
+    elif [ "$LOCAL_SHA" = "$RELEASE_SHA" ] \
+      || git merge-base --is-ancestor "$LOCAL_SHA" "$RELEASE_SHA" 2>/dev/null; then
+      REMOTE_SHAS="$(awk -F'\t' -v t="$TAG" '$1 == t { print $2 }' "$TMP_PF/remote_tag_map.tsv" || true)"
+      if [ -z "$REMOTE_SHAS" ]; then
+        echo "      ✅ 编号 $TAG 属本链历史（$(printf '%s' "$LOCAL_SHA" | cut -c1-7) 在待发布提交 $RELEASE_POINT 的历史上）"
+        echo "         · 本地已有 tag：$LOCAL_HIT（本链自建 = 非他链占用）；远端尚未推该 tag"
+        FAIL_TAG=0
+      else
+        REMOTE_SAME=false
+        while IFS= read -r r_sha; do
+          [ -n "$r_sha" ] || continue
+          [ "$r_sha" = "$LOCAL_OBJ" ] && REMOTE_SAME=true
+          [ "$r_sha" = "$LOCAL_SHA" ] && REMOTE_SAME=true
+        done <<< "$REMOTE_SHAS"
+        if [ "$REMOTE_SAME" = true ]; then
+          echo "      ✅ 编号 $TAG 属本链历史，且远端同号同对象（$(printf '%s' "$LOCAL_SHA" | cut -c1-7)）"
+          FAIL_TAG=0
+        else
+          echo "      ❌ 远端已有 tag $TAG，但指向对象与本地不同 —— 拒绝（该号可能被另一条链占用）"
+          echo "         · 本地：$(printf '%s' "$LOCAL_SHA" | cut -c1-7)；远端：$(printf '%s' "$REMOTE_SHAS" | tr '\n' ' ')"
+          echo "         · 处置：先核实远端该 tag 的归属；确认无误才用 --expect-commit 显式指明待发布提交"
+        fi
+      fi
+    else
+      echo "      ❌ 目标编号已被占用 —— tag $TAG 指向 $(printf '%s' "$LOCAL_SHA" | cut -c1-7)，不在待发布提交 $RELEASE_POINT 的历史上"
+      echo "         · 该号可能属于另一条链 / 已被前移；换号重跑"
+      echo "         · 若确属本链、只是补发旧版 Release → 显式传 --expect-commit <该版本提交> 再跑"
+    fi
+  fi
 fi
 echo ""
-
-FAIL_TAG=1
-{ [ -z "$LOCAL_HIT" ] && [ -z "$REMOTE_HIT" ]; } && FAIL_TAG=0
 
 # =============================================================================
 # 查 ③ 工作区干净
@@ -316,5 +389,9 @@ echo "   ① 远端 master : $REMOTE_MASTER_LINE"
 echo "   ② 本地 HEAD   : $HEAD_SHA（最近 tag $HEAD_TAG）$HEAD_REL_LINE"
 echo "   ③ tag 区间    : 本地最近 $HEAD_TAG / 远端最近 ${R_TAG:-（无）}；本地独有 $L_ONLY_N 个（未推）${L_ONLY_PREVIEW:+［$L_ONLY_PREVIEW］} / 远端独有 $R_ONLY_N 个（未取）"
 echo "   ④ 在飞链      : 0 条（同项目 status=${INFLIGHT_STATUSES} 会话）"
-echo "   目标编号 $TAG：本地未占用 / 远端未占用；工作区干净"
+if [ "$ALLOW_EXISTING_TAG" = true ] && { [ -n "$LOCAL_HIT" ] || [ -n "$REMOTE_HIT" ]; }; then
+  echo "   目标编号 $TAG：已存在（--allow-existing-tag 已证属本链历史；远端同号同对象或未推）；工作区干净"
+else
+  echo "   目标编号 $TAG：本地未占用 / 远端未占用；工作区干净"
+fi
 exit "$EXIT_PASS"

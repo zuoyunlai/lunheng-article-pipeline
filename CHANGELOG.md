@@ -5,8 +5,59 @@
 - **排序**：版本倒序（最新在前）。查找某一版本：`grep -n '^## \[v2.12' CHANGELOG.md`
 - **章节标题**：`## [<tag>] — <发布日期>`；正文＝该版本 Release 正文逐字保留（早期 Release 由 GitHub 自动生成，正文天然偏薄，`python3 scripts/changelog-check.py --report` 可列出）。
 - **发版流程**：建 GitHub Release 后执行 `python3 scripts/changelog-check.py --fill` 回填本节；也可直接手写章节。`--check` 校验「每个版本 tag 都有章节 + 围栏闭合 + 当前版本已记录」，`--online` 追加校验「每个版本 tag 都有 GitHub Release」。
-- **发版前置闸（教训 #332）**：任何对外发版动作（push / tag / GitHub Release / 净化包）前先跑 `bash scripts/release-preflight.sh <tag>`——两查一停：**在飞链**（同项目 `status=running` 会话）/ **编号占用**（本地 tag + `git ls-remote --tags` 双向）/ **工作区干净**（`git status --porcelain`），任一不过即非 0 退出（10/11/12）；通过时打印「远端 master / 本地 HEAD / tag 区间 / 在飞链=0」四行现状。`scripts/create-github-release.sh` 的写路径已强制调用本闸，`--dry-run` / `--check` 不进闸。闸只读：不自行 push / 打 tag / 建 Release。
+- **发版前置闸（教训 #332 / #334）**：任何对外发版动作（push / tag / GitHub Release / 净化包）前先跑 `bash scripts/release-preflight.sh <tag>`——两查一停：**在飞链**（同项目 `status=running` 会话）/ **编号占用**（本地 tag + `git ls-remote --tags` 双向）/ **工作区干净**（`git status --porcelain`），任一不过即非 0 退出（10/11/12）；通过时打印「远端 master / 本地 HEAD / tag 区间 / 在飞链=0」四行现状。`scripts/create-github-release.sh` 的写路径已强制调用本闸（并自动带 `--allow-existing-tag`：② 口径 = 「编号是否被本链之外的人占用」，避免「先 tag、后补发 Release」被自己的闸自锁），`--dry-run` / `--check` 不进闸。闸只读：不自行 push / 打 tag / 建 Release。
 - **非版本 tag**（`full-repo-consistency-audit-2026-09-06`、`before-batch1-optimization`）不进入本表。
+
+---
+
+## [v2.12.22] — 2026-09-11
+
+> 本版修一个**闸门自锁**：发版前置闸的 ②「编号占用」与 `create-github-release.sh` 的「tag 必须先存在」互斥，导致**正常发版路径必然被自己的闸拦死**，只剩 `--skip-preflight` 能走通。教训 #334。
+
+### 一、问题：正常发版路径走不通（实测复现）
+
+`scripts/create-github-release.sh` 第 2 步硬性要求本地已有 tag（`git rev-parse -q --verify refs/tags/$TAG` 失败即 `exit 2`，提示「先打 tag 再建 Release」），而它在第 6.5 步**无条件**调用 `scripts/release-preflight.sh`；该闸第 ② 查把「本地或远端已有该 tag」判为**编号占用 → 退出码 11 拒绝**。两者语义直接矛盾。
+
+2026-09-11 发布 v2.12.19/20/21 时实测：tag 之前跑闸三查全过（`exit 0`）；打完 tag 再跑写路径 → `❌ 目标编号已被占用（本地已有 tag / 远端已有 tag）` → `EXIT=11`，**Release 未创建**；只有 `--skip-preflight` 能走通，而该开关文档明文写着「仅限已确认无并发链的补救场景，不得作为常规发版路径」。
+
+根因是**检查项与调用点的时序语义错配**：②「编号占用」是给「分配新号之前」用的（防版本谱系劈裂），却被挂在「号已分配、只是补发 Release」的路径上。更深一层：新增该闸时的 12 项单测（`tests/test_release_preflight.py`）全是闸的**孤立单测**，没有一条覆盖「真实发版链路能否走通」——**门自身全绿 ≠ 链路可达**；且既有样本只有「应当拒绝」，缺一条「正常路径应当通过」的正向断言（同型：#332 当时已识别「挂到 `sync-version.sh` 会自锁」，却漏了这处）。
+
+### 二、修法：② 口径细化为「编号是否被本链之外的人占用」
+
+`scripts/release-preflight.sh` 新增 `--allow-existing-tag`（**默认关闭 = 原严格口径完全不变**），生效时把 ② 从「编号是否被占用」细化为「编号是否被**本链之外**的人占用」，**仅当同时满足**才放行：
+
+1. 该 tag 指向的 commit 属本链历史——= 待发布提交（默认 `HEAD`，可用 `--expect-commit <rev>` 改写）本身或**其祖先**（后者覆盖「发版后又补了 changelog 提交」的 v2.12.16 同型情形）；
+2. 远端同号（若有）指向**同一对象**（annotated tag 按 `^{}` 解引用比对 commit）。
+
+**失败关闭不变**：其余情形一律拒绝——tag 不在本链历史上（另一条链建的号）⇒ 11；远端同号不同对象 ⇒ 11；本地无 tag 而远端有（归属无法核验）⇒ 11；远端查不到 ⇒ 2。放松生效时报告首行打印醒目提示，不静默。
+
+`scripts/create-github-release.sh` 的写路径（它就是「tag 已创建」的调用点，第 2 步已强制 tag 存在）调闸时**自动传入** `--allow-existing-tag`；补发旧版 Release（tag 不在 `HEAD` 历史上）改用手工调闸 + `--expect-commit <该版本提交>`。
+
+### 三、补端到端正向回归（教训 #334 的通用原则）
+
+新增 `tests/test_create_release_e2e.py`——**端到端**跑真实发版链路：临时仓库里真打 tag → 调 `create-github-release.sh`（fake `gh`）→ 断言退出 0。零网络、零真实 `gh`（`gh` 用 PATH 前置桩；在飞链 / 远端 tag 用 `LUNHENG_PREFLIGHT_SESSIONS_CMD` / `..._REMOTE_CMD` 注入快照；origin 的真实传输被 `GIT_ALLOW_PROTOCOL=file` 挡下）。同一文件同时钉住反向守卫：
+
+| 用例 | 断言 |
+|---|---|
+| tag → create-release（正路径） | 退出 **0**，`gh` 收到 `release create`，闸打印放松口径提示，且**未**走 `--skip-preflight` |
+| 同仓库跑严格口径的闸 | 仍退出 **11**（证明链路通是修法生效，不是闸被架空） |
+| 不打 tag | 仍退出 **2**（第 2 步铁律未被放松） |
+| 有同项目在飞链 | 仍退出 **10**（写路径仍被闸守住，退出码透传） |
+| 工作区不净 | 仍退出 **12** |
+| `--dry-run` | 退出 0 且不调用 `gh`（只读路径不进闸） |
+
+`tests/test_release_preflight.py` 同步扩到 **21 项**：新增放松模式的放行样本（tag = HEAD / tag = HEAD 的祖先）与拒绝样本（tag 在他链历史上 / 远端同号不同对象 / 本地无 tag 而远端有 / 远端不可达）。
+
+### 四、通用原则（写入教训 #334）
+
+**新增拒绝式闸门后，立即端到端跑一次它本该放行的主路径**——否则会造出「上线即自锁」的闸。门类改动必须配「应当放行」的正向样本，不能只测「应当拒绝」。
+
+### 五、同步范围
+
+- `scripts/release-preflight.sh`：新增 `--allow-existing-tag` / `--expect-commit`，重写 ② 判定与报告，header 用法说明同步。
+- `scripts/create-github-release.sh`：写路径调闸自动带 `--allow-existing-tag`，header 补「两个调用点」说明。
+- `references/agents/00-主控-扩展职责.md` §十四：新增「两个调用点：tag 前 vs tag 后补发 Release（教训 #334）」小节 + 放松口径的判据与调用点表。
+- `references/_shared/教训索引.md`：补 #334，最大编号声明推高到 **#334**（门 H 反向差集）。
 
 ---
 

@@ -32,6 +32,13 @@
 #   本链自身的会话 key 用环境变量 LUNHENG_PREFLIGHT_SELF_SESSION 传入，否则闸会把
 #   本链也算作在飞链而拒绝（失败关闭，不替人猜哪条是自己）。
 #
+#   ② 口径（v2.12.22，教训 #334）：本脚本第 2 步已硬性要求「本地已有 tag」，即号已分配；
+#   若闸仍按「编号是否被占用」判，则**正常发版路径必然被自己拦死**（实测：打完 tag 再跑
+#   写路径 → EXIT=11，Release 未创建，只剩 --skip-preflight 可走通）。故本脚本调闸时**自动
+#   传入 --allow-existing-tag**，把 ② 细化为「编号是否被本链之外的人占用」：仅当该 tag 指向
+#   待发布提交（HEAD）的历史、且远端同号（若有）指向同一对象才放行；其余仍拒绝（失败关闭）。
+#   补发旧版 Release（tag 不在 HEAD 历史上）时，改用闸的 --expect-commit <该版本提交> 显式指明。
+#
 # 退出码：0 = 完成/一致 / 1 = 漂移或缺 Release（--check）/ 2 = 环境或用法不满足
 #         / 10 = 前置闸：在飞链未收口 / 11 = 前置闸：编号已占用 / 12 = 前置闸：工作区不净
 # 依赖：bash + git + python3 + gh（gh 需已登录，见 `gh auth status`）
@@ -249,6 +256,8 @@ fi
 # ---- 6.5 发版前置闸（教训 #332）：写远端前先「两查一停」----
 # 在飞链 / 编号占用 / 工作区干净任一不过就拒绝——Release 是收口动作，不是推进动作。
 # --dry-run / --check 是只读路径，不进闸（它们的语义就是不写远端）；写路径默认必过闸。
+# 教训 #334：本路径第 2 步已强制「tag 必须先存在」，故调闸时带 --allow-existing-tag——
+# 否则「先 tag、后补发 Release」的正路径会被 ②「编号已被占用」自锁（实测 EXIT=11）。
 if [ "$DRY_RUN" = true ] || [ "$CHECK_ONLY" = true ]; then
   echo "⏭️  前置闸跳过（$([ "$DRY_RUN" = true ] && echo --dry-run || echo --check) 为只读路径，零远端写入）"
   echo ""
@@ -258,9 +267,11 @@ elif [ "$PREFLIGHT" = true ]; then
     echo "❌ 缺前置闸脚本：$PREFLIGHT_SH（发版拒绝执行；补回后可重跑）" >&2
     exit 2
   fi
-  echo "🚦 发版前置闸（release-preflight.sh，教训 #332）..."
+  echo "🚦 发版前置闸（release-preflight.sh，教训 #332 / #334）..."
+  echo "   第 2 步已核验「本地已有 tag」→ 本调用点以 --allow-existing-tag 传入「tag 已创建」语义："
+  echo "   ② = 该编号是否被**本链之外**的人占用（tag 须指向待发布提交的历史，远端同号须同对象）"
   echo ""
-  if bash "$PREFLIGHT_SH" "$TAG"; then
+  if bash "$PREFLIGHT_SH" --allow-existing-tag "$TAG"; then
     echo ""
   else
     rc=$?
