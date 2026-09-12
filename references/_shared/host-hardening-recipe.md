@@ -128,7 +128,7 @@ openclaw sandbox explain        # 看某会话实际生效的 sandbox / 工具 a
 # 会话内： /tools              # 确认当前会话实际可用工具面
 ```
 
-论衡侧的对应自检（**不需要宿主配置也能跑**）：`references/permissions.md`「能力自检」+ `references/_shared/dispatch-header.md`「启动自检」——子代理首步核验自身工具面，**按两级判据处置**（v2.12.32 实测修订）：**工具面超限 = 警告级**（未加固宿主上属常态，记录 + 披露 + 继续开工）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。
+论衡侧的对应自检（**不需要宿主配置也能跑**）：`references/permissions.md`「能力自检」+ `references/_shared/dispatch-header.md`「启动自检」——子代理首步核验自身工具面，**按两级判据处置**（v2.12.32 实测修订）：**工具面超限 = 警告级**（未加固宿主上属常态，记录 + 披露 + 继续开工），**且超限 ≠ 调用许可**（不授权调用其中任何工具）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。
 
 ## 五、边界声明（重要）
 

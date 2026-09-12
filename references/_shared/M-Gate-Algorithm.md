@@ -708,7 +708,7 @@ return (all_pass, fail_reasons, sha256_pending)
 伪代码：
 audit_latest = get_latest_audit_report('audits/')
 p0_p1_listed = check_p0_p1_listed(audit_latest)
-m_gate_ok = check_m_gate_all_pass('final/M-Gate-Report-v2.2.12.json')
+m_gate_ok = check_m_gate_all_pass_current_round()  # 读**本轮已产出**的章节级 M 门记录 + status.md「7.三.五 M 门执行记录表」；**不得读** final/M-Gate-Report-v2.2.12.json（T8 产物，T7.5 时尚未生成 —— 2026-09-12 审计 P1-6）
 sha256_ok = check_evidence_sha256_placeholder('final/交付说明.md')  # v2.2.17 改：占位符 [SHA256-PENDING:HOST-VERIFY] 即通过，人类可选回填
 trust_ok = check_M_Exist_3(...)
 isolation_ok = check_draft_vs_report_isolation('final/定稿.md', 'final/交付说明.md', 'audits/')
