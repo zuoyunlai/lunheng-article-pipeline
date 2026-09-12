@@ -13,6 +13,7 @@ owner_checkpoints:
 pipeline:
   - id: phase0_definition
     kind: owner_checkpoint
+    decisions: [approved, revision_requested, restart_phase]   # v2.12.28 补：与其余人工节点结构对齐
     output: 01-任务简报.md
     next: pre_spawn_enforcement
   - id: pre_spawn_enforcement
@@ -27,6 +28,8 @@ pipeline:
     next: phase1_5_targeted_review
   - id: phase1_5_targeted_review
     kind: conditional_review_window
+    condition: any_trigger_condition_met   # v2.12.28 对齐：见下方 trigger_conditions
+    on_not_triggered: record_not_triggered_in_status
     owner_visible: true
     blocking: false
     trigger_conditions:
@@ -86,6 +89,7 @@ pipeline:
     kind: conditional_agent
     agent: T5
     condition: T6_or_G14_requires_revision
+    on_not_triggered: record_not_triggered_in_status   # v2.12.28：未触发也必须在 status.md 留痕（防「未触发」与「漏跑」不可分）
     next: t7_audit
   - id: t7_audit
     kind: agent

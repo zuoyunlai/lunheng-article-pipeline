@@ -865,6 +865,21 @@ TOTAL_FAIL=${#FAILED[@]}
 
 echo ""
 echo "========================================="
+# =============================================================================
+# 门 S：流程图可达性与入参链（v2.12.28 新增 —— 防孤立节点 / 断链 / 缺 next / 缺 input）
+#   background：2026-09-12 实测发现 phase4_4_figures 无上游指向（配图被跳），
+#   且 6 个执行类节点缺 input 声明 → 衔接无机械校验。本门防复发。
+# =============================================================================
+if command -v python3 >/dev/null 2>&1 && [ -f references/_shared/phase-order.yaml ]; then
+  FLOW_ERR="$(python3 scripts/flow-check.py 2>&1)"
+  if [ -z "$FLOW_ERR" ]; then
+    NODES=$(grep -c '^  - id:' references/_shared/phase-order.yaml)
+    pass "门 S: 流程图可达性与入参链（$NODES 节点全可达 + 无缺 next/input）"
+  else
+    fail "门 S: 流程图断链/孤立节点" "$FLOW_ERR"
+  fi
+fi
+
 echo -e "PASS: ${GREEN}${TOTAL_PASS}${NC}  FAIL: ${RED}${TOTAL_FAIL}${NC}"
 echo "========================================="
 
