@@ -112,7 +112,7 @@ echo "纯中文字符数 = $CN"
 - G 个人辨识度缺失（LLM 自评与典型 LLM 风格相似度 >80%）
 - H 党报话语堆砌（重要讲话精神等，全文 ≥3 处）
 
-**判定**：0-2 类 Pass / 3-4 类 Warning（主控暂停呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮（第 2 轮仍命中 → Acknowledged Limitations 模式）。T7 必查 `audits/G14-检测报告-vN.md`，若缺失（主人在 Phase 0 关闭 G14）不强制要求；若 Fail 且未关闭 → 审计结论段必须标注「G14 未关闭」。闸门定义 `references/gates/14-中文AI痕迹-gate.md`，检测器 `references/checkers/中文AI痕迹-checker.md`。**关键边界**：G14 是「风格净化」不替代 T7 的「事实核验」——T7 主战场仍是 G1-G13，G14 仅做风格合规性检查。
+**判定**：0-2 类 Pass / 3-4 类 Warning（主控暂停呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮（第 2 轮仍命中 → Acknowledged Limitations 模式）。T7 必查 `audits/G14-检测报告-vN.md`，若缺失（主人在 Phase 0 关闭 G14）不强制要求；若 Fail 且未关闭 → 审计结论段必须标注「G14 未关闭」。闸门定义 `references/gates/14-中文AI痕迹-gate.md`，检测器 `references/checkers/中文AI痕迹-checker.md`。**关键边界**：G14 是「风格净化」不替代 T7 的「事实核验」——T7 主战场仍是 G1-G13，G14 仅做风格合规性检查。  <!-- 判定带真源 = gates/14-中文AI痕迹-gate.md §二，本节不重列 -->
 
 ## M 门算法交叉引用
 

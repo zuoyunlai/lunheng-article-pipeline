@@ -51,7 +51,7 @@
 
 ### 3. LLM 可用性初判
 - **每个角色启动时**依赖宿主 agent 的 `model.fallbacks` 配置链（**宿主维护项，论衡不绑定模型 ID；以下为本机开发示例，实际以宿主 OpenClaw 配置为准）：
-  - primary: `deepseek/deepseek-v4-pro`（本机开发示例）
+  - primary: `deepseek/（当前候选见 SKILL.md 能力档 / 模型候选池）`（本机开发示例）  <!-- v2.12.28：原示例模型已下线/改名，改为指针 -->
   - fallback 1: `minimax-portal/MiniMax-M3`（本机开发示例，曾验证 fallback 成功 T4 实战）
   - fallback 2: `deepseek/deepseek-v4-flash`（本机开发示例，便宜快）
   - fallback 3: `coding-plan/glm-5.3`（本机开发示例，跨供应商最终兜底）

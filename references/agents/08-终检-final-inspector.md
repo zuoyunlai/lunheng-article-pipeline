@@ -109,7 +109,7 @@
 
 > 按 `deliverables.md § 交付说明模板字段` 机械填充，详见 [`deliverables.md`](../deliverables.md)
 
-**9 个固定字段**（G0-G14）：
+**固定字段（条数以 deliverables.md 为准）**（G0-G14）：
 1. 路径
 2. 图件清单
 3. 遗留风险

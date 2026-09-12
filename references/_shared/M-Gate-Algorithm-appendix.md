@@ -6,7 +6,7 @@
 
 > M-Gate 报告输出格式 + 论衡哲学化 + 教训沉淀 + 历史版本归档。**主流程不读**（🟡 按需加载）——本文件是被 [`M-Gate-Algorithm.md`](M-Gate-Algorithm.md) §分片加载策略 标为**按需**的附录分片；该文件的 **🟠 必读分片 = 执行模型 + M-Form / M-Exist / M-Integrity 13 项规则与伪代码**。两者协同关系自 v2.5.4 拆分起固定。
 
-## M-Gate-Report v2.2.4 输出格式（4 版本合并最终版）
+## M-Gate-Report v2.2.12 输出格式（4 版本合并最终版）
 
 主控 T8 执行 M 门后，必须产出 `final/M-Gate-Report-v2.2.12.json`：
 
