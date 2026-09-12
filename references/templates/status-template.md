@@ -72,7 +72,7 @@
 - **Phase 3.5 洞察补充**: ⬜ Inbox → 🔄 In Progress → ✅ Done（主人确认日期, 洞察内容或「无补充」决策）
 - **T6 批判伙伴**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, C1-C7 报告）
 - **Phase 1.5 定向回查**: ⬜ not_triggered（必须写未触发依据）→ 🔄 triggered → ✅ Done（YYYY-MM-DD HH:MM, T1b 回查报告 + T2.5 重跑）
-- **G14 中文 AI 痕迹闸**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 8 类检测, Pass/Warning/Fail）
+- **G14 中文 AI 痕迹闸**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 8 类检测, Pass/Warning/Fail）  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
 - **T7 审计**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 审计报告-vN.md + 反哺报告-vN.md）
 - **修订回环**（≤2 轮）: ⬜ Inbox → 🔄 第 1 轮 → ✅ Done / 🔄 第 2 轮 → ✅ Done / 🔒 Acknowledged Limitations 模式
 - **T7.5 完整性门**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 主控 checkpoint）

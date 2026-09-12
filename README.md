@@ -66,7 +66,7 @@
 2. **主控自动派发**：T1∥T2∥T3 并行检索 → T4 分析 → T5 写作 → T6 批判 → T7 审计 → T9 审稿 → T8 主控亲终检
 3. **主人在 4 个节点介入**：Phase 0（定题）/ 2.5（大纲）/ 3.5（洞察）/ 5（终稿验收）——T6/G14 与 T9 均是内部动作，T9 只提供建议；T8 技术终检不能代替 Phase 5 主人验收
 
-**预计项目时间**：轻量档（≤4000 字）30-60 分钟 / 中段档 1-2 小时 / 重量档（≥5000 字）2-4 小时。
+**预计项目时间**：轻量档（**2000-3000 字**，真源 = `字数判定表.md`）30-60 分钟 / 中段档 1-2 小时 / 重量档（≥5000 字）2-4 小时。
 
 ---
 
@@ -117,7 +117,7 @@
   ├─ T4 分析员（Analyst）────────── 分析大纲（论证主线 + 反方论证 + 建议图表）
   ├─ T5 写手（Writer）────────────── 初稿（AI 去味 10 项）
   ├─ T6 批判伙伴（Critical Companion）── 批判报告（C1-C7 反方攻击 v2）
-  ├─ T7 审计员（Auditor）────────── 审计报告（G0-G14 = 15 项）
+  ├─ T7 审计员（Auditor）────────── 审计报告（G0-G14 = 17 项（含 G0.5 / G2.5））
   └─ T9 同行评审（Peer Reviewer）── 审稿报告（6 维度评分 + 期刊匹配）
               ↓
          T8 终检 = 独立角色卡
@@ -125,7 +125,7 @@
 
 **T9 同行评审**：论文投稿前的「预演审稿人」，6 维度（原创性/方法论/证据强度/论证结构/写作质量/引文规范，总分 30）→ accept / minor / major / reject 建议。**期刊匹配助手**：基于 T9 评分 + 主题关键词，从 25 中文 CSSCI/北大核心 + 12 英文 SSCI 数据库输出 Top 3 + 综合匹配度（主题契合 50% + 风格匹配 30% + T9 评分 20%）。**行业分析/学术论文默认开启**，公众号默认关闭（主人可选）。详见 [`09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md)。
 
-**G14 中文 AI 痕迹深度检测闸**：**Phase 3.6 与 T6 同批并行**。8 类检测维度（学术模板语/句式同质化/学术套话高频/破折号滥用/三项排比/人称错位/个人辨识度缺失/党报话语堆砌），LLM 推理判定（**零 exec**）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 2 轮。详见 [`14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md)。
+**G14 中文 AI 痕迹深度检测闸**：**Phase 3.6 与 T6 同批并行**。8 类检测维度（学术模板语/句式同质化/学术套话高频/破折号滥用/三项排比/人称错位/个人辨识度缺失/党报话语堆砌），LLM 推理判定（**零 exec**）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 2 轮。详见 [`14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md)。  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
 
 ### 三角验证（证据底座）
 
@@ -150,7 +150,7 @@
 | --- | --- | --- |
 | **M 门**（形式合规）| LLM 结构化自评（**零 exec**；规则硬性、非机器强制）| 引用/数据/案例的形式完整性（M-Form 8 项 + M-Exist 3 项 + M-Integrity 2 项 = 13 项）|
 | **F 模式**（失败模式）| 面向用户的叙事 | F1-F9 失败模式清单（幻觉/格式/数据信任/论证强度）|
-| **G 清单**（质量审计）| 面向审计员 | G0-G14 共 15 项|
+| **G 清单**（质量审计）| 面向审计员 | G0-G14 共 17 项（含 G0.5 / G2.5）|
 
 **常规修订 ≤2 轮硬约束**（例外通道须主人拍板）：第 3 轮 / 例外通道触发 → Acknowledged Limitations 模式（未关闭 P0/P1 搬入 `final/局限性.md`，论文正常交付不假装完美）。
 
@@ -228,7 +228,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.27  # pin 审�
 | v2.12.5 | 2026-09-10 | 注释清理 | 语义锚点型版本注释清理（36 文件 / 120 处）+ 安装 pin 同步补入 sync 脚本 |
 | v2.12.10 | 2026-09-10 | 语义审计 | ClawHub 语义审计（对象＝已发布 v2.12.9，15 条）5 真问题全修 + 加固模型收紧为二选一 + 净化链代码保真（教训 #300）+ Release 单一入口脚本 |
 | v2.12.11 | 2026-09-10 | — | **全仓四路专项审计（口径漂移 / 执行衔接 / 净化链内泄漏 / 交叉引用）真问题全修：加固口径 fail-closed 统一 + 人在环超时兜底 + status.md 写入者收口 + G14/T7/T9 时序校正 + 净化链规则补漏** |
-完整 changelog 见仓库内 [CHANGELOG.md](CHANGELOG.md)（逐版本全量记录；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 为同一内容的发布视图）。教训沉淀 256 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
+完整 changelog 见仓库内 [CHANGELOG.md](CHANGELOG.md)（逐版本全量记录；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 为同一内容的发布视图）。教训沉淀见 `memory/lessons.md`（编号以索引为准）见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
 
 ---
 

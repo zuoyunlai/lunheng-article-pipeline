@@ -144,7 +144,7 @@
   - G11：数据时效失效告警
   - G12：数据信任级别一致性
   - G13：AI 使用披露
-  - **G14：中文 AI 痕迹深度检测** —— 8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），触发阶段 Phase 3.6（与 T6 批判伙伴同批，对同一 `current_draft` 并行；修订后由 `audit_revision.after_each` 重跑）。闸门定义：`references/gates/14-中文AI痕迹-gate.md`；检测器：`references/checkers/中文AI痕迹-checker.md`；报告模板：`references/templates/G14检测报告-template.md`。**非 GPTZero 类检测器** = 论衡自有判定标准（中文特化），可由主人在 Phase 0 显式关闭。
+  - **G14：中文 AI 痕迹深度检测** —— 8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），触发阶段 Phase 3.6（与 T6 批判伙伴同批，对同一 `current_draft` 并行；修订后由 `audit_revision.after_each` 重跑）。闸门定义：`references/gates/14-中文AI痕迹-gate.md`；检测器：`references/checkers/中文AI痕迹-checker.md`；报告模板：`references/templates/G14检测报告-template.md`。**非 GPTZero 类检测器** = 论衡自有判定标准（中文特化），可由主人在 Phase 0 显式关闭。  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
 - **单一真源**：`references/_shared/audit-checklist-quickref.md`
 
 ---

@@ -28,7 +28,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.27  # 建议 pi
 - 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）
 - token 统计走精确路径（子代理完成事件 `Stats:` 行 + `session_status`）；拿不到精确值 = 平台异常，不估算
 - **权限边界（宿主职责）**：论衡**默认多 Agent 模式**，**无需任何宿主前提**即可运行（任意 OpenClaw 配置开箱可用）。子代理与主控的工具面由宿主 OpenClaw 决定；论衡不读取、不修改宿主配置，也不附带宿主侧加固配方——需要收紧子代理权限时，参见 OpenClaw 官方文档的 subagents 配置说明。单主控模式为**可选降级**（主人显式要求时启用；代价：无三角验证）
-- 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 21/21 PASS，含门 G 正常态）
+- 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 21 PASS / 0 FAIL，含门 G 正常态）
 
 ---
 
@@ -54,7 +54,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.27  # 建议 pi
 # 3. 主控自动派 T4 分析 → T5 写手 → T6 批判 → T7 审计 → T8 主控终检
 #    
 # 3.5 Phase 4.5 派发（**按模式 / 按条件 / 默认启用**，均不是主人自由开关）：
-#     T9 同行评审（按模式：行业分析/学术默认开、公众号默认关）+ G14 中文 AI 痕迹闸（按条件自动：中文+学术/商业评论/行业分析必跑，8 类检测，Phase 3.6 与 T6 同批）+ 方法论足迹面板（默认启用）
+#     T9 同行评审（按模式：行业分析/学术默认开、公众号默认关）+ G14 中文 AI 痕迹闸（按条件自动：中文+学术/商业评论/行业分析必跑，8 类检测，Phase 3.6 与 T6 同批）+ 方法论足迹面板（默认启用）  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
 # 4. 交付一份带引用来源的高质量长文
 ```
 
@@ -104,7 +104,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.27  # 建议 pi
 
 1. **Phase 0 两个「4 选 1」同意关卡**：
    - **1a. 定题确认 4 选 1**（Phase 0 启动前）：开工 / 补充信息 / 暂停 / 拒绝（**是否启动流水线**）
-   - **1b. 外部服务同意 4 选 1**（主控启动后）：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝（**外发数据范围**，详见 SKILL.md「⚠️ 执行前安全须知 + 外部服务声明（精简合并）」段）
+   - **1b. 外部服务同意 4 选 1**（主控启动后）：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝（**外发数据范围**，详见 SKILL.md「⚠️ 执行前安全须知 + 外部服务声明（精简合并）」段）  <!-- 外发同意 4 选 1 真源 = references/_shared/关键协议.md（本节不重列选项全文） -->
 2. **Phase 1 检索派发**：自动 spawn **T1∥T2∥T3**三个独立检索员，三方真并行（Phase 1.5 定向回查：条件触发——任务简报标 [Dxx 待复核] / 🔴 二手转引未回溯 / T9 证据强度低；触发则 spawn T1b 回查，未触发须记录 `not_triggered`，不可静默跳过）
 3. **Phase 2 分析派发**：自动派 **T4** 分析员生成大纲
 4. **Phase 2.5 主人确认**：主人过目大纲
