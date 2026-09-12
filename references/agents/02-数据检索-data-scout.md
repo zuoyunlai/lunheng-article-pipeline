@@ -33,9 +33,9 @@
 > **详细协议见** [`_shared/执行韧化协议-exec.md`](../_shared/执行韧化协议-exec.md)（含三检索员并行监控补充 + 编排防空转 教训 #274 + 模型 fallback 链）。
 
 1. **启动心跳**（30 秒内必做）：**读** `status.md` 看当前状态（**不写 status.md** —— 它是主控独占）+ **另写**自己的心跳文件 `run/<项目>/.tmp/02-数据检索-heartbeat.md`（写明「启动时间 + 当前模型 + 状态=检索中」）；主控按心跳节奏**独占写** `status.md`（教训 #269，文档漂移修复：子代理**不得**直接 write/edit status.md）。
-> 心跳 / 分阶段 ack / 报告长度上限：**真源 = [`_shared/dispatch-header.md`](../_shared/dispatch-header.md)**（本卡不重列）
+> 执行韧化 6 条（**数据员**视角）（心跳 / 分阶段 ack / LLM 可用性初判 / 超时硬卡 / 降级自报 / 禁止假装在线）**唯一真源 = [`_shared/dispatch-header.md`](../_shared/dispatch-header.md)**；本卡不重列。
 3. **LLM 可用性初判**：子代理观察首次 LLM 调用的响应时间与首 token 延迟；30 秒内无首字节返回 → 降级 fallback 链。
-> 心跳 / 分阶段 ack / 报告长度上限：**真源 = [`_shared/dispatch-header.md`](../_shared/dispatch-header.md)**（本卡不重列）
+> 执行韧化 6 条（**数据员**视角）（心跳 / 分阶段 ack / LLM 可用性初判 / 超时硬卡 / 降级自报 / 禁止假装在线）**唯一真源 = [`_shared/dispatch-header.md`](../_shared/dispatch-header.md)**；本卡不重列。
 5. **禁止假装在线**：ack 必须真实反映进度；过程语言残留自检（M-Form-5）：完成后 grep「v2 稿/初稿/草稿/修订说明/主人结构性观察/据行业经验估算/论据类型」有命中立即删除。
 
 ## 职责
