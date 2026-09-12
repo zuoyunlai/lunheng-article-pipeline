@@ -155,11 +155,7 @@
 ```
 ## 📋 审稿报告 — <项目名>
 
-> **评审版本**：v{N}（基于 drafts/初稿-v{N}.md）
-> **评审时间**：<YYYY-MM-DD HH:MM>
-> **评审模型**：<实际模型 + 候选池档位>
-> **总评分**：XX/30
-> **建议**：accept / minor revision / major revision / reject
+> 审稿报告头部字段**唯一真源 = [`templates/审稿报告-template.md`](../templates/审稿报告-template.md)**；本卡不重列。
 
 ### 评审维度
 
