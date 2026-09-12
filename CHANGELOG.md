@@ -12,6 +12,51 @@
 
 ---
 
+## [v2.12.33] — 2026-09-12
+
+> **主题：ClawHub 安全审计页 v2.12.32 复核修复（A 档消歧义 + 伪代码分叉 + AE1）。**
+> 审计页结论 **`Outcome: Review`**（非 Pass）：AIG 1 条（`T05` Least-privilege Warning）+ NVIDIA SkillSpector 15 条 + static-analysis 0 条。按根因归并为 **6 类**，修 6 项。**纯缺陷修复，无新功能、无破坏性变更；行为与 v2.12.32 逐字一致。**
+
+### 一、🟠 AIG `T05`：工具面/调用两级判据消歧义（**行为不变**）
+
+- **现象**：扫描器**逐字引用** v2.12.32 新写的「工具面超限 → 记录 + 披露 + 继续」判据，判定其「默认允许特权工具」，建议「能碰 `exec` 就拒绝多 Agent 模式」「不允许主控指令绕过该检查」。
+- **冲突**：该 fail-closed 建议**恰是**已被实测证伪的自锁路径（v2.12.32 实测中按「超限即中止」会让 T2/T3 首轮零产物、流水线在第一阶段自锁）。
+- **处置（主人裁决 = A 档「保持行为、只消歧义」）**：① **阻断级（实际调用）前置**到启动自检之首；② 新增铁律「**工具面超限 ≠ 获得任何调用许可**」；③ 明确工具面超限 = **宿主加固缺口**（非可利用条件），指向 `host-hardening-recipe.md`；④ 明确**主控裁决只放行「继续干活」，不放行任何越权调用**。**记录 / 披露 / 继续 / `degraded` 返回全保留。**
+- **诚实预期**：该条**可能仍会报** —— 不破自锁就满足不了其 fail-closed 要求；已在交付说明显式披露取舍（**不为页面干净破坏实测验证过的行为**）。
+
+### 二、🔴 T7.5 伪代码依赖倒置（散文改了、伪代码没改）
+
+- **现象**：当日 P1-6 只改了 `M-Gate-Algorithm.md` 的**散文**「不得依赖 `final/M-Gate-Report-v2.2.12.json`」，**5 行后的伪代码**仍去 check 该文件（T8 产物，T7.5 时尚未生成）⇒ 被 SkillSpector 以 `Intent-Code Divergence`（Medium 98%）抓出，且**已进发布包**。
+- **修法**：伪代码改为 `check_m_gate_all_pass_current_round()`（读本轮**章节级** M 门记录 + `status.md`）。
+
+### 三、🔴 AE1（**本批唯一 HIGH**）：必读清单路径不可逐个解析
+
+- **现象**：`SKILL.md` 强制必读表的**一个单元格里用 ` + ` 拼接了 3 个文件路径**，扫描器无法解析 → 报「Unparsable referenced artifacts」（HIGH）。
+- **修法**：**每个路径独立成行**（行数 +2，体量仍在棘轮内）。
+
+### 四、🟡 同源口径残留（自查发现，扫描器未报）
+
+- **`SKILL.md` 旧口径**：正文仍留 v2.12.32 前的「发现越权即阻断该角色」，与新版两级判据冲突 → 改为与 `permissions.md` / `dispatch-header.md` / 主控卡**四处一致**。
+- **只读档「例外」矛盾读法**：原文「只读档落盘例外」先称 read-only、又给写报告开例外，被扫描器读作自相矛盾 → 改写为**两径定义**：
+  - 上游产物（引用/证据卡等）＝ **readonly**；
+  - Agent **自有报告** ＝ **显式授权时可写**。行为不变，矛盾读法消除。
+
+### 五、验收
+
+| 项 | 结果 |
+|---|---|
+| pytest | **208 passed**（含新回归门 `tests/test_v21233_audit_fixes.py` 18 条） |
+| 自审门 | **25 PASS / 0 FAIL** |
+| flow-check / link-check | exit 0 / 352 条相对链接 0 断 |
+| changelog-check / check-version | 通过 |
+| SKILL.md 体量棘轮 | **11335 ≤ 11370**（**未放宽上限**，靠压缩正文达标） |
+
+### 六、涉及文件
+
+`references/_shared/dispatch-header.md`、`references/_shared/M-Gate-Algorithm.md`、`references/_shared/host-hardening-recipe.md`、`references/agents/00-主控-扩展职责.md`、`references/permissions.md`、`SKILL.md`、`tests/test_v21233_audit_fixes.py`（新增）。
+
+---
+
 ## [v2.12.32] — 2026-09-12
 
 > **主题：v2.12.32 无人值守实测修订（P0×2 + P1×3 + P2×2）+ 官方规范比对修复（P0×3 + P1×4）。**
