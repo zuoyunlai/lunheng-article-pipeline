@@ -932,7 +932,7 @@ fi
 #   说明：内容受「机械门锚定」保护者（tests/test_rules_consistency.py 以 SKILL.md 为
 #   T9 6 维度 / 4 档 + G14 8 类的漂移锚点）与合规清单（外发同意）**不得为凑数而删**。
 # =============================================================================
-SKILL_CHARS_CEIL=11400
+SKILL_CHARS_CEIL=11384
 if [ -f SKILL.md ]; then
   SKILL_CHARS=$(wc -m < SKILL.md | tr -d '[:space:]')
   if [ "$SKILL_CHARS" -le "$SKILL_CHARS_CEIL" ]; then

@@ -1,4 +1,4 @@
-> 版本：v2.12.30（自动同步 2026-09-12）
+> 版本：v2.12.31（自动同步 2026-09-12）
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -52,7 +52,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.12.30**（2026-09-12，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）第三方全量审计修复：**P0×4** + **P1×4** + **P2×3**，并**新增门 T / U / V 与入参链闭合门**（自审门 21 → 25）。此前后版本沿革见 CHANGELOG 对应章节。[MIT License](LICENSE)。
+**v2.12.31**（2026-09-12，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）ClawHub 扫描复核修复（AE1 HIGH + SQP-2 / SQP-1 两项 MEDIUM）+ 门 U 扩第二类检查（入口文档裸文件引用）+ 抓取层第三方外发警示 + SKILL.md 体量棘轮下调 11400 → 11384。此前 v2.12.30 = 第三方全量审计修复（**P0×4** + **P1×4** + **P2×3**，新增门 T / U / V 与入参链闭合门，自审门 21 → 25）。沿革见 CHANGELOG 对应章节。[MIT License](LICENSE)。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -183,7 +183,7 @@ Phase 5  T8 主控亲终检 → final/定稿.md + 证据包/ + 交付说明.md
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.30  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.31  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

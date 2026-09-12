@@ -5,7 +5,7 @@ metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 从顶层迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName
     # （“Unexpected key(s)”）；metadata 为官方允许键，其下未知子键被忽略。读版本的所有脚本已同步支持缩进写法。
-    version: 2.12.30
+    version: 2.12.31
     requires:
       bins: []
   tools:
@@ -32,7 +32,7 @@ metadata:
 
 ## 触发场景 + 字数分层
 
-**触发关键词**（强制 Phase 0 确认）：深度长文 / 学术论文 / 商业评论 / 行业分析。**不适用**（应拒接或改道）：新闻快讯（时效 <24h）/ 营销软文 / 需一手数据而主人未提供（田野·问卷·实验）/ 纯外语交付 / <3000 字短文（走主控+写手直写）。
+**触发关键词**（**仅候选提示，非自动启动**；须与下方「适用场景」判据同时命中，并经 Phase 0 确认）：深度长文 / 学术论文 / 商业评论 / 行业分析。**不适用**（应拒接或改道）：新闻快讯（时效 <24h）/ 营销软文 / 需一手数据而主人未提供（田野·问卷·实验）/ 纯外语交付 / <3000 字短文（走主控+写手直写）。
 
 **适用场景**：主题涉及事实/数据/多方观点，需证据底座而非纯观点输出；需「人在环」把关（大纲确认后再写，终稿人工审）；主人愿等 1-3 小时。**定位**：中文学术/深度长文专用流水线——中文特化（G14 闸 / GB/T 7714-2015 引用规范 / Top 3 中文期刊建议 / 中文新闻源优先）是**设计定位**，非 locale 缺陷。
 
@@ -73,12 +73,12 @@ metadata:
 
 | 层 | 文档 | 标记 |
 |----|------|------|
-| 0 | `agents/00-主控-coordinator.md`（核心职责全貌）| 🔴 |
-| 1 | `SKILL.md` + `pipeline-readme.md` + `_shared/glossary-full.md`（入口）| 🔴 |
-| 2 | `_shared/phase-order.yaml`（流程顺序与阻断关系**唯一真源**，冲突以 yaml 为准）| 🔴 |
-| 2 | `_shared/M-Gate-Algorithm.md`（M-Form/M-Exist/M-Integrity 伪代码段**逐段必读、一段不少**；「分片」只为省 token，**不表示跳读**；附录按需）| 🟠 |
+| 0 | `references/agents/00-主控-coordinator.md`（核心职责全貌）| 🔴 |
+| 1 | `SKILL.md` + `references/pipeline-readme.md` + `references/_shared/glossary-full.md`（入口）| 🔴 |
+| 2 | `references/_shared/phase-order.yaml`（流程顺序与阻断关系**唯一真源**，冲突以 yaml 为准）| 🔴 |
+| 2 | `references/_shared/M-Gate-Algorithm.md`（M-Form/M-Exist/M-Integrity 伪代码段**逐段必读、一段不少**；「分片」只为省 token，**不表示跳读**；附录按需）| 🟠 |
 
-🟡 按需分片（`00-主控-扩展职责.md` / `failure-modes.md` / `字数判定表.md` / `模型候选池.md`）不在此列。
+🟡 按需分片项见上方真源，本表不列。**表内路径均以仓库根为基准。**
 
 ### Phase 0 必走 8 步
 
@@ -104,7 +104,7 @@ metadata:
 **Phase 0 的「默认项」与「条件项」（定案 —— 不做成自由开关）**：
 
 - **默认启用（无开关）**：**方法论足迹面板**（`status.md` 每阶段自动更新，按档裁剪字段；边际成本≈0 且承载「方法论透明」卖点）。
-- **按条件自动启用（无自由开关）**：**G14 闸** —— 中文 + 学术/商业评论/行业分析 → 必跑；轻量档（**2000-3000 字**，真源 = `字数判定表.md`）→ 走内置「G14 自检」；纯外语交付 → **不适用**（非「关闭」）；主人显式要求关闭 → 走「豁免 + 交付说明披露」窄口。
+- **按条件自动启用（无自由开关）**：**G14 闸** —— 中文 + 学术/商业评论/行业分析 → 必跑；轻量档（**2000-3000 字**，真源 = `references/_shared/字数判定表.md`）→ 走内置「G14 自检」；纯外语交付 → **不适用**（非「关闭」）；主人显式要求关闭 → 走「豁免 + 交付说明披露」窄口。
 - **真正可选的**：外发同意（5 类逐项）、期刊匹配 / 多格式导出（2 项 + 多格式 6 选项；**中文数据源已转默认启用**）、Phase 5「方法论附录」。
 - **可选项准入判据**：只留给「**有真实成本或真实取舍**」者（外发数据 / 花钱 API / 额外产物）；**零成本的质量门与透明度项由条件决定，不由偏好决定**。
 
@@ -112,11 +112,11 @@ metadata:
 
 ## ⚠️ 执行前安全须知 + 外部服务声明（精简）
 
-**文件写入警告**：运行时会创建/修改 `run/<项目名>/` 下 `status.md` + 项目文件树（约 15-25 个文件）+ 心跳文件 `.tmp/<角色>-heartbeat.md`（启动 + 每约 5 分钟一行）。**仅写当前 workspace 根下的 `run/<项目名>/`**，Phase 0 必须先列全部将创建文件让主人确认后才进 Phase 1（写盘）。**<项目名> 由主人 Phase 0 显式确认**（不接受 LLM 自动命名）。
+**文件写入警告**：运行时会创建/修改 `run/<项目名>/` 下 `status.md` + 项目文件树（约 15-25 个文件）+ 心跳文件 `.tmp/<角色>-heartbeat.md`（启动 + 每约 5 分钟一行）。**仅写 workspace 根内**，Phase 0 必须先列全部将创建文件让主人确认后才进 Phase 1（写盘）。**<项目名> 由主人 Phase 0 显式确认**（不接受 LLM 自动命名）。
 
 **主控 Phase 0 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**），写入 `01-任务简报.md`「外部服务同意记录」段。  <!-- 外发同意 4 选 1 真源 = references/_shared/关键协议.md（本节不重列选项全文） -->
 
-**外发口径**：**类别唯一真源 = [`external-services.md` 逐类表，5 类](references/_shared/external-services.md)** —— 本文件**只指出真源、不重列**（一条款一真源，防漂移）。摘要：① 检索层 ② 学术元数据（OpenAlex/Crossref，默认启用）③ 封面生成 ④ 抓取层 ⑤ 记忆辅助；逐类的「是否默认 / 外发内容 / 同意轴」见真源表。
+**外发口径**：**类别唯一真源 = [`external-services.md` 逐类表，5 类](references/_shared/external-services.md)** —— 本文件**只指出真源、不重列**（一条款一真源，防漂移）。摘要与逐类口径（是否默认 / 外发内容 / 同意轴）一律见真源表。
 
 > 📚 **完整版**（心跳写入协议 / 审计反哺不自动 commit / Maintainer-only 分区 / 失败回滚 / 封面外发完整披露 / 逐类外发数据表）→ [`external-services.md`](references/_shared/external-services.md)。
 
@@ -124,7 +124,7 @@ metadata:
 
 ## 单源指针与派发索引
 
-> 🔴 **唯一真源**：流程顺序与阻断关系以 [`phase-order.yaml`](references/_shared/phase-order.yaml) 为准——主控每进入一个 Phase 前必读该 Phase 完整定义（parallel_agents / condition / bounded_loop / output_chars_max）；本文件与 [`pipeline-overview.md`](references/_shared/pipeline-overview.md) 均为<span>派生视图</span>，冲突时以 yaml 为准。
+> 🔴 **唯一真源**：流程顺序与阻断关系以 [`phase-order.yaml`](references/_shared/phase-order.yaml) 为准——主控每进入一个 Phase 前必读该 Phase 完整定义（parallel_agents / condition / bounded_loop / output_chars_max）；本文件与 [`pipeline-overview.md`](references/_shared/pipeline-overview.md) 均为派生视图，冲突时以 yaml 为准。
 
 | 需要什么 | 去哪读 |
 |---|---|

@@ -24,7 +24,7 @@ CHANGELOG = ROOT / "CHANGELOG.md"
 GATE = ROOT / "scripts" / "self-audit-gate.sh"
 LINK_CHECK = ROOT / "scripts" / "link-check.py"
 
-SKILL_CHARS_CEIL = 11400
+SKILL_CHARS_CEIL = 11384
 
 
 # ---------------- P2-1：相对链接可解析 ----------------
@@ -89,3 +89,60 @@ def test_link_check_ignores_code_spans():
     spec.loader.exec_module(mod)
     assert "](x.md)" not in mod.strip_code("说明：`](x.md)` 应修正")
     assert "](x.md)" in mod.strip_code("真链接 [t](x.md)")
+
+
+# ---------------- v2.12.31：入口文档裸文件引用（ClawHub SkillSpector AE1 HIGH）----------------
+
+def _load_link_check():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("link_check_bare", LINK_CHECK)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_bare_entry_refs_of_skill_md_all_resolve():
+    """真实入口文档：独立文件提及必须全部能按仓库根解析（AE1 防复发）"""
+    bad, checked = _load_link_check().check_bare_entry_refs(str(SKILL))
+    assert not bad, f"SKILL.md 仍有不可解析的裸文件引用：{bad}"
+    assert checked > 0, "裸引用检查未生效（检查条数为 0 = 假绿灯）"
+
+
+def test_bare_ref_check_catches_dangling(tmp_path):
+    """反向：裸文件名（本仓 references/ 下确实不存在）必须被拦"""
+    (tmp_path / "references").mkdir()
+    (tmp_path / "references" / "ok.md").write_text("x", encoding="utf-8")
+    entry = tmp_path / "SKILL.md"
+    entry.write_text("真源 = `references/ok.md`；错源 = `missing-doc.md`。", encoding="utf-8")
+    bad, _ = _load_link_check().check_bare_entry_refs(str(entry))
+    assert [t for _, t in bad] == ["missing-doc.md"], f"漏报裸名：{bad}"
+
+
+def test_bare_ref_check_does_not_resolve_via_subdirs(tmp_path):
+    """口径锁死：**不试** references/ 等子目录 —— 否则 AE1 那类「裸名但能找回」永不报"""
+    (tmp_path / "references").mkdir()
+    (tmp_path / "references" / "only-in-refs.md").write_text("x", encoding="utf-8")
+    entry = tmp_path / "SKILL.md"
+    entry.write_text("见 `only-in-refs.md`。", encoding="utf-8")
+    bad, _ = _load_link_check().check_bare_entry_refs(str(entry))
+    assert [t for _, t in bad] == ["only-in-refs.md"]
+
+
+def test_bare_ref_check_excludes_link_text_and_exemptions(tmp_path):
+    """链接文本（含带后缀词写法）/ 占位符 / docs 前缀 / 运行时清单项均不报"""
+    entry = tmp_path / "SKILL.md"
+    entry.write_text(
+        "[`external-services.md` 逐类表](references/_shared/external-services.md) "
+        "`docs/tools/subagents.md` `.tmp/<角色>-heartbeat.md` `status.md` `01-任务简报.md`\n",
+        encoding="utf-8")
+    bad, checked = _load_link_check().check_bare_entry_refs(str(entry))
+    assert not bad, f"误报：{bad}"
+    assert checked == 0, f"豁免项被计入检查：{checked}"
+
+
+def test_gate_u_message_reports_bare_refs():
+    """门 U 输出必须能反映第二类结果（否则门过了但检查没跑 = 假绿灯）"""
+    r = subprocess.run([sys.executable, str(LINK_CHECK)], capture_output=True, text=True,
+                       cwd=str(ROOT))
+    assert r.returncode == 0, r.stderr
+    assert "裸引用" in r.stdout, f"门 U 输出未含裸引用结论：{r.stdout}"

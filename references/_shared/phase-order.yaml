@@ -9,7 +9,7 @@
 #   ② `output` 可为**字符串**（单产物）或 **`角色: 路径` 映射**（多产物并行节点）—— 映射时**每个值都是必须核对的产物**；
 #   ③ 执行类节点（agent / owner_agent / parallel_agents / conditional_agent / advisory_agent / bounded_loop）**必须同时声明 `input` 与 `output`**；
 #   ④ 被 ≥2 个节点声明为 `input` 的受管路径，**必须有节点以 `output` 生产**（防「有消费者无生产者」，P0-3）。
-version: 2.12.30
+version: 2.12.31
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline

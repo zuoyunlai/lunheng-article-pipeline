@@ -12,6 +12,19 @@
       忽略**代码围栏**与**行内代码**中的链接（它们是示例文本，不是真链接 ——
       本脚本首跑即在 CHANGELOG 的历史修订说明上踩到这个误报）。
 
+第二类检查（v2.12.31 新增）：**入口文档裸文件引用**。ClawHub 扫描（SkillSpector）
+      曾对 SKILL.md 报 **AE1 HIGH**「Referenced artifact was not completely inspected」，
+      命中的是「主控必读文档清单」表内的**裸文件名**（`pipeline-readme.md`）——
+      外部读取者/扫描器无法判定它相对哪个目录，因而无法定位该产物（与「悬挂指针」同族）。
+      本类只查 SKILL.md（外部读取者实际读的入口文件），不查 references/ ——
+      后者含 200+ 处**运行时项目树路径**（`status.md` / `final/定稿.md` 等），非仓库文件。
+      解析基准 = **入口文档自身所在目录**（严格：不试 `references/` 等子目录，
+      否则 AE1 那类「裸名但碰巧能找回」的写法永远不报）。
+      链接文本不查——整个 markdown 链接（`[文本](url)`，含文本带后缀词的写法）先剔除，
+      路径真伪由第一类（相对链接）负责，不重复判定。
+      豁免：占位符（`<` `>` `{` `}` `*` `$`）、官方文档前缀（`docs/`）、`~` 路径，
+            含空格 token，以及下方显式允许清单（运行时文件 / 有意提及不存在者）。
+
 用法：
   python3 scripts/link-check.py [文件或目录 ...]        # 默认：README/QUICKSTART/CHANGELOG/references
   python3 scripts/link-check.py --list                  # 只列不断言（自查用）
@@ -65,6 +78,52 @@ def check(targets):
     return broken, checked
 
 
+# -----------------------------------------------------------------------------
+# 第二类：入口文档裸文件引用（v2.12.31 新增，回应 ClawHub SkillSpector AE1 HIGH）
+#   解析基准 = **入口文档自身所在目录**（严格）；链接文本不查（第一类负责路径真伪）。
+#   豁免：占位符、`docs/` 官方文档前缀、`~` 路径、含空格 token，以及 BARE_ALLOW。
+#   BARE_ALLOW 是**显式债务/合理例外清单**：新增项必须在此注明理由（失败时提示）。
+# -----------------------------------------------------------------------------
+BARE_EXT_RE = re.compile(r'\.(md|yaml|yml|json)$')
+BARE_ENTRY = "SKILL.md"
+LINK_TEXT_RE = re.compile(r'\[[^\]\n]*\]\([^)\n]*\)')
+BARE_ALLOW = {
+    "status.md",       # 运行时文件（run/<项目名>/status.md），非仓库文件
+    "01-任务简报.md",   # 运行时文件（run/<项目名>/01-任务简报.md），非仓库文件
+    "设计文档.md",      # SKILL.md 明示「发布版无 设计文档.md」——有意提及不存在的文件
+}
+
+
+def check_bare_entry_refs(entry=BARE_ENTRY):
+    """入口文档反引号内**独立文件提及**的可解析性 → (不可解析列表, 检查条数)"""
+    p = pathlib.Path(entry)
+    if not p.is_file():
+        return [], 0
+    body, in_fence = [], False
+    for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+        if FENCE_RE.match(line):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            body.append(line)
+    base = p.parent
+    bad, checked = [], 0
+    for tok in re.findall(r'`([^`\n]+)`', LINK_TEXT_RE.sub(" ", "\n".join(body))):
+        t = tok.strip()
+        if not BARE_EXT_RE.search(t):
+            continue
+        if any(c in t for c in '<>{}*$') or " " in t:
+            continue
+        if t.startswith(("docs/", "http", "~")):
+            continue
+        if t in BARE_ALLOW:
+            continue
+        checked += 1
+        if not (base / t).exists():
+            bad.append((str(p), t))
+    return bad, checked
+
+
 def main(argv):
     args = [a for a in argv[1:] if not a.startswith("--")]
     if "--help" in argv or "-h" in argv:
@@ -72,14 +131,24 @@ def main(argv):
         return 2
     targets = args or DEFAULT_TARGETS
     broken, checked = check(targets)
-    if broken:
-        print(f"❌ 相对链接断链 {len(broken)} 处（共检查 {checked} 条）：", file=sys.stderr)
-        for f, url in broken:
-            print(f"   {f} → {url}", file=sys.stderr)
-        print("   修法：修正路径；产物在 .gitignore 目录（如 outputs/）或已不存在的文档，"
-              "应降级为**无链接的陈述**（见 CHANGELOG 既有先例）。", file=sys.stderr)
+    bare_bad, bare_checked = check_bare_entry_refs()
+    if broken or bare_bad:
+        if broken:
+            print(f"❌ 相对链接断链 {len(broken)} 处（共检查 {checked} 条）：", file=sys.stderr)
+            for f, url in broken:
+                print(f"   {f} → {url}", file=sys.stderr)
+            print("   修法：修正路径；产物在 .gitignore 目录（如 outputs/）或已不存在的文档，"
+                  "应降级为**无链接的陈述**（见 CHANGELOG 既有先例）。", file=sys.stderr)
+        if bare_bad:
+            print(f"❌ 入口文档裸文件引用不可解析 {len(bare_bad)} 处"
+                  f"（共检查 {bare_checked} 条）：", file=sys.stderr)
+            for f, tok in bare_bad:
+                print(f"   {f} → {tok}", file=sys.stderr)
+            print("   修法：补全为仓库根相对路径（`references/...`）；确属运行时文件或有意提及"
+                  "不存在的文件，加入本脚本 BARE_ALLOW 并注明理由。", file=sys.stderr)
         return 1
-    print(f"✅ 相对链接全部可解析（共 {checked} 条，覆盖 {len(list(iter_files(targets)))} 个 md）")
+    print(f"✅ 相对链接全部可解析（共 {checked} 条，覆盖 {len(list(iter_files(targets)))} 个 md）"
+          f"；入口文档裸引用全部可解析（共 {bare_checked} 条）")
     return 0
 
 
