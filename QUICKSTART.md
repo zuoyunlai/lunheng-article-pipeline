@@ -25,10 +25,10 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.31  # 建议 pi
 
 ## 🔧 宿主适配要点
 
-- 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）
+- 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）；**spawn 时 `cwd` 必须传绝对路径** `<workspace>/run/<项目名>/`（相对路径会被解析到 skill 目录，v2.12.28 实测）
 - token 统计走精确路径（子代理完成事件 `Stats:` 行 + `session_status`）；拿不到精确值 = 平台异常，不估算
 - **权限边界（宿主职责）**：论衡**默认多 Agent 模式**，**无需任何宿主前提**即可运行（任意 OpenClaw 配置开箱可用）。子代理与主控的工具面由宿主 OpenClaw 决定；论衡不读取、不修改宿主配置，也不附带宿主侧加固配方——需要收紧子代理权限时，参见 OpenClaw 官方文档的 subagents 配置说明。单主控模式为**可选降级**（主人显式要求时启用；代价：无三角验证）
-- 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 21 PASS / 0 FAIL，含门 G 正常态）
+- 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 25 PASS / 0 FAIL）
 
 ---
 
@@ -40,7 +40,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.31  # 建议 pi
 - **Web 检索外发**：检索关键词 + 目标 URL 会发送到外部服务（web_search / tavily_search / web_fetch / tavily_extract）
 - **可选手动 sha256 验证**：主控会发占位符 `[SHA256-PENDING:HOST-VERIFY]`，如需真实 hash 需主人在 host shell 手动计算后回填
 - **可选封面外发**（**默认关闭**）：如启用，会向 OpenAI / Google / minimax 发送 prompt
-- **记忆检索**：`memory_search` / `memory_recall` 访问 OpenViking 记忆库（无 LLM vendor 外发）
+- **记忆检索**：`memory_search` / `memory_recall` 访问 OpenViking 记忆库；⚠️ **memories 检索默认走 OpenAI embeddings**（`memory.search.provider` 未显式设为 Ollama/本地时），**可能外发 LLM vendor**——非「零外发」
 
 以上副作用会在 Phase 0 同意关卡（4 选 1）中由你主动选择。如不愿接受任何外发，选 ④全部拒绝（改纯本地 Ollama 推理）。
 

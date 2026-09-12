@@ -84,10 +84,10 @@
 | `image_generate`（封面，可选默认关闭） | 宿主默认图像 provider（宿主 OpenClaw 配置决定；论衡不规定 vendor 路由/降级链） | 主题 + 品牌 prompt |
 | **数据图表 SVG** | **本地内置**（主控 `write` 手写 SVG，零外发） | — |
 | 大模型推理 | 当前模型 provider | 文献/数据/案例/草稿/大纲全文 |
-| `memory_get` / `memory_search` | OpenViking 记忆库（无 LLM vendor 外发） | 检索关键词 |
+| `memory_get` / `memory_search` | OpenViking 记忆库；⚠️ 检索默认走 OpenAI embeddings（`memory.search.provider` 未显式配本地 provider 时）**可能外发 LLM vendor** | 检索关键词 |
 
 **主控 agent 能力边界**（**不**会做的事）：
-- ❌ 不调用 `exec` / `process` 工具（**13 项 documented + 19 项 denied，以 `SKILL.md` frontmatter 为准**，以 SKILL.md frontmatter 为准）
+- ❌ 不调用 `exec` / `process` / `code_execution` 等**27 项 denied 特权工具**（清单真源 = `SKILL.md` frontmatter `metadata.tools.denied`）——⚠️ **声明式**，须宿主配置才生效
 - ❌ 不读取运行时内部路径（`~/.openclaw/agents/<agent>/sessions/*.trajectory.jsonl` 等）
 - ❌ 不直接计算 sha256（需要时由主人在 host shell 手动跑后回填）
 - ❌ 不主动采集一手数据（实验/调查/访谈）—— 主人投喂后使用

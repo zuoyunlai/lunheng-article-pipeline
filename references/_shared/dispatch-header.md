@@ -4,7 +4,7 @@
 
 > **所有 dispatch 头部公共内容**（子代理启动时按需读本文件 + 角色卡即可，避免一次加载全部派发话术）。
 
-> 🚫 **零 exec 哲学护栏**：论衡 agent 全部禁 `exec` / `process` / `browser` / `apply_patch` / `cron` / `video_generate` 等 **19 项特权工具** —— **全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（本文件不重列；重列即漂移风险）。
+> 🚫 **零 exec 哲学护栏**：论衡 agent 全部禁 `exec` / `process` / `code_execution` / `browser` / `apply_patch` / `message` / `gateway` 等 **27 项特权工具** —— **全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（本文件不重列；重列即漂移风险）。⚠️ **声明式**：须**宿主配置**才真正生效（官方 frontmatter 无工具策略键、沙箱默认关）。
 
 > 🚫 **叶子纪律（我不是主控，不得再委托）**：我**不得**调用 `sessions_spawn` 派生子代理，也**不得**用 `subagents` / `sessions_list` / `sessions_history` 查看或管理其他会话——论衡架构里角色卡 = 叶子 worker。平台可能默认开启递归委派，我**可能拿得到**这些工具，但**未被授权**使用它们。需要额外检索/人手 → 在**交接报告**写「需求回执」给主控，由主控决定是否 spawn（子代理自行 spawn 的孙辈结果不上传主控 = 产出静默丢失）。完整规则见 [`关键协议.md`](关键协议.md) §叶子纪律。
 

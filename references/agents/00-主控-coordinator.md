@@ -19,7 +19,7 @@
 - 三层防御体系（M 门/F 模式/G 清单）
 - 关键协议（Phase 0/三检索员并行/修订回环/完成验证铁律）
 - 数据信任级别（3 档）
-- 工具能力边界（**13 项默认可用 + 4 项 opt-in（默认关闭） / 19 项禁用**，以 SKILL.md frontmatter `metadata.tools` 为准）
+- 工具能力边界（**13 项默认可用 + 4 项 opt-in（默认关闭） / 27 项禁用**，以 SKILL.md frontmatter `metadata.tools` 为准）
 
 本文档是主控特有的操作细节，不重复概念定义。
 

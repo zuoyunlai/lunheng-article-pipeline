@@ -119,25 +119,28 @@ if not subagents_has_active(run.runId):
 ```
 
 #### 4.2 yield watchdog 超时自查（必做）
-`sessions_yield` 后超过 N 分钟（推荐 **3 分钟**，可根据 Phase 调整）仍无完成事件 → 主控**不再静默等**，自查 `subagents(action=list)`（宿主强制 self-spawn 列表，超出最小权限）：
-- 预期角色仍在 active runs + 最近有 status.md 心跳 → 子代理真在跑，继续 yield（但记录已等待 X 分钟，下次超阈值重判定）
-- 预期角色不在 active runs（subagent 已结束但没投递完成事件）或重复投递同一子代理的完成事件 ≥2 次 → **duplicate 事件嫌疑**，立即补 spawn：
+> ⚠️ **本节的形态是「事件驱动的单次自查」，不是轮询循环。** `sessions_yield` **会结束当前 model turn**——完成事件只能作为**下一条 message** 到达，**不可能在同 turn 内循环等待**。官方明确：不要为等待而循环调用 `subagents list` / `sessions_list` / `sessions_history`，**仅调试时按需查一次**（`docs/tools/subagents.md`）。
+
+**判据**：收到完成事件即推进编排；**若本 turn 未收到预期完成事件**（或收到同一子代理的重复事件），做**一次**自查 `subagents(action=list)`（宿主强制 self-spawn 列表）：
+- 预期角色仍在 active runs + 最近有 status.md 心跳 → 子代理真在跑，**结束本 turn 继续等下一事件**（记录已等待 X 分钟）
+- 预期角色不在 active runs（已结束但未投递完成事件）或同一子代理完成事件重复 ≥2 次 → **duplicate 事件嫌疑**，补 spawn：
 ```python
-# 伪代码（yield watchdog）
-wait_start = time.now()
-while wait_elapsed < WATCHDOG_TIMEOUT:
-    yield()  # 等下一次完成事件
-    if completion_received:
-        # 检查 幂等：status.md 该角色是否已 Done？
+# 伪代码（事件驱动 yield watchdog —— 无 while、无轮询）
+# 入口：本 turn 已 sessions_yield，但未收到预期 completion（或收到重复事件）
+def on_yield_turn_end(role, runId):
+    if expected_completion_seen_this_turn:
+        # 幂等检查：status.md 该角色是否已 Done？
         if is_role_done(status_md, role):
             log("[#274 幂等] {} 完成事件已处理过，忽略 duplicate".format(role))
-            continue  # 忽略 duplicate，不重复推进
-        return  # 推进编排
-    if wait_elapsed > WATCHDOG_TIMEOUT:
-        # 第一次超过阈值时跑一次自查
-        if not subagent_alive_in_active_runs(runId):
-            log("[#274 修复] yield 超时 + 子代理不在 active = spawn 丢失，重派")
-            respawn()  # 补 spawn
+            return  # 不重复推进
+        advance_pipeline()  # 推进编排
+        return
+    # 未收到预期事件 → **单次** on-demand 自查（仅一次，非循环）
+    if subagent_alive_in_active_runs(runId):
+        log("[#274] {} 仍在 active，结束本 turn 等下一事件".format(role))
+        return
+    log("[#274 修复] yield 超时 + 子代理不在 active = spawn 丢失，重派")
+    respawn()  # 补 spawn
 ```
 
 #### 4.3 完成事件幂等处理（必做）

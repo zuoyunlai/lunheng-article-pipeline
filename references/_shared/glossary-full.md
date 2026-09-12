@@ -230,7 +230,7 @@
 
 > **拆分**：工具能力边界段拆到独立文件，按需加载。本文件（glossary-full.md）仅保留工具索引。
 
-**详细工具清单**（**13 项默认可用 + 4 项 opt-in（默认关闭） / 19 项禁用**）见 [`_shared/工具能力边界.md`](工具能力边界.md)。
+**详细工具清单**（**13 项默认可用 + 4 项 opt-in（默认关闭） / 27 项禁用**）见 [`_shared/工具能力边界.md`](工具能力边界.md)。
 **唯一真源**：[`SKILL.md`](../../SKILL.md) frontmatter `metadata.tools`（`base` / `coordinator_only` / `research_extra` / `opt_in` / `denied`）（按版本同步）。
 
 ## 六、教训沉淀体系

@@ -41,7 +41,7 @@
 | ② | 学术元数据（**默认层**）| OpenAlex / Crossref | **默认启用**（Phase 0 告知并可拒绝；只读公开 API，无需 Key）| 仅检索关键词（不发送个人信息/机密数据）|
 | ③ | 封面（opt-in）| `image_generate` | **默认关闭** | 图像 prompt（见上条）|
 | ④ | 抓取层（可选）| Firecrawl（paper.edu.cn） | **默认关闭** | **抓取目标页面内容 + 请求元数据（URL / 检索词）→ Firecrawl 第三方服务**（受其隐私政策约束）；凭据须在宿主环境外部配置 |
-| ⑤ | 记忆辅助（opt-in）| `memory_get` / `memory_search` / `memory_recall` | **默认关闭** | 访问本地记忆库（无 LLM vendor 外发）|
+| ⑤ | 记忆辅助（opt-in）| `memory_get` / `memory_search` / `memory_recall` | **默认关闭** | 访问本地记忆库；⚠️ **memories 检索默认走 OpenAI embeddings**（`memory.search.provider` 未显式设为 Ollama/本地等时）——**可能外发 LLM vendor**，非「零外发」|
 
 不调 Firecrawl（除非主人 Phase 0 显式勾选启用）。**⚠️ 启用即第三方外发**：抓取的**目标页面内容与请求元数据（URL / 检索词）会发往 Firecrawl 第三方服务**，受该服务隐私政策约束；**未公开草稿 / 客户机密 / 未脱敏材料不得经此路径**。**原第二梯队（万方 / 科情 / NSTL）已于本修订取消**（需 API key + 申请/付费/机构门槛，长期未被使用）。详见 [`references/_shared/中文数据源集成.md`](中文数据源集成.md)。
 

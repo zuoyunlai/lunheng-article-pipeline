@@ -56,13 +56,14 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 19 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 Q/门 R）。类别概览：运行时/文件破坏类 4 · 生成类 4 · 编排类 3 · 记忆与消息类 4 · 设备与补丁类 4。
+**禁用（`metadata.tools.denied`）— 27 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T）。⚠️ **声明式，非平台强制**：官方 SKILL.md frontmatter **不含任何工具策略键**，且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。类别概览：执行/进程 3 · 终端与 UI 控制 4 · 设备 3 · 生成 3 · 编排与会话 4 · 消息与控制面 5 · 记忆 2 · 补丁与自动化 3。
 
 **Workspace 路径收口**：
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树
 - **拒绝**：绝对路径（含任何指向宿主敏感位置的路径：系统账号/密码存储文件、SSH 密钥目录、云凭据文件等）、父路径穿越（`..`）、symlink 逃逸、主控工作区根目录外的访问
-- 默认 cwd = workspace 根（**不设 `cwd_default`**，否则 run/ 被解析到 skill 目录内，教训 #255）——主控在 spawn 时必须显式传 `cwd: run/<项目名>/`（相对 workspace 根）且每次子代理任务首句必读 `references/_shared/关键协议.md` §workspace 路径收口（read/write/edit 边界）
-- 实操：主控 spawn 时 `cwd: run/<项目名>/`；子代理拒绝改 cwd；产出写盘必须落在 `run/<项目名>/<子目录>/` 内
+- 默认 cwd = workspace 根（**不设 `cwd_default`**，否则 run/ 被解析到 skill 目录内，教训 #255）——主控在 spawn 时**必须显式传绝对路径 `cwd: <workspace>/run/<项目名>/`**；**相对路径会被解析到 skill 目录**（v2.12.28 实测，教训 #255），故一律用绝对路径。子代理任务首句必读 `references/_shared/关键协议.md` §workspace 路径收口（read/write/edit 边界）
+- ⚠️ **两个 `cwd` 不是一回事，切勿混**：① **spawn 的平台参数 `cwd`** —— **必须绝对路径**（上条）；② **论衡自身的 read/write/edit 边界规则** —— 工具只接受 `run/<项目名>/` 子树内的**相对路径**，**拒绝绝对路径**。二者方向相反但互补：spawn 用绝对路径定位项目根，文件工具再用相对路径收口到子树内。
+- 实操：主控 spawn 时传绝对路径 `cwd: <workspace>/run/<项目名>/`；子代理拒绝改 cwd；产出写盘必须落在 `run/<项目名>/<子目录>/` 内
 - **完整写入清单（含周期性写入）**：本技能运行期间会创建/修改的路径只有三类——① `run/<项目名>/` 项目文件树（任务简报 / 文献卡 / 数据卡 / 案例卡 / 大纲 / 草稿 / 审计报告 / 定稿 / 图件 / 证据包 / 交付说明，约 15-25 个文件）；② `run/<项目名>/status.md`（主控独占写）；③ `run/<项目名>/.tmp/<角色>-heartbeat.md`（子代理心跳，启动时写 + 运行中每约 5 分钟追加一行）。**全部限当前 workspace 的 `run/<项目名>/` 内**：不写项目外、不写其他项目、不写宿主配置（`openclaw.json` 等由主人自行维护，本技能只读不写）。已向主人披露于 SKILL.md「执行前安全须知」+ QUICKSTART.md「重要警告」。
 
 **其他约束**：
