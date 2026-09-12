@@ -116,7 +116,7 @@ echo "纯中文字符数 = $CN"
 
 ## M 门算法交叉引用
 
-执行必查项时，配合以下 M 门算法（**T7 必跑 exit 0**；🟠 **分片必读**——下列规则段与伪代码段必读，`M-Gate-Algorithm-appendix.md` 的 JSON schema 等附录按需）：
+> **M 门构成唯一真源 = [`M-Gate-Algorithm.md`](M-Gate-Algorithm.md)**（8+3+2 项）；本节只给指针，**不重列构成**。执行必查项时配合以下 M 门算法（**T7 必过判定**；🟠 **分片必读**——下列规则段与伪代码段必读，`M-Gate-Algorithm-appendix.md` 的 JSON schema 等附录按需）：
 
 - **M-Form 形式合规门**（8 项）：见 `M-Gate-Algorithm.md` § M-Form
 - **M-Exist 存在性合规门**（3 项）：见 `M-Gate-Algorithm.md` § M-Exist

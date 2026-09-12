@@ -314,6 +314,10 @@ else:
 
 **注意**："据行业经验估算" 是 v2.1.1 引入的「合法估算标记」。段落开头标 `[行业估算，非数据卡]` → G6 论据类型自标（合法）；无标记直接用 → P1 残留。
 
+> 📌 **数据卡路径口径（v2.12.28）**：M 门与 G 项一律读**源文件 `data/数据卡.md`**；`final/证据包/` 中是**交付副本，不得作判定依据**（副本可能滞后于源）。
+
+evidence-pack-copy-note
+
 ### M-Form-6: 信任级别标注完整性（教训 #292 + #293）
 
 **v2.2.1 算法**：仅支持标准 [Dxx] 格式。
@@ -323,7 +327,7 @@ else:
 **伪代码**（主控 LLM 推理执行）：
 ```python
 # 读取数据卡
-data_card_text = read("final/证据包/数据卡.md")
+data_card_text = read("data/数据卡.md")
 
 import re
 
@@ -353,12 +357,12 @@ else:
 **人类验证示例**（可选）：
 ```bash
 # 标准格式
-grep -cE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md  # 条目数
-grep -c '信任级别：' final/证据包/数据卡.md  # 信任级别标注数
+grep -cE '^\*\*\[D[0-9]+\]' data/数据卡.md  # 条目数
+grep -c '信任级别：' data/数据卡.md  # 信任级别标注数
 
 # 表格格式
-grep -cE '^\| [0-9]+\.[0-9]+ \|' final/证据包/数据卡.md  # 表格行数
-grep -cE '\|\s*(已发布|主人投喂|二手转引)\s*\|' final/证据包/数据卡.md  # 信任级别字段数
+grep -cE '^\| [0-9]+\.[0-9]+ \|' data/数据卡.md  # 表格行数
+grep -cE '\|\s*(已发布|主人投喂|二手转引)\s*\|' data/数据卡.md  # 信任级别字段数
 ```
 
 **实战验证**：
@@ -601,8 +605,8 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
    - **扩展**：SVG 内嵌文本纳入（final/图件/*.svg 的 text/desc/title/tspan 节点）→ set_svg_d
 
 2. 数据卡条目提取：
-   - 标准格式 [Dxx]：grep -oE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md → set_card_d
-   - 表格格式 [1.x]：grep -oE '^\| ([0-9]+\.[0-9]+) |' final/证据包/数据卡.md → set_card_table
+   - 标准格式 [Dxx]：grep -oE '^\*\*\[D[0-9]+\]' data/数据卡.md → set_card_d
+   - 表格格式 [1.x]：grep -oE '^\| ([0-9]+\.[0-9]+) |' data/数据卡.md → set_card_table
 
 3. 信任级别一致性 diff：
    - 标准格式 diff：comm -23/-13 set_intext_d set_card_d
@@ -643,10 +647,10 @@ return (all_pass, leaked, orphan, missing_trust)
 
 ```
 算法步骤（主控 LLM 兜底执行）：
-1. 检查数据卡文件存在：ls final/证据包/数据卡.md → 必须存在
+1. 检查数据卡文件存在：ls data/数据卡.md → 必须存在
 2. 提取数据条目数（双格式）：
-   标准 [Dxx] 计数：grep -cE '^\*\*\[D[0-9]+\]' final/证据包/数据卡.md
-   表格 [1.x] 计数：grep -cE '^\| [0-9]+\.[0-9]+ \|' final/证据包/数据卡.md
+   标准 [Dxx] 计数：grep -cE '^\*\*\[D[0-9]+\]' data/数据卡.md
+   表格 [1.x] 计数：grep -cE '^\| [0-9]+\.[0-9]+ \|' data/数据卡.md
    两者取并集 dedupe
 3. **修正**：提取任务简报子问题数据需求数
    从 01-任务简报.md 「研究问题」段读取每个子问题的「需找数据点 ≥N」
@@ -657,14 +661,14 @@ return (all_pass, leaked, orphan, missing_trust)
 6. 信任级别一致性：M-Exist-3 **判定通过** → 通过；否则 → 触发 T2 补数据卡
 7. **修复（教训 #123）**：sha256 指纹为**可选验证**——主控发占位符 `[SHA256-PENDING:HOST-VERIFY]` 到 `final/交付说明.md`「证据包指纹」段，**不**作为闸门强制项。主人如需真实哈希，由**主人本人**在宿主 shell 手动计算后回填（参考 M-Exist-1 的证据包完整性比对规则）。**该步骤不是 agent 执行的代码，是人类验证示例。**
 8. **新增（教训 #106）**：数据卡头部「共 N 条」声明 vs 实际 grep 计数一致性
-   头部声明：grep -oE '共 [0-9]+ 条' final/证据包/数据卡.md
+   头部声明：grep -oE '共 [0-9]+ 条' data/数据卡.md
    实际计数：步骤 2 的双格式并集 dedupe
    不一致 → 标 Failed（防 T2 未自检 + T4 人工 grep 才发现的延后问题）
 9. 判定：7 项全通过 → T2.5 ✅ 派发 T4；任一失败 → T2.5 ❌ 不派发 T4
    **删「主人签字 Phase 1」（教训 #136）**：T2.5 是纯机械化闸门，主人签字只在 Phase 0（4 选 1 同意关卡）/ Phase 2.5（大纲确认）/ Phase 5（终稿）三节点；检索完成→T4 之间**不应**打断主人
 
 伪代码：
-data_card = 'final/证据包/数据卡.md'
+data_card = 'data/数据卡.md'
 data_count = count_d_entries(data_card)
 outline_count = count_data_requirements_in_brief('01-任务简报.md')  # v2.2.17 显式标注：读任务简报，不读分析大纲
 data_ok = data_count >= outline_count

@@ -52,7 +52,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.12.26**（2026-09-11，当前版本）— 以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）真问题全修：加固口径统一为 fail-closed、人在环超时兜底、status.md 写入者收口、G14/T7/T9 时序校正、净化链残留规则补漏。[MIT License](LICENSE)。
+**v2.12.27**（2026-09-11，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）真问题全修：加固口径统一为 fail-closed、人在环超时兜底、status.md 写入者收口、G14/T7/T9 时序校正、净化链残留规则补漏。[MIT License](LICENSE)。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -87,7 +87,7 @@
 | `memory_get` / `memory_search` | OpenViking 记忆库（无 LLM vendor 外发） | 检索关键词 |
 
 **主控 agent 能力边界**（**不**会做的事）：
-- ❌ 不调用 `exec` / `process` 工具（17 项可用 + 13 项 denied，以 SKILL.md frontmatter 为准）
+- ❌ 不调用 `exec` / `process` 工具（**13 项 documented + 19 项 denied，以 `SKILL.md` frontmatter 为准**，以 SKILL.md frontmatter 为准）
 - ❌ 不读取运行时内部路径（`~/.openclaw/agents/<agent>/sessions/*.trajectory.jsonl` 等）
 - ❌ 不直接计算 sha256（需要时由主人在 host shell 手动跑后回填）
 - ❌ 不主动采集一手数据（实验/调查/访谈）—— 主人投喂后使用
@@ -227,7 +227,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.27  # pin 审�
 | v2.12.4 | 2026-09-09 | 编号统一 | 教训编号体系统一（方案 A）+ 净化包剥离后残留清零 + 自审门 O |
 | v2.12.5 | 2026-09-10 | 注释清理 | 语义锚点型版本注释清理（36 文件 / 120 处）+ 安装 pin 同步补入 sync 脚本 |
 | v2.12.10 | 2026-09-10 | 语义审计 | ClawHub 语义审计（对象＝已发布 v2.12.9，15 条）5 真问题全修 + 加固模型收紧为二选一 + 净化链代码保真（教训 #300）+ Release 单一入口脚本 |
-| **v2.12.11** | **2026-09-10** | **当前** | **全仓四路专项审计（口径漂移 / 执行衔接 / 净化链内泄漏 / 交叉引用）真问题全修：加固口径 fail-closed 统一 + 人在环超时兜底 + status.md 写入者收口 + G14/T7/T9 时序校正 + 净化链规则补漏** |
+| v2.12.11 | 2026-09-10 | — | **全仓四路专项审计（口径漂移 / 执行衔接 / 净化链内泄漏 / 交叉引用）真问题全修：加固口径 fail-closed 统一 + 人在环超时兜底 + status.md 写入者收口 + G14/T7/T9 时序校正 + 净化链规则补漏** |
 完整 changelog 见仓库内 [CHANGELOG.md](CHANGELOG.md)（逐版本全量记录；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 为同一内容的发布视图）。教训沉淀 256 条见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)。
 
 ---

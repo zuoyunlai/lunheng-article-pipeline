@@ -56,7 +56,7 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 19 项**：exec / process / browser / apply_patch / cron / video_generate / music_generate / tts / memory_store / skill_workshop / memory_forget / sessions_search / sessions_send / computer / nodes / terminal / portal / dashboard / mobile_ui
+**禁用（`metadata.tools.denied`）— 19 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 Q/门 R）。类别概览：运行时/文件破坏类 4 · 生成类 4 · 编排类 3 · 记忆与消息类 4 · 设备与补丁类 4。
 
 **Workspace 路径收口**：
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树
