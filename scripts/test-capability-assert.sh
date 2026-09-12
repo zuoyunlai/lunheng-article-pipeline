@@ -52,6 +52,12 @@ test_case "T6 forbidden terminal" T6 read terminal 1
 test_case "T7 forbidden secrets" T7 read secrets 1
 test_case "T0 forbidden browser" T0 read browser 1
 
+# 禁用能力：frontmatter denied 与能力断言脚本必须一致（2026-09-12 审计 P0-1 回归）
+test_case "T5 denied memory_store" T5 read memory_store 1
+test_case "T6 denied memory_forget" T6 read memory_forget 1
+test_case "T7 denied sessions_search" T7 read sessions_search 1
+test_case "T0 denied sessions_send" T0 read sessions_send 1
+
 # 未知能力
 test_case "T1 unknown capability" T1 read unknown_tool 1
 test_case "T5 typo capability" T5 read wriet 1
@@ -63,6 +69,14 @@ test_case "Empty role" "" read 1
 
 # 混合合法+非法
 test_case "Mixed valid and forbidden" T5 read write exec 1
+
+# 真源自检（denied ∩ allowed = ∅）
+echo "Testing: --selfcheck 权限口径一致性"
+if python3 "$SCRIPT" --selfcheck >/dev/null 2>&1; then
+    echo "  ✅ PASS"; ((PASS++))
+else
+    echo "  ❌ FAIL: --selfcheck 非 0"; ((FAIL++))
+fi
 
 # 清理
 echo

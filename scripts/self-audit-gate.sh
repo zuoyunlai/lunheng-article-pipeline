@@ -858,14 +858,6 @@ else
 fi
 
 # =============================================================================
-# 总结
-# =============================================================================
-TOTAL_PASS=${#PASSED[@]}
-TOTAL_FAIL=${#FAILED[@]}
-
-echo ""
-echo "========================================="
-# =============================================================================
 # 门 S：流程图可达性与入参链（v2.12.28 新增 —— 防孤立节点 / 断链 / 缺 next / 缺 input）
 #   background：2026-09-12 实测发现 phase4_4_figures 无上游指向（配图被跳），
 #   且 6 个执行类节点缺 input 声明 → 衔接无机械校验。本门防复发。
@@ -880,6 +872,50 @@ if command -v python3 >/dev/null 2>&1 && [ -f references/_shared/phase-order.yam
   fi
 fi
 
+# =============================================================================
+# 门 T：权限口径一致性（v2.12.30 新增 —— 防「文档声明禁用、脚本实际放行」）
+#   background：2026-09-12 第三方审计 P0-1 —— SKILL.md frontmatter denied 列了
+#   memory_store / memory_forget / sessions_search，但 capability-assert.py 把它们
+#   放进允许白名单（判定只查 FORBIDDEN_CAPABILITIES）→ 断言脚本错误放行，与声明冲突。
+#   本门把「权限声明 vs 机器执行体」做成机械校验：denied 的每一项都必须被断言脚本拒绝。
+# =============================================================================
+if [ -f scripts/capability-assert.py ] && command -v python3 >/dev/null 2>&1; then
+  GATE_T_FAIL=""
+  DENIED_CAPS="$(python3 -c "
+import pathlib, yaml
+t = pathlib.Path('SKILL.md').read_text(encoding='utf-8')
+fm = yaml.safe_load(t.split('---', 2)[1]) or {}
+tools = ((fm.get('metadata') or {}).get('tools') or {})
+print(' '.join(sorted(str(x) for x in (tools.get('denied') or []))))
+")"
+  if [ -z "$DENIED_CAPS" ]; then
+    fail "门 T: 权限口径一致性" "未能从 SKILL.md frontmatter 读出 denied 清单"
+  else
+    if ! python3 scripts/capability-assert.py --selfcheck >/dev/null 2>&1; then
+      GATE_T_FAIL="$GATE_T_FAIL [selfcheck 失败：denied ∩ allowed ≠ ∅]"
+    fi
+    for cap in $DENIED_CAPS; do
+      if python3 scripts/capability-assert.py T0 read "$cap" >/dev/null 2>&1; then
+        GATE_T_FAIL="$GATE_T_FAIL [$cap]"
+      fi
+    done
+    if [ -z "$GATE_T_FAIL" ]; then
+      pass "门 T: 权限口径一致性（denied $(echo $DENIED_CAPS | wc -w) 项全部被 capability-assert.py 拒绝）"
+    else
+      fail "门 T: denied 能力被能力断言脚本放行" "$GATE_T_FAIL"
+    fi
+  fi
+fi
+
+# =============================================================================
+# 总结（v2.12.30 修：计分必须在**全部门执行之后** —— 原位置在门 S/门 T 之前，
+#   导致这两门的失败不进入 TOTAL_FAIL，脚本仍以 exit 0 收尾 = 假绿灯）
+# =============================================================================
+TOTAL_PASS=${#PASSED[@]}
+TOTAL_FAIL=${#FAILED[@]}
+
+echo ""
+echo "========================================="
 echo -e "PASS: ${GREEN}${TOTAL_PASS}${NC}  FAIL: ${RED}${TOTAL_FAIL}${NC}"
 echo "========================================="
 

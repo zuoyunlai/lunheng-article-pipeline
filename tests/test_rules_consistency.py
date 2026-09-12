@@ -19,6 +19,7 @@ test_rules_consistency.py — 论衡 T9 评分规则 + G14 检测规则一致性
   - 只验证「规则文档结构一致性」，不依赖真实 LLM 调用
   - 断言目标 = 「多文件维度/阈值不漂移」，非「LLM 行为正确」
 """
+import re
 import sys
 from pathlib import Path
 
@@ -188,6 +189,23 @@ def test_wordcount_no_byte_bug():
 
 
 # =============================================================================
+# G14 轻量档 selfcheck 阈值一致性（v2.12.30 新增，回应审计 P0-4）
+# =============================================================================
+def test_G14_selfcheck_threshold_consistency():
+    """轻量档 selfcheck 阈值在 gate 文档内必须唯一且与字数判定表一致（防「同文件两口径」）"""
+    gate = _read(G14_GATE)
+    table = _read(WORDCOUNT_TABLE)
+
+    assert "2000-3000" in table, "字数判定表缺轻量档 2000-3000 字口径"
+    assert "2000-3000" in gate, "G14 gate 缺轻量档 2000-3000 字口径"
+
+    # 反向断言：gate 内任何把 selfcheck/轻量档绑到 ≤2000 的表述都是矛盾口径
+    bad = re.findall(r"(?:selfcheck|轻量档)[^）)\\n]{0,30}?≤\s*2000", gate)
+    assert not bad, f"G14 gate 存在 ≤2000 字矛盾口径: {bad}"
+    print("  ✓ G14 轻量档阈值: gate 与字数判定表一致（2000-3000 字，无 ≤2000 矛盾口径）")
+
+
+# =============================================================================
 # 主入口
 # =============================================================================
 if __name__ == "__main__":
@@ -204,6 +222,7 @@ if __name__ == "__main__":
         test_wordcount_dual_caliber,
         test_wordcount_3_tiers_consistency,
         test_wordcount_no_byte_bug,
+        test_G14_selfcheck_threshold_consistency,
     ]
 
     passed = 0

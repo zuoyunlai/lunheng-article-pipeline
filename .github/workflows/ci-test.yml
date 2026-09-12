@@ -14,6 +14,8 @@ on:
       - 'references/checkers/中文AI痕迹-checker.md'
       - 'references/templates/审稿报告-template.md'
       - 'tests/**'
+      - 'scripts/**'
+      - 'references/_shared/phase-order.yaml'
   push:
     branches: [master]
 
@@ -54,6 +56,16 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
       
+      - name: 跑权限口径 + 流程图真源测试（v2.12.30 新增，回应审计 P0-1/P0-2/P0-3）
+        run: |
+          echo "=========================================="
+          echo "论衡 权限口径 + 流程图真源测试"
+          echo "=========================================="
+          python tests/test_capability_assert.py
+          python tests/test_flow_check.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
       - name: 测试结果汇总
         if: always()
         run: |

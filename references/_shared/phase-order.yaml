@@ -4,6 +4,11 @@
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
 # 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_g14；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
 # ⚠️ v2.12.27：本映射表是**进度标签的唯一真源** —— 主控呈现 Phase 标签时必须取自此处，**不得自创**（实测教训：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计）
+# ⚠️ 结构约束（v2.12.30 起由 scripts/flow-check.py 硬校验）：
+#   ① **同一节点内不得出现重复键**（YAML 后键会静默覆盖前键 —— 2026-09-12 审计 P0-2：重复 `output` 曾使 G14 报告路径丢失）；
+#   ② `output` 可为**字符串**（单产物）或 **`角色: 路径` 映射**（多产物并行节点）—— 映射时**每个值都是必须核对的产物**；
+#   ③ 执行类节点（agent / owner_agent / parallel_agents / conditional_agent / advisory_agent / bounded_loop）**必须同时声明 `input` 与 `output`**；
+#   ④ 被 ≥2 个节点声明为 `input` 的受管路径，**必须有节点以 `output` 生产**（防「有消费者无生产者」，P0-3）。
 version: 2.12.29
 owner_checkpoints:
   - phase0_definition
@@ -25,9 +30,14 @@ pipeline:
     input: 01-任务简报.md（+ owner 已确认的模式/语言/同意记录）
     kind: parallel_agents
     agents: [T1, T2, T3]
+    output:
+      T1: literature/文献卡.md
+      T2: data/数据卡.md
+      T3: cases/案例卡.md
     next: phase1_5_targeted_review
   - id: phase1_5_targeted_review
     kind: conditional_review_window
+    input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
     condition: any_trigger_condition_met   # v2.12.28 对齐：见下方 trigger_conditions
     on_not_triggered: record_not_triggered_in_status
     owner_visible: true
@@ -65,6 +75,13 @@ pipeline:
   - id: phase3_5_insight
     kind: owner_checkpoint
     decisions: [insight, no_insight]
+    next: current_draft_sync
+  - id: current_draft_sync   # 别名：文档层「Phase 3.6 前置」（非独立 Phase 标签，主控呈现时归入 Phase 3.6）
+    kind: mechanical_checkpoint
+    owner: 主控
+    output: drafts/current_draft.md
+    note: 主控亲为（不 spawn）：把**当前权威版本**（v2/v3/修订稿）write 复制为 drafts/current_draft.md，保留 draft_id / draft_version 绑定
+    precondition: 上游最新稿（drafts/初稿-vN.md 或修订稿）+ Phase 3.5 洞察记录已在磁盘
     next: t6_g14
   - id: t6_g14   # 别名：文档层「Phase 3.6」
     kind: parallel_agents
@@ -79,15 +96,15 @@ pipeline:
     output:
       T6: analysis/批判报告-vN.md
       G14: audits/G14-检测报告-vN.md
-    output: analysis/批判报告-vN.md
     output_chars_max:
-      T6: 12000   # 批判报告（回传长度上限；超出走分块协议）
+      T6: 12000   # 批判报告（**写盘**上限；回传另受平台 4096 字符硬上限约束，超出走分块协议）
       G14: 6000   # AI 痕迹检测报告
     next: t5_feedback_revision
   - id: t5_feedback_revision   # 别名：文档层「Phase 3.7」（T6/G14 否决后的预审计修订；本轮修完才进 Phase 4）
     input: drafts/初稿-v{N}.md + analysis/批判报告-v{N}.md + audits/G14-检测报告-v{N}.md
     kind: conditional_agent
     agent: T5
+    output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition: T6_or_G14_requires_revision
     on_not_triggered: record_not_triggered_in_status   # v2.12.28：未触发也必须在 status.md 留痕（防「未触发」与「漏跑」不可分）
     next: t7_audit
@@ -101,8 +118,12 @@ pipeline:
   - id: audit_revision   # 别名：文档层「Phase 4.2」
     kind: bounded_loop
     max_rounds: 2
+    input: audits/审计报告-vN.md + drafts/current_draft.md
+    output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition: T7_P0_or_P1
-    after_each: [rerun_g14_if_enabled, rerun_t7]   # 动作名（非节点 id）：重跑 G14（若启用）/ 重跑 t7_audit
+    # after_each：`current_draft_sync` 是**真节点 id**（每轮修订后必须重写 current_draft.md，否则 T7/G14/T9 读旧稿 —— 2026-09-12 审计 P0-3）；
+    # `rerun_*` 为动作名（非节点 id）：重跑 G14（若启用）/ 重跑 t7_audit
+    after_each: [current_draft_sync, rerun_g14_if_enabled, rerun_t7]
     next: t7_5_integrity
   - id: t7_5_integrity
     kind: mechanical_checkpoint
@@ -118,6 +139,7 @@ pipeline:
     next: t9_review
   - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent
+    input: drafts/current_draft.md
     condition: mode_default_or_owner_enabled
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。
