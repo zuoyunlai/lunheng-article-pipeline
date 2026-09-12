@@ -32,6 +32,8 @@
 
 ## 二、导出命令（pandoc 模板）
 
+> 🚫 **以下命令模板全部由「主人」在 host shell 手工执行** —— 论衡 agent（主控 + 全部子代理）**零 exec**，**不执行** `pandoc` / `rsvg-convert` / `xelatex` 或任何 shell 命令。本文件给出命令只为**让主人照抄**，不构成 agent 的执行面。
+
 ### `--format md`（默认）
 无需额外命令，直接输出 `final/定稿.md`（当前行为）。
 
@@ -85,7 +87,7 @@ pandoc final/定稿.md -o final/定稿.pdf --pdf-engine=xelatex ...
 mv final/定稿.md.bak-pdf final/定稿.md
 ```
 
-> **零外发原则**：SVG 转 PDF 用 rsvg-convert（本地工具，零外发），pandoc 本地跑。
+> **零外发原则**：SVG 转 PDF 用 rsvg-convert（本地工具，零外发），pandoc 本地跑。⚠️ **本处「零外发」仅指该转换步骤不出网** —— **不等于全流程零外发**（全文/大纲/证据卡片的 LLM provider 外发见 Phase 0 同意口径与 [`external-services.md`](external-services.md)）。
 > **⚠️ sed 破坏性警示**：SVG 嵌入的 sed 是**原地破坏**定稿.md 的临时操作，
 > 必须 cp 备份 + 跑完恢复，否则交付的定稿.md 已被污染。
 

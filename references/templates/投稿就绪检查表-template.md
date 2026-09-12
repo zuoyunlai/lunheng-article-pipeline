@@ -23,8 +23,8 @@
 
 | 项 | 操作 |
 |----|------|
-| Word 转换 | <`pandoc final/定稿.md -o final/定稿.docx --reference-doc=...` 或手动复制到 Word 排版> |
-| PDF 转换 | <`pandoc final/定稿.md -o final/定稿.pdf --pdf-engine=xelatex` + SVG 图表嵌入> |
+| Word 转换 | **【主人手工执行 · agent 零 exec】** <`pandoc final/定稿.md -o final/定稿.docx --reference-doc=...` 或手动复制到 Word 排版> |
+| PDF 转换 | **【主人手工执行 · agent 零 exec】** <`pandoc final/定稿.md -o final/定稿.pdf --pdf-engine=xelatex` + SVG 图表嵌入> |
 | 字体/乱码检查 | <中文字体嵌入 / 图表清晰度 / 公式渲染> |
 | 页眉页脚/页码 | <投稿格式要求> |
 
