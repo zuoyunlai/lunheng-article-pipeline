@@ -37,7 +37,29 @@ if [[ -z "$VERSION" ]]; then
   exit 1
 fi
 
+# ---- 版本号格式校验（v2.12.30 新增，回应第三方审计 P1-4）----
+# 背景：VERSION 直接进 `$OUT_ROOT/$VERSION` 并紧接 `rm -rf`。传入 `..` / `../..` / 含 `/`
+#   的值（如 `../../foo`）时，rm -rf 会**删掉输出根之外的目录** —— 参数即删除目标。
+#   故：① 只接受 X.Y.Z（可带 -pre 后缀）；② 解析后的绝对路径必须落在 OUT_ROOT 之内。
+if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+  echo "❌ 版本号格式非法：'$VERSION'（要求 X.Y.Z，可带 -pre 后缀）" >&2
+  echo "   该值会参与 rm -rf，含 / 、.. 、空值或非数字段一律拒绝。" >&2
+  exit 2
+fi
+case "$VERSION" in
+  */*|*..*) echo "❌ 版本号不得含路径分隔符或 ..：'$VERSION'" >&2; exit 2 ;;
+esac
+
 OUT_DIR="$OUT_ROOT/$VERSION"
+
+# ---- 输出路径逃逸防护（v2.12.30 新增，回应 P1-4）----
+mkdir -p "$OUT_ROOT"
+OUT_ROOT_ABS="$(cd "$OUT_ROOT" && pwd -P)"
+OUT_DIR_ABS="$(cd "$(dirname "$OUT_DIR")" 2>/dev/null && pwd -P)/$(basename "$OUT_DIR")" || OUT_DIR_ABS=""
+case "$OUT_DIR_ABS" in
+  "$OUT_ROOT_ABS"/*) : ;;
+  *) echo "❌ 输出目录逃逸出输出根，拒绝执行 rm -rf：$OUT_DIR_ABS （根=$OUT_ROOT_ABS）" >&2; exit 2 ;;
+esac
 
 # ---- 扫描面：文本类文件全集（v2.12.11 起覆盖非 md 资产）----
 # 背景（leak-audit §四.2）：旧版所有残留扫描只认 `--include='*.md'`，
@@ -142,6 +164,20 @@ rm -rf "$OUT_DIR/memory" "$OUT_DIR/AGENTS.md" "$OUT_DIR/SOUL.md" "$OUT_DIR/USER.
 # ---- 2a'. 反向断言（v2.12.23，教训 #333）：包内文件必须全部可追溯到 git 跟踪文件 ----
 # 只比文件数（81）看不出问题——81 这个数字在泄漏时同样「正常」。故用集合差集 fail-closed：
 # 任何「在包内但未被 git 跟踪」的文件 = 未跟踪残留入包，立即停构建。
+# v2.12.30（回应第三方审计 P1-3）：原实现「非 git 环境 → 整段跳过」= **静默放弃**唯一
+#   能发现「未跟踪残留入包」的机械门（教训 #333 正是这类事故）。改 fail-closed：
+#   非 git 环境直接停构建；确需豁免者须显式设 LUNHENG_ALLOW_NO_GIT=1（并打印告警）。
+if ! git -C "$SKILL_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+  if [[ "${LUNHENG_ALLOW_NO_GIT:-0}" == "1" ]]; then
+    echo "⚠️ 非 git 环境：跳过「未跟踪文件」反向断言（LUNHENG_ALLOW_NO_GIT=1 显式豁免）" >&2
+    echo "   本次**未**校验包内文件是否全部可追溯到 git 跟踪文件，风险自担。" >&2
+  else
+    echo "❌ 非 git 环境：无法校验「包内文件是否全部可追溯到 git 跟踪文件」（教训 #333）。" >&2
+    echo "   该检查是发现「未跟踪残留入包」的唯一机械门，不允许静默跳过。" >&2
+    echo "   修法：在 git 仓库内构建；确需非 git 构建请显式设 LUNHENG_ALLOW_NO_GIT=1。" >&2
+    exit 1
+  fi
+fi
 if git -C "$SKILL_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   _PF_TRACKED="$(mktemp -t lunheng-tracked.XXXXXX)"
   _PF_PKG="$(mktemp -t lunheng-pkg.XXXXXX)"
@@ -178,6 +214,13 @@ for f in "${FORBIDDEN_IN_PACKAGE[@]}"; do
     exit 1
   fi
 done
+
+# ---- 2c. 净化前基线快照（v2.12.30 新增，回应第三方审计 P1-1）----
+# 背景：整条净化链**只有负向检查**（违规模式命中数 = 0 即通过）→ 剥离规则一旦过度匹配、
+#   把正文或结构误删，扫描同样「全绿」= fail-open（「净化成功、内容损坏」）。
+#   故在净化前记录每个 md 的字符数与标题集合，净化后做正向完整性校验（见 4b'）。
+PKG_SNAPSHOT="$(mktemp -t lunheng-pkgsnap.XXXXXX)"
+python3 "$SCRIPT_DIR/pkg-integrity.py" snapshot "$OUT_DIR" "$PKG_SNAPSHOT"
 
 # ---- 3. 文档净化（sed 替换，剥离「开发者维护」表述）----
 purify() {
@@ -548,6 +591,17 @@ fi
 echo "🧹 清理内部痕迹（教训 #296）..." >&2
 bash "$SCRIPT_DIR/strip-internal-leakage.sh" "$OUT_DIR" >/dev/null
 python3 "$SCRIPT_DIR/strip-anchor-residue.py" "$OUT_DIR" >/dev/null
+
+# ---- 4b'. 正向完整性校验（v2.12.30 新增，回应第三方审计 P1-1）----
+# 与 4b 的负向残留扫描互补：这里回答的是「净化有没有**多删**」—— 文件仍在、非空、
+# 结构锚点仍在、字符量未塌陷、SKILL.md frontmatter 仍可解析。任一不过即停构建。
+echo "🔍 正向完整性校验（是否误删）..." >&2
+if ! python3 "$SCRIPT_DIR/pkg-integrity.py" verify "$OUT_DIR" "$PKG_SNAPSHOT"; then
+  echo "❌ 正向完整性门未通过：净化链可能**误删**了必要内容（负向扫描对此盲区）" >&2
+  rm -f "$PKG_SNAPSHOT"
+  exit 1
+fi
+rm -f "$PKG_SNAPSHOT"
 
 # ---- 4c. 最终残留扫描（含「教训对用户不可见」铁律的兜底检查）----
 echo "🔍 最终残留扫描..." >&2

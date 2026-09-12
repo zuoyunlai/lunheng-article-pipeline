@@ -35,6 +35,17 @@ if [[ -z "$VERSION" ]]; then
 fi
 [[ -z "$VERSION" ]] && { echo "❌ 无法确定版本号（传参或 SKILL.md frontmatter）" >&2; exit 1; }
 
+# ---- 版本号格式校验（v2.12.30 新增，回应第三方审计 P1-4）----
+# 背景：VERSION 直接拼进 `$OUT_ROOT/$VERSION`（并会传给 build 脚本的 rm -rf 路径）。
+#   `..` / 含 `/` 的输入会越出输出根 —— 参数即动作目标，必须在使用前严格校验。
+if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+  echo "❌ 版本号格式非法：'$VERSION'（要求 X.Y.Z，可带 -pre 后缀）" >&2
+  exit 2
+fi
+case "$VERSION" in
+  */*|*..*) echo "❌ 版本号不得含路径分隔符或 ..：'$VERSION'" >&2; exit 2 ;;
+esac
+
 OUT_DIR="$(cd "$OUT_ROOT/$VERSION" && pwd)"  # 转绝对路径（clawhub publish 不接受相对路径）
 
 # ---- 1. 净化包存在性（缺则现场构建） ----

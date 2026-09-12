@@ -4,7 +4,7 @@
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
 # 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_g14；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
 # ⚠️ v2.12.27：本映射表是**进度标签的唯一真源** —— 主控呈现 Phase 标签时必须取自此处，**不得自创**（实测教训：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计）
-# ⚠️ 结构约束（v2.12.30 起由 scripts/flow-check.py 硬校验）：
+# ⚠️ 结构约束（v2.12.30 起由构建侧流程检查机械校验）：
 #   ① **同一节点内不得出现重复键**（YAML 后键会静默覆盖前键 —— 2026-09-12 审计 P0-2：重复 `output` 曾使 G14 报告路径丢失）；
 #   ② `output` 可为**字符串**（单产物）或 **`角色: 路径` 映射**（多产物并行节点）—— 映射时**每个值都是必须核对的产物**；
 #   ③ 执行类节点（agent / owner_agent / parallel_agents / conditional_agent / advisory_agent / bounded_loop）**必须同时声明 `input` 与 `output`**；
