@@ -21,6 +21,7 @@ pipeline:
     blocking: false
     next: retrieval
   - id: retrieval
+    input: 01-任务简报.md（+ owner 已确认的模式/语言/同意记录）
     kind: parallel_agents
     agents: [T1, T2, T3]
     next: phase1_5_targeted_review
@@ -42,6 +43,7 @@ pipeline:
     owner: 主控
     next: t4_analysis
   - id: t4_analysis
+    input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
     kind: agent
     agent: T4
     output: analysis/分析大纲.md
@@ -52,6 +54,7 @@ pipeline:
     decisions: [approved, revision_requested, restart_phase]
     next: t5_draft_v1
   - id: t5_draft_v1
+    input: analysis/分析大纲.md + analysis/T5-写作上下文.md
     kind: agent
     agent: T5
     output: drafts/初稿-v1.md
@@ -79,6 +82,7 @@ pipeline:
       G14: 6000   # AI 痕迹检测报告
     next: t5_feedback_revision
   - id: t5_feedback_revision   # 别名：文档层「Phase 3.7」（T6/G14 否决后的预审计修订；本轮修完才进 Phase 4）
+    input: drafts/初稿-v{N}.md + analysis/批判报告-v{N}.md + audits/G14-检测报告-v{N}.md
     kind: conditional_agent
     agent: T5
     condition: T6_or_G14_requires_revision
@@ -99,8 +103,9 @@ pipeline:
   - id: t7_5_integrity
     kind: mechanical_checkpoint
     owner: 主控
-    next: t9_review
+    next: phase4_4_figures   # v2.12.28 修：原直连 t9_review → 使 phase4_4_figures 不可达（配图被跳过，实测已致图4/5缺失）
   - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
+    input: drafts/当前稿（[图N] 标注）+ data/数据卡.md（图上数据源）
     kind: owner_agent
     agent: T0
     output: final/图件/
@@ -117,6 +122,7 @@ pipeline:
     output_chars_max: 15000
     next: t8_technical_final
   - id: t8_technical_final
+    input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json
     kind: owner_agent
     agent: T8
     # v2.12.13（方案 3.1）：显式声明输入含 SVG 图件——SVG 嵌入文本孤儿检查已从 T7 移交 T8
