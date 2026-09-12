@@ -258,19 +258,33 @@ if [ -f "$LESSONS_SRC" ]; then
     fail "门 H: 教训编号引用在主真源缺定义" "$MISSING_LESSONS —— 请补录到 $LESSONS_SRC"
   fi
 
-  # v2.12.13 新增（方案 1.6）：**反向差集**——索引声明的「当前最大编号 #N」必须等于主真源中
-  #   标题含「论衡」教训的**实际最大编号**。原门 H 是单向（论衡引用 → 真源），漏掉「真源已有
-  #   新教训、索引未跟」这一侧：#317/#318/#319 已入真源，索引声明仍停在 #316 却 PASS（审计 consist 路）。
-  #   注：不用「含论衡标题 ⊆ 索引编号」判据——索引设计是「主题分类 + 编号范围」的 curated 集
-  #   （见 `教训索引.md` 开头原则），非全枚举，该判据会永久误报 19 条历史教训。
+  # v2.12.13 新增（方案 1.6；v2.12.33 修「标题须含论衡」字面依赖）：**反向差集**——索引声明的
+  #   「当前最大编号 #N」不得落后于主真源中论衡类教训的**实际最大编号**。原门 H 是单向（论衡引用
+  #   → 真源），漏掉「真源已有新教训、索引未跟」这一侧：#317/#318/#319 已入真源，索引声明仍停在
+  #   #316 却 PASS（审计 consist 路）。
+  #   ⚠️ v2.12.33 修的覆盖盲区（教训 #352 的换形复发）：旧 SRC_MAX 正则要求标题行内含「论衡」二字，
+  #   于是 `## #352 半成品版本戳：…` 这类**标题不含「论衡」的新教训对反向差集完全不可见** ——
+  #   真源已到 #352、索引仍声明 #351 时，门 H 照样 PASS（漏报），直到 #353 标题恰好带「论衡」才暴露。
+  #   现口径：按「标题形如 `## #N ` 的编号」取最大编号，再用排除表剔除非论衡编号。
+  #   排除表只列**宿主/通用类**编号（#340/#341 索引设计上不入本索引，见 `教训索引.md` 开头
+  #   「curated 主题分类，非全枚举」原则）；**未列入者一律按论衡类计入** —— 宁可多报（红）不可漏报：
+  #   新增宿主类教训时务必把它加进 LUNHENG_LESSON_EXCLUDE，而不是放宽本门判据。
+  #   注：仍不用「含论衡标题 ⊆ 索引编号」判据——索引是 curated 集，该判据会永久误报 19 条历史教训。
   IDX_DECL_MAX=$(grep -oE '当前最大编号 \*\*#[0-9]+\*\*' "references/_shared/教训索引.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
-  SRC_MAX=$(grep -E '^#{2,4} (教训 )?#[0-9]+.*论衡' "$LESSONS_SRC" 2>/dev/null \
-            | grep -oE '#[0-9]+' | grep -oE '[0-9]+' | sort -n | tail -1)
+  LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341}"
+  SRC_MAX=""
+  # sort -un 升序 → 循环结束时 SRC_MAX 即「最大未排除编号」
+  for _n in $(grep -oE '^#{2,4} (教训 )?#[0-9]+' "$LESSONS_SRC" 2>/dev/null | grep -oE '[0-9]+$' | sort -un); do
+    case " $LUNHENG_LESSON_EXCLUDE " in
+      *" $_n "*) continue ;;
+    esac
+    SRC_MAX="$_n"
+  done
   if [ -n "$IDX_DECL_MAX" ] && [ -n "$SRC_MAX" ]; then
     if [ "$IDX_DECL_MAX" -lt "$SRC_MAX" ]; then
       fail "门 H: 教训索引最大编号落后主真源（反向差集）" "索引声明 #$IDX_DECL_MAX < 主真源实际 #$SRC_MAX —— 请更新 references/_shared/教训索引.md"
     else
-      pass "门 H: 教训索引最大编号与主真源一致（#$IDX_DECL_MAX）"
+      pass "门 H: 教训索引最大编号未落后主真源（索引 #$IDX_DECL_MAX ≥ 真源 #$SRC_MAX）"
     fi
   else
     warn "门 H: 未能解析索引声明编号（$IDX_DECL_MAX）或主真源编号（$SRC_MAX），跳过反向差集"
