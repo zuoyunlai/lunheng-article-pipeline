@@ -690,7 +690,7 @@ return (all_pass, fail_reasons, sha256_pending)
 算法步骤（主控 LLM 兜底执行）：
 1. 检查审计报告最新版：ls audits/审计报告-vN.md → N 取最大 → 必须存在
 2. P0/P1 清单已**显式列出**：读 audits/审计报告-vN.md → **P0/P1 条目数可为 0**（审计零缺陷是正常结果，不是失败）；**但必须显式写「本轮无 P0/P1」**，不得留空或以未列示代替；出现 P0/P1 条目时须逐条列明。
-3. M 门（M-Form 8 项 + M-Exist 3 项）**全部判定通过**：读 M-Gate-Report-v2.2.12.json → 全部 true
+3. M 门（M-Form 8 项 + M-Exist 3 项）**全部判定通过**：读**当前轮已产出**的章节级 M 门记录 + `status.md`「7.三.五 M 门执行记录表」→ 全部 true（**不得依赖 `final/M-Gate-Report-v2.2.12.json`**：该文件由 T8 终检产出，而 T7.5 在 T8 **之前**执行 —— 前后依赖倒置会使门必然判失败或被迫推断，2026-09-12 审计 P1-6）
 4. 证据包 sha256 指纹段存在：读 final/交付说明.md「证据包指纹」段 → 必须有 sha256 **占位符** `[SHA256-PENDING:HOST-VERIFY]`（人类可选在 host shell 手动计算后回填真实哈希，占位符即视为通过——agent 不执行 sha256，不把 sha256 作闸门强制项）
 5. 信任级别一致性：M-Exist-3 exit 0 → 通过
 6. 论文交付物 vs 操作员报告独立隔离：

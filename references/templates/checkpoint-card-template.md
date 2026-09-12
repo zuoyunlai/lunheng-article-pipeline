@@ -103,7 +103,7 @@
 
 主控能力白名单含 `ask_user`（结构化提问，native 控件 + 单选 + free text 兜底）。对**纯枚举单选**的人环节点，可用 ask_user 替代纯文本 A/B/C/D，交互更利落（点选、免手打、结构化回填）：
 
-- **适用**：Phase 2.5 大纲（`approved`/`revision_requested` 二选一）、Phase 3.5 洞察（`insight`/`no_insight` 二选一）——单一决策、枚举闭合。
+- **适用**：Phase 2.5 大纲（**三态** `approved`/`revision_requested`/`restart_phase`，真源 = `phase-order.yaml` 该节点 `decisions`）、Phase 3.5 洞察（`insight`/`no_insight` 二选一）——单一决策、枚举闭合，且 free text 兜底不可移除（`restart_phase` 即「重新定题」，缺该态会使决策落不到 yaml 枚举 → 人在环硬门判「未记录」）。
 - **不适用（保留文本）**：Phase 0（外发范围四选一 + 可选服务三项 + 定题四态 = 多问题组合）、Phase 5（可发表性 6 选项 + 多格式导出 + 补改意见自由文本 = 多维度 + 需自由表达）。
 - **铁律**：ask_user 只约束「选项枚举」，不取消自由表达（free text 自动兜底）；拍板结果同样写入 status.md「人在环决策记录」段，与文本路径**等价**。
 - **降级**：宿主/渠道不支持 ask_user（如部分 messaging 渠道无 native 控件）→ 自动回退文本 Checkpoint Card，不阻塞。

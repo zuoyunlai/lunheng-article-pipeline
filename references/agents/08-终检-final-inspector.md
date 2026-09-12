@@ -101,7 +101,7 @@
 
 **T9 建议分流（ECS 实战：10 条扩写建议 5 条沉没）**：T9 minor（21-25 分）修补建议 → T8 inline 处置并逐条标记 ✓/✗；T9 major（16-20 分）/ 扩写清单建议 → **不自动执行也不沉没**，T8 在交付说明「T9 建议处置表」逐条列出（已 inline / 建议启 v4 / 放弃+理由），呈主人拍板——T9 是建议元数据，采纳权在主人。
 
-**「轮」定义**：0 轮 = T5 出 v1；1 轮 = v1→v2（洞察轮）；2 轮 = v2→v3（批判反馈轮/亲修轮）；v3 后 minor cosmetic → T8 inline 不计轮；结构性 P1/P0 → 主人拍板启 T5 v4 + Acknowledged Limitations。仲裁以 SKILL.md「修订回环仲裁规则」为单一真源。
+**「轮」定义**：0 轮 = T5 出 v1；1 轮 = v1→v2（洞察轮）；2 轮 = v2→v3（批判反馈轮/亲修轮）；v3 后 minor cosmetic → T8 inline 不计轮；结构性 P1/P0 → 主人拍板启 T5 v4 + Acknowledged Limitations。仲裁以 pipeline-overview.md「修订回环仲裁规则」为单一真源。
 
 ---
 

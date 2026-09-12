@@ -91,6 +91,8 @@ pipeline:
     # 主人显式要求关闭 → exempted_by_owner，且必须在 final/交付说明.md 披露。
     condition: language_zh_and_genre_required
     degrade: selfcheck_in_lite_tier
+    t6_degrade: skip_in_lite_tier   # P1-5 修复：轻量档 T6「必跳」在此声明（原仅声明 G14，T6 轻量档规则在真源缺失，
+                                    # 致各文件「必跳」/「可跳过」/「已声明为否」三种读法并存）
     exempt: owner_exempted_requires_disclosure
     input: drafts/current_draft.md
     output:
