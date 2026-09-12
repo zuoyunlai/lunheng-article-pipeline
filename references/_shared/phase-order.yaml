@@ -9,7 +9,7 @@
 #   ② `output` 可为**字符串**（单产物）或 **`角色: 路径` 映射**（多产物并行节点）—— 映射时**每个值都是必须核对的产物**；
 #   ③ 执行类节点（agent / owner_agent / parallel_agents / conditional_agent / advisory_agent / bounded_loop）**必须同时声明 `input` 与 `output`**；
 #   ④ 被 ≥2 个节点声明为 `input` 的受管路径，**必须有节点以 `output` 生产**（防「有消费者无生产者」，P0-3）。
-version: 2.12.31
+version: 2.12.32
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline
@@ -125,6 +125,8 @@ pipeline:
     condition: T7_P0_or_P1
     # after_each：`current_draft_sync` 是**真节点 id**（每轮修订后必须重写 current_draft.md，否则 T7/G14/T9 读旧稿 —— 2026-09-12 审计 P0-3）；
     # `rerun_*` 为动作名（非节点 id）：重跑 G14（若启用）/ 重跑 t7_audit
+    # G14 复检收敛判据（v2.12.32，实测 P1）：硬原则=判定绑定交付版本；仅删不新增成段文字→跳过复检并记 `g14_rerun: skipped_no_new_prose`；连续两次同判定且无新增命中→停；硬上限 ≤ 修订轮数 + 1。真源 = gates/14-中文AI痕迹-gate.md §四。
+    # 机械搬运合并（v2.12.32，实测 P2）：`current_draft_sync` 属纯复制，与相邻实质节点合并可少一个 spawn 失败面（实测 sync 3 次各 52-74k tokens；T2 回填子会话 Agent run failed 零产物）。
     after_each: [current_draft_sync, rerun_g14_if_enabled, rerun_t7]
     next: t7_5_integrity
   - id: t7_5_integrity

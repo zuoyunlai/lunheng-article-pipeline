@@ -1,4 +1,4 @@
-> 版本：v2.12.31（自动同步 2026-09-12）
+> 版本：v2.12.32（自动同步 2026-09-12）
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -11,8 +11,11 @@
 > - `allow_research`（T1/T2/T3）: `["read","write","edit","web_search","web_fetch","tavily_search","tavily_extract"]`
 > - **同意门（fail-closed，逐调用过）**：所有外发 / opt-in 工具（检索类、图像、抓取、记忆）**调用前**必须先核对任务简报 §0 的结构化同意记录（两轴逐项取值）；放行判据与阻断动作见 [`关键协议.md`](关键协议.md) §确定性同意门。主人选 ④ 时**一次都不调**；记录缺失/含糊/不一致 = 按拒绝处理，停止并回报主控。
 
-> 🧪 **启动自检（第一步，先于任何读写）**：开工前先看**我实际拿到的工具面**，对照自己那一档的白名单：
-> - 若出现**本档白名单之外**的工具（尤其 `exec` / `process` / `browser` / `terminal` / `secrets` / `gateway` / `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history`）⇒ **立即停止：不读、不写、不 spawn**，在 final message 返回 `{"status":"capability_excess","role":"<我的角色>","unexpected":["<工具名>"]}`，由主控裁决。
+> 🧪 **启动自检（第一步，先于任何读写）**：开工前先看**我实际拿到的工具面**，对照自己那一档的白名单，**按两级判据分开处置**（v2.12.32 修订：**工具面 ≠ 调用**）：
+> - **① 工具面超限 = 警告级（不中止）**：本档白名单之外的工具出现在工具面里（尤其 `exec` / `process` / `browser` / `terminal` / `secrets` / `gateway` / `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history`）——**在未加固宿主上这是常态而非异常**（v2.12.32 实测：宿主未剥除子代理编排类工具；按旧口径报 `capability_excess` 中止 ⇒ **整条流水线在第一阶段自锁、T2/T3 零产物**）。处置：**记录 + 披露 + 继续开工**，**不停止**。
+> - **② 实际调用越权工具 = 阻断级**：**只要调用**了上述工具（或任何本档白名单外工具）⇒ **立即停止、不写盘**，回报 `{"status":"capability_excess","role":"<我的角色>","called":["<工具名>"]}`。**阻断针对「调用」，不针对「工具面」。**
+> - **③ 改判 degraded 而非中止**：工具面超限且主控未给裁决 ⇒ 返回 `{"status":"degraded","reason":"capability_excess","unexpected":["<工具名>"]}` 并**继续执行**（`degraded` = 降级可用，**不是**中止），由主控决定是否采纳。
+> - **④ 主控裁决旁路（不得无视）**：任务书含「⚖️ 主控裁决：报告 + 自律继续」头部时，子代理**不得**因工具面超限中止，按 ① 记录后正常交付（v2.12.32 实测已按此路径成功重派）。
 > - 若与本档白名单一致 ⇒ 在交接报告「做了什么」首句写 `能力自检：通过（<档位>）`，随后正常开工。
 > - **不得**因为「平台默认开了递归委派」就使用越权工具（见上方叶子纪律）。
 > - 本自检**只报告、不改权限**（skill 无权改宿主配置）；它的价值是让越权**可被观测、可被阻断**。
@@ -32,6 +35,8 @@
 
 > ⏱️ **spawn watchdog（v2.12.27，回应复盘 R-V2-26-02）**：spawn 任何角色后 **spawn watchdog 时长内若无产物**（**具体时长见 SKILL.md 硬卡阈值表**；v2.12.27 增列 8 分钟），主控在 00-主控-扩展职责.md「spawn 超时兜底」段执行 → **主控亲写兜底 + status.md 记 `failed_silent_watchdog` + 告知主人**；**不重试 spawn 同一任务**。8 min 阈值依据：v2.12.26 实战 T4 静默临界点 ≈ 130k tokens / 5min（v2.12.23 8.5k tokens / 6m 仍产物的对比），留 3 min 余量。**声明式立场不保证 spawn 可靠性** —— spawn 跟踪状态机延迟属 OpenClaw 平台责任（v2.12.26 实战：T4 5m57s+128k tokens 0 产物、spawn 失败率 25% vs v2.12.23 12.5% 恶化 12.5pp），论衡内容侧升级无法根除，watchdog **仅是降级兜底、非可靠性保证**。
 
+> ⚠️ **超时 ≠ 零产物（v2.12.32 实测新增）**：平台机械超时（`status: timeout`）**不等于**产物缺失——实测 T5 v1 被 12 分钟超时切断，但**正文已完整落盘**（先写正文、后写说明，超时点落在写说明前）。因此 watchdog 判据只能是「**产物不存在 + 心跳未续**」，**不得**据「超时」判重跑；超时后先 `read` 核对产物是否已在，再决定要不要兜底。
+
 > 🧰 **工具族分工（v2.12.28 澄清）**：`sessions_spawn` = 派发子代理；`subagents` = 查列表 / 取消；`sessions_*`（`sessions_list` / `sessions_history`）= 会话读写。**三者用途不同、不混用**；主控侧另有 `session_status` / `progress_card`（可观测性）。子代理**只有 `read`/`write`/`edit`**（+ 检索档的检索工具），**不得**触碰以上任何编排工具。
 
 > 📁 **路径纪律（v2.12.28 加严）**：① 我只用**主控传入的 cwd**，**不自行拼接** `run/` 前缀；② 写产物前核对当前工作目录与项目根一致；③ **若发现路径出现 `run/…/run/…` 嵌套 → 立即停止、不写盘、回报主控**（实测教训：T2 曾把数据卡写入三层嵌套目录，心跳自述「状态：受阻（目录不存在）」，并遗留一份与真项目不同的**分叉版本**）。
@@ -50,4 +55,6 @@
 > - **provider 拒答（refusal）= 终态**（v2.12.27 补）：平台**不做**自动恢复 / 压缩重试 / 切到无关模型；报 `degraded` 并**呈报主控**，不要期待自动兜底。**上下文溢出类错误**（`request_too_large` / `input exceeds…`）**不走 fallback**，属压缩/重试范畴 —— 不要写成「已 fallback」。
 > - **先别急着报 degraded：平台会先自动重试**（v2.12.27 补）——模型侧对 `429` / 过载等**临时故障自动恢复**（限流最多 **10 次**、其他瞬时故障 **8 次 / 90 秒窗口**，指数退避 + 抖动）；**只有平台已给出终态失败**时才报 `degraded`，否则会把平台本可吸收的抖动误报成降级。**计费失败 / 认证错误 / provider 拒答不进重试预算**（这类直接报）；「用量窗口耗尽」才直接走 auth-profile / 模型 fallback。
 > - **超时分层（v2.12.27 补）**：① `agent.wait` 默认 **30s**（只等、不终止运行）② **模型空闲看门狗**：云 **120s** / 自托管 **300s**（无响应分片即中止请求）③ provider HTTP 超时（`models.providers.<id>.timeoutSeconds`）④ 运行总预算（平台默认 48h）⑤ 本 skill 角色级硬卡（见 SKILL.md 硬卡阈值表）。**判因时先分清是哪一层** —— 「模型空闲中止」≠「子代理静默」，不要一律记成 spawn 失败。
-> **token 统计**：子代理 token 由**完成事件（completion event）末尾的 Stats line** 提供——精确值，固定含 `Token usage`（input/output/total）+ `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`，主控 `sessions_yield` 收到 completion event 时提取记入 status.md 4.7 表，取代 v2.5.18 三级降级。**Stats line 缺失 = 平台异常**：标「Stats line 缺失」告警，禁止估算/静默跳过。**sessions_spawn 返回值无 stats 字段**（教训 #256）。
+> **token 统计**：子代理 token 由**完成事件（completion event）末尾的 Stats line** 提供——精确值，固定含 `Token usage`（input/output/total）+ `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`，主控 `sessions_yield` 收到 completion event 时提取记入 status.md 4.7 表，取代 v2.5.18 三级降级。**Stats line 缺失**：标「未捕获（平台未回传）」告警，**禁止估算/静默跳过**。**sessions_spawn 返回值无 stats 字段**（教训 #256）。
+- **口径澄清一：Stats line 缺失不判「平台异常」（v2.12.32 实测下调）**：实测 6 个子会话（T1b/T4/T7 复核/G14 v3/T9/组装）未回传 Stats line——**属平台版本行为而非异常**，原「缺失 = 平台异常」的强断言已下调为「未捕获」标注 + 不估算。
+- **口径澄清二：两个 token 字段不是同一口径（v2.12.32 实测）**：① completion event 末尾 Stats line 的 `Token usage`（input/output/total）＝**权威值**；② 会话文本行展示的 `tokens`＝含 prompt/cache 的更大值（实测 T6 132k vs 155k、T5 v3 204k vs 288k）。**记录一律用 ①**，不得混用或据此互相校验。

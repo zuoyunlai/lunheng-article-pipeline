@@ -166,7 +166,7 @@ for f in SKILL.md references/pipeline-readme.md references/agents/00-主控-coor
   # 允许「实战教训」/「实战中 T3 连续」段
   # 允许「实战背景」/「任一行停留超硬卡阈值」已修订表述
   # 允许「模型 fallback v2.5.6 P1-3 修订，去硬编码」段（含「claude-opus-5 静默无响应」反例）
-  HITS=$(awk 'NR > 60' "$f" 2>/dev/null | grep -E '8 分钟|超时' | grep -v '\[.*\](#' | grep -v "已废弃" | grep -v "v2.5.5 P0 硬性化" | grep -v "v2.3.13 能力抽象" | grep -v "改为角色分级" | grep -v "硬卡放宽" | grep -v "实战教训" | grep -v "实战中 T3 连续" | grep -v "changelog" | grep -v "硬卡阈值表" | grep -v "P0 硬性化" | grep -v "| 角色" | grep -v "| G14 检测" | grep -v "T 派发后 8 分钟内未出产物" | grep -v "任一行停留超硬卡阈值" | grep -v "实战背景" | grep -v "v2.5.6 P1-3 修订" | grep -v "重跑论衡首单测试" | grep -v "超 8 分终" | grep -v "超 8 分静")
+  HITS=$(awk 'NR > 60' "$f" 2>/dev/null | grep -E '8 分钟|超时' | grep -v '\[.*\](#' | grep -v "已废弃" | grep -v "v2.5.5 P0 硬性化" | grep -v "v2.3.13 能力抽象" | grep -v "改为角色分级" | grep -v "硬卡放宽" | grep -v "实战教训" | grep -v "实战中 T3 连续" | grep -v "changelog" | grep -v "硬卡阈值表" | grep -v "P0 硬性化" | grep -v "| 角色" | grep -v "| G14 检测" | grep -v "T 派发后 8 分钟内未出产物" | grep -v "任一行停留超硬卡阈值" | grep -v "实战背景" | grep -v "v2.5.6 P1-3 修订" | grep -v "重跑论衡首单测试" | grep -v "超 8 分终" | grep -v "超 8 分静" | grep -v "超时 ≠ 零产物")
   if [ -n "$HITS" ]; then
     STALE_8MIN="$STALE_8MIN [$f]"
   fi
