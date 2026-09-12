@@ -4,7 +4,7 @@
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
 # 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_g14；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
 # ⚠️ v2.12.27：本映射表是**进度标签的唯一真源** —— 主控呈现 Phase 标签时必须取自此处，**不得自创**（实测教训：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计）
-version: 2.12.27
+version: 2.12.28
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline
