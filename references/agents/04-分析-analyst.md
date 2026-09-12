@@ -14,7 +14,7 @@
 
 ## ⚡ 执行韧化协议
 
-> **详细协议见** [`_shared/执行韧化协议-exec.md`](../_shared/执行韧化协议-exec.md) + [`_shared/关键协议.md`](../_shared/关键协议.md)
+> **协议真源见** [`_shared/执行韧化协议-exec.md`](../_shared/执行韧化协议-exec.md) + [`_shared/关键协议.md`](../_shared/关键协议.md)
 
 **4 层防御**（详见 [`_shared/执行韧化协议-exec.md`](../_shared/执行韧化协议-exec.md) §「4 层防御」段）：启动心跳 / 分阶段 ACK / LLM 可用性初判 / 角色分级超时硬卡
 
