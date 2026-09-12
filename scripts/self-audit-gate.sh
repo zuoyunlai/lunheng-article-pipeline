@@ -908,6 +908,41 @@ print(' '.join(sorted(str(x) for x in (tools.get('denied') or []))))
 fi
 
 # =============================================================================
+# 门 U：相对链接可解析性（v2.12.30 新增，回应第三方审计 P2）
+#   background：CHANGELOG 曾积累 10 处**结构性断链**（../outputs/* 指向 .gitignore 的
+#   产物目录 / docs/* 指向不存在的目录 / 裸相对名指向不存在文件）——对任何克隆者都不可达，
+#   且此前无任何机械门能发现（只有人工点开才暴露）。本门把它变成机械校验。
+#   注：脚本自身忽略代码围栏/行内代码中的链接（示例文本非真链接）。
+# =============================================================================
+if [ -f scripts/link-check.py ] && command -v python3 >/dev/null 2>&1; then
+  if GATE_U_OUT="$(python3 scripts/link-check.py 2>&1)"; then
+    pass "门 U: 相对链接可解析性（${GATE_U_OUT#✅ }）"
+  else
+    GATE_U_BAD="$(printf '%s' "$GATE_U_OUT" | grep -E '→' | head -5 | tr '\n' ' ')"
+    fail "门 U: 相对链接断链" "$GATE_U_BAD"
+  fi
+fi
+
+# =============================================================================
+# 门 V：SKILL.md 体量棘轮（v2.12.30 新增，回应第三方审计 P2）
+#   background：SKILL.md 曾达 12,440 字符，超出官方 skill-workshop 提案上限
+#   （`docs/tools/skill-workshop.md`：SKILL.md ≤ 10,000 字符）24%。该文件是入口文档，
+#   膨胀会挤占模型预算、稀释触发判据。本门为**棘轮**：只许变小 —— 超过记录上限即失败；
+#   瘦身成功后必须**同步下调**本上限（记录在案，防回涨）。
+#   说明：内容受「机械门锚定」保护者（tests/test_rules_consistency.py 以 SKILL.md 为
+#   T9 6 维度 / 4 档 + G14 8 类的漂移锚点）与合规清单（外发同意）**不得为凑数而删**。
+# =============================================================================
+SKILL_CHARS_CEIL=11400
+if [ -f SKILL.md ]; then
+  SKILL_CHARS=$(wc -m < SKILL.md | tr -d '[:space:]')
+  if [ "$SKILL_CHARS" -le "$SKILL_CHARS_CEIL" ]; then
+    pass "门 V: SKILL.md 体量棘轮（${SKILL_CHARS} ≤ ${SKILL_CHARS_CEIL} 字符；官方上限 10000，只许降）"
+  else
+    fail "门 V: SKILL.md 体量回涨" "${SKILL_CHARS} > ${SKILL_CHARS_CEIL} 上限（官方上限 10000）—— 请外移长内容而非放宽本上限"
+  fi
+fi
+
+# =============================================================================
 # 总结（v2.12.30 修：计分必须在**全部门执行之后** —— 原位置在门 S/门 T 之前，
 #   导致这两门的失败不进入 TOTAL_FAIL，脚本仍以 exit 0 收尾 = 假绿灯）
 # =============================================================================
