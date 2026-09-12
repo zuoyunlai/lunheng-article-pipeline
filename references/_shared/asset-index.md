@@ -40,7 +40,7 @@
 
 **流水线运行手册**（8 角色完整派发话术 + M 门 + F 模式 + AI 使用披露，T8 不 spawn）：`references/pipeline-readme.md`
 
-**模板**（7 类，含 lite + full）：`references/templates/`（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单 + 审稿报告 / 修订说明 / 投稿就绪检查表 / checkpoint-card）
+**模板**（类数以实际枚举为准，含 lite + full）：`references/templates/`（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单 + 审稿报告 / 修订说明 / 投稿就绪检查表 / checkpoint-card）
 
 
 **关键参考**：
