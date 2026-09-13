@@ -12,6 +12,57 @@
 
 ---
 
+## [v2.12.36] — 2026-09-13
+
+> **主题：ClawHub 安全审计统一修订 —— v2.12.35 报告 21 条 SkillSpector 发现按 A–G 七项落地。**
+> **性质：合规整改 + 一处行为取舍（学术元数据改默认关闭）。**
+
+### 一、🌐 语言政策横幅去「默认中文」（A）
+
+- 产出语言改为 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**）；中文特化（G14 / GB/T 7714-2015）改述为**可选能力**。
+- **79 个交付 .md** 横幅逐字替换（前缀 `🌐 **语言政策**` 保留，构建 4d 门要求）；横幅计数 **81 不变**。
+- 同变更必改的 4 处同义变体：`SKILL.md`「语言边界」、`host-hardening-recipe.md`、`08-终检`、`09-审稿`；`scripts/inject-lang-policy.py` 注入真源同步（防下次注入回退）。
+
+### 二、🚪 G14 闸改「Phase 0 显式勾选」（B）
+
+- **不再因语言/体裁自动触发**；四态改为 `enabled`（勾选必跑）/ `selfcheck`（已启用且轻量档）/ `exempted_by_owner`（已启用后显式关闭，须披露）/ `not_enabled`（未勾选，默认）。
+- 流程真源 `phase-order.yaml`：`language_zh_and_genre_required` → **`g14_opt_in`**。
+- 涉及 `SKILL.md` / `gates/14-中文AI痕迹-gate.md` / `dispatch/G14-…` / `checkers/中文AI痕迹-checker.md` / `关键协议` / `asset-index` / `glossary-full` / `QUICKSTART` / `07-审计` / `09-审稿` / 5 个模板（含任务简报新增 `G14启用:` 字段）。**八类检测枚举原文保留**（测试锚点）。
+
+### 三、🧾 「非中文使用者声明」→ 目标语言确认（C）
+
+- 只确认**产出语言**（不设默认）；**明确不收集使用者身份 / 国籍 / 语种背景**（消除身份/画像风险）。
+
+### 四、🔍 Vague Triggers ×2（D，`phase-order.yaml`）
+
+- `:41` `any_trigger_condition_met` → **`any_listed_trigger_condition_met`**，注释写明实际激活逻辑（列表任一命中即触发，全未命中走 `on_not_triggered`）。
+- `:48` **移除**不可达占位条件 `t9_evidence_score_low`（Phase 1.5 时点不可达），原位留注释说明。
+
+### 五、📣 描述-行为相符 ×2（E，`SKILL.md`）
+
+- `description` 增补：**检索 / 封面外发 + `run/<项目>/.tmp/` 周期性写盘须 Phase 0 同意**。
+- 工具级 opt-in 条目明示：**`image_generate` 调用即把图像 prompt 外发至宿主配置的图像 provider**（属 Phase 0 同意范围）。
+- `SKILL.md` 9,790 → **9,939 字符**（≤ 10,000）。
+
+### 六、⚠️ OpenAlex / Crossref 改默认关闭（F，行为取舍）
+
+- 学术元数据由「默认启用」改为 **opt-in（默认关闭，Phase 0 显式勾选才用）**，与抓取层同口径。
+- **取舍**：利＝默认外发面变小（未勾选＝零外发）；弊＝多一步勾选，默认检索时中文文献元数据完整度 95%+ → **≈80%**。
+- 涉及 `external-services.md` 第 ② 类、`中文数据源集成.md`（16 处）、`dispatch/T1`、`agents/01·02·03·00`、`任务简报-template`（7 处）、`README`、`SKILL.md`、`关键协议`、`pipeline-readme`、`asset-index`、`glossary-full`、`设计文档`×2；可选项计数 **2 项 → 3 项**（中文数据源重回可选项）。
+
+### 七、Ae4（Unicode）不修（G）
+
+- 触发源为**中文全角标点**（`（）`/`：`/`，`/`；`/`？` 等，92 个文件正常使用），属中文排版常态，判定**非缺陷**，不改。
+
+### 验收
+
+- 自审门 **25 PASS / 0 FAIL** ｜ pytest **214 passed** ｜ link-check 全绿（363 条相对链接）
+- 残留：`默认中文` / `非中文使用者` 仅 CHANGELOG 史料；横幅 **81 不变**；`按条件自动|条件式启用|无需勾选|g14_status=auto` **0 命中**
+- `SKILL.md` **9,939 字符**；`lessons-max.snapshot` 未动（仍 354）
+- 测试改动：仅 `tests/test_sync_version_header_idempotent.py` 的 `LANG` 常量同步新横幅（未放宽断言）
+
+---
+
 ## [v2.12.35] — 2026-09-13
 
 > **主题：两处口径重构（主人定案）—— ① 删除「记忆辅助」；② 字数口径统一为「仅正文，不含文末附录」。**
