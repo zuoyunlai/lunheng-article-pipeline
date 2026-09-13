@@ -1,6 +1,6 @@
 > 版本：v2.12.35（自动同步 2026-09-13）
 
-> 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
+> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
 # 资产与文档索引（角色卡 / 模板 / 项目目录 / 核心文档）
 
@@ -48,14 +48,14 @@
 - 字数判定表（T7+T8 共用单一真源）：[`字数判定表.md`](字数判定表.md)
 - 退化场景规范（跳过 Phase 3.5）：[`degraded-scenarios.md`](degraded-scenarios.md)
 - 期刊数据库 + 匹配算法：[`期刊数据库.md`](期刊数据库.md) + [`期刊匹配算法.md`](期刊匹配算法.md)
-- 中文数据源集成（OpenAlex/Crossref 默认推荐无需 Key）：[`中文数据源集成.md`](中文数据源集成.md)
+- 中文数据源集成（OpenAlex/Crossref 默认关闭、Phase 0 勾选，无需 Key）：[`中文数据源集成.md`](中文数据源集成.md)
 - 多格式导出（可选 `--format md/latex/docx/pdf`）：[`format-export.md`](format-export.md)
 - 设计文档 / 实战案例库：[`references/设计文档.md`](../设计文档.md) / [`references/case-studies.md`](../case-studies.md)
 - 方法论实时可见面板（6 字段：当前阶段/证据强度/已触发闸门/下一步预测/不确定性/模型健康度）：[`status-template.md`](../templates/status-template.md)「方法论足迹」段
 
 **T9 同行评审**（行业/学术默认开启，公众号默认关闭）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject。详见 [`references/agents/09-审稿-peer-reviewer.md`](../agents/09-审稿-peer-reviewer.md) + [`references/templates/审稿报告-template.md`](../templates/审稿报告-template.md)。
 
-**G14 中文 AI 痕迹深度检测闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮。详见 [`references/gates/14-中文AI痕迹-gate.md`](../gates/14-中文AI痕迹-gate.md)。**主人在 Phase 0 可显式关闭 G14**。  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
+**G14 中文 AI 痕迹深度检测闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮。详见 [`references/gates/14-中文AI痕迹-gate.md`](../gates/14-中文AI痕迹-gate.md)。**默认不启用；Phase 0 勾选启用（已启用后可显式关闭并披露）**。  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
 
 ## 核心文档索引（按需加载）
 

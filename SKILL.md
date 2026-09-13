@@ -1,6 +1,6 @@
 ---
 name: lunheng-article-pipeline
-description: "学术论文/深度长文/行业分析流水线：三角验证+M门+中文AI痕迹闸；零exec，检索须Phase 0同意。"
+description: "学术论文/深度长文/行业分析流水线：三角验证+M门+中文AI痕迹闸；零exec，检索/封面外发与 run/<项目>/.tmp/ 周期性写盘须Phase 0同意。"
 metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 从顶层迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName
@@ -36,7 +36,7 @@ metadata:
 
 **适用场景**：主题涉及事实/数据/多方观点，需证据底座而非纯观点输出；需「人在环」把关（大纲确认后再写，终稿人工审）；主人愿等 1-3 小时。**定位**：中文学术/深度长文专用流水线——中文特化（G14 闸 / GB/T 7714-2015 引用规范 / Top 3 中文期刊建议 / 中文新闻源优先）是**设计定位**，非 locale 缺陷。
 
-> 🌐 **语言边界**：成品语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）。**角色卡/模板用中文书写 ≠ 只服务中文使用者**——产出语言由该字段决定，T8 终检按目标语言核验。完整表见 [`glossary-full.md`](references/_shared/glossary-full.md) §十二。
+> 🌐 **语言边界**：成品语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**）。**角色卡/模板用中文书写 ≠ 只服务中文使用者**——产出语言由该字段决定，T8 终检按目标语言核验。完整表见 [`glossary-full.md`](references/_shared/glossary-full.md) §十二。
 
 **字数分层**：≥5000 强烈推荐全量 / 3000-5000 推荐全量 / 2000-3000 可走轻量档 / <2000 建议主控+写手直写（完整表 [`字数判定表.md`](references/_shared/字数判定表.md) §五）。**判定口诀**：「这是已发布证据吗」——是则主动采集，否则主人投喂。**关键词命中 ≠ 自动启动**：必须先走 Phase 0 定题确认，**不得直接 spawn 子代理或写文件**——主人明确「开始」才启动。
 
@@ -50,7 +50,7 @@ metadata:
 - **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：真源 = frontmatter `metadata.subagent_tiers`（research T1-T3 / analysis T4 / writing T5 / audit T6-T7 / review T9+G14；T8 空）。工具面**四层模型**见 [`permissions.md`](references/permissions.md)。
 - **禁用（`denied`）— 27 项特权工具**（真源 = frontmatter `metadata.tools.denied`）：执行/进程/浏览器/补丁/定时 + 消息与控制面 + 图像音视频 + 记忆写入 + 子代理检索 + 设备控制类。⚠️ **声明式**——官方 frontmatter **无工具策略键**且沙箱默认关，**须宿主配置才生效**（配方 → [`host-hardening-recipe.md`](references/_shared/host-hardening-recipe.md)）。
 - **两个层级别混（本修订起显式区分）**：
-  - **工具级 opt-in（1 个，默认禁止）**：**仅封面** `image_generate`；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 调阅（真源 = frontmatter `metadata.tools.opt_in`）。
+  - **工具级 opt-in（1 个，默认禁止）**：**仅封面** `image_generate`；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 调阅（**调用即把图像 prompt 外发至宿主配置的图像 provider**，属 Phase 0 同意范围；真源 = frontmatter `metadata.tools.opt_in`）。
   - **服务级外发同意（4 类，逐项知情同意）**：**唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律**引用不重列**（重列必漂移，历史曾现 4 份互斥清单）。
   - **行为预授权**：配额耗尽 / G14 Warning 未勾选 = 暂停等主人拍板（fail-closed）；永不覆盖 `denied`。
 - 🔍 **零 exec ≠ 零出网**：「零 exec」指不调用**执行类**工具（`exec`/`process`/`code_execution`）；`denied` 另含 `browser`/`terminal`/`computer`/`nodes` 等**非执行类**工具，故该口号**不涵盖**它们。零 exec **≠「不外发数据」**。检索类工具**默认启用**，仅发送「检索关键词 + 目标 URL」，须经 Phase 0 明示同意后才执行。
@@ -74,7 +74,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 ### Phase 0 必走步骤
 
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）+ [`glossary-full.md`](references/_shared/glossary-full.md)（核心概念单一真源；发布版无 `设计文档.md`）
-2. **语言与受众确认**：先向主人确认目标语言（中文 / English / 中英混 / 其他，写入任务简报）；非中文使用者须在此步声明
+2. **目标语言确认**：只确认**产出语言**（中文 / English / 中英混 / 其他，写入任务简报「目标语言」字段，**不设默认**）；**明确不收集使用者身份 / 国籍 / 语种背景**
 3. **spawn 前必读对应派发话术**（`references/dispatch/` 10 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
 4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）
 5. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
@@ -82,11 +82,11 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 **spawn 参数约定**（主控 spawn 子代理时必用；平台参数，非 frontmatter 键）：完整表见 [`skill-entry-appendix.md`](references/_shared/skill-entry-appendix.md) §一（含 `cwd` **必须绝对路径**铁律 / `runTimeoutSeconds` 同源 / `visible` 策略）。
 
-**Phase 0 的「默认项」与「条件项」（定案 —— 不做成自由开关）**：
+**Phase 0 的「默认项」「显式勾选项」与「可选项」（定案）**：
 
 - **默认启用（无开关）**：**方法论足迹面板**（`status.md` 每阶段自动更新，按档裁剪字段；边际成本≈0 且承载「方法论透明」卖点）。
-- **按条件自动启用（无自由开关）**：**G14 闸** —— 中文 + 学术/商业评论/行业分析 → 必跑；轻量档（**2000-3000 字**，真源 = `references/_shared/字数判定表.md`）→ 走内置「G14 自检」；纯外语交付 → **不适用**（非「关闭」）；主人显式要求关闭 → 走「豁免 + 交付说明披露」窄口。
-- **真正可选的**：外发同意（4 类逐项）、期刊匹配 / 多格式导出（2 项 + 多格式 6 选项；**中文数据源已转默认启用**）、Phase 5「方法论附录」。
+- **Phase 0 显式勾选启用（不因语言/体裁自动触发）**：**G14 闸** —— 默认关闭，Phase 0 勾选「启用 G14」才跑；勾选且属轻量档（**2000-3000 字**，真源 = `references/_shared/字数判定表.md`）→ 走内置「G14 自检」；未勾选 → 不跑；已启用后主人显式要求关闭 → 走「豁免 + 交付说明披露」窄口。
+- **真正可选的**：外发同意（4 类逐项，含学术元数据 opt-in）、期刊匹配 / 中文数据源 / 多格式导出（3 项 + 多格式 6 选项）、Phase 5「方法论附录」。
 - **可选项准入判据**：只留给「**有真实成本或真实取舍**」者（外发数据 / 花钱 API / 额外产物）；**零成本的质量门与透明度项由条件决定，不由偏好决定**。
 
 ---
@@ -119,7 +119,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 **审计必查项**（G0-G14）：[`07-审计-auditor.md`](references/agents/07-审计-auditor.md)（必读全文）+ [`audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md)（速查）。G11 时效告警 / G12 数据信任一致性 / M 门三层 → [`M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)（🟠 分片必读）。
 
-**G14 中文 AI 痕迹闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec）；0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮；关闭须走「豁免 + 交付说明披露」窄口（非自由开关）。判定真源 = [`gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二 + [`checkers/中文AI痕迹-checker.md`](references/checkers/中文AI痕迹-checker.md)。
+**G14 中文 AI 痕迹闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec）；0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮。**默认关闭**：由 **Phase 0 显式勾选**启用；已启用后关闭须走「豁免 + 交付说明披露」窄口。判定真源 = [`gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二 + [`checkers/中文AI痕迹-checker.md`](references/checkers/中文AI痕迹-checker.md)。
 
 **T8 终检可发表性判据（单源）**：48 项必查清单（6 维度）→ [`可发表性判定表.md`](references/_shared/可发表性判定表.md)（唯一真源；SKILL.md / 08 角色卡 / T8 dispatch 只引用不罗列）。
 

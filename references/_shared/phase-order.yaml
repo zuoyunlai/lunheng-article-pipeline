@@ -38,14 +38,14 @@ pipeline:
   - id: phase1_5_targeted_review
     kind: conditional_review_window
     input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
-    condition: any_trigger_condition_met   # v2.12.28 对齐：见下方 trigger_conditions
+    condition: any_listed_trigger_condition_met   # 激活逻辑：下方 trigger_conditions 列表中「任一」命中即触发本复核窗口；全部未命中 → 走 on_not_triggered（v2.12.28 对齐）
     on_not_triggered: record_not_triggered_in_status
     owner_visible: true
     blocking: false
     trigger_conditions:
       - brief_marked_Dxx_for_review       # 任务简报标 [Dxx 待复核]
       - t2_5_red_data_unresolved          # T2.5 闸门发现 🔴 二手转引未回溯到原始来源
-      - t9_evidence_score_low             # 时序澄清：T9 在 Phase 4.5 才运行，此条件在 Phase 1.5 时点不可达；T9 评分低触发的回查在 Phase 4.5 后单独执行（见 phase-1-details）
+      # （已移除 t9_evidence_score_low：Phase 1.5 时点不可达，属占位条件 —— T9 评分低触发的回查在 Phase 4.5 后单独执行，见 phase-1-details.md）
     decisions: [triggered, not_triggered]
     output_if_triggered: literature/回查报告-vN.md
     required_record: status.md
@@ -86,10 +86,11 @@ pipeline:
   - id: t6_g14   # 别名：文档层「Phase 3.6」
     kind: parallel_agents
     agents: [T6, G14]
-    # G14 条件式启用（非自由开关，v2.12.25 定案）：中文 + 学术/商业评论/行业分析 → auto 必跑；
-    # 轻量档（2000-3000 字，口径真源 = 字数判定表.md）→ selfcheck 走内置自检；纯外语交付 → n/a 不适用；
-    # 主人显式要求关闭 → exempted_by_owner，且必须在 final/交付说明.md 披露。
-    condition: language_zh_and_genre_required
+    # G14 显式勾选启用（本修订定案，替代原 language_zh_and_genre_required 条件式）：
+    # Phase 0 勾选「启用 G14」→ enabled 必跑（不因语言/体裁自动触发）；未勾选 → not_enabled（默认）；
+    # 已启用且轻量档（2000-3000 字，口径真源 = 字数判定表.md）→ selfcheck 走内置自检；
+    # 已启用后主人显式要求关闭 → exempted_by_owner，且必须在 final/交付说明.md 披露。
+    condition: g14_opt_in
     degrade: selfcheck_in_lite_tier
     t6_degrade: skip_in_lite_tier   # P1-5 修复：轻量档 T6「必跳」在此声明（原仅声明 G14，T6 轻量档规则在真源缺失，
                                     # 致各文件「必跳」/「可跳过」/「已声明为否」三种读法并存）

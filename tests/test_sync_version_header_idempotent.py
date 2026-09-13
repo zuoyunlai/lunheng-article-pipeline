@@ -29,9 +29,9 @@ nvh = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(nvh)
 
 STAMP = "> 版本：v2.12.20（自动同步 2026-09-11）"
-LANG = ("> 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他"
-        "（写入任务简报「目标语言」字段，全流程以该字段为准）；"
-        "中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，"
+LANG = ("> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**"
+        "（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；"
+        "中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，"
         "不构成使用者语种限制。")
 
 SKIP_DIRS = {".git", "outputs", "archive", "__pycache__", ".pytest_cache"}

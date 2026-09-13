@@ -2,7 +2,7 @@
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
-> 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
+> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
 ![GitHub Actions](https://img.shields.io/github/actions/workflow/status/zuoyunlai/lunheng-article-pipeline/quality.yml?branch=main&label=tests)
 ![Code Quality](https://img.shields.io/badge/code%20quality-87%2F100-brightgreen)
@@ -81,7 +81,7 @@
 | 操作 | 第三方服务商 | 发送内容 |
 |------|------------|---------|
 | `web_search` | OpenClaw 内置 web provider | 检索关键词 |
-| 学术元数据检索（**默认启用**） | **OpenAlex / Crossref**（只读公开 API，无需 Key） | 检索关键词 |
+| 学术元数据检索（**默认关闭，Phase 0 勾选**） | **OpenAlex / Crossref**（只读公开 API，无需 Key） | 检索关键词 |
 | `tavily_search` / `tavily_extract` | **Tavily AI** | 研究主题/URL |
 | `image_generate`（封面，可选默认关闭） | 宿主默认图像 provider（宿主 OpenClaw 配置决定；论衡不规定 vendor 路由/降级链） | 主题 + 品牌 prompt |
 | **数据图表 SVG** | **本地内置**（主控 `write` 手写 SVG，零外发） | — |
