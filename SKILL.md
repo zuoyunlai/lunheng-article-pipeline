@@ -5,7 +5,7 @@ metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 从顶层迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName
     # （“Unexpected key(s)”）；metadata 为官方允许键，其下未知子键**官方未定义，加载器忽略**（无官方依据）。读版本的所有脚本已同步支持缩进写法。
-    version: 2.12.34
+    version: 2.12.35
     requires:
       bins: []
   tools:
@@ -13,8 +13,8 @@ metadata:
     base: ["read", "write", "edit"]
     coordinator_only: ["sessions_spawn", "sessions_yield", "sessions_history", "subagents", "session_status", "progress_card"]
     research_extra: ["web_search", "web_fetch", "tavily_search", "tavily_extract"]
-    # 工具级 opt-in（4 个 OpenClaw 工具）。服务级外发类别（5 类）真源 = references/_shared/external-services.md，不在此声明（层级分离，不混列）
-    opt_in: ["image_generate", "memory_get", "memory_search", "memory_recall"]
+    # 工具级 opt-in（1 个 OpenClaw 工具）。服务级外发类别（4 类）真源 = references/_shared/external-services.md，不在此声明（层级分离，不混列）
+    opt_in: ["image_generate"]
     denied: ["exec", "process", "code_execution", "browser", "apply_patch", "cron", "automations", "message", "gateway", "secrets", "sessions", "conversations_send", "conversations_turn", "video_generate", "music_generate", "tts", "memory_store", "skill_workshop", "memory_forget", "sessions_search", "sessions_send", "computer", "nodes", "terminal", "portal", "dashboard", "mobile_ui"]
   subagent_tiers:
     research:   ["base", "research_extra"]   # T1-T3
@@ -50,8 +50,8 @@ metadata:
 - **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：真源 = frontmatter `metadata.subagent_tiers`（research T1-T3 / analysis T4 / writing T5 / audit T6-T7 / review T9+G14；T8 空）。工具面**四层模型**见 [`permissions.md`](references/permissions.md)。
 - **禁用（`denied`）— 27 项特权工具**（真源 = frontmatter `metadata.tools.denied`）：执行/进程/浏览器/补丁/定时 + 消息与控制面 + 图像音视频 + 记忆写入 + 子代理检索 + 设备控制类。⚠️ **声明式**——官方 frontmatter **无工具策略键**且沙箱默认关，**须宿主配置才生效**（配方 → [`host-hardening-recipe.md`](references/_shared/host-hardening-recipe.md)）。
 - **两个层级别混（本修订起显式区分）**：
-  - **工具级 opt-in（4 个，默认禁止）**：封面 `image_generate` + 记忆辅助 `memory_get`/`memory_search`/`memory_recall`；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 调阅（真源 = frontmatter `metadata.tools.opt_in`）。
-  - **服务级外发同意（5 类，逐项知情同意）**：**唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律**引用不重列**（重列必漂移，历史曾现 4 份互斥清单）。
+  - **工具级 opt-in（1 个，默认禁止）**：**仅封面** `image_generate`；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 调阅（真源 = frontmatter `metadata.tools.opt_in`）。
+  - **服务级外发同意（4 类，逐项知情同意）**：**唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律**引用不重列**（重列必漂移，历史曾现 4 份互斥清单）。
   - **行为预授权**：配额耗尽 / G14 Warning 未勾选 = 暂停等主人拍板（fail-closed）；永不覆盖 `denied`。
 - 🔍 **零 exec ≠ 零出网**：「零 exec」指不调用**执行类**工具（`exec`/`process`/`code_execution`）；`denied` 另含 `browser`/`terminal`/`computer`/`nodes` 等**非执行类**工具，故该口号**不涵盖**它们。零 exec **≠「不外发数据」**。检索类工具**默认启用**，仅发送「检索关键词 + 目标 URL」，须经 Phase 0 明示同意后才执行。
 - 🔒 **权限边界**：纯 skill，**任意 OpenClaw 配置开箱可用**，不要求也不附带宿主配置项；工具面由宿主决定，论衡不读改宿主配置、不作前提假设。收紧子代理权限的**可选**加固配方见上条（**不构成前提**）。敏感题材**默认**切**单主控模式**（关 G14、跳并行出网；4 个检索工具逐项同意）。
@@ -75,11 +75,10 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）+ [`glossary-full.md`](references/_shared/glossary-full.md)（核心概念单一真源；发布版无 `设计文档.md`）
 2. **语言与受众确认**：先向主人确认目标语言（中文 / English / 中英混 / 其他，写入任务简报）；非中文使用者须在此步声明
-3. **记忆辅助**（默认关闭）：写作偏好由主人写入任务简报；仅当主人勾选并点名文件/用途，主控才可用 `memory_*`（opt_in），T6/T7 调 `memory_recall` 需宿主 config 层放行
-4. **spawn 前必读对应派发话术**（`references/dispatch/` 10 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
-5. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）
-6. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
-7. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1-T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 12-15 分钟/**900s** · T7 12-15 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
+3. **spawn 前必读对应派发话术**（`references/dispatch/` 10 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
+4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）
+5. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
+6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1-T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 12-15 分钟/**900s** · T7 12-15 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
 
 **spawn 参数约定**（主控 spawn 子代理时必用；平台参数，非 frontmatter 键）：完整表见 [`skill-entry-appendix.md`](references/_shared/skill-entry-appendix.md) §一（含 `cwd` **必须绝对路径**铁律 / `runTimeoutSeconds` 同源 / `visible` 策略）。
 
@@ -87,7 +86,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 - **默认启用（无开关）**：**方法论足迹面板**（`status.md` 每阶段自动更新，按档裁剪字段；边际成本≈0 且承载「方法论透明」卖点）。
 - **按条件自动启用（无自由开关）**：**G14 闸** —— 中文 + 学术/商业评论/行业分析 → 必跑；轻量档（**2000-3000 字**，真源 = `references/_shared/字数判定表.md`）→ 走内置「G14 自检」；纯外语交付 → **不适用**（非「关闭」）；主人显式要求关闭 → 走「豁免 + 交付说明披露」窄口。
-- **真正可选的**：外发同意（5 类逐项）、期刊匹配 / 多格式导出（2 项 + 多格式 6 选项；**中文数据源已转默认启用**）、Phase 5「方法论附录」。
+- **真正可选的**：外发同意（4 类逐项）、期刊匹配 / 多格式导出（2 项 + 多格式 6 选项；**中文数据源已转默认启用**）、Phase 5「方法论附录」。
 - **可选项准入判据**：只留给「**有真实成本或真实取舍**」者（外发数据 / 花钱 API / 额外产物）；**零成本的质量门与透明度项由条件决定，不由偏好决定**。
 
 ---
@@ -98,7 +97,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 **主控 Phase 0 4 选 1 明示同意**（全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝——**fail-closed：无有效选择记录 = 未同意 = 不得进入 Phase 1**），写入 `01-任务简报.md`「外部服务同意记录」段。  <!-- 外发同意 4 选 1 真源 = references/_shared/关键协议.md（本节不重列选项全文） -->
 
-**外发口径**：**唯一真源 = [`external-services.md` 逐类表，5 类](references/_shared/external-services.md)**——本文件**只指出真源、不重列**（一条款一真源，防漂移）。
+**外发口径**：**唯一真源 = [`external-services.md` 逐类表，4 类](references/_shared/external-services.md)**——本文件**只指出真源、不重列**（一条款一真源，防漂移）。
 
 > 📚 **完整版**（心跳写入协议 / 审计反哺不自动 commit / Maintainer-only 分区 / 失败回滚 / 封面外发完整披露 / 逐类外发数据表）→ [`external-services.md`](references/_shared/external-services.md)。
 

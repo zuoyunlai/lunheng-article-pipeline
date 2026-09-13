@@ -193,12 +193,17 @@ def check_acknowledgment(final_md_path: str) -> tuple:
 
 
 def check_word_count(final_md_path: str, project_dir: str) -> tuple:
-    """组 C · 字数双口径（按字数判定表.md）"""
+    """组 C · 正文字数（单一口径：纯中文字符数，仅正文，不含文末附录）"""
     with open(final_md_path, encoding='utf-8') as f:
         text = f.read()
-    han_chars = len(re.findall(r'[\u4e00-\u9fff]', text))
-    total_chars = len(text)
-    return (True, {'纯汉字': han_chars, '总字符': total_chars})
+    # 截去文末附录各节（仅统计正文）
+    appendix = re.compile(
+        r'^## (参考文献|数据来源|案例来源|先行者文献|AI 使用声明|致谢)', re.MULTILINE)
+    m = appendix.search(text)
+    body = text[:m.start()] if m else text
+    han_chars = len(re.findall(r'[\u4e00-\u9fff]', body))
+    total_chars = len(body)
+    return (True, {'正文字数(纯汉字)': han_chars, '正文字符': total_chars})
 
 
 def check_m_gate(project_dir: str) -> tuple:
@@ -269,7 +274,7 @@ def main():
         ('F23-F27 图表 (维度5)', check_figures, (final_md, project_dir)),
         ('F28-F31 致谢+先行者 (维度6)', check_acknowledgment, (final_md,)),
         ('A1-A4  编号残留清零 (组A)', check_residual_codes, (final_md,)),
-        ('C1-C4  字数双口径 (组C)', check_word_count, (final_md, project_dir)),
+        ('C1-C4  正文字数 (组C)', check_word_count, (final_md, project_dir)),
         ('D1     M 门 exit 0 (组D)', check_m_gate, (project_dir,)),
     ]
 

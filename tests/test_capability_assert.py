@@ -33,7 +33,7 @@ REGRESSION_DENIED = ["memory_store", "memory_forget", "sessions_search"]
 
 # 合法能力抽样（每个角色类型一个）
 LEGIT = ["read", "write", "edit", "web_search", "tavily_search", "ask_user",
-         "ov_search", "ov_read", "memory_search", "memory_get", "sessions_spawn"]
+         "ov_search", "ov_read", "sessions_spawn"]
 
 
 def test_denied_and_allowed_disjoint():

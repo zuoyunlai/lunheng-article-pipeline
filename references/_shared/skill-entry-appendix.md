@@ -47,11 +47,10 @@
 
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）+ [`glossary-full.md`](glossary-full.md)（核心概念单一真源；发布版无 `设计文档.md`）
 2. **语言与受众确认**：先向主人确认目标语言（中文 / English / 中英混 / 其他，写入任务简报）；非中文使用者须在此步声明
-3. **记忆辅助**（默认关闭）：写作偏好由主人写入任务简报；仅当主人勾选并点名文件/用途，主控才可用 `memory_*`（opt_in），T6/T7 调 `memory_recall` 需宿主 config 层放行
-4. **spawn 前必读对应派发话术**（`references/dispatch/` 10 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](../permissions.md)「能力自检」
-5. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）
-6. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
-7. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1-T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 12-15 分钟/**900s** · T7 12-15 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
+3. **spawn 前必读对应派发话术**（`references/dispatch/` 10 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](../permissions.md)「能力自检」
+4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）
+5. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
+6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1-T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 12-15 分钟/**900s** · T7 12-15 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
 
 ---
 
@@ -60,7 +59,7 @@
 | 需要什么 | 去哪读 |
 |---|---|
 | 安全须知 / 外部服务声明 / 隐私与外发 | [`external-services.md`](external-services.md) |
-| 字数分层 / 字数判定双口径 | [`字数判定表.md`](字数判定表.md) |
+| 字数分层 / 字数判定（单一口径：仅正文） | [`字数判定表.md`](字数判定表.md) |
 | M 门算法（🟠 分片：伪代码必读 / 附录按需）| [`M-Gate-Algorithm.md`](M-Gate-Algorithm.md) + [附录](M-Gate-Algorithm-appendix.md) |
 | 交付边界 / F1-F9 失败模式 / 阶段闸门 | [`deliverables.md`](../deliverables.md) |
 | 模型 5 档候选池 + 运行手册 | [`model-assignment.md`](../model-assignment.md) / [`pipeline-readme.md`](../pipeline-readme.md) |

@@ -42,4 +42,4 @@
 
 > **token 消耗不属子代理回报段**：由**主控**在收到本子代理 completion event 时，从事件末尾 Stats line 提取 `Token usage`（input/output/total）记录（`sessions_spawn` 返回值无 stats 字段，教训 #256）。
 
-> 完整版（含文末四节完整性自检）见 [`交接报告-template.md`](交接报告-template.md)
+> 完整版（含文末附录四节完整性自检）见 [`交接报告-template.md`](交接报告-template.md)

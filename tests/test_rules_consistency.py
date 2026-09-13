@@ -136,27 +136,26 @@ def test_G14_3_tiers_consistency():
 
 
 # =============================================================================
-# 字数判定表：双口径 + 三级阈值一致性（v2.5.13 新增，回应审计 P1-3 剩余项）
+# 字数判定表：单一口径 + 三级阈值一致性（v2.5.13 新增；口径统一为「仅正文」）
 # =============================================================================
 WORDCOUNT_TABLE = ROOT / "references" / "_shared" / "字数判定表.md"
 WORDCOUNT_REF_FILES = [
     ROOT / "references" / "agents" / "07-审计-auditor.md",
     ROOT / "references" / "templates" / "任务简报-template.md",
-    ROOT / "references" / "设计文档.md",
-    ROOT / "references" / "设计文档-哲学.md",
     SKILL,
 ]
 
 
-def test_wordcount_dual_caliber():
-    """字数判定表：双口径（纯汉字 + 含文末四节）定义齐全"""
+def test_wordcount_single_caliber():
+    """字数判定表：单一口径（仅正文，不含文末附录）已定案；旧双口径写法须清除"""
     table = _read(WORDCOUNT_TABLE)
-    # 口径 A = 纯汉字，口径 B = 含文末四节
-    assert "纯汉字" in table, "字数判定表缺口径 A（纯汉字）"
-    assert "含文末四节" in table, "字数判定表缺口径 B（含文末四节）"
-    # 双口径字样必须显式声明
-    assert "双口径" in table, "字数判定表缺「双口径」声明"
-    print(f"  ✓ 字数双口径: 纯汉字 + 含文末四节 齐全")
+    # 唯一口径 = 正文字数（仅正文，不含文末附录）
+    assert "仅正文" in table, "字数判定表缺「仅正文」口径定义"
+    assert "不含文末附录" in table, "字数判定表缺「不含文末附录」口径定义"
+    # 不得再出现已废除的旧口径
+    assert "双口径" not in table, "字数判定表仍残留已废除的「双口径」"
+    assert "含文末四节" not in table, "字数判定表仍残留「含文末四节」旧口径"
+    print("  ✓ 字数单一口径: 仅正文 / 不含文末附录（旧双口径已清除）")
 
 
 def test_wordcount_3_tiers_consistency():

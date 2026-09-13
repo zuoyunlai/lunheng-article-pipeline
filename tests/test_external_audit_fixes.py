@@ -9,8 +9,9 @@
         **无任何工具策略键**，沙箱默认 off、未设 tools.* 时平台默认即全权访问
         （docs/gateway/sandboxing.md、docs/gateway/permission-modes.md）。
         修法：措辞改为**声明式** + 指向 host-hardening-recipe.md。
-  P0-3  「记忆辅助无 LLM vendor 外发」不成立 —— memory.search.provider 未显式设置时
+  P0-3  记忆读工具「无 LLM vendor 外发」误述 —— memory.search.provider 未显式设置时
         默认走 OpenAI embeddings（docs/concepts/active-memory.md）。
+        后续口径重构：该类工具已从论衡工具面整体移除，本项回归门改写为移除门。
   P1-1  spawn `cwd` 口径自相矛盾（absolute vs relative）
   P1-2  yield watchdog 伪代码写成 while 轮询循环（官方禁止为等待而轮询）
   P1-4  denied 漏 sessions / conversations_send / conversations_turn
@@ -114,17 +115,17 @@ def test_no_frontmatter_enforcement_claim():
         "SKILL.md 未说明官方 frontmatter 无工具策略键（P0-2 根因）")
 
 
-# ---------------- P0-3：记忆辅助外发口径 ----------------
+# ---------------- P0-3：记忆读工具外发口径（已随工具面移除而改写） ----------------
 
-def test_memory_egress_claim_corrected():
-    """「无 LLM vendor 外发」是错的 —— memory.search.provider 未设时默认 OpenAI embeddings"""
+def test_memory_helper_removed_no_false_egress_claim():
+    """记忆读工具已从论衡工具面移除 —— 不得再残留外发声明或工具名"""
     for f in (README, QUICKSTART, EXT_SERVICES):
         text = f.read_text(encoding="utf-8")
         assert "无 LLM vendor 外发" not in text, (
             f"{f.name} 仍在声称记忆检索「无 LLM vendor 外发」（官方默认走 OpenAI embeddings）")
-    # 修正后的口径必须点明 embeddings 默认外发
-    assert "embeddings" in EXT_SERVICES.read_text(encoding="utf-8"), (
-        "external-services.md 未点明 memories 检索默认走 embeddings")
+        for tool in ("memory_get", "memory_search", "memory_recall"):
+            assert tool not in text, (
+                f"{f.name} 仍提及已移除的记忆读工具 {tool}")
 
 
 # ---------------- P1-1：cwd 口径统一 ----------------

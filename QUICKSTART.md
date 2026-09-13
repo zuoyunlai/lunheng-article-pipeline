@@ -1,4 +1,4 @@
-> 版本：v2.12.34（自动同步 2026-09-13）
+> 版本：v2.12.35（自动同步 2026-09-13）
 
 > 🌐 **语言政策**：产出语言默认中文，Phase 0 可改 English / 中英混 / 其他（写入任务简报「目标语言」字段，全流程以该字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是设计定位，不构成使用者语种限制。
 
@@ -14,7 +14,7 @@
 论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.34  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.35  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -40,7 +40,6 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.34  # 建议 pi
 - **Web 检索外发**：检索关键词 + 目标 URL 会发送到外部服务（web_search / tavily_search / web_fetch / tavily_extract）
 - **可选手动 sha256 验证**：主控会发占位符 `[SHA256-PENDING:HOST-VERIFY]`，如需真实 hash 需主人在 host shell 手动计算后回填
 - **可选封面外发**（**默认关闭**）：如启用，会向 OpenAI / Google / minimax 发送 prompt
-- **记忆检索**：`memory_search` / `memory_recall` 访问 OpenViking 记忆库；⚠️ **memories 检索默认走 OpenAI embeddings**（`memory.search.provider` 未显式设为 Ollama/本地时），**可能外发 LLM vendor**——非「零外发」
 
 以上副作用会在 Phase 0 同意关卡（4 选 1）中由你主动选择。如不愿接受任何外发，选 ④全部拒绝（改纯本地 Ollama 推理）。
 

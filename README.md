@@ -1,4 +1,4 @@
-> 版本：v2.12.34（自动同步 2026-09-13）
+> 版本：v2.12.35（自动同步 2026-09-13）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -54,7 +54,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.12.34**（2026-09-13，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）**官方规范审计整改 + 独立复查修复**：`SKILL.md` 11,335→9,996 字符（棘轮 11,370→10,000）；`description` 876→123 字节；门 H 反向差集改仓库内快照判据（hermetic）；`outputs/` 迁出技能根（37MB→2.8MB）；🔴 门 G 假绿灯阻断项修复；新增快照更新纪律。**规范合规 + 缺陷修复，无新功能、无破坏性行为变更。** 此前 v2.12.33 = 审计页复核修复（AIG `T05` 消歧义（主人裁决 **A 档「保持行为、只消歧义」** —— 启动自检重排「实际调用＝阻断级」在前 + 铁律「**工具面超限 ≠ 获得任何调用许可**」+ 主控裁决只放行「继续干活」不放行越权调用；**行为一字不改**）+ **T7.5 伪代码依赖倒置**修正（不再 check T8 产物 `final/M-Gate-Report-*.json`，改读本轮章节级 M 门 + `status.md`）+ `SKILL.md` 旧口径残留对齐 + **AE1（HIGH，必读清单三路径拆独立行）** + 只读档改「**两径定义**」（上游只读 / 自有报告可写，四处一致）。**纯缺陷修复，无新功能、无破坏性变更。** 此前 v2.12.32 = 无人值守实测修订（P0×2 + P1×3 + P2×2）+ 官方规范比对修复（P0×3 + P1×4）；v2.12.31 = ClawHub 扫描复核修复（AE1 HIGH + SQP-2 / SQP-1 两项 MEDIUM）+ 门 U 扩第二类检查。沿革见 CHANGELOG 对应章节。[MIT License](LICENSE)。
+**v2.12.35**（2026-09-13，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）**两处口径重构（主人定案）**：① 删除「记忆辅助」（三个 opt-in 记忆读工具；服务级外发 5→4 类；工具级 opt-in 4→1）；② 字数口径统一为「仅正文，不含文末附录」（废除双口径与「含/不含来源附录二选一」）。**口径收敛 + 能力移除，无新增功能。** 此前 v2.12.34 = 官方规范审计整改 + 独立复查修复：`SKILL.md` 11,335→9,996 字符（棘轮 11,370→10,000）；`description` 876→123 字节；门 H 反向差集改仓库内快照判据（hermetic）；`outputs/` 迁出技能根（37MB→2.8MB）；🔴 门 G 假绿灯阻断项修复；新增快照更新纪律。**规范合规 + 缺陷修复，无新功能、无破坏性行为变更。** 此前 v2.12.33 = 审计页复核修复（AIG `T05` 消歧义（主人裁决 **A 档「保持行为、只消歧义」** —— 启动自检重排「实际调用＝阻断级」在前 + 铁律「**工具面超限 ≠ 获得任何调用许可**」+ 主控裁决只放行「继续干活」不放行越权调用；**行为一字不改**）+ **T7.5 伪代码依赖倒置**修正（不再 check T8 产物 `final/M-Gate-Report-*.json`，改读本轮章节级 M 门 + `status.md`）+ `SKILL.md` 旧口径残留对齐 + **AE1（HIGH，必读清单三路径拆独立行）** + 只读档改「**两径定义**」（上游只读 / 自有报告可写，四处一致）。**纯缺陷修复，无新功能、无破坏性变更。** 此前 v2.12.32 = 无人值守实测修订（P0×2 + P1×3 + P2×2）+ 官方规范比对修复（P0×3 + P1×4）；v2.12.31 = ClawHub 扫描复核修复（AE1 HIGH + SQP-2 / SQP-1 两项 MEDIUM）+ 门 U 扩第二类检查。沿革见 CHANGELOG 对应章节。[MIT License](LICENSE)。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -76,7 +76,7 @@
 
 **流水线默认会调用以下外部服务**（使用前需主人同意——Phase 0 同意关卡）。
 
-> ⚠️ **本表为导读**；**外发类别唯一真源 = [`references/_shared/external-services.md`](references/_shared/external-services.md) 逐类表（5 类）**。下表若与真源不一致，以真源为准（一条款一真源）。另：**「大模型推理全文」属「数据形态」轴**（非服务类别轴），单独一行列出。
+> ⚠️ **本表为导读**；**外发类别唯一真源 = [`references/_shared/external-services.md`](references/_shared/external-services.md) 逐类表（4 类）**。下表若与真源不一致，以真源为准（一条款一真源）。另：**「大模型推理全文」属「数据形态」轴**（非服务类别轴），单独一行列出。
 
 | 操作 | 第三方服务商 | 发送内容 |
 |------|------------|---------|
@@ -86,7 +86,6 @@
 | `image_generate`（封面，可选默认关闭） | 宿主默认图像 provider（宿主 OpenClaw 配置决定；论衡不规定 vendor 路由/降级链） | 主题 + 品牌 prompt |
 | **数据图表 SVG** | **本地内置**（主控 `write` 手写 SVG，零外发） | — |
 | 大模型推理 | 当前模型 provider | 文献/数据/案例/草稿/大纲全文 |
-| `memory_get` / `memory_search` | OpenViking 记忆库；⚠️ 检索默认走 OpenAI embeddings（`memory.search.provider` 未显式配本地 provider 时）**可能外发 LLM vendor** | 检索关键词 |
 
 **主控 agent 能力边界**（**不**会做的事）：
 - ❌ 不调用 `exec` / `process` / `code_execution` 等**27 项 denied 特权工具**（清单真源 = `SKILL.md` frontmatter `metadata.tools.denied`）——⚠️ **声明式**，须宿主配置才生效
@@ -185,7 +184,7 @@ Phase 5  T8 主控亲终检 → final/定稿.md + 证据包/ + 交付说明.md
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.34  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.35  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

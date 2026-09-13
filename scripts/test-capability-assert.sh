@@ -41,8 +41,8 @@ echo
 # 合法能力集
 test_case "T1 valid capabilities" T1 read web_search tavily_search 0
 test_case "T5 writer capabilities" T5 read write edit ask_user 0
-test_case "T6 critic capabilities" T6 read memory_search ov_search 0
-test_case "T7 auditor capabilities" T7 read memory_get ov_read 0
+test_case "T6 critic capabilities" T6 read ov_search view_image 0
+test_case "T7 auditor capabilities" T7 read ov_read ask_user 0
 test_case "T8 final check minimal" T8 read 0
 
 # 禁用能力
