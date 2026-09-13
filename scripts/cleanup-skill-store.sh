@@ -2,17 +2,17 @@
 # =============================================================================
 # cleanup-skill-store.sh — 论衡技能库瘦身脚本（v2.10.4 新增，教训 #232）
 # =============================================================================
-# 背景（教训 #232）：论衡技能文件夹 .git/ 46M + outputs/ 29M = 77M，
+# 背景（教训 #232）：论衡技能文件夹 .git/ 46M + $OUTPUTS_ROOT/ 29M = 77M，
 #   其中 .git/ 大量 unreachable 对象（reset/filter-branch/rebase 残留），
-#   outputs/ 累计 29 个历史版本 clawhub-release/ + 10 个远古 archive/。
+#   $OUTPUTS_ROOT/ 累计 29 个历史版本 clawhub-release/ + 10 个远古 archive/。
 #   主人 2026-09-08 20:56 GMT+8 拍板清理，问"技能库超限怎么办"。
 #
 # 触发：主人手动跑 / 每次发版前自动跑
 # 行为（v2.12.30 修订，回应第三方审计 P1-2）：
 #   1. 软备份待删目录到 /tmp/lunheng-cleanup-bak-<时间戳>/（--no-backup 除外）
-#   2. 删 outputs/archive/（v2.5.x 远古版本，10 个目录）
-#   3. 保留 outputs/clawhub-release/ 最近 N 个版本（默认 3）
-#   4. 删 outputs/clawhub-release/--dry-run/（dry-run 测试产物）
+#   2. 删 $OUTPUTS_ROOT/archive/（v2.5.x 远古版本，10 个目录）
+#   3. 保留 $OUTPUTS_ROOT/clawhub-release/ 最近 N 个版本（默认 3）
+#   4. 删 $OUTPUTS_ROOT/clawhub-release/--dry-run/（dry-run 测试产物）
 #   5. [默认跳过] .git/ 历史清理 —— 仅 --purge-git-history 时执行（见下）
 #   6. 验证：自审门（全门，以脚本实跑为准）+ 净化包重建 + 残留扫 0
 # 返回：exit 0 = 成功 / exit 1 = 任意步骤失败 / exit 2 = 用法或参数错误
@@ -32,6 +32,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 KEEP=3
 BAK_PARENT="/tmp"
+# v2.13.x 整改 A5：$OUTPUTS_ROOT/ 已迁出技能根（→ ~/lunheng-build/lunheng-$OUTPUTS_ROOT/）；保留 env 覆盖
+OUTPUTS_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}"
 
 # 解析参数
 while [[ $# -gt 0 ]]; do
@@ -100,10 +102,10 @@ NC='\033[0m'
 # =============================================================================
 echo "📊 步骤 0: 基线测量"
 BEFORE_GIT=$(du -sh .git 2>/dev/null | awk '{print $1}')
-BEFORE_OUT=$(du -sh outputs 2>/dev/null | awk '{print $1}')
+BEFORE_OUT=$(du -sh $OUTPUTS_ROOT 2>/dev/null | awk '{print $1}')
 BEFORE_TOTAL=$(du -sh . 2>/dev/null | awk '{print $1}')
 echo "  .git = $BEFORE_GIT"
-echo "  outputs/ = $BEFORE_OUT"
+echo "  $OUTPUTS_ROOT/ = $BEFORE_OUT"
 echo "  总 = $BEFORE_TOTAL"
 echo ""
 
@@ -117,19 +119,19 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
   echo "📦 步骤 1: 备份待删目录 → $BAK_DIR"
   mkdir -p "$BAK_DIR"
 
-  # 1a. 备份 outputs/archive/
-  if [ -d outputs/archive ]; then
-    mv outputs/archive "$BAK_DIR/archive"
+  # 1a. 备份 $OUTPUTS_ROOT/archive/
+  if [ -d $OUTPUTS_ROOT/archive ]; then
+    mv $OUTPUTS_ROOT/archive "$BAK_DIR/archive"
     echo "  ✅ archive/ 已备份"
   else
     echo "  ⏭️  archive/ 不存在，跳过"
   fi
 
-  # 1b. 备份 outputs/clawhub-release/ 老版本（保留最近 N 个）
-  if [ -d outputs/clawhub-release ]; then
+  # 1b. 备份 $OUTPUTS_ROOT/clawhub-release/ 老版本（保留最近 N 个）
+  if [ -d $OUTPUTS_ROOT/clawhub-release ]; then
     mkdir -p "$BAK_DIR/clawhub-release"
     KEEP_VERSIONS=$({
-      for entry in outputs/clawhub-release/*/; do
+      for entry in $OUTPUTS_ROOT/clawhub-release/*/; do
         [ -d "$entry" ] || continue
         ename=$(basename "$entry")
         [ "$ename" = "--dry-run" ] && continue
@@ -137,7 +139,7 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
       done
     } | sort -V | tail -n "$KEEP")
     DELETED=0
-    for v in outputs/clawhub-release/*/; do
+    for v in $OUTPUTS_ROOT/clawhub-release/*/; do
       vname=$(basename "$v")
       if [ "$vname" != "--dry-run" ] && ! echo "$KEEP_VERSIONS" | grep -qFx "$vname"; then
         mv "$v" "$BAK_DIR/clawhub-release/"
@@ -149,16 +151,16 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
     echo "  ✅ 待删: $DELETED 个老版本"
 
     # 1c. 删 --dry-run 测试产物
-    if [ -d outputs/clawhub-release/--dry-run ]; then
-      rm -rf outputs/clawhub-release/--dry-run
+    if [ -d $OUTPUTS_ROOT/clawhub-release/--dry-run ]; then
+      rm -rf $OUTPUTS_ROOT/clawhub-release/--dry-run
       echo "  ✅ 删 --dry-run 测试产物"
     fi
   fi
 elif [ "$DRY_RUN" == "true" ]; then
   echo "🔍 DRY_RUN 模式：列出待删目录（不实际删除）"
-  echo "  outputs/archive/（如存在）"
+  echo "  $OUTPUTS_ROOT/archive/（如存在）"
   {
-    for entry in outputs/clawhub-release/*/; do
+    for entry in $OUTPUTS_ROOT/clawhub-release/*/; do
       [ -d "$entry" ] || continue
       ename=$(basename "$entry")
       [ "$ename" = "--dry-run" ] && continue
@@ -262,7 +264,7 @@ while IFS= read -r f; do
     echo -e "  ${RED}❌ $f 残留${NC}"
     STALE=$((STALE+1))
   fi
-done < <(find outputs/clawhub-release -type f \( -name "*.md" -o -name "*.json" -o -name "*.yaml" \))
+done < <(find $OUTPUTS_ROOT/clawhub-release -type f \( -name "*.md" -o -name "*.json" -o -name "*.yaml" \))
 
 if [ "$STALE" -eq 0 ]; then
   echo "  ✅ 净化包残留扫 0"
@@ -279,7 +281,7 @@ echo "============================================"
 echo "🎉 清理完成"
 echo "============================================"
 echo "  .git: $BEFORE_GIT → $(du -sh .git 2>/dev/null | awk '{print $1}')"
-echo "  outputs/: $BEFORE_OUT → $(du -sh outputs 2>/dev/null | awk '{print $1}')"
+echo "  $OUTPUTS_ROOT/: $BEFORE_OUT → $(du -sh $OUTPUTS_ROOT 2>/dev/null | awk '{print $1}')"
 echo "  总: $BEFORE_TOTAL → $(du -sh . 2>/dev/null | awk '{print $1}')"
 echo ""
 echo "  备份位置: $BAK_DIR"

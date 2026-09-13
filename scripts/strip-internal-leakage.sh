@@ -6,7 +6,11 @@
 
 set -euo pipefail
 
-PKG_DIR="${1:-outputs/clawhub-release/latest}"
+# 默认 = 最新版本目录（独立复查指出：原默认字面量 `latest` 不存在 ⇒ 默认调用必报 not found）
+_OCR="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}/clawhub-release"
+_LATEST_V=$(ls -1 "$_OCR" 2>/dev/null | grep -E '^[0-9]+(\.[0-9]+){2}$' | sort -V | tail -1)
+PKG_DIR="${1:-${_LATEST_V:+$_OCR/$_LATEST_V}}"
+PKG_DIR="${PKG_DIR:-$_OCR/latest}"
 
 if [ ! -d "$PKG_DIR" ]; then
   echo "ERROR: pkg dir not found: $PKG_DIR"

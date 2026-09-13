@@ -29,6 +29,7 @@ import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKILL = ROOT / "SKILL.md"
+SKILL_APPENDIX = ROOT / "references" / "_shared" / "skill-entry-appendix.md"
 DH = ROOT / "references/_shared/dispatch-header.md"
 PERM = ROOT / "references/permissions.md"
 MGATE = ROOT / "references/_shared/M-Gate-Algorithm.md"
@@ -135,16 +136,16 @@ def test_f4_entry_paths_not_glued():
 
 
 def test_f4_each_entry_path_own_row():
-    """入口三件套须各自独立成行，且为仓库根相对路径"""
-    s = read(SKILL)
+    """入口三件套须各自独立成行，且为仓库根相对路径（v2.13.x 整改：表已外移至 skill-entry-appendix.md）"""
+    s = read(SKILL_APPENDIX)
     for p in ["`SKILL.md`（入口）", "`references/pipeline-readme.md`（入口）",
               "`references/_shared/glossary-full.md`（入口）"]:
         assert p in s, f"入口路径未独立成行：{p}"
 
 
 def test_f4_relative_basis_still_declared():
-    """基准声明仍在（v2.12.31 修的这一点不得回退）"""
-    s = read(SKILL)
+    """基准声明仍在（v2.12.31 修的这一点不得回退；表已外移至附录）"""
+    s = read(SKILL_APPENDIX)
     assert "表内路径均以仓库根为基准" in s
 
 

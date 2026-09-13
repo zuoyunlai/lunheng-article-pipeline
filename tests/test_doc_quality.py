@@ -24,7 +24,7 @@ CHANGELOG = ROOT / "CHANGELOG.md"
 GATE = ROOT / "scripts" / "self-audit-gate.sh"
 LINK_CHECK = ROOT / "scripts" / "link-check.py"
 
-SKILL_CHARS_CEIL = 11370
+SKILL_CHARS_CEIL = 10000
 
 
 # ---------------- P2-1：相对链接可解析 ----------------

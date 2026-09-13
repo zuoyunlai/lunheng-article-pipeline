@@ -16,8 +16,8 @@
 #
 # 用法：
 #   bash scripts/build-clawhub-release.sh [VERSION]
-#   默认从 SKILL.md 读取当前版本号，输出到 outputs/clawhub-release/<VERSION>/
-#   然后手动执行：clawhub publish outputs/clawhub-release/<VERSION> --slug ... --version <VERSION>
+#   默认从 SKILL.md 读取当前版本号，输出到 $OUTPUTS_ROOT/clawhub-release/<VERSION>/（默认 ~/lunheng-build/lunheng-outputs/）
+#   然后手动执行：clawhub publish $OUTPUTS_ROOT/clawhub-release/<VERSION> --slug ... --version <VERSION>
 # =============================================================================
 
 set -euo pipefail
@@ -25,7 +25,7 @@ set -euo pipefail
 # ---- 目录定位 ----
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-OUT_ROOT="$SKILL_ROOT/outputs/clawhub-release"
+OUT_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs/clawhub-release}"
 
 # ---- 版本号 ----
 VERSION="${1:-}"

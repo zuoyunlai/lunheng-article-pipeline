@@ -225,6 +225,11 @@ fi
 #   真源不可达时 warn 不 fail（净化包/CI 环境不应因主工作区缺失而挂）。
 # =============================================================================
 LESSONS_SRC="${LESSONS_SRC:-$HOME/.openclaw/workspace/memory/lessons.md}"
+LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341 355}"
+IDX_DECL_MAX=$(grep -oE '当前最大编号 \*\*#[0-9]+\*\*' "references/_shared/教训索引.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
+SNAPSHOT_FILE="${LESSONS_SNAPSHOT:-references/_shared/lessons-max.snapshot}"
+SNAP_MAX=$(grep -oE '[0-9]+' "$SNAPSHOT_FILE" 2>/dev/null | head -1)
+SRC_MAX=""
 
 if [ -f "$LESSONS_SRC" ]; then
   # 采集论衡侧所有「教训 #N」引用编号（排除 .bak / 净化包输出）
@@ -270,9 +275,7 @@ if [ -f "$LESSONS_SRC" ]; then
   #   「curated 主题分类，非全枚举」原则）；**未列入者一律按论衡类计入** —— 宁可多报（红）不可漏报：
   #   新增宿主类教训时务必把它加进 LUNHENG_LESSON_EXCLUDE，而不是放宽本门判据。
   #   注：仍不用「含论衡标题 ⊆ 索引编号」判据——索引是 curated 集，该判据会永久误报 19 条历史教训。
-  IDX_DECL_MAX=$(grep -oE '当前最大编号 \*\*#[0-9]+\*\*' "references/_shared/教训索引.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
-  LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341}"
-  SRC_MAX=""
+  # 排除表默认已在上方定义（含宿主类 #340/#341/#355）
   # sort -un 升序 → 循环结束时 SRC_MAX 即「最大未排除编号」
   for _n in $(grep -oE '^#{2,4} (教训 )?#[0-9]+' "$LESSONS_SRC" 2>/dev/null | grep -oE '[0-9]+$' | sort -un); do
     case " $LUNHENG_LESSON_EXCLUDE " in
@@ -280,17 +283,34 @@ if [ -f "$LESSONS_SRC" ]; then
     esac
     SRC_MAX="$_n"
   done
-  if [ -n "$IDX_DECL_MAX" ] && [ -n "$SRC_MAX" ]; then
-    if [ "$IDX_DECL_MAX" -lt "$SRC_MAX" ]; then
-      fail "门 H: 教训索引最大编号落后主真源（反向差集）" "索引声明 #$IDX_DECL_MAX < 主真源实际 #$SRC_MAX —— 请更新 references/_shared/教训索引.md"
-    else
-      pass "门 H: 教训索引最大编号未落后主真源（索引 #$IDX_DECL_MAX ≥ 真源 #$SRC_MAX）"
-    fi
-  else
-    warn "门 H: 未能解析索引声明编号（$IDX_DECL_MAX）或主真源编号（$SRC_MAX），跳过反向差集"
+  if [ -n "$SRC_MAX" ] && [ -n "$SNAP_MAX" ] && [ "$SRC_MAX" -gt "$SNAP_MAX" ]; then
+    warn "门 H: 外部真源 #$SRC_MAX > 快照 #$SNAP_MAX —— 若属论衡类，请同步 快照 + 索引 + 排除表"
   fi
 else
-  warn "门 H: 主真源不可达（$LESSONS_SRC），跳过教训编号差集检查"
+  warn "门 H: 主真源不可达（$LESSONS_SRC）——正向差集未执行（本门覆盖缩小，非全绿）"
+fi
+
+# -----------------------------------------------------------------------------
+# 反向差集（官方审计 F1/F3 整改）：判据 = **仓库内快照**（hermetic），不受外部漂移影响
+#   原判据依赖仓库外 memory/lessons.md → 「已发布的绿」可被墙外追加追溯性推翻
+#   （实测：宿主类教训 #355 续录后 HEAD 由绿转红）。现口径：
+#     ① 索引声明编号 ≥ 仓库快照编号 → PASS
+#     ② 外部真源可达且更大 → 上方仅 warn（不参与 exit code）
+#   宿主/通用类教训请加入 LUNHENG_LESSON_EXCLUDE（#340/#341/#355），勿放宽本门。
+#   📌 快照更新纪律（2026-09-13 官方复查补）：快照值 = 最近一次核对主真源时论衡类最大编号；
+#   更新时机 = 主真源新增论衡类教训 / 索引声明变化 / 新增宿主类（后者走排除表不推高快照）。
+#   三者同批改（本值 + 索引声明 + 排除表，教训 #352）；快照只升不降。完整条文见 snapshot 文件头。
+#   提醒器 = 本门参照告警「外部真源 #N > 快照 #M」——它响就是快照该更新了。
+# -----------------------------------------------------------------------------
+# 快照路径由顶部定义（LESSONS_SNAPSHOT 可覆盖，供测试构造「索引落后→必红」正向样本）
+if [ -n "$IDX_DECL_MAX" ] && [ -n "$SNAP_MAX" ]; then
+  if [ "$IDX_DECL_MAX" -lt "$SNAP_MAX" ]; then
+    fail "门 H: 教训索引最大编号落后仓库快照" "索引声明 #$IDX_DECL_MAX < 快照 #$SNAP_MAX —— 请更新 references/_shared/教训索引.md"
+  else
+    pass "门 H: 索引最大编号未落后仓库快照（索引 #$IDX_DECL_MAX ≥ 快照 #$SNAP_MAX）"
+  fi
+else
+  warn "门 H: 索引声明（$IDX_DECL_MAX）或快照（$SNAP_MAX）不可解析，跳过反向差集"
 fi
 
 # =============================================================================
@@ -727,7 +747,11 @@ fi
 #   现改为：硬校验 = ①包内版本号 == 真源版本号；②包内无开发者脚本；
 #   md5 差异降为 informational 提示，不参与 PASS/FAIL 计数。
 # 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit
-PURIFY_DIR="$SKILL_ROOT/outputs/clawhub-release/$EXPECTED_VERSION"
+# v2.13.x 整改（独立复查阻断项）：outputs/ 已迁出技能根（A5）——路径须与 build/publish/cleanup 同源；
+#   旧写法 $SKILL_ROOT/outputs/... 在迁移后恒不命中 ⇒ 门 G 退化成「恒报未生成」的假绿灯，
+#   发布前包一致性硬校验（版本号/无脚本）永久哑火。
+OUTPUTS_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}"
+PURIFY_DIR="$OUTPUTS_ROOT/clawhub-release/$EXPECTED_VERSION"
 if [ -d "$PURIFY_DIR" ]; then
   GATE_G_FAIL=""
   # 硬校验 1：包内版本号 == 真源版本号（防「包是真源旧版」静默发布）
@@ -946,7 +970,7 @@ fi
 #   说明：内容受「机械门锚定」保护者（tests/test_rules_consistency.py 以 SKILL.md 为
 #   T9 6 维度 / 4 档 + G14 8 类的漂移锚点）与合规清单（外发同意）**不得为凑数而删**。
 # =============================================================================
-SKILL_CHARS_CEIL=11370
+SKILL_CHARS_CEIL=10000
 if [ -f SKILL.md ]; then
   SKILL_CHARS=$(wc -m < SKILL.md | tr -d '[:space:]')
   if [ "$SKILL_CHARS" -le "$SKILL_CHARS_CEIL" ]; then

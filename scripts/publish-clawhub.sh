@@ -29,7 +29,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-OUT_ROOT="$SKILL_ROOT/outputs/clawhub-release"
+OUT_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs/clawhub-release}"
 SLUG="lunheng-article-pipeline"
 DISPLAY_NAME="论衡 — 严肃长文流水线"
 
