@@ -67,6 +67,9 @@
 - 宿主加固配方（`host-hardening-recipe.md`）按官方真实键名（`tools.deny` / `sandbox` / `permissionMode`）重写。
 - 审计报告：`outputs/audits/lunheng-v2.12.36-full-audit-2026-09-13.md`（未随仓库保留）。
 
+---
+
+## [v2.12.36] — 2026-09-13
 
 > **主题：ClawHub 安全审计统一修订 —— v2.12.35 报告 21 条 SkillSpector 发现按 A–G 七项落地。**
 > **性质：合规整改 + 一处行为取舍（学术元数据改默认关闭）。**
