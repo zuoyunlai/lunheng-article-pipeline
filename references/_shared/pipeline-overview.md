@@ -1,4 +1,4 @@
-> 版本：v2.12.36（自动同步 2026-09-13）
+> 版本：v2.12.37（自动同步 2026-09-13）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
@@ -20,10 +20,11 @@ Phase 2.5 大纲确认  主人过目大纲 + 拍板 T4 建议图表（图位/类
 Phase 3 写作        T5 → drafts/初稿-v1.md（铁律：引用标[Lxx]、数字标[Dxx]、案例标[Cxx]、AI去味10项）
 Phase 3.5 洞察补充  主人过目 v1 → 主控问主人洞要补 → T5 v2 融入（人在环！教训 #263）
 Phase 3.6 批判      T6（攻击 v2 不是 v1，轻量档可跳过）∥ G14 中文 AI 痕迹闸同批并行（与 T6 对同一 current_draft 同批 spawn）→ 0-2 类 Pass / 3-4 类 Warning / 5+ 类 Fail
-Phase 3.7 预审计修订  **条件触发**（T6/G14 任一双闸否决 → T5 修订 → 复测）；**修完才进 Phase 4**（yaml `t5_feedback_revision`）
+Phase 3.7 预审计修订  **条件触发**（T6/G14 任一双闸否决 → T5 修订 → **刷新 current_draft** → 复测）；**修完才进 Phase 4**（yaml `t5_feedback_revision`，`after_each` 含 `current_draft_sync`）
 Phase 4 审计        T7 → audits/审计报告-vN.md（G0-G14）
 Phase 4.2 修订      审计打回 → 写手交修订说明+修订稿 → 审计复核 ≤2 轮 → 仍不过升级主控
 Phase 4.4 配图      数据图表：Phase 2.5 拍板图位 → 写手已标 [图N：标题] → 主控 write 手写 SVG（本地零外发）；封面：Phase 0 勾选「启用封面生成」→ image_generate 外发（默认关闭；vendor 路由为宿主配置行为）
+定稿组装            主控把当前权威稿组装为 `final/定稿.md`（yaml `final_assembly`；配图后、T9/T8 前）——v2.12.37 审计 P0-3：原仅在散文描述，未入真源
 T7.5 完整性门       主控 checkpoint（T7 → T8 间；T9 在门后）：审计报告 + 修订回环记录齐备才放行终检
 Phase 4.5 审稿      T9 同行评审（= yaml t9_review 独立节点，在 T7.5 完整性门后、T8 终检前；行业/学术默认开启，公众号可选）→ audits/审稿报告-vN.md（6 维度评分 → accept/minor/major/reject）
 Phase 5 终检        主控终检 → final/定稿.md + 图件/ + 证据包/ + 交付说明.md（默认 md 完整支持；latex/docx/pdf 由主人自备模板 + 手动跑 pandoc + rsvg-convert，论衡 agent 不执行，详见 [_shared/format-export.md](format-export.md) §零 exec；项目收尾归档按 [_shared/project-archive-sop.md](project-archive-sop.md)：主控出归档清单，主人手工 mv/cp，agent 不执行）

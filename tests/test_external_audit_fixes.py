@@ -109,10 +109,18 @@ def test_declarative_stance_declared():
 
 
 def test_no_frontmatter_enforcement_claim():
-    """不得暗示 frontmatter 本身可强制工具面"""
+    """不得暗示 frontmatter 本身可强制工具面（v2.12.37 措辞订正）
+
+    旧断言要求出现「无工具策略键」—— 该表述**不准确**：官方认可 `allowed-tools` 键
+    （`skills/skill-creator/scripts/quick_validate.py` 允许键白名单；`docs/tools/skills.md`），
+    只是它只接受平铺工具白名单，无法表达按角色/按子代理档位的权限矩阵。
+    本测试改锚「自定义声明 + 加载器不执行」这一**正确**口径，并禁止回退到旧说法。
+    """
     skill = SKILL.read_text(encoding="utf-8")
-    assert "无工具策略键" in skill or "无任何工具策略键" in skill, (
-        "SKILL.md 未说明官方 frontmatter 无工具策略键（P0-2 根因）")
+    assert "自定义声明" in skill and "加载器不执行" in skill, (
+        "SKILL.md 未说明 metadata.tools 为自定义声明且加载器不执行（P0-2 根因）")
+    assert "无工具策略键" not in skill, (
+        "SKILL.md 仍含「无工具策略键」这一不准确表述（官方存在 allowed-tools 键）")
 
 
 # ---------------- P0-3：记忆读工具外发口径（已随工具面移除而改写） ----------------

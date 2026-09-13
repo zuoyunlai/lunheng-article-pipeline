@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""论衡流程图检查（v2.12.28 新增；v2.12.30 扩）
+"""论衡流程图检查（v2.12.28 新增；v2.12.30 扩；v2.12.37 扩）
 
 检查项：
   1 引用有效性（next / after_trigger / after_each 指向已知节点或 rerun_* 动作）
@@ -8,11 +8,15 @@
   4 入参类节点须声明 input（agent / owner_agent / parallel_agents / conditional_agent /
     advisory_agent / bounded_loop / conditional_review_window）
   5 执行类节点须声明 output（同上，去掉 conditional_review_window）
-  6 入参链闭合：被 ≥2 个节点声明为 input 的受管路径，须有节点以 output 生产
+  6 入参链闭合：**每个被消费的受管路径**都必须有节点以 output 生产
+    （v2.12.37 取消原「≥2 消费者」前提 —— 单消费者路径同样逃检）
   7 YAML 重复键**硬失败**（后键静默覆盖前键 = 真源失真）
+  8 条件节点须声明未触发处置（on_not_triggered / degrade / decisions）
+  9 初稿生产者到 t7_audit 的路径必须经过 current_draft_sync
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import pathlib, re, sys, yaml
+from collections import deque
 
 # 执行类节点：产出受管产物，必须 input + output
 EXEC_KINDS = (
@@ -109,7 +113,7 @@ def main():
         if n.get('kind') in EXEC_KINDS and not n.get('output'):
             errs.append(f"{n['id']} 缺 output")
 
-    consumers, produced = {}, set()                # 6 入参链闭合
+    consumers, produced = {}, set()                # 6 入参链闭合（v2.12.37：取消「≥2 消费者」前提）
     for n in P:
         produced |= _paths(n.get('output'))
         produced |= _paths(n.get('output_if_triggered'))
@@ -118,8 +122,47 @@ def main():
         for t in _paths(n.get('inputs')):
             consumers.setdefault(t, []).append(n['id'])
     for t, who in sorted(consumers.items()):
-        if len(who) >= 2 and t not in produced:
-            errs.append(f'{t} 被 {len(who)} 节点消费但无生产者({",".join(who)})')
+        if t not in produced:
+            errs.append(f'{t} 被 {",".join(who)} 消费但无生产者')
+
+    for n in P:                                    # 8 条件节点须声明未触发处置
+        if n.get('condition') and not (
+                n.get('on_not_triggered') or n.get('degrade') or n.get('decisions')):
+            errs.append(f"{n['id']} 有 condition 但缺 on_not_triggered/degrade/decisions")
+
+    byid = {n['id']: n for n in P}                 # 9 初稿生产者必经 current_draft_sync 才可达 T7
+
+    def _succ(nid):
+        n = byid.get(nid)
+        if not n:
+            return []
+        out = []
+        for k in ('next', 'after_trigger'):
+            v = n.get(k)
+            if isinstance(v, str) and v in byid:
+                out.append(v)
+        for v in (n.get('after_each') or []):
+            if isinstance(v, str) and v in byid:
+                out.append(v)
+        return out
+
+    for n in P:
+        if 'drafts/初稿-v#.md' not in _paths(n.get('output')):
+            continue
+        seen, q, synced, reached_t7 = set(), deque([n['id']]), False, False
+        while q:
+            cur = q.popleft()
+            if cur in seen:
+                continue
+            seen.add(cur)
+            if cur == 'current_draft_sync':
+                synced = True
+            if cur == 't7_audit':
+                reached_t7 = True
+                break
+            q.extend(_succ(cur))
+        if reached_t7 and not synced:
+            errs.append(f"{n['id']} 产出初稿但到达 t7_audit 的路径未经过 current_draft_sync")
 
     print(';'.join(errs))
     return 0 if not errs else 2

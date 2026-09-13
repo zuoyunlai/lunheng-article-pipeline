@@ -981,6 +981,34 @@ if [ -f SKILL.md ]; then
 fi
 
 # =============================================================================
+# 门 W：官方 SKILL.md 校验器（v2.12.37 新增，回应全量审计 P0-1）
+#   background：2026-09-13 全量审计发现 —— 项目自审 25 门全绿，但**官方**
+#   `skills/skill-creator/scripts/quick_validate.py` 直接拒收（description 含尖括号
+#   `<>`）。“自审全绿 + 官方红”属典型的门覆盖缺口：入口文档能否被平台加载，
+#   必须由官方校验器说了算，不能被自家门的 PASS 数字掩盖。
+#   未找到校验器时：默认仅警告；设 LUNHENG_REQUIRE_QUICK_VALIDATE=1 则硬失败（CI 应用）。
+# =============================================================================
+QUICK_VALIDATE=""
+for _qv in \
+  "$HOME/.npm-global/lib/node_modules/openclaw/skills/skill-creator/scripts/quick_validate.py" \
+  "$(npm root -g 2>/dev/null)/openclaw/skills/skill-creator/scripts/quick_validate.py" \
+  "/usr/lib/node_modules/openclaw/skills/skill-creator/scripts/quick_validate.py"; do
+  if [ -n "$_qv" ] && [ -f "$_qv" ]; then QUICK_VALIDATE="$_qv"; break; fi
+done
+
+if [ -z "$QUICK_VALIDATE" ]; then
+  if [ "${LUNHENG_REQUIRE_QUICK_VALIDATE:-0}" = "1" ]; then
+    fail "门 W: 官方 quick_validate.py 未找到" "LUNHENG_REQUIRE_QUICK_VALIDATE=1 但校验器缺失"
+  else
+    warn "门 W: 未找到官方 quick_validate.py（本轮跳过；CI 请设 LUNHENG_REQUIRE_QUICK_VALIDATE=1）"
+  fi
+elif GATE_W_OUT="$(python3 "$QUICK_VALIDATE" . 2>&1)"; then
+  pass "门 W: 官方 SKILL.md 校验器通过（quick_validate.py）"
+else
+  fail "门 W: 官方 SKILL.md 校验失败" "$(printf '%s' "$GATE_W_OUT" | head -3 | tr '\n' ' ')"
+fi
+
+# =============================================================================
 # 总结（v2.12.30 修：计分必须在**全部门执行之后** —— 原位置在门 S/门 T 之前，
 #   导致这两门的失败不进入 TOTAL_FAIL，脚本仍以 exit 0 收尾 = 假绿灯）
 # =============================================================================

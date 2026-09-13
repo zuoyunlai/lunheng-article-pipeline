@@ -1,10 +1,10 @@
-> 版本：v2.12.36（自动同步 2026-09-13）
+> 版本：v2.12.37（自动同步 2026-09-13）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
 > **所有 dispatch 头部公共内容**（子代理启动时按需读本文件 + 角色卡即可，避免一次加载全部派发话术）。
 
-> 🚫 **零 exec 哲学护栏**：论衡 agent 全部禁 `exec` / `process` / `code_execution` / `browser` / `apply_patch` / `message` / `gateway` 等 **27 项特权工具** —— **全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（本文件不重列；重列即漂移风险）。⚠️ **声明式**：须**宿主配置**才真正生效（官方 frontmatter 无工具策略键、沙箱默认关）。
+> 🚫 **零 exec 哲学护栏**：论衡 agent 全部禁 `exec` / `process` / `code_execution` / `browser` / `apply_patch` / `message` / `gateway` 等 **27 项特权工具** —— **全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（本文件不重列；重列即漂移风险）。⚠️ **声明式**：须**宿主配置**才真正生效（`metadata.tools` 为自定义声明，加载器不执行；沙箱默认关）。
 
 > 🚫 **叶子纪律（我不是主控，不得再委托）**：我**不得**调用 `sessions_spawn` 派生子代理，也**不得**用 `subagents` / `sessions_list` / `sessions_history` 查看或管理其他会话——论衡架构里角色卡 = 叶子 worker。平台可能默认开启递归委派，我**可能拿得到**这些工具，但**未被授权**使用它们。需要额外检索/人手 → 在**交接报告**写「需求回执」给主控，由主控决定是否 spawn（子代理自行 spawn 的孙辈结果不上传主控 = 产出静默丢失）。完整规则见 [`关键协议.md`](关键协议.md) §叶子纪律。
 

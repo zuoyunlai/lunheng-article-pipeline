@@ -12,7 +12,61 @@
 
 ---
 
-## [v2.12.36] — 2026-09-13
+## [v2.12.37] — 2026-09-13
+
+> **主题：第三方全量审计整改 —— v2.12.36 全量审计（6.4/10 · C+）的 P0×4 + P1×5 + P2×4 全部落地。**
+> **性质：纯缺陷修复 + 门禁加固，无新功能、无破坏性行为变更。**
+>
+> 审计方式：官方 `quick_validate.py` + 本机 OpenClaw Gateway 配置实测 + 两个只读独立子审计（平台契约 / 流程完整性）。
+
+### 一、🔴 P0-1 官方校验器失败 + 门覆盖缺口（最关键）
+
+- **现象**：项目自审 25 门全绿，但**官方** `skills/skill-creator/scripts/quick_validate.py` **直接拒收** —— `description` 含尖括号（`run/<项目>/.tmp/`）。
+- **元问题**：自审门只自证**仓库内部一致性**，没有任何一门调外部权威校验器 → 「自审全绿 / 官方红」的假绿灯。
+- **修法**：① `description` 去尖括号（→ `run/项目名/`）；② **新增门 W**（官方 `quick_validate.py` 硬校验；校验器缺失时默认 warn，`LUNHENG_REQUIRE_QUICK_VALIDATE=1` 时硬失败）；③ CI 新增 `test-official-validate` job（装 openclaw + 跑校验器 + 门 W 强制）。
+
+### 二、🔴 P0-2 Phase 3.7 修订后不刷新 `current_draft.md` → T7 审旧稿
+
+- **现象**：`t5_feedback_revision`（Phase 3.7）产出 `drafts/初稿-v{N+1}.md` 后**直连** `t7_audit`，而 T7 读 `drafts/current_draft.md` —— 该文件的唯一生产者 `current_draft_sync` 只在 Phase 3.6 前置与 `audit_revision.after_each` 触发。
+- **后果**：T6/G14 否决触发的修订**静默逃过 T7 审计**（T7 的 `draft_version` 绑定校验只比对 T6/G14 报告头，而二者读同一份旧稿 → 不会报错）。属历史 P0-3 的同型缺陷，**修在了 `audit_revision` 分支、漏了 `t5_feedback_revision` 分支**。
+- **修法**：`t5_feedback_revision.after_each: [current_draft_sync]` + `flow-check.py` **新增规则 9**（产出初稿的节点，沿 next/after_each 到 `t7_audit` 必须经过 `current_draft_sync`）。
+
+### 三、🔴 P0-3 `final/定稿.md` 无生产者节点
+
+- **现象**：T8 声明 `input: final/定稿.md`，但全 yaml **无任何节点 output 生产它**（真实生产藏在 `pipeline-overview.md` / 主控卡的散文里）。
+- **后果**：中断续跑「按 `output` 逐条核对产物」**永远漏掉定稿**；flow-check 只在「被 ≥2 节点消费」时检查 → 必然逃检。
+- **修法**：**新增真节点 `final_assembly`**（`output: final/定稿.md`），`phase4_4_figures.next` 改指它，再进 `t9_review`；文档同步（`pipeline-overview` 新增「定稿组装」行、主控卡指向真源节点）。
+
+### 四、🟠 P1 流程闭合与权限口径
+
+- **入参链闭合取消「≥2 消费者」前提**（`flow-check.py` 规则 6）：每个被消费的受管路径都必须有生产者 —— 该前提曾让**单消费者路径全部逃检**（实测漏 `analysis/T5-写作上下文.md` 与 `final/定稿.md`）。
+- **新增规则 8**：声明 `condition` 的节点必须给出未触发处置（`on_not_triggered` / `degrade` / `decisions`）—— 上线即抓出 `audit_revision` 缺声明。
+- **`t4_analysis.output` 补 `analysis/T5-写作上下文.md`**（原仅散落角色卡/派发话术）。
+- **`t8_technical_final.input` 补 `audits/审稿报告-vN.md`**（T8 需 T9 报告做建议分流，原未声明）。
+- **`phase4_4_figures` / `t9_review` / `audit_revision` 补 `on_not_triggered`**（图位=0 或 T9 关闭时留痕，防「未触发」与「漏判」不可分）。
+- **权限口径事实性订正（`SKILL.md` / `permissions.md` / `dispatch-header.md` 三处同源）**：删「官方 frontmatter **无工具策略键**」—— 该表述**不准确**，官方认可 `allowed-tools`（`quick_validate.py` 允许键白名单）；正确口径 = `metadata.tools` 为**自定义声明、加载器不执行**，而 `allowed-tools` 只接受**平铺白名单**，无法表达按角色/按子代理档位的权限矩阵。
+- **`description` 「零exec」→「exec 禁用为声明式纪律」**：不再暗示已机械强制（宿主未加固时 `exec` 等工具实际可调用；实测本机 `tools.exec.mode=full`、未配 `sandbox`）。
+
+### 五、🟡 P2 维护性
+
+- `paper-ready-check.py` 补 `-h/--help` 特判（原被当作项目名，报 `run/--help/final/定稿.md 不存在` 并 exit 1）。
+- 运行时参考文档去维护者机器路径：`glossary-core.md` / `glossary-full.md` 的 `~/.openclaw/...memory/lessons.md` 改中性表述（主真源不随技能分发）。
+- 流程文档同步新链路：`关键协议.md` 续跑规程补「Phase 3.7 同步」与多产物 `A.md + B.md` 写法；`phase-3-details.md` 检查单补 Phase 3.7 刷新项。
+
+### 六、✅ 验收（本地全绿）
+
+- `pytest tests/` **220 passed**（原 214，+6 新回归，均含**反向注入**验证：移除 `final_assembly.output` → flow-check 必须报错）。
+- 自审门 **26 PASS / 0 FAIL**（新增门 W）。
+- 官方 `quick_validate.py` **Skill is valid!**（修复前 ❌ 拒收）。
+- `flow-check.py` exit 0（20 节点全可达）/ `link-check.py` 364 条全解析 / `check-version.sh` 75 文件一致 / `changelog-check.py --check` 通过。
+- `SKILL.md` **9,969 ≤ 10,000** 字符（门 V 棘轮）。
+
+### 七、⏭️ 本版未覆盖（待专项）
+
+- `denied` 清单**完备性**（漏 `sessions_list` / `ask_user` / `view_image` / `suggest_task` / goal 系列 / firecrawl 插件族等）—— 属声明层完备性，不阻断运行，补全需联动 frontmatter / 门 T / `capability-assert.py`。
+- 宿主加固配方（`host-hardening-recipe.md`）按官方真实键名（`tools.deny` / `sandbox` / `permissionMode`）重写。
+- 审计报告：`outputs/audits/lunheng-v2.12.36-full-audit-2026-09-13.md`（未随仓库保留）。
+
 
 > **主题：ClawHub 安全审计统一修订 —— v2.12.35 报告 21 条 SkillSpector 发现按 A–G 七项落地。**
 > **性质：合规整改 + 一处行为取舍（学术元数据改默认关闭）。**

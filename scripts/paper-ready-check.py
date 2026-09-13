@@ -248,9 +248,19 @@ def check_residual_codes(final_md_path: str) -> tuple:
 # ============================================================
 
 
+USAGE = '用法: python3 scripts/paper-ready-check.py <项目名>'
+
+
 def main():
+    # v2.12.37 审计 P2-4：原实现对 --help 无特判 → 被当作项目名，
+    # 报「run/--help/final/定稿.md 不存在」并 exit 1，误引导维护者与自动化调用。
+    if len(sys.argv) >= 2 and sys.argv[1] in ('-h', '--help'):
+        print(USAGE)
+        print('       <项目名> = run/ 下的项目目录名（读 <项目名>/final/定稿.md）')
+        sys.exit(0)
+
     if len(sys.argv) < 2:
-        print('用法: python3 scripts/paper-ready-check.py <项目名>')
+        print(USAGE)
         sys.exit(2)
 
     project = sys.argv[1]

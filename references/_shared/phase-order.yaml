@@ -4,12 +4,15 @@
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
 # 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_g14；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
 # ⚠️ v2.12.27：本映射表是**进度标签的唯一真源** —— 主控呈现 Phase 标签时必须取自此处，**不得自创**（实测教训：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计）
-# ⚠️ 结构约束（v2.12.30 起由构建侧流程检查机械校验）：
+# ⚠️ 结构约束（v2.12.30 起由构建侧流程检查机械校验；v2.12.37 补 ⑤⑥⑦）：
 #   ① **同一节点内不得出现重复键**（YAML 后键会静默覆盖前键 —— 2026-09-12 审计 P0-2：重复 `output` 曾使 G14 报告路径丢失）；
-#   ② `output` 可为**字符串**（单产物）或 **`角色: 路径` 映射**（多产物并行节点）—— 映射时**每个值都是必须核对的产物**；
+#   ② `output` 可为**字符串**（单产物，多产物用 `A.md + B.md` 写法）或 **`角色: 路径` 映射**（多产物并行节点）—— 映射时**每个值都是必须核对的产物**；
 #   ③ 执行类节点（agent / owner_agent / parallel_agents / conditional_agent / advisory_agent / bounded_loop）**必须同时声明 `input` 与 `output`**；
-#   ④ 被 ≥2 个节点声明为 `input` 的受管路径，**必须有节点以 `output` 生产**（防「有消费者无生产者」，P0-3）。
-version: 2.12.36
+#   ④ **每个被消费的受管路径都必须有节点以 `output` 生产**（v2.12.37 取消原「≥2 消费者」前提 —— 单消费者路径同样逃检，实测 `analysis/T5-写作上下文.md` / `final/定稿.md` 均被漏掉）；
+#   ⑤ 声明 `condition` 的节点必须给出未触发处置（`on_not_triggered` / `degrade` / `decisions` 三者其一），防「未触发」与「漏跑」不可分；
+#   ⑥ 产出 `drafts/初稿-v#.md` 的节点，沿 next/after_each 到达 `t7_audit` 的路径**必须经过 `current_draft_sync`**（v2.12.37 审计 P0-2：Phase 3.7 修订后未刷新 current_draft → T7 审旧稿）；
+#   ⑦ 条件节点未触发的留痕口径与 `on_not_triggered: record_not_triggered_in_status` 一致。
+version: 2.12.37
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline
@@ -59,7 +62,7 @@ pipeline:
     input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
     kind: agent
     agent: T4
-    output: analysis/分析大纲.md
+    output: analysis/分析大纲.md + analysis/T5-写作上下文.md   # T5 写作上下文包由 T4 产出（v2.12.37 审计 P1-1：原仅散落角色卡/派发话术，未入真源）
     output_chars_max: 12000   # 写盘上限（回传另受平台 4096 字符硬上限约束）
     next: phase2_5_outline
   - id: phase2_5_outline
@@ -110,6 +113,7 @@ pipeline:
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition: T6_or_G14_requires_revision
     on_not_triggered: record_not_triggered_in_status   # v2.12.28：未触发也必须在 status.md 留痕（防「未触发」与「漏跑」不可分）
+    after_each: [current_draft_sync]   # v2.12.37 审计 P0-2：Phase 3.7 产出 v{N+1} 后必须刷新 drafts/current_draft.md，否则 t7_audit 读旧稿 → 修订内容静默逃过 T7 审计（与 audit_revision 同型，原只修了后一分支）
     next: t7_audit
   - id: t7_audit
     kind: agent
@@ -124,6 +128,7 @@ pipeline:
     input: audits/审计报告-vN.md + drafts/current_draft.md
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition: T7_P0_or_P1
+    on_not_triggered: record_not_triggered_in_status   # v2.12.37 门：有 condition 必须声明未触发处置（防「未触发」与「漏跑」不可分）
     # after_each：`current_draft_sync` 是**真节点 id**（每轮修订后必须重写 current_draft.md，否则 T7/G14/T9 读旧稿 —— 2026-09-12 审计 P0-3）；
     # `rerun_*` 为动作名（非节点 id）：重跑 G14（若启用）/ 重跑 t7_audit
     # G14 复检收敛判据（v2.12.32，实测 P1）：硬原则=判定绑定交付版本；仅删不新增成段文字→跳过复检并记 `g14_rerun: skipped_no_new_prose`；连续两次同判定且无新增命中→停；硬上限 ≤ 修订轮数 + 1。真源 = gates/14-中文AI痕迹-gate.md §四。
@@ -135,17 +140,26 @@ pipeline:
     owner: 主控
     next: phase4_4_figures   # v2.12.28 修：原直连 t9_review → 使 phase4_4_figures 不可达（配图被跳过，实测已致图4/5缺失）
   - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
-    input: drafts/当前稿（[图N] 标注）+ data/数据卡.md（图上数据源）
+    input: drafts/current_draft.md + data/数据卡.md（图上数据源）
     kind: owner_agent
     agent: T0
     output: final/图件/
     condition: figures_approved_by_owner   # Phase 2.5 拍板图位数 > 0
+    on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：图位=0 时必须留痕，防「未触发」与「漏跑」不可分
     note: 主控亲为（不 spawn）：按 Phase 2.5 拍板数手写 SVG（templates/图表-SVG-template.md），零外发
+    next: final_assembly
+  - id: final_assembly   # 别名：文档层「Phase 4.4 后置」/ 定稿组装（非独立 Phase 标签，主控呈现时归入 Phase 4）
+    input: drafts/current_draft.md + data/数据卡.md
+    kind: mechanical_checkpoint
+    owner: 主控
+    output: final/定稿.md
+    note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿
     next: t9_review
   - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent
     input: drafts/current_draft.md
     condition: mode_default_or_owner_enabled
+    on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：T9 关闭时必须留痕
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。
     blocking: false
@@ -153,7 +167,7 @@ pipeline:
     output_chars_max: 15000
     next: t8_technical_final
   - id: t8_technical_final
-    input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json
+    input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json + audits/审稿报告-vN.md   # v2.12.37 审计 P1-2：T8 需读 T9 报告做「建议分流」，原未声明该输入
     kind: owner_agent
     agent: T8
     # v2.12.13（方案 3.1）：显式声明输入含 SVG 图件——SVG 嵌入文本孤儿检查已从 T7 移交 T8

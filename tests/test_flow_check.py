@@ -99,6 +99,90 @@ def test_flow_check_passes_end_to_end():
         os.chdir(cwd)
 
 
+def test_all_managed_inputs_have_producers():
+    """v2.12.37 审计 P0-3/P1-1/P1-2：**每个被消费的受管路径**都必须有生产者。
+
+    旧口径要求「被 ≥2 节点消费」才检查 → 单消费者路径全部逃检
+    （实测漏掉 analysis/T5-写作上下文.md 与 final/定稿.md）。
+    """
+    P = _pipeline()["pipeline"]
+    produced = set()
+    for n in P:
+        produced |= FC._paths(n.get("output"))
+        produced |= FC._paths(n.get("output_if_triggered"))
+    orphan = []
+    for n in P:
+        for key in ("input", "inputs"):
+            for t in FC._paths(n.get(key)):
+                if t not in produced:
+                    orphan.append(f"{n['id']}.{key}:{t}")
+    assert not orphan, f"有消费者无生产者的受管路径: {sorted(set(orphan))}"
+
+
+def test_conditional_nodes_declare_disposition():
+    """v2.12.37 审计 P1-3：条件节点必须给出未触发处置，否则「未触发」与「漏跑」不可分。"""
+    missing = []
+    for n in _pipeline()["pipeline"]:
+        if n.get("condition") and not (
+                n.get("on_not_triggered") or n.get("degrade") or n.get("decisions")):
+            missing.append(n["id"])
+    assert not missing, f"条件节点缺未触发处置: {missing}"
+
+
+def test_draft_producers_refresh_current_draft_before_t7():
+    """v2.12.37 审计 P0-2：产出初稿的节点到 t7_audit 的路径必须经过 current_draft_sync。
+
+    回归对象：t5_feedback_revision（Phase 3.7）曾直连 t7_audit，
+    导致 T6/G14 触发的修订自动逃过 T7 审计。
+    """
+    after = _node("t5_feedback_revision").get("after_each") or []
+    assert "current_draft_sync" in after, \
+        f"t5_feedback_revision.after_each 缺 current_draft_sync: {after}"
+
+
+def test_final_manuscript_has_producer():
+    """v2.12.37 审计 P0-3：final/定稿.md 必须有节点声明生产（否则续跑核对永远漏掉它）。"""
+    produced = set()
+    for n in _pipeline()["pipeline"]:
+        produced |= FC._paths(n.get("output"))
+    assert "final/定稿.md" in produced, "final/定稿.md 无生产者"
+
+
+def test_t8_declares_review_report_input():
+    """v2.12.37 审计 P1-2：T8 需读 T9 报告做建议分流，必须声明该输入。"""
+    n = _node("t8_technical_final")
+    decl = " ".join(str(n.get(k) or "") for k in ("input", "inputs"))
+    assert "审稿报告" in decl, f"t8_technical_final 未声明审稿报告输入: {decl}"
+
+
+def test_flow_check_detects_missing_producer():
+    """反向注入：无生产者的单消费者路径必须被检出（防新规则退化成永真）。"""
+    import tempfile
+    import os
+    p = pathlib.Path("references/_shared/phase-order.yaml")
+    src = p.read_text(encoding="utf-8")
+    # 移除 final_assembly 节点的 output 声明 → 制造 final/定稿.md 无生产者
+    bad = src.replace("    output: final/定稿.md\n", "")
+    assert bad != src, "反向注入点未命中（final_assembly.output 写法已变）"
+    backup = src
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        p.write_text(bad, encoding="utf-8")
+        out = []
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— 入参链闭合规则退化"
+        assert "final/定稿.md" in out, f"报错未指向 final/定稿.md: {out}"
+    finally:
+        p.write_text(backup, encoding="utf-8")
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

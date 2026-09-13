@@ -85,10 +85,29 @@ jobs:
 
   test-self-audit-gate:
     runs-on: ubuntu-latest
-    name: 自审门 8 门验证
+    name: 自审门验证
     steps:
       - uses: actions/checkout@v5
       - name: 跑 self-audit-gate.sh
         run: |
           chmod +x scripts/self-audit-gate.sh
           bash scripts/self-audit-gate.sh
+
+  test-official-validate:
+    # v2.12.37 新增，回应全量审计 P0-1：项目自审 25 门全绿但官方校验器直接拒收
+    # （description 含尖括号）—— 入口文档能否被平台加载必须由官方校验器说了算。
+    runs-on: ubuntu-latest
+    name: 官方 SKILL.md 校验（quick_validate.py）
+    steps:
+      - uses: actions/checkout@v5
+      - name: 安装 openclaw（取官方 skill-creator 校验器）
+        run: npm i -g openclaw --silent
+      - name: 跑官方 quick_validate.py
+        run: |
+          QV="$(npm root -g)/openclaw/skills/skill-creator/scripts/quick_validate.py"
+          test -f "$QV"
+          python3 "$QV" .
+      - name: 自审门（强制要求校验器存在）
+        run: |
+          chmod +x scripts/self-audit-gate.sh
+          LUNHENG_REQUIRE_QUICK_VALIDATE=1 bash scripts/self-audit-gate.sh

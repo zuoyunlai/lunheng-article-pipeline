@@ -1,11 +1,11 @@
 ---
 name: lunheng-article-pipeline
-description: "学术论文/深度长文/行业分析流水线：三角验证+M门+中文AI痕迹闸；零exec，检索/封面外发与 run/<项目>/.tmp/ 周期性写盘须Phase 0同意。"
+description: "学术论文/深度长文/行业分析流水线：三角验证+M门+中文AI痕迹闸；exec 禁用为声明式纪律，检索/封面外发与 run/项目名/.tmp/ 周期性写盘须 Phase 0 同意。"
 metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 从顶层迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName
     # （“Unexpected key(s)”）；metadata 为官方允许键，其下未知子键**官方未定义，加载器忽略**（无官方依据）。读版本的所有脚本已同步支持缩进写法。
-    version: 2.12.36
+    version: 2.12.37
     requires:
       bins: []
   tools:
@@ -28,7 +28,7 @@ metadata:
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
-> **四段式入口**：触发场景 / Phase 0 / 单源指针 / 权限边界（官方建议 SKILL.md < 10,000 字符）。角色卡清单、模板表、长表格、全景细节、权限详解、安全须知已外移为独立文件，本文件只留**触发判据 + 启动动作 + 指针**。
+> **四段式入口**：触发场景 / Phase 0 / 单源指针 / 权限边界。角色卡清单、模板表、长表格、全景细节、权限详解、安全须知已外移为独立文件，本文件只留**触发判据 + 启动动作 + 指针**。
 
 ## 触发场景 + 字数分层
 
@@ -48,7 +48,7 @@ metadata:
 
 - **主控工具面**：清单真源 = frontmatter `metadata.tools`（base 3 + coordinator_only 6 + research_extra 4），**正文不重列**。
 - **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：真源 = frontmatter `metadata.subagent_tiers`（research T1-T3 / analysis T4 / writing T5 / audit T6-T7 / review T9+G14；T8 空）。工具面**四层模型**见 [`permissions.md`](references/permissions.md)。
-- **禁用（`denied`）— 27 项特权工具**（真源 = frontmatter `metadata.tools.denied`）：执行/进程/浏览器/补丁/定时 + 消息与控制面 + 图像音视频 + 记忆写入 + 子代理检索 + 设备控制类。⚠️ **声明式**——官方 frontmatter **无工具策略键**且沙箱默认关，**须宿主配置才生效**（配方 → [`host-hardening-recipe.md`](references/_shared/host-hardening-recipe.md)）。
+- **禁用（`denied`）— 27 项特权工具**（真源 = frontmatter `metadata.tools.denied`，**自定义声明，加载器不执行**；类别见 [`permissions.md`](references/permissions.md)）。⚠️ **声明式，非宿主强制**——官方 `allowed-tools` 表达不了按角色/档位矩阵；沙箱默认关 + 未设 `tools.*` 时平台默认全权访问，**须宿主配置才生效**（配方 → [`host-hardening-recipe.md`](references/_shared/host-hardening-recipe.md)）。
 - **两个层级别混（本修订起显式区分）**：
   - **工具级 opt-in（1 个，默认禁止）**：**仅封面** `image_generate`；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 调阅（**调用即把图像 prompt 外发至宿主配置的图像 provider**，属 Phase 0 同意范围；真源 = frontmatter `metadata.tools.opt_in`）。
   - **服务级外发同意（4 类，逐项知情同意）**：**唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律**引用不重列**（重列必漂移，历史曾现 4 份互斥清单）。
