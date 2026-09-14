@@ -29,7 +29,9 @@ EXEC_KINDS = (
 INPUT_KINDS = EXEC_KINDS + ('conditional_review_window',)
 
 # 路径 token：必须含目录分隔符，扩展名 ∈ md/svg/json/yaml（保守匹配，宁少勿误报）
-PATH_RE = re.compile(r'[A-Za-z0-9_\-\u4e00-\u9fff]+/[A-Za-z0-9_\-\u4e00-\u9fff/{}.]+\.(?:md|svg|json|yaml)')
+PATH_RE = re.compile(r'[A-Za-z0-9_\-\u4e00-\u9fff]+/[A-Za-z0-9_\-\u4e00-\u9fff/{}.*]+\.(?:md|svg|json|yaml)')
+# 目录型产物（如 final/图件/）：用于「目录产出覆盖其下通配消费」的前缀匹配（v2.12.41）
+DIR_RE = re.compile(r'\b(?:final|drafts|audits|analysis|literature|data|cases|run)/[A-Za-z0-9_\-\u4e00-\u9fff/]*/')
 
 
 class UniqueKeyLoader(yaml.SafeLoader):
@@ -66,7 +68,9 @@ def _paths(decl):
         return set().union(*[_paths(v) for v in decl.values()]) if decl else set()
     if isinstance(decl, (list, tuple)):
         return set().union(*[_paths(v) for v in decl]) if decl else set()
-    return {_norm(m) for m in PATH_RE.findall(str(decl))}
+    out = {_norm(m) for m in PATH_RE.findall(str(decl))}
+    out |= {m for m in DIR_RE.findall(str(decl))}
+    return out
 
 
 def main():
@@ -126,9 +130,13 @@ def main():
             consumers.setdefault(t, []).append(n['id'])
         for t in _paths(n.get('inputs')):
             consumers.setdefault(t, []).append(n['id'])
+    dirs = sorted({t for t in produced if t.endswith('/')})   # v2.12.41：目录型产出覆盖其下通配消费
     for t, who in sorted(consumers.items()):
-        if t not in produced:
-            errs.append(f'{t} 被 {",".join(who)} 消费但无生产者')
+        if t in produced:
+            continue
+        if any(t.startswith(d) for d in dirs):
+            continue
+        errs.append(f'{t} 被 {",".join(who)} 消费但无生产者')
 
     for n in P:                                    # 8 条件节点须声明未触发处置
         if n.get('condition') and not (

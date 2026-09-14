@@ -147,7 +147,13 @@ echo "ℹ️ 注：dry-run 不校验 changelog（CLI 早退不构请求体）—
 # ---- 3. 确认 + 正式发布 ----
 if [[ "$CONFIRM" == "yes" ]]; then
   echo ""
-  read -r -p "确认发布 $SLUG@$VERSION（displayName=$DISPLAY_NAME）？[y/N] " ans
+  # 显式判断 read 的返回值：非交互（stdin 为 /dev/null、空管道）时 read 因 EOF 返回非零，
+  # 在 set -e 下会直接终止脚本且无任何诊断（属审计在清理的“失败不可见”一族）。
+  # 语义不变：无法确认 ⇒ 绝不发布（exit 4 与既有 0/1/2/3 不冲突），只把“为何中止”显式化。
+  if ! read -r -p "确认发布 $SLUG@$VERSION（displayName=$DISPLAY_NAME）？[y/N] " ans; then
+    echo "❌ 非交互环境无法确认发布：请传 --yes（或改用交互终端）" >&2
+    exit 4
+  fi
   [[ "$ans" == "y" || "$ans" == "Y" ]] || { echo "已取消"; exit 0; }
 fi
 

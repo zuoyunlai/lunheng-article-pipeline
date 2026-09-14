@@ -65,8 +65,17 @@ def test_skill_md_ratchet_ceiling_matches_gate():
 def test_skill_md_still_has_anchored_enumerations():
     """体量瘦身不得破坏「漂移锚点」内容（否则 test_rules_consistency 会红）"""
     text = SKILL.read_text(encoding="utf-8")
-    for token in ("学术模板语", "党报话语堆砌", "引文规范", "26-30", "<16"):
+    # 锚点分两类：纯文本锚（必须留）+ 可指向真源的枚举锚（指针式 OK，保 SKILL.md 字符预算 ≤ 10000）
+    for token in ("引文规范", "26-30", "<16"):
         assert token in text, f"SKILL.md 瘦身误删锚点内容：{token}"
+    # G14 8 类可走指针式（真源 = gates/14-中文AI痕迹-gate.md）；SKILL.md 留「8 类判定」+ 真源指针即可
+    assert "8 类判定" in text, "SKILL.md 缺 G14 8 类指针"
+    assert "gates/14-中文AI痕迹-gate.md" in text, "SKILL.md 缺 G14 真源指针"
+    # 反哺抗漂移：真源（gate）仍必须含 8 类原始锚（防指针式被滥用为「彻底删除」借口）
+    gate_text = (ROOT / "references" / "gates" / "14-中文AI痕迹-gate.md").read_text(encoding="utf-8")
+    for token in ("学术模板语", "句式同质化", "学术套话高频", "破折号滥用",
+                  "三项排比", "人称错位", "个人辨识度缺失", "党报话语堆砌"):
+        assert token in gate_text, f"G14 真源（gate）缺维度：{token}"
 
 
 # ---------------- 门位置（教训 #342：计分必须在全部门之后）----------------

@@ -104,8 +104,8 @@ def test_p0_2_budget_identity_exists():
     """字数判定表须含 Phase 0 预算恒等式"""
     t = read(WC_TABLE)
     assert "Phase 0 预算机械自查" in t, "字数判定表缺 §六 预算机械自查"
-    assert "Σ(各章最小字数硬指标) + Σ(刚性段落下限) ≤ 正文上限" in t, \
-        "缺预算恒等式"
+    assert "Σ(刚性段落下限) ≤ 正文上限" in t, \
+        "缺预算恒等式（v2.12.41：已废除「分章硬指标」项）"
 
 
 def test_p0_2_only_one_given():

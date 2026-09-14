@@ -112,12 +112,17 @@ def test_all_managed_inputs_have_producers():
     for n in P:
         produced |= FC._paths(n.get("output"))
         produced |= FC._paths(n.get("output_if_triggered"))
+    # 目录型产物覆盖其下通配消费（v2.12.41：与 scripts/flow-check.py 规则6 对齐 —— DIR_RE + 前缀匹配）
+    dirs = sorted({t for t in produced if t.endswith('/')})
     orphan = []
     for n in P:
         for key in ("input", "inputs"):
             for t in FC._paths(n.get(key)):
-                if t not in produced:
-                    orphan.append(f"{n['id']}.{key}:{t}")
+                if t in produced:
+                    continue
+                if any(t.startswith(d) for d in dirs):
+                    continue
+                orphan.append(f"{n['id']}.{key}:{t}")
     assert not orphan, f"有消费者无生产者的受管路径: {sorted(set(orphan))}"
 
 

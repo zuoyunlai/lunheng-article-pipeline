@@ -86,7 +86,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 **Phase 0 的「默认项」「显式勾选项」与「可选项」（定案）**：
 
 - **默认启用（无开关）**：**方法论足迹面板**（`status.md` 每阶段自动更新，按档裁剪字段；边际成本≈0 且承载「方法论透明」卖点）。
-- **Phase 0 显式勾选启用（不因语言/体裁自动触发）**：**G14 闸** —— 默认关闭，Phase 0 勾选「启用 G14」才跑；勾选且属轻量档（**2000-3000 字**，真源 = `references/_shared/字数判定表.md`）→ 走内置「G14 自检」；未勾选 → 不跑；已启用后主人显式要求关闭 → 走「豁免 + 交付说明披露」窄口。
+- **由条件决定（无开关）**：**G14 中文 AI 痕迹闸** —— 目标语言含中文即**必跑**（纯外语记 `n/a`）；位置 = **Phase 4.4 前置**（`g14_style_gate`），**全流程只审一次**；轻量档（2000-3000 字）走内置自检；主人显式关闭须走「豁免 + 披露」窄口。
 - **真正可选的**：外发同意（4 类逐项，含学术元数据 opt-in）、期刊匹配 / 中文数据源 / 多格式导出（3 项 + 多格式 6 选项）、Phase 5「方法论附录」。
 - **可选项准入判据**：只留给「**有真实成本或真实取舍**」者（外发数据 / 花钱 API / 额外产物）；**零成本的质量门与透明度项由条件决定，不由偏好决定**。
 
@@ -120,7 +120,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 **审计必查项**（G0-G14）：[`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + [`audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md)（速查）。G11/G12/M 门三层 → [`M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)（🟠 分片必读）。
 
-**G14 中文 AI 痕迹闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec）；0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮。**默认关闭**：由 **Phase 0 显式勾选**启用；已启用后关闭须走「豁免 + 交付说明披露」窄口。判定真源 = [`gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二 + [`checkers/中文AI痕迹-checker.md`](references/checkers/中文AI痕迹-checker.md)。
+**G14 中文 AI 痕迹闸**：8 类判定（真源 = [`gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二 + [`checkers/中文AI痕迹-checker.md`](references/checkers/中文AI痕迹-checker.md)，**本节不重列**），**LLM 推理判定**（零 exec）；0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → `t5_style_revision`（仅风格层，**不重跑 G14**）。**适用性 = 目标语言含中文即必跑**（纯外语记 `n/a`）；位置 = Phase 4.4 前置、**全流程只审一次**。
 
 **T8 终检可发表性判据（单源）**：48 项必查清单（6 维度）→ [`可发表性判定表.md`](references/_shared/可发表性判定表.md)（唯一真源；SKILL.md / 08 角色卡 / T8 dispatch 只引用不罗列）。
 

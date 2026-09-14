@@ -193,7 +193,8 @@ pipeline:
     verdict_scale: four_tier   # v2.12.40：结论落四档；审计报告缺失 = 路径或参数错误（不触发修订）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 审计报告 + 本轮 M 门记录已落盘；不得用预跑/上轮记录
     owner: 主控
-    input: audits/审计报告-vN.md + final/M-Gate-Report-*.json   # v2.12.40 补 P1-5：本闸门的判据对象必须显式声明（原未声明 input → 前置产物无人核对）
+    input: audits/审计报告-vN.md   # v2.12.41 修依赖倒置：本闸**不得**读 final/M-Gate-Report（那是本闸的**产出**；v2.12.33 已定「T7.5 不 check T8 产物」），改读本轮章节级 M 门记录（status.md）
+    output: final/M-Gate-Report-*.json   # v2.12.41 补生产者：M 门报告由本闸汇总产出，供 T8 读（原全库无生产者 → 孤儿输入）
     next: g14_style_gate   # v2.12.40：G14 风格闸迁至此处（定稿前唯一一次）；原直连 phase4_4_figures
   - id: g14_style_gate   # 别名：文档层「Phase 4.4 前置（G14 风格闸）」（非独立 Phase 标签，主控呈现时归入 Phase 4.4）
     kind: agent
@@ -274,11 +275,11 @@ pipeline:
   - id: t8_technical_final
     verdict_scale: four_tier   # v2.12.40：终检结论落四档（通过/不通过/无法判定/路径或参数错误）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = M-Gate-Report + T9 审稿报告均已落盘；不得用缺位时的推断值
-    input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json + audits/审稿报告-vN.md   # v2.12.37 审计 P1-2：T8 需读 T9 报告做「建议分流」，原未声明该输入
+    input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json + audits/审稿报告-vN.md + audits/G14-检测报告-vN.md   # v2.12.37 审计 P1-2：T8 需读 T9 报告做「建议分流」；v2.12.41：G14 迁至 Phase 4.4 前置后，其报告核验职责由 T7 移交 T8
     kind: owner_agent
     agent: T8
     # v2.12.13（方案 3.1）：显式声明输入含 SVG 图件——SVG 嵌入文本孤儿检查已从 T7 移交 T8
-    inputs: [final/图件/*.svg, final/*.md]
+    inputs: [final/图件/*.svg, final/定稿.md, final/交付说明.md]   # v2.12.41：原写 final/*.md 通配 → 改显式（通配使「被消费但无生产者」检查失明）
     output: final/交付说明.md
     output_chars_max: 10000
     next: phase5_acceptance

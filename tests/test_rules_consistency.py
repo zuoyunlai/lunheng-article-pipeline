@@ -99,12 +99,14 @@ def test_G14_8_categories_consistency():
 
     missing_gate = [c for c in G14_CATEGORIES if c not in gate]
     missing_checker = [c for c in G14_CATEGORIES if c not in checker]
-    missing_skill = [c for c in G14_CATEGORIES if c not in skill]
 
+    # 真源（gate + 检测器）必须 8 类齐全
     assert not missing_gate, f"G14 gate 文档缺维度: {missing_gate}"
     assert not missing_checker, f"G14 检测器缺维度: {missing_checker}"
-    assert not missing_skill, f"SKILL.md 缺维度: {missing_skill}"
-    print(f"  ✓ G14-8类: gate/检测器/SKILL.md 三处齐全")
+    # SKILL.md（入口，受 10,000 字符棘轮约束）按单一真源纪律只留指针、不重列（v2.12.41 改）
+    assert "8 类判定" in skill, "SKILL.md 缺 G14「8 类判定」指针"
+    assert "gates/14-中文AI痕迹-gate.md" in skill, "SKILL.md 缺 G14 真源指针"
+    print(f"  ✓ G14-8类: gate/检测器真源齐全；SKILL.md 留指针（不重列，防漂移+保字符预算）")
 
 
 # =============================================================================
@@ -159,21 +161,28 @@ def test_wordcount_single_caliber():
 
 
 def test_wordcount_3_tiers_consistency():
-    """字数判定三级阈值（≤1% P2 / 1-5% P1 / >5% P0）在真源 + 引用文件间一致"""
+    """字数判定三级阈值（v2.12.41：≤5% 呈现 / 5-10% P1 / >10% P0）在真源 + 引用文件间一致"""
     table = _read(WORDCOUNT_TABLE)
-    # 真源必须含三档
-    assert "≤1%" in table and "P2" in table, "字数判定表缺 ≤1% P2 档"
-    assert "1-5%" in table and "P1" in table, "字数判定表缺 1-5% P1 档"
-    assert ">5%" in table and "P0" in table, "字数判定表缺 >5% P0 档"
+    # 真源必须含新的三档（粒度放宽：判定精度不得细于测量精度）
+    assert "≤5%" in table and "呈现信息" in table, "字数判定表缺 ≤5% 呈现信息档"
+    assert "5-10%" in table and "P1" in table, "字数判定表缺 5-10% P1 档"
+    assert ">10%" in table and "P0" in table, "字数判定表缺 >10% P0 档"
+    # 旧粒度必须清除（防回退）
+    assert "≤1%" not in table and "1-5%" not in table, "字数判定表仍残留旧粒度（≤1% / 1-5%）"
 
-    # 引用文件必须与真源三档一致（审计员是权威核验点，任务简报是用户可见入口）
+    # 审计员卡（权威核验点）必须与新真源一致
     auditor = _read(ROOT / "references" / "agents" / "07-审计-auditor.md")
-    assert "≤1%" in auditor and "1-5%" in auditor and ">5%" in auditor, \
-        "07-审计-auditor.md 缺字数三档阈值"
+    assert "≤5%" in auditor and "5-10%" in auditor and ">10%" in auditor, \
+        "07-审计-auditor.md 缺新三档阈值"
+
+    # 任务简报（用户可见入口）：v2.12.41 起不再复述三档，改为「外部硬要求 ±5% / 无外部要求只呈现」
     brief = _read(ROOT / "references" / "templates" / "任务简报-template.md")
-    assert "≤1%" in brief and "1-5%" in brief and ">5%" in brief, \
-        "任务简报-template.md 缺字数三档阈值"
-    print(f"  ✓ 字数三档阈值: ≤1% P2 / 1-5% P1 / >5% P0 真源+审计员+任务简报一致")
+    assert "±5%" in brief and "无外部要求" in brief, \
+        "任务简报-template.md 缺字数口径（±5% 粒度 / 无外部要求默认）"
+
+    # 分章硬指标必须已废除（v2.12.41 的核心决定，防回退）
+    assert "每章最小字数硬指标" not in brief, "任务简报仍残留「每章最小字数硬指标」"
+    print(f"  ✓ 字数三档阈值: ≤5% 呈现 / 5-10% P1 / >10% P0（真源+审计员+任务简报一致；旧粒度已清除）")
 
 
 def test_wordcount_no_byte_bug():
