@@ -16,8 +16,19 @@
 #
 # 用法：
 #   bash scripts/build-clawhub-release.sh [VERSION]
-#   默认从 SKILL.md 读取当前版本号，输出到 $OUTPUTS_ROOT/clawhub-release/<VERSION>/（默认 ~/lunheng-build/lunheng-outputs/）
+#   默认从 SKILL.md 读取当前版本号，输出到 $OUTPUTS_ROOT/clawhub-release/<VERSION>/
 #   然后手动执行：clawhub publish $OUTPUTS_ROOT/clawhub-release/<VERSION> --slug ... --version <VERSION>
+#
+# OUTPUTS_ROOT 语义（全仓统一，2026-09-14 修正；勿再分叉）：
+#   = 「输出**总根**」，**不是**发布根。发布包路径恒为 $OUTPUTS_ROOT/clawhub-release/<VERSION>/。
+#   默认 $HOME/lunheng-build/lunheng-outputs ⇒ 默认路径 ~/lunheng-build/lunheng-outputs/clawhub-release/<VERSION>/。
+#   同源消费点（5 处，全部按「总根」解释该变量）：
+#     build-clawhub-release.sh（写）/ publish-clawhub.sh（读）/ strip-internal-leakage.sh（净化）
+#     / self-audit-gate.sh 门 G（校验）/ cleanup-skill-store.sh（清理）
+#   背景：旧版 build/publish 把 OUTPUTS_ROOT 当「发布根」（默认值里已含 /clawhub-release），
+#   与 gate/strip 的「总根」语义分叉 ⇒ 调用方显式设 OUTPUTS_ROOT（如隔离构建 OUTPUTS_ROOT=/tmp/x）
+#   时，build 写 /tmp/x/<ver>，而门 G 查 /tmp/x/clawhub-release/<ver> ⇒ 门 G 退化成
+#   「包未生成」的假绿灯，剥离脚本探测到不存在的默认根。回归门：tests/test_outputs_root_semantics.py
 # =============================================================================
 
 set -euo pipefail
@@ -25,7 +36,7 @@ set -euo pipefail
 # ---- 目录定位 ----
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-OUT_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs/clawhub-release}"
+OUT_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}/clawhub-release"
 
 # ---- 版本号 ----
 VERSION="${1:-}"

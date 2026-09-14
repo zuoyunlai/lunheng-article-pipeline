@@ -770,6 +770,10 @@ fi
 # v2.13.x 整改（独立复查阻断项）：outputs/ 已迁出技能根（A5）——路径须与 build/publish/cleanup 同源；
 #   旧写法 $SKILL_ROOT/outputs/... 在迁移后恒不命中 ⇒ 门 G 退化成「恒报未生成」的假绿灯，
 #   发布前包一致性硬校验（版本号/无脚本）永久哑火。
+# OUTPUTS_ROOT 语义（全仓统一，2026-09-14 修正）=「输出**总根**」（不含 /clawhub-release 段），
+#   故包路径恒为 <总根>/clawhub-release/<版本>——与 build/publish/strip/cleanup 同源；
+#   兼容注意：旧 build/publish 曾把它当「发布根」（默认值含 /clawhub-release），
+#   调用方显式设 OUTPUTS_ROOT 时门 G 会查不到包而假绿灯。回归门：tests/test_outputs_root_semantics.py
 OUTPUTS_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}"
 PURIFY_DIR="$OUTPUTS_ROOT/clawhub-release/$EXPECTED_VERSION"
 if [ -d "$PURIFY_DIR" ]; then

@@ -32,7 +32,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 KEEP=3
 BAK_PARENT="/tmp"
-# v2.13.x 整改 A5：$OUTPUTS_ROOT/ 已迁出技能根（→ ~/lunheng-build/lunheng-$OUTPUTS_ROOT/）；保留 env 覆盖
+# v2.13.x 整改 A5：$OUTPUTS_ROOT/ 已迁出技能根（→ ~/lunheng-build/lunheng-outputs/）；保留 env 覆盖
+# OUTPUTS_ROOT 语义（全仓统一，2026-09-14 修正）=「输出**总根**」（archive/ 与 clawhub-release/ 并列于其下），
+#   与 build/publish/strip/门 G 同源；此处保留多数派口径，仅作说明。
 OUTPUTS_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}"
 
 # 解析参数

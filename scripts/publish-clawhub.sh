@@ -12,6 +12,10 @@
 #   bash scripts/publish-clawhub.sh [VERSION] [--yes]
 #     VERSION  缺省从 SKILL.md frontmatter 读取
 #     --yes    跳过最终确认，直接正式发布（CI/无人值守用）
+#
+# OUTPUTS_ROOT 语义（全仓统一，2026-09-14 修正）：=「输出**总根**」，不是发布根。
+#   待发布包路径恒为 $OUTPUTS_ROOT/clawhub-release/<VERSION>/（与 build 写入位置同源）。
+#   默认 $HOME/lunheng-build/lunheng-outputs ⇒ 默认 ~/lunheng-build/lunheng-outputs/clawhub-release/<VERSION>/。
 #   流程：build 净化包（若缺失）→ 提取本版 changelog → dry-run 校验 displayName/changelog → 确认 → 正式发布
 #
 # 变更（教训 #354，2026-09-12）：
@@ -29,7 +33,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-OUT_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs/clawhub-release}"
+OUT_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}/clawhub-release"
 SLUG="lunheng-article-pipeline"
 DISPLAY_NAME="论衡 — 严肃长文流水线"
 

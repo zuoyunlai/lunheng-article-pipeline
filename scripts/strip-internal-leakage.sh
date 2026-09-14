@@ -12,6 +12,9 @@ set -euo pipefail
 #   对 OUTPUTS_ROOT 的语义不一致）会在**打出任何字之前** exit 1 —— 调用方只看得到「失败」、
 #   看不到任何原因（与 build 侧 `>/dev/null` 同族）。现改为：**仅在未传参时**探测默认目录，
 #   且探测管道失败不致命（显式传目录的调用不再被无关路径探测拖死）。
+# OUTPUTS_ROOT 语义（全仓统一，2026-09-14 修正）=「输出**总根**」，默认包在 <总根>/clawhub-release/<版本>/：
+#   与 build-clawhub-release.sh / publish-clawhub.sh / self-audit-gate.sh 门 G / cleanup-skill-store.sh 同源，
+#   不得再把它当「发布根」（默认值里不得自带 /clawhub-release 段）。回归门：tests/test_outputs_root_semantics.py
 _OCR="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}/clawhub-release"
 if [ "$#" -ge 1 ] && [ -n "$1" ]; then
   PKG_DIR="$1"
