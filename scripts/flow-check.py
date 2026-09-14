@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""论衡流程图检查（v2.12.28 新增；v2.12.30 扩；v2.12.37 扩）
+"""论衡流程图检查（v2.12.28 新增；v2.12.30 扩；v2.12.37 扩；v2.12.40 扩）
 
 检查项：
-  1 引用有效性（next / after_trigger / after_each 指向已知节点或 rerun_* 动作）
-  2 可达性（无孤立节点）
+  1 引用有效性（next / after_trigger / after_each / **on_fail** 指向已知节点或 rerun_* 动作）
+  2 可达性（无孤立节点；**v2.12.40：出口边 on_fail 计入可达性**）
   3 除终态外须有 next
   4 入参类节点须声明 input（agent / owner_agent / parallel_agents / conditional_agent /
     advisory_agent / bounded_loop / conditional_review_window）
@@ -13,6 +13,8 @@
   7 YAML 重复键**硬失败**（后键静默覆盖前键 = 真源失真）
   8 条件节点须声明未触发处置（on_not_triggered / degrade / decisions）
   9 初稿生产者到 t7_audit 的路径必须经过 current_draft_sync
+ 10 **verdict_scale 接线**（v2.12.40 修 P0-1）：节点引用的档位名必须在顶层有同名定义，
+    且定义含恰好 4 档 + `default_handling` 四档全覆盖 —— 防「声明四档却无处置」的 fail-open。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import pathlib, re, sys, yaml
@@ -81,8 +83,8 @@ def main():
     ids = [n['id'] for n in P]
     errs = []
 
-    for n in P:                                    # 1 引用有效性
-        for k in ('next', 'after_trigger'):
+    for n in P:                                    # 1 引用有效性（v2.12.40：纳入 on_fail 出口边）
+        for k in ('next', 'after_trigger', 'on_fail'):
             v = n.get(k)
             if isinstance(v, str) and v and not v.startswith('rerun_') and v not in ids:
                 errs.append(f"{n['id']}.{k}->{v}")
@@ -91,12 +93,15 @@ def main():
                 errs.append(f"{n['id']}.after_each->{v}")
 
     reach = set()
-    def walk(i):                                   # 2 可达性
+    def walk(i):                                   # 2 可达性（v2.12.40：on_fail 出口边也计入）
         if i in reach or i not in ids: return
         reach.add(i)
         for n in P:
-            if n['id'] == i and isinstance(n.get('next'), str) and n['next'] in ids:
-                walk(n['next'])
+            if n['id'] == i:
+                for k in ('next', 'after_trigger', 'on_fail'):
+                    v = n.get(k)
+                    if isinstance(v, str) and v in ids:
+                        walk(v)
     walk(ids[0])
     un = [x for x in ids if x not in reach]
     if un: errs.append('不可达:' + ','.join(un))
@@ -137,7 +142,7 @@ def main():
         if not n:
             return []
         out = []
-        for k in ('next', 'after_trigger'):
+        for k in ('next', 'after_trigger', 'on_fail'):
             v = n.get(k)
             if isinstance(v, str) and v in byid:
                 out.append(v)
@@ -163,6 +168,23 @@ def main():
             q.extend(_succ(cur))
         if reached_t7 and not synced:
             errs.append(f"{n['id']} 产出初稿但到达 t7_audit 的路径未经过 current_draft_sync")
+
+    vs = d.get('verdict_scale') or {}               # 10 verdict_scale 接线（v2.12.40 修 P0-1）
+    for n in P:                                     # 10a 引用未知名称 → 逐个点名
+        name = n.get('verdict_scale')
+        if name and (not isinstance(name, str) or name not in vs):
+            errs.append(f"{n['id']}.verdict_scale->{name}（顶层无同名定义）")
+    for name in sorted({n.get('verdict_scale') for n in P if n.get('verdict_scale')}):  # 10b 定义块自检（去重）
+        if not isinstance(name, str) or name not in vs:
+            continue
+        blk = vs[name] or {}
+        tiers = [t.get('id') for t in (blk.get('tiers') or []) if isinstance(t, dict)]
+        if len(tiers) != 4 or len(set(tiers)) != 4:
+            errs.append(f"verdict_scale.{name} 档位数≠4: {tiers}")
+        dh = blk.get('default_handling') or {}
+        miss = [t for t in tiers if t not in dh]
+        if miss:
+            errs.append(f"verdict_scale.{name}.default_handling 缺档位: {miss}")
 
     print(';'.join(errs))
     return 0 if not errs else 2

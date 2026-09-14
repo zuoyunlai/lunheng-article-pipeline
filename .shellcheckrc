@@ -1,16 +1,20 @@
-# ShellCheck 配置（P1-5 修订 2026-09-08）
+# ShellCheck 配置（P1-5 修订 2026-09-08；v2.12.40 修正：exclude= 非合法键 / 去掉 enable=all）
+#
+# v2.12.40 修复（2026-09-14 实测，ShellCheck 0.10.0）：
+#   ① `exclude=` **不是 .shellcheckrc 合法键**（合法键：enable / disable / severity /
+#      shell / source-path / external-sources）——旧写法被 ShellCheck **静默忽略**
+#      （不报 unknown-key 告警），实测 `exclude=SC2034` 下 SC2034 仍报出 ⇒ 豁免是假的。
+#      现统一用 `disable=`（逐条 disable；`disable=SC2034,SC1090` 逗号形式亦支持）。
+#   ② `enable=all` 打开全部**可选/风格**检查，把 1200+ 条 SC2250/SC2292 风格噪声
+#      混进 lint 视图，真问题被淹没。现去掉 enable=all（回到官方默认规则集），
+#      风格噪声改由调用方用 `--severity=` **显式分级**控制（见 Makefile).
 
 # 禁用规则（保留论衡特定风格）
 disable=SC2086  # 双引号包裹变量（论衡脚本部分场景需要词拆分）
-disable=SC2181  # 直接检查命令退出码（论衡使用 || echo 0 模式）
+disable=SC2181  # 直接检查命令退出码（论衡使用 || true / 显式分支模式）
 disable=SC1091  # 无法跟随 source（论衡不依赖外部 source）
-
-# 启用规则
-enable=all
+disable=SC1090  # 无法跟随非常量 source
+disable=SC2034  # 未使用变量（某些变量供调试用）
 
 # Shell 方言
 shell=bash
-
-# 排除文件
-exclude=SC1090  # 无法跟随非常量 source
-exclude=SC2034  # 未使用变量（某些变量供调试用）

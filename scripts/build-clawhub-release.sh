@@ -534,8 +534,18 @@ PYEOF
 # ---- 3g. shell 命令剥离（净化包极简纯净，主人 2026-08-24 拍板）----
 # 把「人类 host shell 验证示例」里的 shell 命令替换为自然语言，删除 bash/sh 代码块，
 # 保留 python 伪代码（算法判定逻辑）。agent 零 exec，靠 read + LLM 推理模拟。
+# v2.12.40（可见性修复，同 3h 口径）：旧实现裸调用 `find ... | xargs python3 strip-shell-commands.py`
+#   ⇒ 子步骤失败时构建只中断、无失败归因、子步骤输出不落幕（同链三步可见性不一致：
+#   strip-internal-leakage / strip-anchor-residue 已用「失败透出末 40 行」模板，本步没有）。
+#   现按**同一模板**包裹，三条剥离子步骤（shell 命令 / 内部痕迹 / 编号锚点）失败可见性一致。
 echo "🔧 剥离 shell 命令（保持极简纯净）..."
-find "$OUT_DIR" -name '*.md' -print0 | xargs -0 python3 "$SCRIPT_DIR/strip-shell-commands.py"
+if ! STRIP_SHELL_OUT="$(find "$OUT_DIR" -name '*.md' -print0 | xargs -0 python3 "$SCRIPT_DIR/strip-shell-commands.py" 2>&1)"; then
+  echo "❌ shell 命令剥离失败：strip-shell-commands.py 退出码非 0" >&2
+  echo "---- 子步骤输出（末 40 行）----" >&2
+  printf '%s\n' "$STRIP_SHELL_OUT" | tail -n 40 >&2
+  echo "------------------------------" >&2
+  exit 1
+fi
 
 # ---- 3h. 净化残留自检（教训 #205 / #213，前置到此处避开 exec timeout）----
 # 注：必须在 SKILL.md 顶部补声明之前，否则该 cat 追加的「使用者发布版」段不会受扫描影响

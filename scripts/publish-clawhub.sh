@@ -96,7 +96,24 @@ fi
 echo "📝 本版 changelog（取自 CHANGELOG.md，共 $(printf '%s\n' "$CHANGELOG_TEXT" | wc -l) 行）："
 printf '%s\n' "$CHANGELOG_TEXT" | sed 's/^/   /'
 
-OUT_DIR="$(cd "$OUT_ROOT/$VERSION" && pwd)"  # 转绝对路径（clawhub publish 不接受相对路径）
+# v2.12.40 修复（死代码，2026-09-14 实测）：旧写法 `OUT_DIR="$(cd "$OUT_ROOT/$VERSION" && pwd)"`
+#   在包目录**不存在**时 cd 失败 → `set -e` 立即 EXIT=1（实测：`cd: ... 没有那个文件或目录`）
+#   ⇒ 紧随其后的「缺失则现场构建」兜底**永不可达**（死代码）。
+#   现口径：先判目录存在性，再取绝对路径；目录缺失时只解析输出根再拼版本目录，
+#   仍保证 OUT_DIR 为绝对路径（clawhub publish 不接受相对路径）。
+if [[ -d "$OUT_ROOT/$VERSION" ]]; then
+  OUT_DIR="$(cd "$OUT_ROOT/$VERSION" && pwd)"
+else
+  if OUT_ROOT_ABS="$(cd "$OUT_ROOT" 2>/dev/null && pwd)"; then
+    :
+  else
+    case "$OUT_ROOT" in
+      /*) OUT_ROOT_ABS="$OUT_ROOT" ;;
+      *)  OUT_ROOT_ABS="$PWD/$OUT_ROOT" ;;
+    esac
+  fi
+  OUT_DIR="$OUT_ROOT_ABS/$VERSION"
+fi
 
 # ---- 1. 净化包存在性（缺则现场构建） ----
 if [[ ! -f "$OUT_DIR/SKILL.md" ]]; then

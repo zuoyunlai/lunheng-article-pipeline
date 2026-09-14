@@ -62,12 +62,27 @@ fi
 # =============================================================================
 # 门 B：10 角色编号在 3 处文档全覆盖（README / SKILL / pipeline-readme）
 # =============================================================================
+# v2.12.40 修复（教训 #150 同族·假绿灯，2026-09-14 实测）：旧写法 `grep -c "$r" f || echo 0`
+#   在**零命中**时 grep -c 仍打印 "0" 且退出码 1 ⇒ 命令替换产出 "0\n0" ⇒
+#   `[ "0\n0" -lt 2 ]` 报「需要整数表达式」并以状态 2 退出（= false）⇒ 该角色**不进入缺失清单**。
+#   后果：三处文档**内容全缺**时门 B 反而 PASS（门 B 假绿灯；同族于门 S/门 T 假绿灯与 #150）。
+#   现口径：`grep -c -- ... || true` 只取标准输出，再用 case 强制「非负整数」，
+#   零命中/非数值一律归一为 0（按「缺内容」处理，而不是当作通过）。
+count_role_hits() {
+  local n
+  n="$(grep -c -- "$1" "$2" 2>/dev/null || true)"
+  case "$n" in
+    ''|*[!0-9]*) n=0 ;;
+  esac
+  printf '%s' "$n"
+}
+
 ROLE_NUMS=("T1" "T2" "T3" "T4" "T5" "T6" "T7" "T8" "T9")
 ROLE_MISSING=""
 for r in "${ROLE_NUMS[@]}"; do
-  IN_README=$(grep -c "$r" README.md 2>/dev/null || echo 0)
-  IN_SKILL=$(grep -c "$r" SKILL.md 2>/dev/null || echo 0)
-  IN_PIPE=$(grep -c "$r" references/pipeline-readme.md 2>/dev/null || echo 0)
+  IN_README=$(count_role_hits "$r" README.md)
+  IN_SKILL=$(count_role_hits "$r" SKILL.md)
+  IN_PIPE=$(count_role_hits "$r" references/pipeline-readme.md)
   if [ "$IN_README" -lt 2 ] || [ "$IN_SKILL" -lt 2 ] || [ "$IN_PIPE" -lt 3 ]; then
     ROLE_MISSING="$ROLE_MISSING $r(README=$IN_README SKILL=$IN_SKILL pipe=$IN_PIPE)"
   fi
@@ -223,6 +238,10 @@ fi
 #   同型于教训 #150「自审工具假绿灯」在记忆层的映射。
 # 说明：主真源不在 skill 仓库内（教训 #143 双视图原则），所以本门是**软门**：
 #   真源不可达时 warn 不 fail（净化包/CI 环境不应因主工作区缺失而挂）。
+#   v2.12.40：新增硬门开关 LUNHENG_REQUIRE_LESSONS_SRC=1 —— 置 1 时「主真源不可达」
+#   升级为**硬失败**。缺省（不设）保持软门语义不变，本地开发不受影响。
+#   动机（2026-09-14 实测）：`LESSONS_SRC=/nonexistent bash self-audit-gate.sh` 仍
+#   `PASS: 25 / FAIL: 0` exit 0 ⇒ CI 的「门 H 通过」只覆盖半条判据（仅反向差集）。
 # =============================================================================
 LESSONS_SRC="${LESSONS_SRC:-$HOME/.openclaw/workspace/memory/lessons.md}"
 LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341 355}"
@@ -287,7 +306,12 @@ if [ -f "$LESSONS_SRC" ]; then
     warn "门 H: 外部真源 #$SRC_MAX > 快照 #$SNAP_MAX —— 若属论衡类，请同步 快照 + 索引 + 排除表"
   fi
 else
-  warn "门 H: 主真源不可达（$LESSONS_SRC）——正向差集未执行（本门覆盖缩小，非全绿）"
+  if [ "${LUNHENG_REQUIRE_LESSONS_SRC:-0}" = "1" ]; then
+    # 硬门：要求正向差集必须真实执行（CI / 发版前置链用）
+    fail "门 H: 主真源不可达" "$LESSONS_SRC —— LUNHENG_REQUIRE_LESSONS_SRC=1 要求正向差集必须执行，缺主真源即硬失败"
+  else
+    warn "门 H: 主真源不可达（$LESSONS_SRC）——正向差集未执行（本门覆盖缩小，非全绿；严格场景请设 LUNHENG_REQUIRE_LESSONS_SRC=1）"
+  fi
 fi
 
 # -----------------------------------------------------------------------------

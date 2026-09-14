@@ -32,7 +32,10 @@ test:
 lint:
 	@command -v shellcheck >/dev/null 2>&1 || { echo "❌ 未找到 shellcheck（Debian/Ubuntu: sudo apt install shellcheck）；缺工具会静默跳过全部 Shell 检查，故此处 fail-loud" >&2; exit 1; }
 	@echo "运行 ShellCheck..."
-	shellcheck scripts/*.sh || true
+	@# v2.12.40 修复（2026-09-14）：去掉 `|| true` —— 旧写法吞掉退出码，使 make lint / make all
+	@#   永不因 ShellCheck 失败（等于没有 lint 门）。风格噪声改由 `--severity=warning` **显式分级**
+	@#   承受（与 .github/workflows/quality.yml 的 `severity: warning` 同口径），而不是吞掉退出码。
+	shellcheck --severity=warning scripts/*.sh
 	@echo ""
 	@echo "检查 Python 语法..."
 	python3 -m py_compile scripts/*.py tests/*.py

@@ -24,6 +24,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r tests/requirements-test.txt
       
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@master
@@ -32,9 +33,12 @@ jobs:
           severity: warning
       
       - name: Run pytest
+        # v2.12.40 修复（2026-09-14）：旧写法 `cd tests` 后再 `--cov=.` ⇒ 覆盖率只统计 tests/ 自身，
+        #   scripts/ 覆盖率恒为 0、报告无信息量；且只装 requirements.txt，漏装 pytest 版本锁定真源。
+        #   现口径：在**仓库根**跑 pytest（testpaths=tests 由 pyproject 提供）且 --cov=scripts；
+        #   两份 requirements 全装（与门 N「两份锁定文件」口径对齐）。
         run: |
-          cd tests
-          pytest -v --tb=short --cov=. --cov-report=term-missing
+          pytest -v --tb=short --cov=scripts --cov-report=term-missing
       
       - name: Run self-audit gate
         run: |
