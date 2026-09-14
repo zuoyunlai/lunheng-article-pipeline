@@ -121,6 +121,9 @@ echo "纯中文字符数 = $CN"
 - **M-Form 形式合规门**（8 项）：见 `M-Gate-Algorithm.md` § M-Form
 - **M-Exist 存在性合规门**（3 项）：见 `M-Gate-Algorithm.md` § M-Exist
 - **M-Integrity 阶段闸门**（2 项）：见 `M-Gate-Algorithm.md` § M-Integrity
+- **可复核判定协议**（双字段 + 证伪证据）：见 `M-Gate-Algorithm.md` § 可复核判定协议——每个门条目必填 `原文值` / `裁定值` / `证伪依据`（不一致时三项缺一 = 视为伪造报告）
+- **判定结果分档**（四档：通过 / 不通过 / 无法判定 / 路径或参数错误）：见 `M-Gate-Algorithm.md` § 判定结果分档——**「路径或参数错误」不得当作 P1 内容问题**
+- **「报告后激活」重跑时序**：见 `M-Gate-Algorithm.md` §「报告后激活」重跑时序——前提为「报告已落盘」的检查项必须在报告落盘后重跑，预跑结果不得当闸门输入
 
 ## F 失败模式交叉引用
 

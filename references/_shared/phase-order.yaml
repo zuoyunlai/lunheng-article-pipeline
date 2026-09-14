@@ -14,6 +14,37 @@
 #   ⑥ 产出 `drafts/初稿-v#.md` 的节点，沿 next/after_each 到达 `t7_audit` 的路径**必须经过 `current_draft_sync`**（v2.12.37 审计 P0-2：Phase 3.7 修订后未刷新 current_draft → T7 审旧稿）；
 #   ⑦ 条件节点未触发的留痕口径与 `on_not_triggered: record_not_triggered_in_status` 一致。
 version: 2.12.39
+
+# ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
+#   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。
+#   关键纪律：`路径或参数错误` 与 `无法判定` 均**不触发内容修订轮**——前者修路径/参数后重跑，
+#   后者补证据或在人环裁决后重跑。把「产物不存在」当内容缺陷会白烧一轮修订。
+verdict_scale:
+  tiers:
+    - id: pass
+      label: 通过
+      blocks_pipeline: false
+      triggers_revision: false
+      action: 放行至下一节点
+    - id: fail
+      label: 不通过
+      blocks_pipeline: true
+      triggers_revision: true
+      action: 触发对应修订（T5/T7 独立写手）或补检索
+    - id: undecidable
+      label: 无法判定
+      blocks_pipeline: true
+      triggers_revision: false
+      action: 补证据或在人环裁决后重跑同一判定
+    - id: path_or_param_error
+      label: 路径或参数错误
+      blocks_pipeline: true
+      triggers_revision: false
+      not_content_defect: true
+      action: 修正路径/参数/前置产物后重跑同一判定；不得当作内容缺陷
+  report_after_rerun_doctrine: >
+    凡 condition 依赖他角色报告、或 mechanical_checkpoint 前置为「相关报告/产物已落盘」者，
+    必须在报告落盘后重跑；主控预跑的结果不得直接当作闸门输入。节点级标注 = rerun_after_report: true。
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline
@@ -41,6 +72,8 @@ pipeline:
     next: phase1_5_targeted_review
   - id: phase1_5_targeted_review
     kind: conditional_review_window
+    verdict_scale: four_tier   # v2.12.40：结论落四档（通过/不通过/无法判定/路径或参数错误），不用退出码
+    rerun_after_report: true   # v2.12.40「报告后激活」：依赖 t2_5_integrity 闸门结果 → 必须在该判定重跑后取数
     input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
     condition: any_listed_trigger_condition_met   # 激活逻辑：下方 trigger_conditions 列表中「任一」命中即触发本复核窗口；全部未命中 → 走 on_not_triggered（v2.12.28 对齐）
     on_not_triggered: record_not_triggered_in_status
@@ -57,6 +90,8 @@ pipeline:
     next: t2_5_integrity
   - id: t2_5_integrity
     kind: mechanical_checkpoint
+    verdict_scale: four_tier   # v2.12.40：结论落四档；「产物不存在」= 路径或参数错误（非内容缺陷、不触发修订）
+    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = data/数据卡.md 已落盘；数据卡被补写后必须重跑
     owner: 主控
     next: t4_analysis
   - id: t4_analysis
@@ -82,6 +117,8 @@ pipeline:
     next: current_draft_sync
   - id: current_draft_sync   # 别名：文档层「Phase 3.6 前置」（非独立 Phase 标签，主控呈现时归入 Phase 3.6）
     kind: mechanical_checkpoint
+    verdict_scale: four_tier   # v2.12.40：结论落四档（本节点最常见失败 = 上游稿不存在 → 路径或参数错误档）
+    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 上游最新稿已在磁盘；上游改写后必须重刷
     owner: 主控
     output: drafts/current_draft.md
     note: 主控亲为（不 spawn）：把**当前权威版本**（v2/v3/修订稿）write 复制为 drafts/current_draft.md，保留 draft_id / draft_version 绑定
@@ -89,6 +126,7 @@ pipeline:
     next: t6_g14
   - id: t6_g14   # 别名：文档层「Phase 3.6」
     kind: parallel_agents
+    verdict_scale: four_tier   # v2.12.40：G14/T6 报告判定落四档，不用退出码
     agents: [T6, G14]
     # G14 显式勾选启用（本修订定案，替代原 language_zh_and_genre_required 条件式）：
     # Phase 0 勾选「启用 G14」→ enabled 必跑（不因语言/体裁自动触发）；未勾选 → not_enabled（默认）；
@@ -110,6 +148,8 @@ pipeline:
   - id: t5_feedback_revision   # 别名：文档层「Phase 3.7」（T6/G14 否决后的预审计修订；本轮修完才进 Phase 4）
     input: drafts/初稿-v{N}.md + analysis/批判报告-v{N}.md + audits/G14-检测报告-v{N}.md
     kind: conditional_agent
+    verdict_scale: four_tier   # v2.12.40：T6/G14 报告判定落四档
+    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 批判报告/G14 报告已落盘；必须在报告写入后重跑判定
     agent: T5
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition: T6_or_G14_requires_revision   # 命中定义：T6 批判报告含任何 P0/P1 否决项，或 G14 判定 5+ 类 Fail（二者皆无 = 不命中）
@@ -125,6 +165,8 @@ pipeline:
     next: audit_revision
   - id: audit_revision   # 别名：文档层「Phase 4.2」
     kind: bounded_loop
+    verdict_scale: four_tier   # v2.12.40：T7 审计报告判定落四档（「本轮无 P0/P1」= 通过，非失败）
+    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 审计报告已落盘；不得沿用审计进行中的中间态
     max_rounds: 2
     input: audits/审计报告-vN.md + drafts/current_draft.md
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
@@ -138,9 +180,12 @@ pipeline:
     next: t7_5_integrity
   - id: t7_5_integrity
     kind: mechanical_checkpoint
+    verdict_scale: four_tier   # v2.12.40：结论落四档；审计报告缺失 = 路径或参数错误（不触发修订）
+    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 审计报告 + 本轮 M 门记录已落盘；不得用预跑/上轮记录
     owner: 主控
     next: phase4_4_figures   # v2.12.28 修：原直连 t9_review → 使 phase4_4_figures 不可达（配图被跳过，实测已致图4/5缺失）
   - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
+    verdict_scale: four_tier   # v2.12.40：图位数拍板与图件核验结论落四档
     input: drafts/current_draft.md + data/数据卡.md（图上数据源）
     kind: owner_agent
     agent: T0
@@ -152,12 +197,15 @@ pipeline:
   - id: final_assembly   # 别名：文档层「Phase 4.4 后置」/ 定稿组装（非独立 Phase 标签，主控呈现时归入 Phase 4）
     input: drafts/current_draft.md + data/数据卡.md
     kind: mechanical_checkpoint
+    verdict_scale: four_tier   # v2.12.40：组装前置核验结论落四档（当前稿不存在 = 路径或参数错误）
+    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 当前权威稿已落盘；上游改写后必须重新组装
     owner: 主控
     output: final/定稿.md
     note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿
     next: t9_review
   - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent
+    verdict_scale: four_tier   # v2.12.40：T9 报告判定落四档
     input: drafts/current_draft.md
     condition: mode_default_or_owner_enabled   # 命中定义：运行模式为多 Agent（默认）且体裁属行业/学术（公众号体裁 = 不命中，除非主人显式开启）
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：T9 关闭时必须留痕
@@ -168,6 +216,8 @@ pipeline:
     output_chars_max: 15000
     next: t8_technical_final
   - id: t8_technical_final
+    verdict_scale: four_tier   # v2.12.40：终检结论落四档（通过/不通过/无法判定/路径或参数错误）
+    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = M-Gate-Report + T9 审稿报告均已落盘；不得用缺位时的推断值
     input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json + audits/审稿报告-vN.md   # v2.12.37 审计 P1-2：T8 需读 T9 报告做「建议分流」，原未声明该输入
     kind: owner_agent
     agent: T8
