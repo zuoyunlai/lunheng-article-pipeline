@@ -5,7 +5,7 @@ metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 从顶层迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName
     # （“Unexpected key(s)”）；metadata 为官方允许键，其下未知子键**官方未定义，加载器忽略**（无官方依据）。读版本的所有脚本已同步支持缩进写法。
-    version: 2.12.39
+    version: 2.12.40
     requires:
       bins: []
   tools:
@@ -25,6 +25,7 @@ metadata:
     # T8 = [] 主控亲完成，不 spawn
   # 不设 cwd_default：OpenClaw 默认 cwd = workspace 根，run/ 必须在 workspace 根下（设 cwd_default 会被解析到 skill 目录内，导致项目跑进 skill 文件夹）
 ---
+> 版本：v2.12.40（自动同步 2026-09-14）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
