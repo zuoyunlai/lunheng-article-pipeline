@@ -1,6 +1,6 @@
 > 版本：v2.12.39（自动同步 2026-09-14）
 
-> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
+> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
 # 执行能力边界（完整版）
 
@@ -10,13 +10,17 @@
 
 **论衡技能的工具边界**：
 
-**主控 documented（`base` + `coordinator_only` + `research_extra` 三档）— 15 项**：
-- read / write / edit（项目文件 I/O）
-- sessions_spawn / sessions_yield / sessions_history（子代理编排）+ subagents（仅看本技能 spawn 的子代理，不枚举宿主可见会话）
-- web_search / web_fetch / tavily_search / tavily_extract（检索，T1-T3 子代理共享，与 allow_research 一致）
-- session_status / progress_card（可观测性）
+**主控 documented（`base` + `coordinator_only` + `research_extra` 三档）**：**清单与计数的唯一真源 = `SKILL.md` frontmatter `metadata.tools`**（本文只作可读展开、**不写死数字** —— 两处计数各自演进必漂移；旧文写死「15 项」而枚举只有 13 项，即此病）：
+- read / write / edit（`base`，项目文件 I/O）
+- sessions_spawn / sessions_yield / sessions_history / sessions_list（`coordinator_only`，子代理编排 + 会话枚举）
+- subagents（`coordinator_only`；仅看本技能 spawn 的子代理，不枚举宿主可见会话）
+- ask_user（`coordinator_only`，向主人追问）
+- web_search / web_fetch / tavily_search / tavily_extract（`research_extra`，检索，T1-T3 子代理共享）
+- session_status / progress_card（`coordinator_only`，可观测性）
 
-**子代理 5 档分级白名单（`metadata.subagent_tiers`）**：
+**子代理 5 档分级白名单（`metadata.subagent_tiers`）**：**档位命名真源 = `SKILL.md` frontmatter 短名**（`research` / `analysis` / `writing` / `audit` / `review`）。
+> 🔤 **命名映射（消除双轨）**：本表与 [`dispatch-header.md`](_shared/dispatch-header.md) 历史上用 `allow_*` 前缀名，与 frontmatter 短名一一对应，**一律以短名为准**：`research`↔`allow_research`、`analysis`↔`allow_analysis`、`writing`↔`allow_writing`、`audit`↔`allow_audit`、`review`↔`allow_review`。**不再新增第三种写法**；下表左列保留 `allow_*` 别名**仅为兼容旧引用**。
+
 | 档位 | 适用角色 | 工具集（最小权限声明） | 凭什么调网络/记忆 |
 |---|---|---|---|
 | `allow_research` | T1/T2/T3 文献/数据/案例检索 | read + write + edit + web_* + tavily_* | 检索是本职 |
@@ -61,7 +65,7 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 40 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；官方 frontmatter 的 `allowed-tools` 只接受**平铺工具白名单**，无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。
+**禁用（`metadata.tools.denied`）— 40 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。
 
 **Workspace 路径收口**：
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树

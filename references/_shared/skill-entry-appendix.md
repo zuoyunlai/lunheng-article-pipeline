@@ -1,9 +1,10 @@
 # SKILL.md 外移附录（入口文档瘦身用）
 
-> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
+> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
-> **用途**：承载从 `SKILL.md` 外移的**长表格与平台参数**，使入口文档回到官方 10,000 字符上限内。
-> **来源**：官方技能审计（2026-09-13）A1 —— `SKILL.md` 11,335 字符 > 官方 Workshop 上限 10,000 字符。
+> **用途**：承载从 `SKILL.md` 外移的**长表格与平台参数**，使入口文档保持在**本技能适用**的体积上限内。
+> **来源**：技能审计（2026-09-13）A1 —— `SKILL.md` 11,335 字符，超过当时套用的 10,000 字符基准，故外移瘦身（该基准的**适用范围订正**见下）。
+> ⚠️ **上限口径订正（消除适用范围泛化，2026-09-14）**：10,000 **字符**上限**只适用于 autonomous proposal 的 `SKILL.md`**（官方 `docs/tools/skill-workshop/reference.md`「Autonomous proposal `SKILL.md` | 10,000 characters」；`docs/tools/skill-workshop/configuration.md`）。**通用上限是 `skills.workshop.maxSkillBytes`（默认 40,000 字节，区间 1024-200000，硬顶 200,000）**（官方 `docs/tools/skills-config.md`；`docs/tools/skill-workshop/reference.md`）。**本技能走 direct maintenance**（agent 直接维护 Workshop 目录），官方明写「**direct maintenance does not use proposal limits**」（`docs/tools/skill-workshop/configuration.md`）—— 故 **10,000 字符不是本技能的上限**；「继续瘦身」应按**可读性与 token 预算**取舍，而非套用 proposal 棘轮基准。
 > **约束**：本文件内容与 `SKILL.md` 为**派生关系**；冲突时以本文件为准（`SKILL.md` 只留指针）。
 
 ---

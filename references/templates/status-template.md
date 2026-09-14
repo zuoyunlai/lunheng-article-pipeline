@@ -1,6 +1,6 @@
 > 版本：v2.12.39（自动同步 2026-09-14）
 
-> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
+> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
 # 项目状态机 — run/<项目名>/status.md
 
@@ -26,7 +26,7 @@
   - 全外发：默认 web_search + tavily_search 检索，主人不投喂一手数据
   - 混合：部分一手（主人投喂 / 限定检索） + 部分 LLM 检索
   - 全人工：所有数据均为主人一手，LLM 不检索
-**G14 状态**: enabled（Phase 0 勾选）/ selfcheck（轻量档）/ exempted_by_owner（已披露）/ not_enabled（未勾选，默认）（Phase 0 判定后全项目不变）
+**G14 状态**: enabled（目标语言含中文，必跑）/ selfcheck（轻量档内置自检）/ exempted_by_owner（主人显式豁免，已披露）/ n/a（纯外语，客观不适用）（按 Phase 0「目标语言」客观判定，全项目不变；位置 = Phase 4.4 前置，定稿前唯一一次）
 **当前稿件**: draft_id=<唯一标识> / draft_version=v1 / 来源=T5
 **审计修订轮**: 0 / 上限=2
 **T8 技术终检**: ⬜ 未完成 / ✅ 完成
@@ -73,7 +73,7 @@
 - **Phase 3.5 洞察补充**: ⬜ Inbox → 🔄 In Progress → ✅ Done（主人确认日期, 洞察内容或「无补充」决策）
 - **T6 批判伙伴**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, C1-C7 报告）
 - **Phase 1.5 定向回查**: ⬜ not_triggered（必须写未触发依据）→ 🔄 triggered → ✅ Done（YYYY-MM-DD HH:MM, T1b 回查报告 + T2.5 重跑）
-- **G14 中文 AI 痕迹闸**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 8 类检测, Pass/Warning/Fail）  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
+- **G14 中文 AI 痕迹闸**（Phase 4.4 前置，定稿前唯一一次）: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 8 类检测, Pass/Warning/Fail；纯外语 → n/a）  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
 - **T7 审计**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 审计报告-vN.md + 反哺报告-vN.md）
 - **修订回环**（≤2 轮）: ⬜ Inbox → 🔄 第 1 轮 → ✅ Done / 🔄 第 2 轮 → ✅ Done / 🔒 Acknowledged Limitations 模式
 - **T7.5 完整性门**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 主控 checkpoint）
@@ -91,7 +91,7 @@
 - [ ] **M-Exist-1**（数据 URL 真实存在）
 - [ ] **M-Exist-2**（证据包完整性校验，教训 #169）
 - [ ] **M-Exist-3**（数据信任级别一致性）
-- [ ] **G14 中文 AI 痕迹闸**（Phase 3.6 触发，与 T6 同批）
+- [ ] **G14 中文 AI 痕迹闸**（Phase 4.4 前置触发，定稿前唯一一次；纯外语 → n/a）
 - [ ] **T2.5 数据完整性门**
 - [ ] **T7.5 审计完整性门**
 
@@ -159,7 +159,7 @@
 当前阶段完成后，下一阶段预计：
 - 触发 T6 批判伙伴（预计 5 分钟内）
 - T5 进入 Phase 3 写作（预计 40 分钟内进入 Phase 4.5）
-- G14 闸门预计 2 分钟内触发
+- G14 闸门（Phase 4.4 前置）在「已可定稿」后触发，全流程仅一次
 
 ▲ 预测仅供主人参考，不作为承诺
 ```
@@ -263,9 +263,10 @@
 
 - 第 1 轮：P0 x / P1 x → 写手修订 → 审计复核：通过/未通过
 - 第 2 轮：P0 x / P1 x → 写手修订 → 审计复核：通过/未通过（仍不过 → 升级主控）
-- **G14 触发记录**：
-  - 第 1 轮 G14 = Warning（3-4 类）→ 主控呈报 3 选 1（默认暂停；选 B 则写手修订 1 轮）
-  - 第 2 轮 G14 = Fail（5+ 类）→ 写手修订 2 轮；第 2 轮仍命中 → 报告主人
+- **G14 触发记录**（Phase 4.4 前置，**全流程仅 1 次、不复检**）：
+  - 判定 = Pass（0-2 类）→ 进 Phase 4.4
+  - 判定 = Warning（3-4 类）→ 主控呈报 3 选 1（默认暂停；选 B 则 `t5_style_revision` 风格修订 1 次）
+  - 判定 = Fail（5+ 类）→ `t5_style_revision`（仅风格层）→ 进 Phase 4.4；**不重跑 G14**
 
 ### 5.8 项目历史记录归档
 

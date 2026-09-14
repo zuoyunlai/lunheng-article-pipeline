@@ -1,6 +1,6 @@
 > 版本：v2.12.39（自动同步 2026-09-14）
 
-> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
+> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
 # 论衡（lunheng-article-pipeline）— 通用深度长文多 Agent 流水线 运行手册
 
@@ -189,9 +189,10 @@ Phase 2 分析       **T4** 分析员 → 分析大纲.md（论点-论据映射 
 Phase 2.5 大纲确认 主人过目大纲 → 确认/修改 + 拍板建议图表（图位数量/类型/数据源）（人在环，改方向成本最低）；主控把关三角验证（[L]+[D]+[C]）
 Phase 3 写作       **T5** 写手 → 初稿-v1.md（禁做清单 + 反方论证 + 字数预算；引用标[Lxx]/数字标[Dxx]/案例标[Cxx]；修订 v2/v3 显式覆盖同路径）
 Phase 3.5 洞察补充 主控呈现初稿 v1 → 主人选择提供洞察或「无补充」（教训 #158）→ 有洞察才由 T5 写手产 v2；两种决策都必须记录（人在环，教训 #263）
-[🔒 **T6** 批判伙伴 v2.2.2 主控 spawn，v2.3.0 改 T8→T6，v2.3.0 引入 Phase 3.6 独立节点]：T5 写手 v2（已含主人洞察）后、T7 审计前，从反方攻击论证（C1-C7）；轻量档（2000-3000 字）**T6 必跳**；产出 analysis/批判报告-vN.md
-Phase 4 审计       **T7** 审计员 → 审计报告（G0覆盖度/G1分级核验/G2溯源/G2.5案例核验/G3逻辑/G4格式/G5规范/G11时效告警/G12信任级别一致性/G13 AI 使用披露/G14 中文 AI 痕迹检测）
+[🔒 **T6** 批判伙伴（`t6_critique`）v2.2.2 主控 spawn，v2.3.0 改 T8→T6，v2.3.0 引入 Phase 3.6 独立节点；**v2.12.40 起 G14 迁出，本节点仅 T6**]：T5 写手 v2（已含主人洞察）后、T7 审计前，从反方攻击论证（C1-C7）；轻量档（2000-3000 字）**T6 必跳**；产出 analysis/批判报告-vN.md
+Phase 4 审计       **T7** 审计员 → 审计报告（**G0-G14 全套**，清单/判据真源 = `_shared/audit-checklist-quickref.md`；G14 已于 v2.12.40 迁出为 Phase 4.4 前置独立闸 `g14_style_gate`）
 Phase 4.2 修订     写手交 修订说明 + 修订稿 → 审计员复核 → 最多 2 轮 → 仍不过升级主控
+[🔒 **Phase 4.4 前置 G14 风格闸（`g14_style_gate`）** v2.12.40]：**定稿前最后一道闸、全流程只审一次**；前提 = 前置修订已收敛「已可定稿」；含中文必跑（纯外语记 `n/a`）；Fail → T5 最后一次风格层修订（`t5_style_revision`）。位置真源 = `_shared/phase-order.yaml`。
 Phase 4.4 配图     仅当 Phase 2.5 拍板有图位：写手已在正文标 [图N] 图位 → 主控 `write` 手写 SVG 生成数据图表（数字与数据卡/[Cxx] 一致，参考 `图表-SVG-template.md`）
 
 > ⚠️ **本全景为派生视图**；**阶段顺序与条件唯一真源 = [`_shared/phase-order.yaml`](_shared/phase-order.yaml)**，与 [`pipeline-overview.md`](_shared/pipeline-overview.md)（同源展开）。冲突以 yaml 为准。
@@ -229,11 +230,9 @@ Phase 4.4 配图     仅当 Phase 2.5 拍板有图位：写手已在正文标 [�
 ```
 
 **为什么必汇报**：T9 评分是**给主人看的**（是否可投稿），不是给 T7 审计员的。主控如只在文件里写、不在对话中呈现 = 主人需手动开文件看 = 人在环节点失效（主人反馈：口腔 AI 实战 T9 评分未在对话中呈现）。
-[🔒 **G14 中文 AI 痕迹闸** v2.4.0 新增，**v2.7.2 时序统一（真源 phase-order.yaml）**]：G14 与 T6 **同批并行**——Phase 3.6 对同一 `current_draft` 同批 spawn T6 + G14，双方报告绑定同一 `draft_id/draft_version`，全部通过后进 T7 审计。历史沿革：v2.4.0 首提「并行」→ v2.5.5 改「串行」（教训 #165）→ v2.6.3 phase-order.yaml 定稿 `t6_g14` 同批并行 → v2.7.2 前文档残留两派表述，现全部统一到真源。修订轮约束不变：
-- Phase 3.6：T6 攻击 v2（论证 C1-C7）∥ G14 检测 v2（8 类 AI 痕迹），对同一 current_draft 同批
-- 修订产生新版本 → 两闸对新版本重新触发
-- **真正可优化**：G14 前移到 Phase 3.6，与 T6 同批 spawn = 真并行，但需重审 T6 攻击对象（现在 v2 没 G14 信号 = T6 可能误判 AI 味 = 仍待修）
-- 0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不默认自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮 → 输出 audits/G14-检测报告-vN.md
+[🔒 **G14 中文 AI 痕迹闸（`g14_style_gate`）** v2.4.0 新增；**v2.12.40 起迁至 Phase 4.4 前置，真源 phase-order.yaml**]：G14 = **定稿前最后一道闸**，**全流程只审一次、不再复检**；触发前提 = 前置修订已收敛「已可定稿」（`audit_revision` 已退出且无未决 P0/P1）。G14 检查后由 T5 做**最后一次**风格层修订（`t5_style_revision`，仅风格层、不得动论证/数据/引用）。适用性由 Phase 0「目标语言」字段**客观决定**：含中文必跑，纯外语记 `n/a`（不再是可选项）。位置/触发真源 = `_shared/phase-order.yaml`；八类判定真源 = `gates/14-中文AI痕迹-gate.md`。
+- **与 T6 解耦**：G14 不再与 T6 同批（历史沿革：v2.4.0 首提「并行」→ v2.5.5 改「串行」（教训 #165）→ v2.6.3 定稿 `t6_g14` 同批 → **v2.12.40 迁出为独立 `g14_style_gate`**）。
+- 判定档位：0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不默认自动修订）/ 5+ 类 Fail → 触发 `t5_style_revision` → 输出 `audits/G14-检测报告-vN.md`
 
 ### AI 味 grep 自抓前移（教训 #164，主人《口腔 AI》反馈）
 
@@ -294,6 +293,8 @@ Phase 5 终检      **T8** 主控终检 → final/定稿.md + 图件/（如有�
 
 7 个模板精简版总大小 8.7KB（vs 完整版 42.6KB），**节省 80%**。主控实战派发时优先用精简版。详见 `templates/README-模板拆分方案.md`。
 
+> **口径**：具体 KB / 节省比例不复述（模板数与体积随内容演进，写死会过时）；需要量化时现场实测（见 `templates/README-模板拆分方案.md` §四）。
+
 ## 设计文档加载策略（节省 89%）
 
 | 场景 | 加载版本 | 原因 |
@@ -314,13 +315,13 @@ Phase 5 终检      **T8** 主控终检 → final/定稿.md + 图件/（如有�
 | 角色 | 派发话术文件 | spawn 时机 |
 |------|------------|-----------|
 | T9 同行评审 | `references/dispatch/T9-同行评审.md` | Phase 4.5（可选）|
-| G14 中文 AI 痕迹检测 | `references/dispatch/G14-中文AI痕迹检测器.md` | Phase 3.6（与 T6 同批并行）|
+| G14 中文 AI 痕迹检测 | `references/dispatch/G14-中文AI痕迹检测器.md` | Phase 4.4 前置（`g14_style_gate`）|
 | T1 文献检索 | `references/dispatch/T1-文献检索.md` | Phase 1（并行①）|
 | T2 数据检索 | `references/dispatch/T2-数据检索.md` | Phase 1（并行②）|
 | T3 案例检索 | `references/dispatch/T3-案例检索.md` | Phase 1（并行③）|
 | T4 分析 | `references/dispatch/T4-分析.md` | Phase 2 |
 | T5 写手 | `references/dispatch/T5-写手.md` | Phase 3 |
-| T6 批判 | `references/dispatch/T6-批判.md` | Phase 3.6（G14 同批）|
+| T6 批判 | `references/dispatch/T6-批判.md` | Phase 3.6（`t6_critique`）|
 | T7 审计 | `references/dispatch/T7-审计.md` | Phase 4 |
 | T8 终检 | `references/dispatch/T8-终检.md` | Phase 5（主控亲完成）|
 

@@ -18,6 +18,8 @@ OpenClaw 提供了**四条机械路径**可把档位真正锁死。
 
 ## 配方 0（首选）：`tools.subagents.tools.deny` — 全局子代理硬拒层
 
+> 🔑 **本条用的是官方真实生效键 `deny`**（`tools.deny` / `tools.subagents.tools.deny`），用途是把 `SKILL.md` frontmatter `metadata.tools.denied` 的**声明机械落地**。⚠️ **`denied`（论衡自定义 `metadata` 子键，仅作声明、加载器不执行）≠ `deny`（官方真实生效键）** —— **一字之差，并列时极易混用；写配置只用 `deny`**。
+
 **官方依据**：`docs/tools/subagents/tool-policy.md`（“Override via config” 节：`deny wins`；该层对所有子代理生效，`allow`/`alsoAllow` 无法覆盖）。**这是成本最低、唯一覆盖所有子代理的机械拒层**——不需要多建 agent，不改主控。
 
 ```json5
