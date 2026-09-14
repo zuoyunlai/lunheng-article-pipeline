@@ -159,7 +159,7 @@ def test_flow_check_detects_missing_producer():
     """反向注入：无生产者的单消费者路径必须被检出（防新规则退化成永真）。"""
     import tempfile
     import os
-    p = pathlib.Path("references/_shared/phase-order.yaml")
+    p = YAML_PATH  # 绝对路径（v2.12.39 修：原相对路径依赖 CWD，属顺序依赖的脆弱测试）
     src = p.read_text(encoding="utf-8")
     # 移除 final_assembly 节点的 output 声明 → 制造 final/定稿.md 无生产者
     bad = src.replace("    output: final/定稿.md\n", "")

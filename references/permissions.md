@@ -1,4 +1,4 @@
-> 版本：v2.12.38（自动同步 2026-09-14）
+> 版本：v2.12.39（自动同步 2026-09-14）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
@@ -10,7 +10,7 @@
 
 **论衡技能的工具边界**：
 
-**主控 documented（`base` + `coordinator_only` + `research_extra` 三档）— 13 项**：
+**主控 documented（`base` + `coordinator_only` + `research_extra` 三档）— 15 项**：
 - read / write / edit（项目文件 I/O）
 - sessions_spawn / sessions_yield / sessions_history（子代理编排）+ subagents（仅看本技能 spawn 的子代理，不枚举宿主可见会话）
 - web_search / web_fetch / tavily_search / tavily_extract（检索，T1-T3 子代理共享，与 allow_research 一致）
@@ -40,12 +40,16 @@
 
 > **论衡的诚实立场**：**不做任何配置，论衡靠第①层运行**（档位=声明，靠 agent 自律 + 「启动自检」可观测）；**想要机械边界，就在第②/③层配置**——那是宿主职责，论衡不读取、不修改、不校验宿主配置。**第①层是"最后一道防线"，不是唯一一道防线。**
 
+> 🔻 **未加固运行时的默认口径（v2.12.39 定案，回应外部审计「声明的最小权限未被默认强制」）**：宿主未配置第②/③层时，论衡**不拒绝启动**（保持「任意配置开箱可用」承诺），但**必须显式披露 + 默认降级**：① Phase 0 告知主人「本次运行仅第①层软约束生效」；② **敏感题材**（未公开研究 / 客户数据 / 受监管材料）**默认降级为单主控模式**（不并行 spawn、跳并行出网、检索工具逐项同意）；③ `status.md` 记 `加固状态: 未加固（降级）`，并进交付说明「遗留风险」。**外部审计建议的「无加固即拒跑」（A 档）已评估并否决**——与「任意配置开箱可用」定位冲突，且 v2.12.32 实测曾致并行层自锁零产物。
+
 **能力自检**：五档白名单**不能被机械强制**（无 `toolsAllow`），因此本修订把它改成「**可观测 + 可阻断**」三件套：
 1. **主控侧（Phase 0 必走）**：核验自身可见工具是否**超出** documented 集；超限项逐条记入 `status.md`「能力自检」段，并在 Phase 0 **向主人披露**（不阻断——主控工具面由宿主决定）。
 2. **子代理侧（每次 spawn 首步）**：按 [`_shared/dispatch-header.md`](_shared/dispatch-header.md)「启动自检」核验自身工具面，**两级判据分开处置**（v2.12.32 修订：**工具面 ≠ 调用**）——**工具面超限 = 警告级**（未加固宿主上属常态：记录 + 披露 + **继续开工**）；**实际调用越权工具 = 阻断级**（停止、不写盘、回报 `capability_excess`）；主控未给裁决 ⇒ 返回 `degraded` 并**继续执行**。
 3. **阻断规则**：主控收到 `capability_excess` → **不采纳该产物**；**实际调用** `exec`/`process`/`browser`/`terminal`/`sessions_*` ⇒ **该档停用**，改走主控亲为或单主控模式；**⚠️ 仅「工具面超限」不触发该档停用**（否则未加固宿主上多 Agent 模式完全不可用 —— v2.12.32 实测 T2/T3 首轮自锁零产物）；**工具面超限 ≠ 调用许可**（超限＝宿主加固缺口，须登记 + 由主控决定加固或降级单主控；配方 → [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）；主控裁决「⚖️ 报告 + 自律继续」为**显式旁路——只放行「继续干活」，不放行任何越权工具调用**，子代理不得据此中止；全部记入 status.md 并告知主人。
 
 > **诚实边界**：本自检**不改变权限**（skill 不读不改宿主配置），只让越权可被观测、可被阻断，**不能替代宿主侧加固**。
+
+> 📊 **数据图表 SVG 能力不受影响（v2.12.39 说明）**：图件由主控用 `write` **本地手写矢量图**（零外发、不依赖任何视觉/生成工具）；校验走「SVG XML/结构检查 + 嵌入文本孤儿检查（T8）+ 主人目视」。本轮移除 `view_image` 仅取消「主控自查渲染截图」这一**可选**路径，**数据图表生成能力完整保留**。
 
 **Opt-in（默认禁止，Phase 0 主人明确同意才解锁，`metadata.tools.opt_in`）**：
 - `image_generate` — 封面生成专用，**默认关闭**，主控在 Phase 0 问「是否需要生成封面」答「是」才开
@@ -57,7 +61,7 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 39 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；官方 frontmatter 的 `allowed-tools` 只接受**平铺工具白名单**，无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。
+**禁用（`metadata.tools.denied`）— 40 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；官方 frontmatter 的 `allowed-tools` 只接受**平铺工具白名单**，无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。
 
 **Workspace 路径收口**：
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树

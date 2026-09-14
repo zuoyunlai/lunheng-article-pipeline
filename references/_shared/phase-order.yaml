@@ -13,7 +13,7 @@
 #   ⑤ 声明 `condition` 的节点必须给出未触发处置（`on_not_triggered` / `degrade` / `decisions` 三者其一），防「未触发」与「漏跑」不可分；
 #   ⑥ 产出 `drafts/初稿-v#.md` 的节点，沿 next/after_each 到达 `t7_audit` 的路径**必须经过 `current_draft_sync`**（v2.12.37 审计 P0-2：Phase 3.7 修订后未刷新 current_draft → T7 审旧稿）；
 #   ⑦ 条件节点未触发的留痕口径与 `on_not_triggered: record_not_triggered_in_status` 一致。
-version: 2.12.38
+version: 2.12.39
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline

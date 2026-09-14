@@ -41,12 +41,13 @@ echo
 # 合法能力集
 test_case "T1 valid capabilities" T1 read web_search tavily_search 0
 test_case "T5 writer capabilities" T5 read write edit ask_user 0
-test_case "T6 critic capabilities" T6 read ov_search view_image 0
+test_case "T6 critic capabilities" T6 read ov_search ask_user 0
 test_case "T7 auditor capabilities" T7 read ov_read ask_user 0
 test_case "T8 final check minimal" T8 read 0
 
 # 禁用能力
 test_case "T1 forbidden exec" T1 read exec 1
+test_case "T6 forbidden view_image (v2.12.39)" T6 read view_image 1
 test_case "T5 forbidden process" T5 write process 1
 test_case "T6 forbidden terminal" T6 read terminal 1
 test_case "T7 forbidden secrets" T7 read secrets 1

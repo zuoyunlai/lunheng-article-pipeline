@@ -12,6 +12,35 @@
 
 ---
 
+## [v2.12.39] — 2026-09-14
+
+> **主题：拆分发布（主人裁决）—— 只承载三条裁决 + 4 类口径修缺；原并入的 P0-P2 整套（机械门 / 字数下限 / 编号制式）+ 17 条新测试推迟到 v2.12.40 独立发版。**
+> **性质：合规整改（审计发现消解）+ 口径订正。无新功能。**
+
+### 一、主人三条裁决落地
+
+- **T05 治本路径 = B 档**（未加固时**披露 + 默认降级单主控**，**不拒跑**）：`SKILL.md` §权限边界 / `references/permissions.md` / `references/_shared/host-hardening-recipe.md`。A 档「无加固即拒跑」已评估并否决（与「任意配置开箱可用」定位冲突，实测曾致并行层自锁）。
+- **移除 `view_image`**（回应扫描器「Context-Inappropriate Capability」）：`coordinator_only` 9→8、`denied` 39→40；**数据图表 SVG 生成能力完整保留**（主控 `write` 本地手写矢量图，零外发）。
+- **遥测分级**（回应「Ssd 3 运行期遥测留存」）：`status.md` 保留（可观测性与失稳定位必需）；`final/交付说明.md` **剥离宿主余额 / 模型可用性探测 / session id · sessionKey**。
+
+### 二、口径修缺（4 类，接手时发现）
+
+- `tests/test_external_audit_fixes.py`：denied 计数断言 39→40 + `AUDIT_NAMED` 补 `view_image`。
+- `references/permissions.md` 工具数 `13 项` → `15 项`（三档 3+8+4；原值为 v2.12.38 引入 `view_image` 前遗留的 stale 计数）。
+- `references/deliverables.md` 定稿文末白名单：补**前缀匹配**口径（容忍 `## 参考文献（…）` 后缀）+ `## 辅证文献` 等同源标题**归并入 `## 先行者文献`** 后重跑 M-Form-7。
+- `tests/test_flow_check.py`：反向注入样本的相对路径改绝对（消隐式 CWD 顺序依赖的脆弱测试）。
+
+### 三、拆版说明（为何本版偏小）
+
+原方案把 20 项 P0-P2（M-Form-7/8/9 枚举式断言 / `scripts/m-gate-assert.sh` / 字数下限 / 文末编号制式 / 分段回传 / 首步工具自检 / 非顶配档失败 SOP / taskName 规则 …）与三裁决混在一版（32 文件 / 250 测试）；主人裁决**拆版**——本版 16 文件 / 232 测试，P0-P2 独立 v2.12.40。**一次发版只承载一类变更**（教训 #369 同型）。
+
+### 验收
+
+- 自审门 **26 PASS / 0 FAIL** ｜ pytest **232 passed**（1 项失败 = `test_host_class_numbers_excluded_from_advisory`，属 **v2.12.38 门 H hermetic 改造后遗留**，非本版引入）｜ link-check **366 条** ｜ `capability-assert --selfcheck` **denied 40 / allowed 25 / 零交集** ｜ 官方 `quick_validate` **valid** ｜ `SKILL.md` **9,986 字符**
+- 扫描期望：`Context-Inappropriate Capability`（`view_image`）与 `Ssd 3`（遥测留存）应消解或降档。
+
+---
+
 ## [v2.12.38] — 2026-09-14
 
 > **主题：三源整合修订 —— ClawHub v2.12.37 扫描真问题（AIG T05/T09 + SkillSpector SDI-4 HIGH×2）+ 实战报告核实采纳项 + 权限清单完备性。**

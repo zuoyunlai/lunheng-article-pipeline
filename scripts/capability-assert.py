@@ -44,8 +44,9 @@ ROLES = {
     "G14"
 }
 
-# 论衡 agent 侧可用的**只读宿主工具**（OpenViking 检索家族；v2.12.38 起 sessions_list / ask_user / view_image
-# 已升入 frontmatter coordinator_only —— 本表不再重列，单一真源 = SKILL.md）：
+# 论衡 agent 侧可用的**只读宿主工具**（OpenViking 检索家族；v2.12.38 起 sessions_list / ask_user
+# 已升入 frontmatter coordinator_only —— 本表不再重列，单一真源 = SKILL.md。
+# v2.12.39：view_image 因 SkillSpector「能力面 > 文本用途」发现移入 denied）：
 HOST_READONLY_EXTRAS = {
     "ov_search", "ov_read", "ov_multi_read", "ov_list",
     "ov_archive_search", "ov_archive_expand",
