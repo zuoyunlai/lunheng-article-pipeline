@@ -588,9 +588,27 @@ fi
 
 # ---- 4b. 内部痕迹清理（教训 #296：主控侧运维痕迹不对技能用户开放）----
 # 两步：① 剥「教训 #N」字面 / 文件名引用 / 本地路径 / 真源仓库；② 清剥离后残留的裸编号锚点。
+#
+# v2.12.40（可见性修复）：旧实现两步都 `>/dev/null`，而 strip-internal-leakage.sh 的**唯一**
+#   失败信号（WARNING + 残留行清单）走 stdout ⇒ 2026-09-14 实测 `build 2.12.39` 首次 EXIT=1 时
+#   终末只剩「🧹 清理内部痕迹（教训 #296）...」一行、零错误信息，排障被迫手动单跑脚本复现。
+#   现改为：成功仍安静（不污染构建日志），**失败则把子步骤输出末 40 行透出**再退。
+#   同型规则：任何「子步骤失败即决定构建成败」的调用都不得吞掉子步骤输出。
 echo "🧹 清理内部痕迹（教训 #296）..." >&2
-bash "$SCRIPT_DIR/strip-internal-leakage.sh" "$OUT_DIR" >/dev/null
-python3 "$SCRIPT_DIR/strip-anchor-residue.py" "$OUT_DIR" >/dev/null
+if ! STRIP_LEAK_OUT="$(bash "$SCRIPT_DIR/strip-internal-leakage.sh" "$OUT_DIR" 2>&1)"; then
+  echo "❌ 内部痕迹剥离失败：strip-internal-leakage.sh 退出码非 0" >&2
+  echo "---- 子步骤输出（末 40 行）----" >&2
+  printf '%s\n' "$STRIP_LEAK_OUT" | tail -n 40 >&2
+  echo "------------------------------" >&2
+  exit 1
+fi
+if ! STRIP_ANCHOR_OUT="$(python3 "$SCRIPT_DIR/strip-anchor-residue.py" "$OUT_DIR" 2>&1)"; then
+  echo "❌ 编号锚点残留清理失败：strip-anchor-residue.py 退出码非 0" >&2
+  echo "---- 子步骤输出（末 40 行）----" >&2
+  printf '%s\n' "$STRIP_ANCHOR_OUT" | tail -n 40 >&2
+  echo "------------------------------" >&2
+  exit 1
+fi
 
 # ---- 4b'. 正向完整性校验（v2.12.30 新增，回应第三方审计 P1-1）----
 # 与 4b 的负向残留扫描互补：这里回答的是「净化有没有**多删**」—— 文件仍在、非空、

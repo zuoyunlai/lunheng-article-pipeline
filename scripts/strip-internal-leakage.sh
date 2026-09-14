@@ -7,10 +7,19 @@
 set -euo pipefail
 
 # 默认 = 最新版本目录（独立复查指出：原默认字面量 `latest` 不存在 ⇒ 默认调用必报 not found）
+# v2.12.40（同族修复：静默失败）：旧写法**无条件**跑 `ls "$_OCR" | grep | sort | tail`，
+#   配合 `set -euo pipefail`，默认根不存在时（如调用方设了 OUTPUTS_ROOT、而 build 与 strip
+#   对 OUTPUTS_ROOT 的语义不一致）会在**打出任何字之前** exit 1 —— 调用方只看得到「失败」、
+#   看不到任何原因（与 build 侧 `>/dev/null` 同族）。现改为：**仅在未传参时**探测默认目录，
+#   且探测管道失败不致命（显式传目录的调用不再被无关路径探测拖死）。
 _OCR="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}/clawhub-release"
-_LATEST_V=$(ls -1 "$_OCR" 2>/dev/null | grep -E '^[0-9]+(\.[0-9]+){2}$' | sort -V | tail -1)
-PKG_DIR="${1:-${_LATEST_V:+$_OCR/$_LATEST_V}}"
-PKG_DIR="${PKG_DIR:-$_OCR/latest}"
+if [ "$#" -ge 1 ] && [ -n "$1" ]; then
+  PKG_DIR="$1"
+else
+  _LATEST_V=$( { ls -1 "$_OCR" 2>/dev/null || true; } | grep -E '^[0-9]+(\.[0-9]+){2}$' | sort -V | tail -1 || true)
+  PKG_DIR="${_LATEST_V:+$_OCR/$_LATEST_V}"
+  PKG_DIR="${PKG_DIR:-$_OCR/latest}"
+fi
 
 if [ ! -d "$PKG_DIR" ]; then
   echo "ERROR: pkg dir not found: $PKG_DIR"
@@ -150,6 +159,20 @@ for line in lines:
     line = re.sub(r'(?<![a-zA-Z0-9_])教训 #\d+(?:\.\d+)?[：:][^*\n]{0,800}?(?=\n|。|$)', '', line)
     # 形态 3c: `, 教训 #N）` 后跟右括号
     line = re.sub(r'[，,；;]\s*教训 #\d+(?:\.\d+)?\s*(?=[）)\]]|$)', '', line)
+
+    # 形态 13（v2.12.40 新增，教训 #N「分隔符夹持」变体）：
+    #   旧前瞻类只含 `，。、！？）]` 与行尾 ⇒ 引用后随**全角分号 `；`／全角冒号 `：`／顿号 `、`**
+    #   时整条漏网。实测受害者：`references/templates/任务简报-template.md` 的
+    #   `（含 AI 使用声明/致谢），教训 #277；口径真源 = ...`
+    #   ⇒ v2.12.38 净化包内残留（长期缺口，非该版引入），残留门 fail-closed 阻断整次构建。
+    #   语义：删除「前导分隔符 + 教训 #N」，**保留后随分隔符**（不新造标点、不吞句意）；
+    #   前瞻含汉字/空白，覆盖 `；教训 #N 的写法` 这类「删到句读为止」的变体。
+    line = re.sub(
+        r'[，,、；;：:]\s*教训 #\d+(?:\.\d+)?\s*(?=[，,、；;：:。.！!？?）)\]】」』\s\u4e00-\u9fff]|$)',
+        '', line)
+    # 形态 13b: 无前导分隔符（起句 / 紧贴汉字）时，删 token + 后随分隔符
+    line = re.sub(r'教训 #\d+(?:\.\d+)?\s*[，,、；;：:]', '', line)
+
     # 形态 3f: `教训 #N**）` 编号后紧跟加粗结束 + 括号
     line = re.sub(r'教训 #\d+(?:\.\d+)?\*\*\s*[）)]', '）', line)
     line = re.sub(r'教训 #\d+(?:\.\d+)?\*\*', '', line)

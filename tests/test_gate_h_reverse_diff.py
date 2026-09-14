@@ -164,10 +164,19 @@ def test_no_false_positive_when_exclude_table_leads_source(tmp_path):
 
 # ---------------- ④ 排除表：宿主/通用类编号不计入最大告警编号 ----------------
 
+@requires_real_src
 def test_host_class_numbers_excluded_from_advisory(tmp_path):
-    """#340/#341/#355 宿主类不计入 SRC_MAX，告警行不出现这些编号。"""
-    base = REAL_SRC if REAL_SRC.is_file() else pathlib.Path("/dev/null")
-    base_text = base.read_text(encoding="utf-8") if base != pathlib.Path("/dev/null") else ""
+    """#340/#341/#355 宿主类不计入 SRC_MAX，告警行不出现这些编号。
+
+    2026-09-14 去环境耦合修订：旧实现「主真源全文 + 合成条目」却断言告警行点名 #342 ——
+    但告警行**只点 SRC_MAX（最大非排除编号）**，主真源持续增长（实测已到 #365）后该断言
+    必然为红，属环境漂移型假红。
+    现改为：仍以主真源为基（仓库引用的编号必须都有定义，否则会触发门 H 的另一条检查
+    「教训编号引用在主真源缺定义」），但用排除表把 **> 342 的全部编号**排除，使 SRC_MAX
+    恒为 #342；快照显式压低到 300，令参照告警必响且**只能**点 #342。
+    断言意图（宿主类不进 SRC_MAX）原样保留，判据不再依赖真源当前最大编号。
+    """
+    base_text = REAL_SRC.read_text(encoding="utf-8")
     probe = tmp_path / "lessons.md"
     probe.write_text(
         base_text
@@ -176,11 +185,16 @@ def test_host_class_numbers_excluded_from_advisory(tmp_path):
         "## #355 宿主/通用类样本三\n"
         "## #342 论衡类样本（标题不含「论衡」字样）\n",
         encoding="utf-8")
-    r, out = _run_gate(probe)
-    if not REAL_SRC.is_file():
-        pytest.skip("主真源不可达")
+    high = sorted({n for n in _src_numbers(base_text) if n > 342})
+    exclude = " ".join(["340", "341", "355"] + [str(n) for n in high])
+    low_snap = tmp_path / "snapshot-low"
+    low_snap.write_text("300\n", encoding="utf-8")
+    r, out = _run_gate(probe, {"LUNHENG_LESSON_EXCLUDE": exclude,
+                               "LESSONS_SNAPSHOT": str(low_snap)})
     assert r.returncode == 0, f"宿主类排除应放行：\n{out}"
-    for line in _advisory_lines(out):
+    advisories = _advisory_lines(out)
+    assert advisories, f"SRC_MAX 342 > 快照 300，应产生参照告警：\n{out}"
+    for line in advisories:
         for n in (340, 341, 355):
             assert f"#{n}" not in line, f"宿主类 #{n} 不应出现在告警中：{line}"
         assert "#342" in line, f"#342 应被计入：{line}"

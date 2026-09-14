@@ -720,6 +720,19 @@ PROBE_N=999
 python3 "$SKILL_ROOT/scripts/strip-anchor-residue.py" "$PROBE_DIR/probe" >/dev/null 2>&1
 python3 "$SKILL_ROOT/scripts/strip-shell-commands.py" "$PROBE_DIR/probe/probe.md" >/dev/null 2>&1
 PROBE_OUT=$(cat "$PROBE_DIR/probe/probe.md" 2>/dev/null)
+
+# v2.12.40 新增探针（分隔符夹持引用）：`（…），教训 #N；…` 必须被剥除且正文仍可读。
+#   背景：2026-09-14 实测 `build-clawhub-release.sh 2.12.39` 首次 EXIT=1，真因是净化包内
+#   `references/templates/任务简报-template.md` 的 `，教训 #277；口径真源 = …` 未被剥除
+#   （长期缺口，v2.12.38 包内同样残留）。本探针把该形态钉进门 P，禁止回退。
+#   注：单独目录 + 只跑剥离脚本——不得与上面 probe.md 的链混跑，否则
+#   `（教训 #N）` 会被提前改写成 `（见相关算法）`，「空括号残留清除」覆盖失效（教训 #300 回归面）。
+mkdir -p "$PROBE_DIR/leak"
+printf '%s\n' '（含 AI 使用声明/致谢），教训 #'"${PROBE_N}"'；口径真源 = 字数判定表.md' \
+  > "$PROBE_DIR/leak/leak-delim.md"
+bash "$SKILL_ROOT/scripts/strip-internal-leakage.sh" "$PROBE_DIR/leak" >/dev/null 2>&1 || true
+LEAK_OUT=$(cat "$PROBE_DIR/leak/leak-delim.md" 2>/dev/null)
+
 rm -rf "$PROBE_DIR"
 GATE_P_FAIL=""
 for probe_tok in '.resolve()' 'c.strip()' 'values()' 'time.now()'; do
@@ -731,8 +744,15 @@ done
 case "$PROBE_OUT" in
   *"status.md（）"*) GATE_P_FAIL="$GATE_P_FAIL [锚点残留空括号未清]" ;;
 esac
+case "$LEAK_OUT" in
+  *"教训 #"*) GATE_P_FAIL="$GATE_P_FAIL [分隔符夹持引用未剥除]" ;;
+esac
+case "$LEAK_OUT" in
+  *"口径真源"*) ;;
+  *) GATE_P_FAIL="$GATE_P_FAIL [分隔符剥除误伤正文]" ;;
+esac
 if [ -z "$GATE_P_FAIL" ]; then
-  pass "门 P: 净化链代码保真（括号存活 + 残留清除）"
+  pass "门 P: 净化链代码保真（括号存活 + 残留清除 + 分隔符夹持剥除）"
 else
   fail "门 P: 净化链损伤代码或残留未清" "$GATE_P_FAIL"
 fi
