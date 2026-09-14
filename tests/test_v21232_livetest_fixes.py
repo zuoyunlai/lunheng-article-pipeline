@@ -124,29 +124,29 @@ def test_p0_2_brief_template_requires_selfcheck():
 
 
 # =============================================================================
-# P1-1 G14 复检收敛判据
+# P1-1 G14 触发次数（v2.12.40 业主定案 A1：原「复检收敛判据」整体作废，只审一次）
 # =============================================================================
-def test_p1_1_g14_convergence_rules():
-    """4 条收敛规则：绑定交付版本 / 条件跳过 / 收敛停 / 硬上限"""
+def test_p1_1_g14_single_pass_doctrine():
+    """G14 全流程只审一次、不再复检；旧「复检收敛判据」作废须留痕"""
     g = read(G14)
-    assert "复检收敛判据" in g, "G14 闸缺复检收敛判据"
-    assert "判定绑定交付版本" in g, "缺硬原则：判定必须绑定交付版本"
-    assert "skipped_no_new_prose" in g, "缺「仅删不新增 → 跳过复检」标记"
-    assert "连续两次同判定且无新增命中项" in g, "缺收敛停条件"
-    assert re.search(r"G14 重跑次数 ≤ 修订轮数 \+ 1", g), "缺硬上限"
+    assert "全流程只审一次" in g, "缺「只审一次」口径"
+    assert "不再复检" in g, "缺「不再复检」口径"
+    assert "复检收敛判据" in g and "作废" in g, "旧判据作废须留痕（防无解释删除）"
 
 
-def test_p1_1_phase_order_references_convergence():
-    """phase-order.yaml 的 after_each 须指针到收敛判据"""
+def test_p1_1_phase_order_pins_single_run():
+    """真源须钉死只审一次：g14_style_gate.rerun_after_report: false；删 rerun_g14_if_enabled 须留痕"""
     p = read(PHASE_ORDER)
-    assert "复检收敛" in p or "收敛判据" in p, "phase-order 缺收敛判据指针"
-    assert "g14_rerun: skipped_no_new_prose" in p
+    assert "rerun_after_report: false" in p, "缺 rerun_after_report: false（只审一次的真源键）"
+    assert "rerun_g14_if_enabled" in p and "已删" in p, "删除 rerun_g14_if_enabled 须留痕"
+    assert "g14_rerun:" not in p, "旧逐轮复检键 g14_rerun 残留"
 
 
 def test_p1_1_no_polling_style_growth():
-    """G14 收敛不得写成「无限重跑」口径"""
+    """G14 触发次数硬上限 = 1 次，且位置钉死在 T7.5 之后（防回到「无限重跑」口径）"""
     g = read(G14)
-    assert "不得无界增长" in g
+    assert "只审一次" in g, "缺触发次数硬上限（=1）"
+    assert "t7_5_integrity → g14_style_gate → phase4_4_figures" in g, "缺唯一触发位置链"
 
 
 # =============================================================================

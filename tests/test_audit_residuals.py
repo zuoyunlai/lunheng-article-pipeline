@@ -87,9 +87,10 @@ def test_readme_prose_version_matches_frontmatter():
 
 
 def test_yaml_declares_t6_lite_tier_rule():
-    """P1-5 真源缺口：t6_g14 须声明 T6 的轻量档规则（原仅声明 G14 → 各文件三种读法）"""
+    """P1-5 真源缺口：T6 轻量档跳过规则须在真源声明（v2.12.40 统一为标准键 degrade）"""
     t = YAML.read_text(encoding="utf-8")
-    assert "t6_degrade: skip_in_lite_tier" in t, "phase-order.yaml 未声明 t6_degrade（轻量档 T6 必跳）"
+    assert "degrade: skip_in_lite_tier" in t, "phase-order.yaml 未声明 degrade（轻量档 T6 必跳）"
+    assert "t6_degrade:" not in t, "旧键名 t6_degrade 残留（v2.12.40 已标准化为 degrade）"
 
 
 def test_checkpoint_card_phase2_5_three_states():

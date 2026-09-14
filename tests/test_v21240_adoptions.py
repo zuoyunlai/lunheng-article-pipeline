@@ -57,23 +57,31 @@ def _node(pid):
 # ① + ② 判定口径真源：四档定义（phase-order.yaml 为节点级真源）
 # =============================================================================
 def test_verdict_scale_has_exactly_four_tiers():
-    """四档判定：恰好 4 档、标签与 id 一一对应（不得自创第五档）"""
+    """四档判定：恰好 4 档、标签与 id 一一对应（不得自创第五档）；名称→定义两层结构（P0-1 接线）"""
     vs = _pipeline()["verdict_scale"]
-    tiers = vs["tiers"]
+    assert "four_tier" in vs, "verdict_scale 缺 four_tier 名称定义（P0-1 接线回退为一层结构）"
+    tiers = vs["four_tier"]["tiers"]
     assert len(tiers) == 4, f"档位数应为 4，实为 {len(tiers)}"
     got = {t["id"]: t["label"] for t in tiers}
     assert got == TIER_LABELS, f"档位 id/label 漂移: {got}"
 
 
 def test_verdict_scale_flags_match_doctrine():
-    """分档的处置语义：只有「不通过」触发修订；路径/参数错误是「非内容缺陷」"""
-    by_id = {t["id"]: t for t in _pipeline()["verdict_scale"]["tiers"]}
+    """分档的处置语义：只有「不通过」触发修订；路径/参数错误是「非内容缺陷」；默认处置禁 fail-open"""
+    four = _pipeline()["verdict_scale"]["four_tier"]
+    by_id = {t["id"]: t for t in four["tiers"]}
     assert by_id["pass"]["blocks_pipeline"] is False
     assert by_id["fail"]["triggers_revision"] is True
     for tid in ("undecidable", "path_or_param_error"):
         assert by_id[tid]["triggers_revision"] is False, f"{tid} 不得触发内容修订轮"
         assert by_id[tid]["blocks_pipeline"] is True, f"{tid} 必须阻断（fail-closed）"
     assert by_id["path_or_param_error"]["not_content_defect"] is True
+    dh = four.get("default_handling", {})
+    assert set(dh) == {"pass", "fail", "undecidable", "path_or_param_error"}, \
+        f"default_handling 四档必须全覆盖: {sorted(dh)}"
+    assert dh.get("pass") == "continue_to_next"
+    for tid in ("fail", "undecidable", "path_or_param_error"):
+        assert dh.get(tid) != "continue_to_next", f"{tid} 默认处置 fail-open 放行"
 
 
 def _classify(signals, tiers):
@@ -89,7 +97,7 @@ def _classify(signals, tiers):
 
 def test_positive_sample_path_error_does_not_trigger_revision():
     """正向/必中样本（教训 #334）：产物不存在 = 路径或参数错误档，**应当放行**修订轮"""
-    by_id = {t["id"]: t for t in _pipeline()["verdict_scale"]["tiers"]}
+    by_id = {t["id"]: t for t in _pipeline()["verdict_scale"]["four_tier"]["tiers"]}
 
     # 样本 1：定稿不存在 → 路径或参数错误（不是「不通过」）
     tier = _classify({"target_exists": False}, by_id)

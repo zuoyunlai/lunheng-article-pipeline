@@ -54,11 +54,13 @@ def test_duplicate_key_detection_actually_works():
 
 
 def test_t6_g14_output_keeps_both_products():
-    """P0-2 回归：t6_g14.output 必须同时保留 T6 与 G14 两个产物路径"""
-    out = _node("t6_g14")["output"]
-    assert isinstance(out, dict), f"t6_g14.output 应为角色→路径映射，实为 {type(out)}"
-    assert set(out) == {"T6", "G14"}, f"t6_g14.output 键异常: {sorted(out)}"
-    assert out["G14"].startswith("audits/"), f"G14 报告路径丢失: {out['G14']}"
+    """P0-2 回归（v2.12.40 A1 迁移后）：T6 / G14 产物路径分由 t6_critique / g14_style_gate 声明"""
+    ids = {n["id"] for n in _pipeline()["pipeline"]}
+    assert "t6_g14" not in ids, "旧合并节点 t6_g14 复活（A1 已拆为 t6_critique + g14_style_gate）"
+    t6 = str(_node("t6_critique").get("output", ""))
+    assert t6.startswith("analysis/"), f"T6 批判报告路径丢失: {t6}"
+    g14 = str(_node("g14_style_gate").get("output", ""))
+    assert g14.startswith("audits/"), f"G14 检测报告路径丢失: {g14}"
 
 
 def test_current_draft_has_producer():
