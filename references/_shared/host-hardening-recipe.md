@@ -12,7 +12,35 @@
 
 论衡的五档白名单（research / analysis / writing / audit / review）是**声明/部署建议**——因为 `sessions_spawn` **没有** `toolsAllow` 参数（子代理实际工具面由平台剥除 + 主控策略快照 + 宿主配置共同决定）。因此**默认情况下档位靠提示词自律**。
 
-OpenClaw 提供了**三条机械路径**可把档位真正锁死。
+OpenClaw 提供了**四条机械路径**可把档位真正锁死。
+
+## 配方 0（首选）：`tools.subagents.tools.deny` — 全局子代理硬拒层
+
+**官方依据**：`docs/tools/subagents/tool-policy.md`（“Override via config” 节：`deny wins`；该层对所有子代理生效，`allow`/`alsoAllow` 无法覆盖）。**这是成本最低、唯一覆盖所有子代理的机械拒层**——不需要多建 agent，不改主控。
+
+```json5
+{
+  tools: {
+    subagents: {
+      tools: {
+        // deny 优先：子代理永远拿不到这些工具（无论主控策略快照含什么）
+        deny: ["exec", "process", "code_execution", "terminal", "computer",
+               "nodes", "browser", "screen", "secrets", "gateway",
+               "automations", "cron", "message", "mobile_ui",
+               "sessions_spawn", "subagents", "sessions_list", "sessions_history",
+               "conversations_send", "conversations_turn",
+               "memory_store", "memory_forget", "skill_workshop"],
+        // 可选：设 allow 后子代理变 allow-only（deny 仍赢）。逐项列举，勿用通配符
+        // allow: ["read", "write", "edit", "web_search", "web_fetch", "tavily_search", "tavily_extract"]
+      },
+    },
+  },
+}
+```
+
+> **效果**：子代理工具面**机械剥除**执行/进程/终端/设备/浏览器/凭据/控制面/消息/记忆写入/递归编排 —— 论衡「零 exec + 叶子纪律」从提示词升级为**平台硬拒**。主控不受影响（此层只管子代理）。
+> **代价**：若宿主其他 skill 需要子代理用 exec，也会被拒（可按 agent 分别配置或收紧 deny 列表）。
+> **注意**：`deny` 列表用**真实工具 id**；`group:*` 简写也可用（如 `group:runtime` = exec/process/code_execution），但会连带同组全部成员，逐项列举更精确。
 
 ## 二、配方 1：叶子纪律 → 机械强制（`maxSpawnDepth`）
 

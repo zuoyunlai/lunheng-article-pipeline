@@ -12,6 +12,63 @@
 
 ---
 
+## [v2.12.38] — 2026-09-14
+
+> **主题：三源整合修订 —— ClawHub v2.12.37 扫描真问题（AIG T05/T09 + SkillSpector SDI-4 HIGH×2）+ 实战报告核实采纳项 + 权限清单完备性。**
+> **性质：安全边界收敛 + 流程确定性修复，无新功能、无破坏性行为变更。**
+
+### 一、🔴 权限清单完备性（denied 27 → 39 + 白名单逐项化）
+
+- **`denied` 扩至 39 项**（+12）：`screen` / `canvas` / `show_widget` / `agents_list` / `get_goal` / `create_goal` / `update_goal` / `suggest_task` / `dismiss_task` / `heartbeat_respond` / `x_search` / `pdf`。
+- **`coordinator_only` 扩至 9 项**（+`sessions_list` / `ask_user` / `view_image`，原在 `capability-assert.py` HOST_READONLY 暗补，升入 frontmatter 真源）。
+- **主控卡通配白名单逐项化**（回应 AIG T09）：`memory_*` / `sessions_*` / `ov_*` 通配符族 → 26 个逐项工具 id；通配写法禁止再入安全授权文本。
+- 计数锚点 7 处同步（主控卡 / glossary-full / pipeline-readme / README / dispatch-header / permissions.md / 测试断言）。
+
+### 二、🔴 超时/失败处置状态机（SkillSpector SDI-4 HIGH×2 修复）
+
+- `00-主控-扩展职责.md`「不通过处理」散文重写为**六情形状态机表**（判定标记 / 唯一处置 / 可否重试）。
+- **唯一仲裁原则：人在环检查点 > 一切自动降级**——自动降级仅限 worker 可用性，不适用 owner checkpoint。
+- 删除「kill 后可 respawn 同任务」旧语义（与「不重试」互斥）；「心跳缺失 → 降级单主控」限定为仅 worker 可用性场景。
+- 实战报告 P2-4 采纳：复验不过 → 仅退回**原会话**补写（不新建 spawn），产物裁决时点化。
+
+### 三、🟠 宿主加固配方补全（AIG T05 治本方向）
+
+- `host-hardening-recipe.md` **新增「配方 0」`tools.subagents.tools.deny`**（官方依据 `docs/tools/subagents/tool-policy.md`「Override via config / deny wins」）：成本最低的全局子代理硬拒层，22 项逐项 deny；总机械路径「三条 → 四条」。
+
+### 四、🟡 扫描器措辞项（SQP-1 / SQP-3 / E1 / SDI-1 / SDI-2）
+
+- `phase-order.yaml`：**6 个 condition 全部补「命中定义」注释**（vague trigger 治理）；头部加产出语言声明。
+- `lessons-max.snapshot`：维护者侧语言声明（首行裸数字未动，门 H 判据不变）。
+- `中文数据源集成.md`：头部新增**「默认零外发」显眼声明**（E1 治理——文档内 URL 不随默认运行外发）。
+- `00-主控-扩展职责.md`：能力定性声明（会话编排控制 = OpenClaw 平台必需能力 + 论衡设计内职责）。
+
+### 五、🟡 实战报告采纳项（9 项真问题）
+
+- 心跳命名钉死 `<两位角色号>-<角色名>-heartbeat.md`（P3-5）。
+- T5 写手**字数硬卡**：每 ~1000 字 read 自查，达 90% 即收束（P2-2 小尾巴）。
+- 任务简报「目标篇幅」补口径真源指针（P2-5 小尾巴）。
+- status 模板新增「运行性质: 生产/测试模式」字段，三处同步披露（P3-8）。
+- M-Integrity-1 补**三道证据源质量阈值**：二手转引 ≤30% / 单源案例 ≤20% / 不可访问 URL ≤10%（P2-3）。
+- 模式 prepend、交付说明模板等其余小项。
+
+### 六、🔧 基础设施
+
+- **修门 M 潜伏 bug**：sed `/^  denied:/` 匹配不了 4 空格缩进 → 实际一直用 `exec process` 兜底清单扫描；改单行 grep 提取 + 否定语境过滤器补 `deny`。
+- 测试：`AUDIT_NAMED` 参数化扩至 22 项；denied 计数断言 27→39。
+
+### 七、✅ 验收（本地全绿）
+
+- `pytest tests/` **232 passed**（v2.12.37 的 220 + 12）。
+- 自审门 **26 PASS / 0 FAIL**；官方 `quick_validate.py` **valid**；`SKILL.md` **9,907 ≤ 10,000**。
+- `capability-assert --selfcheck`：denied 39 / allowed 26，零交集。
+
+### 八、⏭️ 实战报告驳回项（8 项，附理由存档）
+
+- `diagnostics_readonly` / `recovery_strategy` / `model_fallback_chain` 三个 frontmatter 发明键方案：加载器不读，违背「不发明参数」纪律。
+- M-Word-Budget 脚本（零 exec 冲突）/ subagent-header 模板（已存在）/ token_breakdown（平台无此细分）/ status 请示队列（与写入边界契约冲突）/ M-Gate 重生成（机制已有，属 compliance）。
+
+---
+
 ## [v2.12.37] — 2026-09-13
 
 > **主题：第三方全量审计整改 —— v2.12.36 全量审计（6.4/10 · C+）的 P0×4 + P1×5 + P2×4 全部落地。**

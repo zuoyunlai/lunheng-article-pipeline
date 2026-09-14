@@ -583,14 +583,14 @@ MD_SCAN_COUNT=$(echo "$MD_SCAN_FILES" | grep -c . || true)
 GATE_M_FAIL=""
 
 # --- M.1：从 SKILL.md metadata.tools.denied 动态提取永久拒绝清单 ---
-DENIED_TOOLS=$(sed -n '/^  denied:/,/^[^ ]/p' "$SKILL_ROOT/SKILL.md" 2>/dev/null | grep -oE '"[a-z_]+"' | tr -d '"' | sort -u)
+DENIED_TOOLS=$(grep -m1 '^[[:space:]]*denied:' "$SKILL_ROOT/SKILL.md" 2>/dev/null | grep -oE '"[a-z_]+' | tr -d '"' | tr ' ' '\n' | sort -u)
 [ -z "$DENIED_TOOLS" ] && DENIED_TOOLS="exec process"
 
 # --- M.2：逐工具扫描授权语句（排除拒绝语境） ---
 for tool in $DENIED_TOOLS; do
   while IFS= read -r md_file; do
     hits=$(grep -nE "主控.{0,40}(\\\`?${tool}\\\`?)|(\\\`?${tool}\\\`?.{0,12}兜底)|(同意后的.{0,12}\\\`?${tool})|子代理.{0,20}(使用|调用|可用).{0,8}${tool}" "$md_file" 2>/dev/null \
-      | grep -vE '禁止|不得|不能|永不|绝不|不调用|不使用|不执行|不碰|不自动|never|must not|denied|永久拒绝|零 exec|zero-exec|不包含|无法|拒绝')
+      | grep -vE '禁止|不得|不能|永不|绝不|不调用|不使用|不执行|不碰|不自动|never|must not|deny|denied|永久拒绝|零 exec|zero-exec|不包含|无法|拒绝')
     if [ -n "$hits" ]; then
       GATE_M_FAIL="$GATE_M_FAIL [${md_file#$SKILL_ROOT/} 含 ${tool} 授权残留: $(echo "$hits" | head -1 | cut -c1-80)]"
     fi

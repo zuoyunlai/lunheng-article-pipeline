@@ -44,14 +44,13 @@ ROLES = {
     "G14"
 }
 
-# 论衡 agent 侧可用的**只读宿主工具**（OpenViking 检索家族 / 只读会话与交互工具）：
-# 不属于 SKILL.md 五档工具声明，但检索、审计与人在环节点合法使用。
+# 论衡 agent 侧可用的**只读宿主工具**（OpenViking 检索家族；v2.12.38 起 sessions_list / ask_user / view_image
+# 已升入 frontmatter coordinator_only —— 本表不再重列，单一真源 = SKILL.md）：
 HOST_READONLY_EXTRAS = {
     "ov_search", "ov_read", "ov_multi_read", "ov_list",
     "ov_archive_search", "ov_archive_expand",
     "openviking_tool_result_list", "openviking_tool_result_read",
     "openviking_tool_result_search",
-    "sessions_list", "ask_user", "view_image",
 }
 
 # 绝对禁用（不在 SKILL.md frontmatter 五档内，但属宿主特权面，永久拒绝）

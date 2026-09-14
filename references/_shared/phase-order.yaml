@@ -1,4 +1,5 @@
 # 论衡阶段真源（版本随 SKILL.md 同步）
+# 产出语言由 Phase 0「目标语言」字段显式选择（不设默认）；本文件中文注释/产物名不构成对使用者的语言限制。
 # 这是流程顺序与阻断关系的唯一真源；运行时由主控使用 read/write/edit 执行。
 # agent 报告节点含 output_chars_max（**双上限**：`output_chars_max` = 报告**写盘**上限；**回传**上限恒为平台硬上限 4096 字符，见 执行韧化协议-exec.md § 报告长度上限与分块协议）
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
@@ -12,7 +13,7 @@
 #   ⑤ 声明 `condition` 的节点必须给出未触发处置（`on_not_triggered` / `degrade` / `decisions` 三者其一），防「未触发」与「漏跑」不可分；
 #   ⑥ 产出 `drafts/初稿-v#.md` 的节点，沿 next/after_each 到达 `t7_audit` 的路径**必须经过 `current_draft_sync`**（v2.12.37 审计 P0-2：Phase 3.7 修订后未刷新 current_draft → T7 审旧稿）；
 #   ⑦ 条件节点未触发的留痕口径与 `on_not_triggered: record_not_triggered_in_status` 一致。
-version: 2.12.37
+version: 2.12.38
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline
@@ -46,8 +47,8 @@ pipeline:
     owner_visible: true
     blocking: false
     trigger_conditions:
-      - brief_marked_Dxx_for_review       # 任务简报标 [Dxx 待复核]
-      - t2_5_red_data_unresolved          # T2.5 闸门发现 🔴 二手转引未回溯到原始来源
+      - brief_marked_Dxx_for_review       # 命中定义：任务简报「需找数据点」段任一条目标注 [Dxx 待复核]（未标 = 不命中）
+      - t2_5_red_data_unresolved          # 命中定义：t2_5_integrity 闸门报 🔴 二手转引未回溯到原始来源（M-Form-6 判定；未报红 = 不命中）
       # （已移除 t9_evidence_score_low：Phase 1.5 时点不可达，属占位条件 —— T9 评分低触发的回查在 Phase 4.5 后单独执行，见 phase-1-details.md）
     decisions: [triggered, not_triggered]
     output_if_triggered: literature/回查报告-vN.md
@@ -93,7 +94,7 @@ pipeline:
     # Phase 0 勾选「启用 G14」→ enabled 必跑（不因语言/体裁自动触发）；未勾选 → not_enabled（默认）；
     # 已启用且轻量档（2000-3000 字，口径真源 = 字数判定表.md）→ selfcheck 走内置自检；
     # 已启用后主人显式要求关闭 → exempted_by_owner，且必须在 final/交付说明.md 披露。
-    condition: g14_opt_in
+    condition: g14_opt_in               # 命中定义：任务简报「G14启用」字段为勾选（未勾选 = 不命中，默认）
     degrade: selfcheck_in_lite_tier
     t6_degrade: skip_in_lite_tier   # P1-5 修复：轻量档 T6「必跳」在此声明（原仅声明 G14，T6 轻量档规则在真源缺失，
                                     # 致各文件「必跳」/「可跳过」/「已声明为否」三种读法并存）
@@ -111,7 +112,7 @@ pipeline:
     kind: conditional_agent
     agent: T5
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
-    condition: T6_or_G14_requires_revision
+    condition: T6_or_G14_requires_revision   # 命中定义：T6 批判报告含任何 P0/P1 否决项，或 G14 判定 5+ 类 Fail（二者皆无 = 不命中）
     on_not_triggered: record_not_triggered_in_status   # v2.12.28：未触发也必须在 status.md 留痕（防「未触发」与「漏跑」不可分）
     after_each: [current_draft_sync]   # v2.12.37 审计 P0-2：Phase 3.7 产出 v{N+1} 后必须刷新 drafts/current_draft.md，否则 t7_audit 读旧稿 → 修订内容静默逃过 T7 审计（与 audit_revision 同型，原只修了后一分支）
     next: t7_audit
@@ -127,7 +128,7 @@ pipeline:
     max_rounds: 2
     input: audits/审计报告-vN.md + drafts/current_draft.md
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
-    condition: T7_P0_or_P1
+    condition: T7_P0_or_P1   # 命中定义：T7 审计报告存在 P0 或 P1 级发现（全 P2/无发现 = 不命中）
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 门：有 condition 必须声明未触发处置（防「未触发」与「漏跑」不可分）
     # after_each：`current_draft_sync` 是**真节点 id**（每轮修订后必须重写 current_draft.md，否则 T7/G14/T9 读旧稿 —— 2026-09-12 审计 P0-3）；
     # `rerun_*` 为动作名（非节点 id）：重跑 G14（若启用）/ 重跑 t7_audit
@@ -144,7 +145,7 @@ pipeline:
     kind: owner_agent
     agent: T0
     output: final/图件/
-    condition: figures_approved_by_owner   # Phase 2.5 拍板图位数 > 0
+    condition: figures_approved_by_owner   # 命中定义：Phase 2.5 大纲拍板记录的图位数 > 0（拍板 0 张 = 不命中）
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：图位=0 时必须留痕，防「未触发」与「漏跑」不可分
     note: 主控亲为（不 spawn）：按 Phase 2.5 拍板数手写 SVG（templates/图表-SVG-template.md），零外发
     next: final_assembly
@@ -158,7 +159,7 @@ pipeline:
   - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent
     input: drafts/current_draft.md
-    condition: mode_default_or_owner_enabled
+    condition: mode_default_or_owner_enabled   # 命中定义：运行模式为多 Agent（默认）且体裁属行业/学术（公众号体裁 = 不命中，除非主人显式开启）
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：T9 关闭时必须留痕
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。

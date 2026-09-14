@@ -36,7 +36,14 @@ EXT_SERVICES = ROOT / "references" / "_shared" / "external-services.md"
 DISPATCH_HEADER = ROOT / "references" / "_shared" / "dispatch-header.md"
 RESILIENCE = ROOT / "references" / "_shared" / "执行韧化协议-design.md"
 
-# 第三方审计点名的 P0 遗漏工具（必须进 denied）
+# 审计/扫描器先后点名的遗漏工具（必须进 denied；v2.12.38 从 27 扩至 39）
+AUDIT_NAMED = ["message", "gateway", "secrets", "code_execution", "sessions",
+               "conversations_send", "conversations_turn",
+               # v2.12.38：SkillSpector/AIG + 全量审计 P1-1 补列
+               "screen", "canvas", "show_widget", "agents_list",
+               "get_goal", "create_goal", "update_goal",
+               "suggest_task", "dismiss_task", "heartbeat_respond",
+               "x_search", "pdf"]
 AUDIT_P0_TOOLS = ["message", "gateway", "secrets", "code_execution"]
 # P1 遗漏工具
 AUDIT_P1_TOOLS = ["sessions", "conversations_send", "conversations_turn"]
@@ -54,7 +61,7 @@ def _denied() -> set:
 
 # ---------------- P0-1 / P1-4：denied 遗漏修复 ----------------
 
-@pytest.mark.parametrize("cap", AUDIT_P0_TOOLS + AUDIT_P1_TOOLS)
+@pytest.mark.parametrize("cap", AUDIT_NAMED)
 def test_audit_named_tools_are_denied(cap):
     """审计点名的遗漏工具必须出现在 frontmatter denied 中"""
     assert cap in _denied(), (
@@ -96,8 +103,8 @@ def test_no_stale_19_count():
 
 
 def test_denied_count_matches_declared_number():
-    """正文声明的「27 项」必须等于 frontmatter 实际条数（防数字漂移）"""
-    assert len(_denied()) == 27, f"denied 实际 {len(_denied())} 项，与正文声明的 27 项不符"
+    """正文声明的「39 项」必须等于 frontmatter 实际条数（防数字漂移）"""
+    assert len(_denied()) == 39, f"denied 实际 {len(_denied())} 项，与正文声明的 39 项不符"
 
 
 def test_declarative_stance_declared():

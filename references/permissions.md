@@ -1,4 +1,4 @@
-> 版本：v2.12.37（自动同步 2026-09-13）
+> 版本：v2.12.38（自动同步 2026-09-14）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
@@ -57,7 +57,7 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 27 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；官方 frontmatter 的 `allowed-tools` 只接受**平铺工具白名单**，无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。类别概览：执行/进程 3 · 终端与 UI 控制 4 · 设备 3 · 生成 3 · 编排与会话 4 · 消息与控制面 5 · 记忆 2 · 补丁与自动化 3。
+**禁用（`metadata.tools.denied`）— 39 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；官方 frontmatter 的 `allowed-tools` 只接受**平铺工具白名单**，无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。
 
 **Workspace 路径收口**：
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树
