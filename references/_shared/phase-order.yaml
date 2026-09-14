@@ -3,7 +3,11 @@
 # 这是流程顺序与阻断关系的唯一真源；运行时由主控使用 read/write/edit 执行。
 # agent 报告节点含 output_chars_max（**双上限**：`output_chars_max` = 报告**写盘**上限；**回传**上限恒为平台硬上限 4096 字符，见 执行韧化协议-exec.md § 报告长度上限与分块协议）
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
-# 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_g14；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
+# 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_critique；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.4 前置 = g14_style_gate**；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
+# ⚠️ v2.12.40（业主定案 A1/A2）：G14 由「Phase 3.6 与 T6 同批、且每轮修订后复检」迁至「**Phase 4.4 前置**」，语义变为
+#   「**定稿前的最后一道闸，全流程只审一次、不再复检**」；不再是可选项（按 Phase 0「目标语言」字段客观适用）。
+#   **执行前提 = 「已可定稿」**：前置修订尚未收敛（还不能定稿）时**不执行 G14**；G14 检查后由 T5 做**最后一次**（仅风格层）修订。
+#   详见 `g14_style_gate` / `t5_style_revision` 节点注，以及 references/gates/14-中文AI痕迹-gate.md §四。
 # ⚠️ v2.12.27：本映射表是**进度标签的唯一真源** —— 主控呈现 Phase 标签时必须取自此处，**不得自创**（实测教训：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计）
 # ⚠️ 结构约束（v2.12.30 起由构建侧流程检查机械校验；v2.12.37 补 ⑤⑥⑦）：
 #   ① **同一节点内不得出现重复键**（YAML 后键会静默覆盖前键 —— 2026-09-12 审计 P0-2：重复 `output` 曾使 G14 报告路径丢失）；
@@ -12,36 +16,51 @@
 #   ④ **每个被消费的受管路径都必须有节点以 `output` 生产**（v2.12.37 取消原「≥2 消费者」前提 —— 单消费者路径同样逃检，实测 `analysis/T5-写作上下文.md` / `final/定稿.md` 均被漏掉）；
 #   ⑤ 声明 `condition` 的节点必须给出未触发处置（`on_not_triggered` / `degrade` / `decisions` 三者其一），防「未触发」与「漏跑」不可分；
 #   ⑥ 产出 `drafts/初稿-v#.md` 的节点，沿 next/after_each 到达 `t7_audit` 的路径**必须经过 `current_draft_sync`**（v2.12.37 审计 P0-2：Phase 3.7 修订后未刷新 current_draft → T7 审旧稿）；
-#   ⑦ 条件节点未触发的留痕口径与 `on_not_triggered: record_not_triggered_in_status` 一致。
+#   ⑦ 条件节点未触发的留痕口径与 `on_not_triggered: record_not_triggered_in_status` 一致；
+#   ⑧ **`verdict_scale` 名称必须可解析**（v2.12.40 修 P0-1）：节点写 `verdict_scale: <名>` 时，该名必须在本文件顶层
+#      `verdict_scale.<名>` 有定义，且定义含 `tiers`（四档）与 `default_handling`（四档全覆盖，禁 fail-open）。
+#      未接线 = 构建期 flow-check 失败。原实况为「只写名称、无同名定义、节点无分档处置」→「路径/参数错误」档 fail-open 放行；
+#   ⑨ `on_fail` / `verdict_handling` 中出现的节点 id 必须已定义（v2.12.40 新增键，纳入规则①的引用校验面）。
 version: 2.12.39
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。
 #   关键纪律：`路径或参数错误` 与 `无法判定` 均**不触发内容修订轮**——前者修路径/参数后重跑，
 #   后者补证据或在人环裁决后重跑。把「产物不存在」当内容缺陷会白烧一轮修订。
+# v2.12.40 修 P0-1：原写法把档位表直接挂在 `verdict_scale.tiers`，而节点引用的是**名称** `four_tier`
+#   —— 全文件无同名定义，且各节点无分档处置分支 → 非「通过」档沿无条件 `next` fail-open。
+#   现改为「名称 → 定义」结构：节点写 `verdict_scale: four_tier`，定义在 `verdict_scale.four_tier`。
 verdict_scale:
-  tiers:
-    - id: pass
-      label: 通过
-      blocks_pipeline: false
-      triggers_revision: false
-      action: 放行至下一节点
-    - id: fail
-      label: 不通过
-      blocks_pipeline: true
-      triggers_revision: true
-      action: 触发对应修订（T5/T7 独立写手）或补检索
-    - id: undecidable
-      label: 无法判定
-      blocks_pipeline: true
-      triggers_revision: false
-      action: 补证据或在人环裁决后重跑同一判定
-    - id: path_or_param_error
-      label: 路径或参数错误
-      blocks_pipeline: true
-      triggers_revision: false
-      not_content_defect: true
-      action: 修正路径/参数/前置产物后重跑同一判定；不得当作内容缺陷
+  four_tier:
+    tiers:
+      - id: pass
+        label: 通过
+        blocks_pipeline: false
+        triggers_revision: false
+        action: 放行至下一节点
+      - id: fail
+        label: 不通过
+        blocks_pipeline: true
+        triggers_revision: true
+        action: 触发对应修订（T5/T7 独立写手）或补检索
+      - id: undecidable
+        label: 无法判定
+        blocks_pipeline: true
+        triggers_revision: false
+        action: 补证据或在人环裁决后重跑同一判定
+      - id: path_or_param_error
+        label: 路径或参数错误
+        blocks_pipeline: true
+        triggers_revision: false
+        not_content_defect: true
+        action: 修正路径/参数/前置产物后重跑同一判定；不得当作内容缺陷
+    # 默认处置（v2.12.40 新增，修 P0-1 的「零分档处置」）：节点未写 `verdict_handling` 时按此表解析。
+    # **禁止 fail-open**：只有 `pass` 沿 `next` 放行；其余三档一律 halt 或走显式出口（如 `on_fail:`）。
+    default_handling:
+      pass: continue_to_next
+      fail: halt_then_revision_outlet
+      undecidable: halt_pending_evidence_or_owner_ruling
+      path_or_param_error: halt_fix_inputs_then_rerun_same_node
   report_after_rerun_doctrine: >
     凡 condition 依赖他角色报告、或 mechanical_checkpoint 前置为「相关报告/产物已落盘」者，
     必须在报告落盘后重跑；主控预跑的结果不得直接当作闸门输入。节点级标注 = rerun_after_report: true。
@@ -93,6 +112,7 @@ pipeline:
     verdict_scale: four_tier   # v2.12.40：结论落四档；「产物不存在」= 路径或参数错误（非内容缺陷、不触发修订）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = data/数据卡.md 已落盘；数据卡被补写后必须重跑
     owner: 主控
+    input: data/数据卡.md + cases/案例卡.md + literature/文献卡.md   # v2.12.40 补 P1-5：本闸门的判据对象必须显式声明（原未声明 input → 前置产物无人核对）
     next: t4_analysis
   - id: t4_analysis
     input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
@@ -123,36 +143,26 @@ pipeline:
     output: drafts/current_draft.md
     note: 主控亲为（不 spawn）：把**当前权威版本**（v2/v3/修订稿）write 复制为 drafts/current_draft.md，保留 draft_id / draft_version 绑定
     precondition: 上游最新稿（drafts/初稿-vN.md 或修订稿）+ Phase 3.5 洞察记录已在磁盘
-    next: t6_g14
-  - id: t6_g14   # 别名：文档层「Phase 3.6」
-    kind: parallel_agents
-    verdict_scale: four_tier   # v2.12.40：G14/T6 报告判定落四档，不用退出码
-    agents: [T6, G14]
-    # G14 显式勾选启用（本修订定案，替代原 language_zh_and_genre_required 条件式）：
-    # Phase 0 勾选「启用 G14」→ enabled 必跑（不因语言/体裁自动触发）；未勾选 → not_enabled（默认）；
-    # 已启用且轻量档（2000-3000 字，口径真源 = 字数判定表.md）→ selfcheck 走内置自检；
-    # 已启用后主人显式要求关闭 → exempted_by_owner，且必须在 final/交付说明.md 披露。
-    condition: g14_opt_in               # 命中定义：任务简报「G14启用」字段为勾选（未勾选 = 不命中，默认）
-    degrade: selfcheck_in_lite_tier
-    t6_degrade: skip_in_lite_tier   # P1-5 修复：轻量档 T6「必跳」在此声明（原仅声明 G14，T6 轻量档规则在真源缺失，
-                                    # 致各文件「必跳」/「可跳过」/「已声明为否」三种读法并存）
-    exempt: owner_exempted_requires_disclosure
+    next: t6_critique
+  - id: t6_critique   # 别名：文档层「Phase 3.6」（v2.12.40：G14 迁出至 Phase 4.4 前置，本节点仅 T6）
+    kind: agent
+    verdict_scale: four_tier
+    agent: T6
+    degrade: skip_in_lite_tier   # P1-5 修复：轻量档 T6「必跳」在此声明（原键名 `t6_degrade`，v2.12.40 统一为标准键
+                                 # `degrade`；真源缺声明时曾致各文件「必跳」/「可跳过」/「已声明为否」三种读法并存）
     input: drafts/current_draft.md
-    output:
-      T6: analysis/批判报告-vN.md
-      G14: audits/G14-检测报告-vN.md
-    output_chars_max:
-      T6: 12000   # 批判报告（**写盘**上限；回传另受平台 4096 字符硬上限约束，超出走分块协议）
-      G14: 6000   # AI 痕迹检测报告
+    output: analysis/批判报告-vN.md
+    output_chars_max: 12000   # 批判报告（**写盘**上限；回传另受平台 4096 字符硬上限约束，超出走分块协议）
     next: t5_feedback_revision
   - id: t5_feedback_revision   # 别名：文档层「Phase 3.7」（T6/G14 否决后的预审计修订；本轮修完才进 Phase 4）
-    input: drafts/初稿-v{N}.md + analysis/批判报告-v{N}.md + audits/G14-检测报告-v{N}.md
+    input: drafts/初稿-v{N}.md + analysis/批判报告-v{N}.md
     kind: conditional_agent
-    verdict_scale: four_tier   # v2.12.40：T6/G14 报告判定落四档
-    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 批判报告/G14 报告已落盘；必须在报告写入后重跑判定
+    verdict_scale: four_tier   # v2.12.40：T6 报告判定落四档
+    rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 批判报告已落盘；必须在报告写入后重跑判定
     agent: T5
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
-    condition: T6_or_G14_requires_revision   # 命中定义：T6 批判报告含任何 P0/P1 否决项，或 G14 判定 5+ 类 Fail（二者皆无 = 不命中）
+    condition: T6_requires_revision   # 命中定义：T6 批判报告含任何 P0/P1 否决项（无 = 不命中）
+                                      # v2.12.40：G14 已迁出本节点（迁至 Phase 4.4 前置，且只审一次）
     on_not_triggered: record_not_triggered_in_status   # v2.12.28：未触发也必须在 status.md 留痕（防「未触发」与「漏跑」不可分）
     after_each: [current_draft_sync]   # v2.12.37 审计 P0-2：Phase 3.7 产出 v{N+1} 后必须刷新 drafts/current_draft.md，否则 t7_audit 读旧稿 → 修订内容静默逃过 T7 审计（与 audit_revision 同型，原只修了后一分支）
     next: t7_audit
@@ -172,18 +182,51 @@ pipeline:
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition: T7_P0_or_P1   # 命中定义：T7 审计报告存在 P0 或 P1 级发现（全 P2/无发现 = 不命中）
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 门：有 condition 必须声明未触发处置（防「未触发」与「漏跑」不可分）
-    # after_each：`current_draft_sync` 是**真节点 id**（每轮修订后必须重写 current_draft.md，否则 T7/G14/T9 读旧稿 —— 2026-09-12 审计 P0-3）；
-    # `rerun_*` 为动作名（非节点 id）：重跑 G14（若启用）/ 重跑 t7_audit
-    # G14 复检收敛判据（v2.12.32，实测 P1）：硬原则=判定绑定交付版本；仅删不新增成段文字→跳过复检并记 `g14_rerun: skipped_no_new_prose`；连续两次同判定且无新增命中→停；硬上限 ≤ 修订轮数 + 1。真源 = gates/14-中文AI痕迹-gate.md §四。
+    # after_each：`current_draft_sync` 是**真节点 id**（每轮修订后必须重写 current_draft.md，否则 T7/T9 读旧稿 —— 2026-09-12 审计 P0-3）；
+    # `rerun_t7` 为动作名（非节点 id）：重跑 t7_audit。
+    # v2.12.40（业主定案 A1）：**删除 `rerun_g14_if_enabled`** —— G14 不再在每轮修订后复检，改为定稿前只审一次（见 g14_style_gate）。
     # 机械搬运合并（v2.12.32，实测 P2）：`current_draft_sync` 属纯复制，与相邻实质节点合并可少一个 spawn 失败面（实测 sync 3 次各 52-74k tokens；T2 回填子会话 Agent run failed 零产物）。
-    after_each: [current_draft_sync, rerun_g14_if_enabled, rerun_t7]
+    after_each: [current_draft_sync, rerun_t7]
     next: t7_5_integrity
   - id: t7_5_integrity
     kind: mechanical_checkpoint
     verdict_scale: four_tier   # v2.12.40：结论落四档；审计报告缺失 = 路径或参数错误（不触发修订）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 审计报告 + 本轮 M 门记录已落盘；不得用预跑/上轮记录
     owner: 主控
-    next: phase4_4_figures   # v2.12.28 修：原直连 t9_review → 使 phase4_4_figures 不可达（配图被跳过，实测已致图4/5缺失）
+    input: audits/审计报告-vN.md + final/M-Gate-Report-*.json   # v2.12.40 补 P1-5：本闸门的判据对象必须显式声明（原未声明 input → 前置产物无人核对）
+    next: g14_style_gate   # v2.12.40：G14 风格闸迁至此处（定稿前唯一一次）；原直连 phase4_4_figures
+  - id: g14_style_gate   # 别名：文档层「Phase 4.4 前置（G14 风格闸）」（非独立 Phase 标签，主控呈现时归入 Phase 4.4）
+    kind: agent
+    verdict_scale: four_tier
+    agent: G14
+    rerun_after_report: false   # v2.12.40 业主定案 A1：**全流程仅 1 次**；audit_revision.after_each 的 rerun_g14_if_enabled 已删
+    # 执行前提（业主定案 A2：「T5 之前若有修订但还不能定稿，则 G14 还是不执行」）：
+    #   本闸是**定稿前最后一道闸**。前置修订尚未收敛（audit_revision 未退出 / 仍有未决 P0·P1 修订项 / 尚不能定稿）
+    #   → **不执行本闸**，先完成修订；只有进入「可定稿」状态才开闸。
+    precondition: 已可定稿（前置修订已收敛：audit_revision 已退出且无未决 P0/P1 修订项）
+    # 不再是可选项（业主定案「G14 不为可选功能」，替代原 `condition: g14_opt_in` 显式勾选）：
+    #   适用性由 Phase 0「目标语言」字段**客观决定** —— 含中文 → 必跑；纯外语 → n/a（客观不适用，非「关闭」）。
+    condition: target_language_includes_zh   # 命中定义：任务简报「目标语言」字段含中文（纯外语 = 不命中）
+    on_not_triggered: record_not_triggered_in_status   # 纯外语 → n/a；未触发亦须入 status
+    degrade: selfcheck_in_lite_tier   # 轻量档（2000-3000 字，口径真源 = 字数判定表.md）→ 内置自检，不 spawn
+    exempt: owner_exempted_requires_disclosure   # 主人显式要求关闭 → 全项目不跑 + final/交付说明.md 披露
+    input: drafts/current_draft.md
+    output: audits/G14-检测报告-vN.md
+    output_chars_max: 6000   # AI 痕迹检测报告
+    on_fail: t5_style_revision   # 业主定案：G14 检查后由 T5 做**最后一次**修订（仅风格层，不得动论证/数据/引用）
+    next: phase4_4_figures
+  - id: t5_style_revision   # 别名：文档层「Phase 4.4 前置·风格修订」（G14 Fail 的唯一出口）
+    kind: conditional_agent
+    verdict_scale: four_tier
+    rerun_after_report: true   # 前提 = G14 报告已落盘；必须在报告写入后取数
+    agent: T5
+    input: drafts/current_draft.md + audits/G14-检测报告-vN.md
+    output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
+    condition: G14_requires_style_revision   # 命中定义：G14 判定 5+ 类 Fail（其余档位 = 不命中）
+    on_not_triggered: record_not_triggered_in_status
+    boundary: 仅风格层改动（10 类 AI 痕迹清单）；不得改动论证结构、数据、引用、结论
+    after_each: [current_draft_sync]   # 修订后必须重刷 current_draft.md，供配图与定稿组装取用
+    next: phase4_4_figures
   - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
     verdict_scale: four_tier   # v2.12.40：图位数拍板与图件核验结论落四档
     input: drafts/current_draft.md + data/数据卡.md（图上数据源）
@@ -206,12 +249,25 @@ pipeline:
   - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent
     verdict_scale: four_tier   # v2.12.40：T9 报告判定落四档
-    input: drafts/current_draft.md
+    # v2.12.40 业主定案 A2：输入由 `drafts/current_draft.md`（未定稿稿件）改为 **`final/定稿.md`（终稿）**——
+    #   T9 定位为「**终稿落成后模拟投递刊物编辑审稿**」。节点位于 final_assembly 之后，故「终稿落成后」已满足。
+    input: final/定稿.md
     condition: mode_default_or_owner_enabled   # 命中定义：运行模式为多 Agent（默认）且体裁属行业/学术（公众号体裁 = 不命中，除非主人显式开启）
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：T9 关闭时必须留痕
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。
     blocking: false
+    # ↓ v2.12.40 业主定案 A2：T9 独立性**硬定义**（不是建议、不得自行放宽）——错一处即报告失效
+    independence: blind_review
+    independence_rules:
+      - 必须 spawn 为**独立子代理**（禁主控代笔；主控只做派发、收报告、落盘拼装）
+      - 输入白名单**仅两项**：final/定稿.md + 任务简报「投稿信息」子集（目标期刊 / 栏目 / 字数上限）
+      - 禁止读取内部过程材料（读取即独立性违反）：literature/文献卡.md、data/数据卡.md、cases/案例卡.md、
+        analysis/分析大纲.md、analysis/批判报告-vN.md、audits/G14-检测报告-vN.md、audits/审计报告-vN.md、final/M-Gate-Report-*.json
+      - 报告必须含必填字段「独立性声明」（声明未读上述任何材料 + 声明本文为盲审）
+      - 评分与判定**不得引用任何内部报告**（引用即报告降为无效，必须重跑）
+      - 不得以「参考 T7 的 G1 核验产物」为名回读内部报告（v2.12.40 删除了该旧口径）
+    required_report_field: 独立性声明
     output: audits/审稿报告-vN.md
     output_chars_max: 15000
     next: t8_technical_final
