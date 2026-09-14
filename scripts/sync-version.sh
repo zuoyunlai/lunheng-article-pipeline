@@ -40,6 +40,15 @@ if [ "$1" == "--dry-run" ]; then
   echo ""
 fi
 
+# v2.12.41 补：拒绝未知参数（防止把「目标版本号」当参数传入被静默忽略 → 空转却报「同步完成」）
+if [ -n "$1" ] && [ "$1" != "--dry-run" ]; then
+  echo "❌ 未知参数：$1" >&2
+  echo "   用法：$0 [--dry-run]" >&2
+  echo "   ⚠️ 本脚本**不接受版本号参数** —— 版本真源 = SKILL.md frontmatter（单一真源）。" >&2
+  echo "   升号流程：① 先改 SKILL.md 的 version 字段 → ② 再跑本脚本同步到其余文件 → ③ check-version.sh 验证" >&2
+  exit 1
+fi
+
 # 从 SKILL.md frontmatter 读取版本号（单一真源）
 EXPECTED=$(grep -E '^[[:space:]]*version:' "$SKILL_MD" | head -1 | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 
