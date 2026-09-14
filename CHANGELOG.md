@@ -12,6 +12,75 @@
 
 ---
 
+## [v2.12.40] — 2026-09-14
+
+> **主题：业主 A1/A2 终稿闸设计落地 + 全量审计 P0×8 / P1×18 整改 + ClawHub 扫描唯一未闭合项（T09 遥测收容）一并闭合。**
+> **性质：机制层结构调整（节点更名 + 闸门接线）+ 文档级口径统一 + 工程级假绿灯修复。无对外行为破坏性变更。**
+
+### 一、业主两条终稿闸设计（A1 / A2）
+
+- **A1 G14 = 终稿落成前最后一道闸**：`t6_g14` 拆为 `t6_critique`（Phase 3.6，仅 T6）+ 新节点 **`g14_style_gate`**（Phase 4.4 前置）；**全流程只审一次、不再复检**（删 `rerun_g14_if_enabled`，加 `rerun_after_report: false`）；**不再是可选项**（删 Phase 0 勾选 + `g14_opt_in` → 按「目标语言」客观适用：含中文必跑 / 纯外语 `n/a`）；**执行前提 = 「已可定稿」**（前置修订未收敛 → 不开闸）；Fail → 新节点 `t5_style_revision`（T5 做**最后一次**仅风格层修订，**不重跑 G14**）。
+- **A2 T9 独立性硬定义（盲审）**：T9 输入由 `drafts/current_draft.md` 改为 **`final/定稿.md`**；新增强制定义六条——必 spawn 独立子代理 / 输入白名单仅终稿+投稿信息 / **禁止读内部过程材料**（文献卡 / 数据卡 / 案例卡 / 分析大纲 / 批判报告 / G14 报告 / 审计报告 / M-Gate-Report） / 报告必填「独立性声明」 / 评分**不得引用任何内部报告**；删旧口径「参考 T7 的 G1 核验产物」。
+
+### 二、判定口径真源（P0×8 全修）
+
+- **P0-1 四档接线**：节点写 `verdict_scale: four_tier`，定义改「名称 → 定义」两层结构（`verdict_scale.four_tier.tiers` + `default_handling` 四档全覆盖，**禁 fail-open**）；`flow-check.py` 新增规则⑧⑨构建期校验（未接线 = 失败）。
+- **P0-2 / P0-4 证据层加固**：报告 schema 加 `判定输入`（路径 / 版本标识 / 首行原文 / 末行原文 / 字节数——五项必填，缺一即报告不完整）；**通过档也必须给出可复算枚举清单**（命中清单含行号 + 原文片段，**禁止只给计数**）——「放行零证据」路径封死。
+- **P0-3 判定者 ≠ 被判物**：新增 **L0/L1/L2 判定独立性分级**（L0 = T7 + T9；L1 = T8 / T2.5 / T7.5；L2 = 心跳）；L1 报告须标「判定者 = 主控」并披露残留风险。
+- **P0-5 grep 门 → 枚举清单**：`failure-modes.md` F4 段加 ⚠️ 注（agent 零 exec，bash 块未真跑）+ 「执行时的最低证据」清单协议（论点 / 证据 / 一一映射 / 零命中自证）。
+- **P0-6 status.md 三方对账**：T7 审计必做「心跳文件 ↔ status.md ↔ 磁盘产物」三方一致性核对，任一不符 P1。
+- **P0-7 闸门第 0 步：输入新鲜度校验**：存在 + 非空 + mtime ≥ 上游完成时间，**不满足 → 路径/参数错误档，不触发修订**；`errors.md` 加 E13（产物未落盘 / 零产物）。
+- **P0-8 11 vs 13 项口径**：13 项 = M-Form 8 + M-Exist 3 + M-Integrity 2；T8 兜底复跑 11 项；`glossary-full.md` 加 T2.5 / T7.5 / T8.5 术语，G0-G14 含 G0.5 / G2.5 子项共 17 项。
+- **修订轮作者标记**：`src:<角色>|<model>|<HH:MM>`；主控占比 > 15% → P1。
+- **零产物决策树**：子代理声称完成但产物读不出 → 同档重派 ≤ 2 → 降档重派 → 问主人（**不静默等硬卡**）。
+
+### 三、ClawHub T09 闭合：遥测收容四条
+
+- **背景**：v2.12.39 扫描主判定 `suspicious`，唯一未闭合 unexpected = 收容不足（status.md 保留 sessionKey / 余额 / 模型可用性遥测 without enough containment）。
+- **收容四条**（真源 = `关键协议.md` §遥测收容）：① 仅留 status.md ② **归档/打包默认排除**（留档只留脱敏副本 `status.redacted.md`）③ **分享前脱敏**（`sessionKey` / `session id` 截前 8 + `…`，或哈希前 12 位；余额/可用性只留档位符号 ✅/⚠️/❌）④ 保留期随 `run/<项目名>/` 本地、清理即删。
+- 落地：`status-template.md` 头部敏感标注 + §4.6 收容四条 / `project-archive-sop.md` §二 排除规则 / `deliverables.md` 成本指标处补收容（**保留 v2.12.39 转录禁止**）。
+
+### 四、工程与文档整改
+
+- **工具链假绿灯 6 处**（实测前后对照）：门 B `grep -c || echo 0` 双值假绿灯 → `count_role_hits()` 强制非负整数；门 H 加 `LUNHENG_REQUIRE_LESSONS_SRC=1` fail-closed 开关；`.shellcheckrc` 非法键 `exclude=` → `disable=`（1593→16 行命中）；`Makefile` 去 `|| true` 改 `--severity=warning`；`quality.yml` `cd tests + --cov=.` → 仓库根 `--cov=scripts` + 补装 `requirements-test.txt`；`publish-clawhub.sh:99` 死代码兜底恢复可达；`build-clawhub-release.sh:538` `strip-shell-commands.py` 裸调用 → 按同模板包裹失败可见。
+- **派生文档 77 文件**对齐 G14/T9 新架构 + 口径统一（11 项兜底 → 引用式 / G14 阶段归属 / 双份真源 / 角色 10 张 / 设计文档三篇过期 → 指针 / 模板 7→21）+ 取证纪律（`quick_validate` bundled 而非官方 / `cwd_default` 删除 / 10000 字符仅 autonomous proposal 专用 / `denied` ≠ `deny`）。
+- **测试对齐 v2.12.40 新架构**（测试落后于机制变更）：`t6_g14` → `t6_critique` + `g14_style_gate` / `verdict_scale` 两层结构 / `degrade` 标准键 / G14 复检收敛判据作废后改「只审一次」新口径 / 语言政策横幅同步。
+- **行号引用门修复**：`permissions.md` / `skill-entry-appendix.md` 把「`docs/xxx.md:NNN`」行号式引用改为节名式（本仓「行号会烂，用节名」纪律）。
+
+### 五、ClawHub 扫描期望（v2.12.40 上传后）
+
+| 项 | v2.12.39 实况 | v2.12.40 期望 |
+|---|---|---|
+| **ClawScan verdict** | `suspicious`（T09 + 多维 concern） | 期望 T09 → expected，`persistence_privilege` 由 concern → note |
+| T09（遥测收容） | unexpected | **expected**（收容四条覆盖） |
+| SDI-4（角色边界文档复杂度） | expected | expected（不变；进一步收窄表述） |
+| E1 / AE4（OpenAlex/Crossref / 中英混排） | expected | expected（启发式一贯，A.I.G 已标 expected） |
+| SkillSpector 严重度 | HIGH / 52 分 | 期望维持 / 微降；DO_NOT_INSTALL（启发式惯例） |
+| static-analysis | clean | clean |
+| VirusTotal | null（v2.12.39 未出结果） | 期望 0/64（发版前重取确认） |
+
+### 六、审计归因语治理（教训）
+
+初稿误把扫描发现编号写进真源 → **门 Q 正确拦截**（净化可见面禁「审计归因语」pattern `T0[0-9]`）。改写为语义化表述（「外部安全扫描『遥测收容不足』」）后门 Q 恢复。**教训**：扫描发现 ID 属维护者叙事，只能留 `outputs/审计报告` 与 CHANGELOG，**不得进技能可见面**。
+
+### 验收（发版前自检）
+
+- 自审门 **26 PASS / 0 FAIL**（含门 Q 已闭合 / 门 H `LUNHENG_REQUIRE_LESSONS_SRC=1` fail-closed 开关生效）
+- pytest **272 passed**（`test_status_telemetry` 新增 6 项 + 四面一致性回归 + 必中样本：脱敏只写「须脱敏」而无口径 = 判失败）
+- link-check **394 条** ｜ flow-check ✅ ｜ `capability-assert --selfcheck` denied/allowed 零交集 ｜ 官方 `quick_validate` valid ｜ `SKILL.md` **9,986 / 10,000 字符**
+
+### 5 个本地提交（待 push）
+
+```
+be475f2 feat(telemetry): 遥测收容四条（并入本批，回应扫描唯一未闭合项）
+90b3470 test+docs: 语言政策口径同步 + 测试对齐 v2.12.40 新架构
+d5d5e14 docs(references): 四泳道派生文档对齐（G14迁移/T9盲审/口径统一/取证纪律）
+b3b117a fix(toolchain): 假绿灯与失败可见性修复（审计阶段C）
+b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
+```
+
+---
+
 ## [v2.12.39] — 2026-09-14
 
 > **主题：拆分发布（主人裁决）—— 只承载三条裁决 + 4 类口径修缺；原并入的 P0-P2 整套（机械门 / 字数下限 / 编号制式）+ 17 条新测试推迟到 v2.12.40 独立发版。**
