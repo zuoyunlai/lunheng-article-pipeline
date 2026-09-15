@@ -23,7 +23,7 @@ sessions_yield 等待三方完成
 
 ### T3 空卡协议
 
-**重要**：仅在 `mode_is_multi_agent` 且 Phase 0 已确认需要案例时，T3 案例检索才 spawn；single-controller 模式由主控亲为或记录未执行原因。
+**重要**：Phase 0 已确认需要案例时，T3 案例检索即 spawn（含 cases = 0 空卡协议）；T3 worker 不可用/失败 ⇒ 主控接管该节点并记录降级。
 
 **0 条场景处理**：
 - T3 检索后确认「该主题无需案例卡」或「检索无果」

@@ -13,17 +13,17 @@
 >
 > 主控维护（**独占写**），读 `run/<项目名>/.tmp/<角色>-heartbeat.md` 后更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
 > 失败必须留原因；任一行停留超阈值无进展 → 主控介入（按主控卡 §二十二 硬卡阈值表，角色分级：T1-T3 10 / T4 12 / T5 15 / T6 15 / T7 12 / T9 10 / G14 8 分钟）。
-> **T3 案例检索**：仅在 `mode_is_multi_agent` 且 Phase 0 确认需要案例时 spawn；cases=0 走空卡协议，single-controller 由主控亲为或记录原因；T2 不再兼带案例，状态独立行。
+> **T3 案例检索**：Phase 0 确认需要案例时即 spawn（cases=0 走空卡协议）；T3 worker 不可用 ⇒ 主控接管该节点并记录；T2 不再兼带案例，状态独立行。
 
 ## 一、项目元数据（key:value 替换，主控用 `**当前**: X` 策略）
 
 **项目名**: <项目名>
 **模式**: 学术论文 / 商业评论 / 行业分析 / 公众号深度长文
-**当前阶段**: Phase 0 / Phase 1 / Phase 1.5 / Phase 2 / Phase 2.5 / Phase 3 / Phase 3.5 / Phase 3.6 / **Phase 3.7** / Phase 4 / Phase 4.2 / Phase 4.4 / Phase 4.5 / Phase 5
+**当前阶段**（编号真源 = phase-order.yaml `phase_order`）: Phase 0 / Phase 0 后置 / Phase 1 / Phase 1.5 / T2.5 门 / Phase 2 / Phase 2.5 / Phase 3 / Phase 3.5 / Phase 3.6 前置 / Phase 3.6 / **Phase 3.7** / Phase 4 / Phase 4.2 / T7.5 门 / Phase 4.4 前置 / Phase 4.4 前置·风格修订 / Phase 4.4 / Phase 4.4 后置 / Phase 4.5 / Phase 5 终检 / Phase 5 终检后置 / Phase 5 验收
 **当前活动**: <一句话描述>
 **最后更新**: YYYY-MM-DD HH:MM
-**运行模式**: 单主控 / 多 Agent（**spawn 前必填**。**默认 = 单主控**（主控亲为，不 spawn）；**多 Agent 须两条件齐**：(1) 宿主按 host-hardening-recipe 配方 0/1 落地；(2) 主人在 Phase 0 显式确认。两条件齐才按角色卡 spawn（T1∥T2∥T3 三方真并行）。**不记录宿主配置明细、不记 deny 原文、不声称已加固**——论衡不读宿主配置，也不要求主人提供 deny 列表原文）
-**单主控 L1 披露**: <单主控时必填：主控亲为、无独立子代理复核；交付说明须披露无法独立复核的残留风险 / 多 Agent 时填 `n/a`>
+**架构**: 多 Agent 九角色流水线（固定，不设总开关）。**worker 接管记录**（每节点失败时填一行；无失败留空）：<角色 / 原因 timeout|failed|no_artifact / 接管者=主控 / L1 影响>。**不记录宿主配置明细、不记 deny 原文、不声称已加固**——论衡不读宿主配置，也不要求主人提供 deny 列表原文
+**接管 L1 披露**: <无 worker 接管时填 `n/a`；有接管时必填：接管角色 / 原因 / 判定者=主控（L1）/ 交付说明须披露无法独立复核的残留风险>
 **运行性质**: 生产 / **测试模式**（测试模式 = phase2_5_outline / phase3_5_insight / phase5_acceptance 三个人在环节点自动通过；**必须在此 + 任务简报 + 交付说明三处同步披露**，v2.12.38；**v2.12.43：T8 终检机械核对三处一致，缺任一 = P1 并重跑终检**）
 **M 门**: v2.2.12 / v2.5.x
 **数据信任档**: 全外发 / 混合 / 全人工（教训 #259，拓展，Phase 0 拍板）

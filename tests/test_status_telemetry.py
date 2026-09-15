@@ -66,14 +66,14 @@ def test_redaction_rule_has_executable_spec():
     assert "哈希前 12" in t, "关键协议缺哈希备选口径"
 
 
-def test_single_controller_l1_disclosure_is_declared():
-    """单主控降级必须把 L1 独立性风险传递到交付说明，而不是只停留在 status 模板。"""
+def test_worker_takeover_l1_disclosure_is_declared():
+    """worker 接管（非整轮降级）必须把 L1 独立性风险传递到交付说明。"""
     status = _read(STATUS_TPL)
     deliverables = _read(DELIVERABLES)
-    assert "单主控 L1 披露" in status, "status 模板缺单主控 L1 披露字段"
+    assert "接管 L1 披露" in status, "status 模板缺 worker 接管 L1 披露字段"
     assert "无法独立复核" in status, "status 模板缺 L1 风险文字"
-    assert "单主控" in deliverables and "无法独立复核" in deliverables, \
-        "交付说明真源缺单主控 L1 风险披露要求"
+    assert "worker 接管" in deliverables and "无法独立复核" in deliverables, \
+        "交付说明真源缺 worker 接管 L1 风险披露要求"
 
 
 def test_deliverables_still_forbids_transcription():

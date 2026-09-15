@@ -48,29 +48,71 @@ def test_condition_names_have_canonical_definitions():
     assert not missing, f"节点引用未定义 condition: {missing}"
 
 
-def test_mode_gate_precedes_all_worker_spawns():
-    """审计 P0-1：默认单主控，多 Agent 只能在 mode gate 通过后进入 worker 节点。"""
-    p = _pipeline()["pipeline"]
-    ids = [n["id"] for n in p]
-    mode = _node("pre_spawn_enforcement")
-    assert mode.get("blocking") is True
-    assert mode.get("condition") == "multi_agent_owner_opt_in_and_host_hardened"
-    assert mode.get("on_not_triggered") == "record_single_controller_mode"
-    retrieval = _node("retrieval")
-    assert retrieval.get("condition") == "mode_is_multi_agent"
-    assert retrieval.get("on_not_triggered") == "record_single_controller_mode"
-    assert ids.index("pre_spawn_enforcement") < ids.index("retrieval")
+def test_phase_numbering_is_explicit_and_monotonic():
+    """v2.12.46：Phase 编号为第一类真源字段 —— 每节点声明 phase/phase_seq，唯一且沿前向边不回退。"""
+    data = _pipeline()
+    P = data["pipeline"]
+    order = data.get("phase_order") or []
+    assert order, "phase-order.yaml 缺顶层 phase_order 编号表"
+    seq = {}
+    for n in P:
+        assert n.get("phase"), f"{n['id']} 缺 phase"
+        assert isinstance(n.get("phase_seq"), int), f"{n['id']} 缺 phase_seq"
+        seq[n["id"]] = n["phase_seq"]
+    assert len(set(seq.values())) == len(seq), "phase_seq 必须唯一"
+    assert {e["node"] for e in order} == set(seq), "phase_order 与 pipeline 节点集不一致"
+    for e in order:
+        assert e["seq"] == seq[e["node"]], f"phase_order[{e['node']}] seq 与节点声明不一致"
+        assert e["phase"] == _node(e["node"])["phase"], f"phase_order[{e['node']}] 标签与节点声明不一致"
+    for n in P:
+        for k in ("next", "after_trigger", "on_fail"):
+            v = n.get(k)
+            if isinstance(v, str) and v in seq:
+                assert seq[v] >= seq[n["id"]], f"{n['id']}.{k}->{v} 序号回退"
 
 
-def test_every_spawnable_worker_has_executor_by_mode():
-    """P0：模式降级只能替换执行者，不能创建旁路；所有 worker 节点必须声明两种执行者。"""
+def test_architecture_is_multi_agent_role_pipeline():
+    """v2.12.46 定案：论衡只有一个标准架构 = 多 Agent 九角色流水线，不设总开关。"""
+    arch = _pipeline().get("architecture") or {}
+    assert arch.get("standard") == "multi_agent_role_pipeline"
+    assert arch.get("worker_failure_policy") == "owner_takeover_with_disclosure"
+    assert arch.get("fallback_is_not_equivalent") is True
+    assert set(arch.get("worker_roles") or []) == {
+        "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T9", "G14"}
+    raw = YAML_PATH.read_text(encoding="utf-8")
+    assert "executor_by_mode" not in raw, "旧 executor_by_mode 并列模式语义复活"
+    assert "single_controller" not in raw, "旧 single_controller 并列模式语义复活"
+
+
+def test_every_worker_node_declares_role_writability_and_takeover():
+    """worker 节点必须声明角色、写入权、核验权与失败接管策略（节点级接管，非整轮降级）。"""
     missing = []
     for n in _pipeline()["pipeline"]:
         if n.get("kind") in {"agent", "parallel_agents", "conditional_agent", "advisory_agent"}:
-            ex = n.get("executor_by_mode") or {}
-            if set(ex) != {"multi_agent", "single_controller"}:
-                missing.append(n["id"])
-    assert not missing, f"缺 executor_by_mode 的 worker 节点: {missing}"
+            if not n.get("role") or n.get("write_authority") != "executor":
+                missing.append(f"{n['id']}.role/write_authority")
+            if n.get("verification_authority") != "主控":
+                missing.append(f"{n['id']}.verification_authority")
+            takeover = n.get("on_worker_failure") or {}
+            if takeover.get("executor") != "主控" or takeover.get("disclosure") != "degraded_executor":
+                missing.append(f"{n['id']}.on_worker_failure")
+    assert not missing, f"worker 节点声明缺失: {missing}"
+
+
+def test_role_artifacts_are_executor_written_and_owner_artifacts_are_owner_written():
+    """角色产物由角色写（T5 就是写手）；权威汇总产物只由主控节点生产。"""
+    byid = {n["id"]: n for n in _pipeline()["pipeline"]}
+    for pid in ("current_draft_sync", "final_assembly", "pre_spawn_enforcement"):
+        n = byid[pid]
+        assert n.get("write_authority") == "owner", f"{pid} 应为 owner 写入权"
+    assert byid["t8_technical_final"].get("kind") == "owner_agent"
+    # T5 = 正式写手：初稿/修订稿必须由 T5 角色直接落盘
+    for pid in ("t5_draft_v1", "t5_feedback_revision", "t5_style_revision"):
+        assert byid[pid].get("role") == "T5" and byid[pid].get("write_authority") == "executor", \
+            f"{pid} 未保留 T5 写手落盘职责"
+    producers = [n["id"] for n in _pipeline()["pipeline"]
+                 if "final/定稿.md" in FC._paths(n.get("output"))]
+    assert producers == ["final_assembly"], f"final/定稿.md 生产者异常: {producers}"
 
 
 def test_all_paths_reach_quality_gates_before_acceptance():
@@ -234,7 +276,7 @@ def test_flow_check_detects_missing_producer():
     import os
     p = YAML_PATH  # 绝对路径（v2.12.39 修：原相对路径依赖 CWD，属顺序依赖的脆弱测试）
     src = p.read_text(encoding="utf-8")
-    # 只移除 final_assembly 节点的 output 声明；单主控 fallback 也可能生产同一路径，不能全局 replace。
+    # 移除 final_assembly 节点的 output 声明 → 制造 final/定稿.md 无生产者
     marker = "  - id: final_assembly"
     start = src.index(marker)
     end = src.find("\n  - id:", start + len(marker))
@@ -242,8 +284,6 @@ def test_flow_check_detects_missing_producer():
     assert "    output: final/定稿.md\n" in block, "反向注入点未命中（final_assembly.output 写法已变）"
     bad_block = block.replace("    output: final/定稿.md\n", "", 1)
     bad = src[:start] + bad_block + src[start + len(block):]
-    # 同时移除单主控 fallback 的同一路径生产声明，确保注入样本确实没有生产者。
-    bad = bad.replace("    output: literature/文献卡.md + data/数据卡.md + cases/案例卡.md + analysis/分析大纲.md + drafts/初稿-v1.md + final/定稿.md + final/交付说明.md\n", "    output: literature/文献卡.md + data/数据卡.md + cases/案例卡.md + analysis/分析大纲.md + drafts/初稿-v1.md + final/交付说明.md\n", 1)
     backup = src
     cwd = os.getcwd()
     os.chdir(ROOT)

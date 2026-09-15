@@ -15,6 +15,8 @@
   9 初稿生产者到 t7_audit 的路径必须经过 current_draft_sync
  10 **verdict_scale 接线**（v2.12.40 修 P0-1）：节点引用的档位名必须在顶层有同名定义，
     且定义含恰好 4 档 + `default_handling` 四档全覆盖 —— 防「声明四档却无处置」的 fail-open。
+ 11 **Phase 编号**（v2.12.46）：每个节点须声明 `phase` + `phase_seq`；seq 全局唯一且与顶层
+    `phase_order` 一致；沿 next/after_trigger/on_fail 边**序号不得回退**（after_each 为重跑动作，不计）。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import pathlib, re, sys, yaml
@@ -200,6 +202,34 @@ def main():
         miss = [t for t in tiers if t not in dh]
         if miss:
             errs.append(f"verdict_scale.{name}.default_handling 缺档位: {miss}")
+
+    po = d.get('phase_order') or []                # 11 Phase 编号（v2.12.46）
+    seq_map = {}
+    for n in P:
+        if not n.get('phase') or not isinstance(n.get('phase_seq'), int):
+            errs.append(f"{n['id']} 缺 phase/phase_seq")
+            continue
+        seq_map[n['id']] = n['phase_seq']
+    if len(set(seq_map.values())) != len(seq_map):
+        errs.append('phase_seq 重复（编号必须唯一）')
+    listed = {e.get('node') for e in po if isinstance(e, dict)}
+    if listed != set(ids):
+        miss = sorted(set(ids) - listed)
+        extra = sorted(listed - set(ids))
+        errs.append(f"phase_order 与 pipeline 不一致（缺 {miss} / 多 {extra}）")
+    for e in po:
+        if not isinstance(e, dict):
+            continue
+        nid = e.get('node')
+        if nid in seq_map and (e.get('seq') != seq_map[nid] or e.get('phase') != byid[nid].get('phase')):
+            errs.append(f"phase_order[{nid}] 与节点声明不一致")
+    for n in P:                                    # 沿前向边序号不得回退（after_each = 重跑动作，不计）
+        a = seq_map.get(n['id'])
+        for k in ('next', 'after_trigger', 'on_fail'):
+            v = n.get(k)
+            b = seq_map.get(v)
+            if a is not None and b is not None and b < a:
+                errs.append(f"{n['id']}(seq {a}).{k}->{v}(seq {b}) 序号回退")
 
     print(';'.join(errs))
     return 0 if not errs else 2
