@@ -87,6 +87,13 @@ def main():
     ids = [n['id'] for n in P]
     errs = []
 
+    # 条件名称必须在顶层集中定义，避免只靠节点注释解释而产生漂移。
+    condition_defs = d.get('condition_definitions') or {}
+    for n in P:
+        condition = n.get('condition')
+        if condition and condition not in condition_defs:
+            errs.append(f"{n['id']}.condition->{condition}（顶层无定义）")
+
     for n in P:                                    # 1 引用有效性（记录动作允许作为条件出口）
         for k in ('next', 'after_trigger', 'on_fail', 'on_not_triggered'):
             v = n.get(k)

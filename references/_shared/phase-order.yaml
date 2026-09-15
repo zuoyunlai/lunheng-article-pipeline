@@ -64,6 +64,28 @@ verdict_scale:
   report_after_rerun_doctrine: >
     凡 condition 依赖他角色报告、或 mechanical_checkpoint 前置为「相关报告/产物已落盘」者，
     必须在报告落盘后重跑；主控预跑的结果不得直接当作闸门输入。节点级标注 = rerun_after_report: true。
+condition_definitions:
+  multi_agent_owner_opt_in_and_host_hardened:
+    requires: [owner_multi_agent_consent, host_hardening_verified]
+  mode_is_multi_agent:
+    requires: [multi_agent_owner_opt_in_and_host_hardened]
+  mode_is_multi_agent_and_owner_enabled:
+    requires: [multi_agent_owner_opt_in_and_host_hardened, owner_peer_review_enabled]
+  methodology_snapshot_opt_in:
+    requires: [owner_methodology_snapshot_consent]
+  any_listed_trigger_condition_met:
+    requires: [phase0_review_flags]
+  T6_requires_revision:
+    requires: [t6_report_p0_or_p1]
+  T7_P0_or_P1:
+    requires: [t7_report_p0_or_p1]
+  target_language_includes_zh:
+    requires: [owner_target_language]
+  G14_requires_style_revision:
+    requires: [g14_report_style_fail]
+  figures_approved_by_owner:
+    requires: [owner_figure_decision]
+
 owner_checkpoints:
   - phase0_definition
   - phase2_5_outline
@@ -83,22 +105,16 @@ pipeline:
     output: status.md（运行模式与加固确认）
     condition: multi_agent_owner_opt_in_and_host_hardened
     verdict_scale: four_tier
-    on_not_triggered: single_controller_fallback
-    note: "默认单主控；仅当主人在 Phase 0 显式确认多 Agent，且宿主已落地 tools.subagents.tools.deny + maxSpawnDepth=1 时，才允许后续 parallel_agents/agent 节点 spawn。"
+    on_not_triggered: record_single_controller_mode
+    note: "默认单主控；仅当主人在 Phase 0 显式确认多 Agent，且宿主已落地 tools.subagents.tools.deny + maxSpawnDepth=1 时，后续阶段才选择子代理执行者。未满足条件时仍沿同一阶段图由主控亲为。"
     next: retrieval
-  - id: single_controller_fallback
-    kind: owner_agent
-    owner: 主控
-    input: 01-任务简报.md
-    output: literature/文献卡.md + data/数据卡.md + cases/案例卡.md + analysis/分析大纲.md + drafts/初稿-v1.md + final/定稿.md + final/交付说明.md
-    note: "未满足多 Agent 两条件时的唯一执行路径：主控亲为，默认不联网、不 spawn；只消费主人投喂或已获同意的本地材料，并在 status.md 记录降级原因。"
-    next: phase5_acceptance
   - id: retrieval
     input: 01-任务简报.md（+ owner 已确认的模式/语言/同意记录）
     kind: parallel_agents
     condition: mode_is_multi_agent
     verdict_scale: four_tier
-    on_not_triggered: single_controller_fallback
+    on_not_triggered: record_single_controller_mode
+    executor_by_mode: {multi_agent: [T1, T2, T3], single_controller: 主控}
     agents: [T1, T2, T3]
     output:
       T1: literature/文献卡.md
@@ -134,6 +150,7 @@ pipeline:
     input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
     kind: agent
     agent: T4
+    executor_by_mode: {multi_agent: T4, single_controller: 主控}
     output: analysis/分析大纲.md + analysis/T5-写作上下文.md   # T5 写作上下文包由 T4 产出（v2.12.37 审计 P1-1：原仅散落角色卡/派发话术，未入真源）
     output_chars_max: 12000   # 写盘上限（回传另受平台 4096 字符硬上限约束）
     next: phase2_5_outline
@@ -145,6 +162,7 @@ pipeline:
     input: analysis/分析大纲.md + analysis/T5-写作上下文.md
     kind: agent
     agent: T5
+    executor_by_mode: {multi_agent: T5, single_controller: 主控}
     output: drafts/初稿-v1.md
     next: phase3_5_insight
   - id: phase3_5_insight
@@ -164,6 +182,7 @@ pipeline:
     kind: agent
     verdict_scale: four_tier
     agent: T6
+    executor_by_mode: {multi_agent: T6, single_controller: 主控}
     degrade: skip_in_lite_tier   # P1-5 修复：轻量档 T6「必跳」在此声明（原键名 `t6_degrade`，v2.12.40 统一为标准键
                                  # `degrade`；真源缺声明时曾致各文件「必跳」/「可跳过」/「已声明为否」三种读法并存）
     input: drafts/current_draft.md
@@ -176,6 +195,7 @@ pipeline:
     verdict_scale: four_tier   # v2.12.40：T6 报告判定落四档
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 批判报告已落盘；必须在报告写入后重跑判定
     agent: T5
+    executor_by_mode: {multi_agent: T5, single_controller: 主控}
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition: T6_requires_revision   # 命中定义：T6 批判报告含任何 P0/P1 否决项（无 = 不命中）
                                       # v2.12.40：G14 已迁出本节点（迁至 Phase 4.4 前置，且只审一次）
@@ -185,6 +205,7 @@ pipeline:
   - id: t7_audit
     kind: agent
     agent: T7
+    executor_by_mode: {multi_agent: T7, single_controller: 主控}
     input: drafts/current_draft.md
     output: audits/审计报告-vN.md
     output_chars_max: 10000
@@ -216,6 +237,7 @@ pipeline:
     kind: agent
     verdict_scale: four_tier
     agent: G14
+    executor_by_mode: {multi_agent: G14, single_controller: 主控}
     rerun_after_report: false   # v2.12.40 业主定案 A1：**全流程仅 1 次**；audit_revision.after_each 的 rerun_g14_if_enabled 已删
     # 执行前提（业主定案 A2：「T5 之前若有修订但还不能定稿，则 G14 还是不执行」）：
     #   本闸是**定稿前最后一道闸**。前置修订尚未收敛（audit_revision 未退出 / 仍有未决 P0·P1 修订项 / 尚不能定稿）
@@ -237,6 +259,7 @@ pipeline:
     verdict_scale: four_tier
     rerun_after_report: true   # 前提 = G14 报告已落盘；必须在报告写入后取数
     agent: T5
+    executor_by_mode: {multi_agent: T5, single_controller: 主控}
     input: drafts/current_draft.md + audits/G14-检测报告-vN.md
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition: G14_requires_style_revision   # 命中定义：G14 判定 5+ 类 Fail（其余档位 = 不命中）
@@ -279,11 +302,12 @@ pipeline:
     # v2.12.40 业主定案 A2：输入由 `drafts/current_draft.md`（未定稿稿件）改为 **`final/定稿.md`（终稿）**——
     #   T9 定位为「**终稿落成后模拟投递刊物编辑审稿**」。节点位于 final_assembly 之后，故「终稿落成后」已满足。
     input: final/定稿.md
-    condition: mode_is_multi_agent_and_owner_enabled   # 多 Agent 仅在 pre_spawn_enforcement 已通过后命中
+    condition: mode_is_multi_agent_and_owner_enabled   # 多 Agent 仅在 pre_spawn_enforcement 已通过后命中；未命中仍沿流程记录并由主控执行等价复核
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：T9 关闭时必须留痕
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。
     blocking: false
+    executor_by_mode: {multi_agent: T9, single_controller: 主控}
     # ↓ v2.12.40 业主定案 A2：T9 独立性**硬定义**（不是建议、不得自行放宽）——错一处即报告失效
     independence: blind_review
     independence_rules:

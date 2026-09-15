@@ -138,6 +138,17 @@ CHECKS=(
   "_shared/phase-2-details.md|v$EXPECTED|1"
   "_shared/phase-3-details.md|v$EXPECTED|1"
   "_shared/dispatch-header.md|v$EXPECTED|1"
+  "_shared/skill-entry-appendix.md|v$EXPECTED|1"
+  "_shared/host-hardening-recipe.md|v$EXPECTED|1"
+  "templates/README-模板拆分方案.md|v$EXPECTED|1"
+  "templates/checkpoint-card-template.md|v$EXPECTED|1"
+  "templates/status-template-lite.md|v$EXPECTED|1"
+  "templates/交接报告-template-lite.md|v$EXPECTED|1"
+  "templates/任务简报-template-lite.md|v$EXPECTED|1"
+  "templates/先行者清单-template-lite.md|v$EXPECTED|1"
+  "templates/数据卡-template-lite.md|v$EXPECTED|1"
+  "templates/文献卡-template-lite.md|v$EXPECTED|1"
+  "templates/案例卡-template-lite.md|v$EXPECTED|1"
 
   # 顶层文档（入口，v2.3.6 起纳入；@ = 相对 ENTRY_DIR）
   "@README.md|v$EXPECTED|1"

@@ -163,6 +163,17 @@ SYNCS=(
   "_shared/phase-2-details.md|header"
   "_shared/phase-3-details.md|header"
   "_shared/dispatch-header.md|header"
+  "_shared/skill-entry-appendix.md|header"
+  "_shared/host-hardening-recipe.md|header"
+  "templates/README-模板拆分方案.md|header"
+  "templates/checkpoint-card-template.md|header"
+  "templates/status-template-lite.md|header"
+  "templates/交接报告-template-lite.md|header"
+  "templates/任务简报-template-lite.md|header"
+  "templates/先行者清单-template-lite.md|header"
+  "templates/数据卡-template-lite.md|header"
+  "templates/文献卡-template-lite.md|header"
+  "templates/案例卡-template-lite.md|header"
 
   # v2.12.12 版本一致性盲区修复：phase-order.yaml（阶段真源，头部自述「版本随 SKILL.md 同步」
   #   但既不在本清单、也不是 markdown 块引用格式，故长期停在旧版本戳 —— 净化包内随包分发的

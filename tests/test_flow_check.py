@@ -38,6 +38,16 @@ def _node(pid):
     return [n for n in _pipeline()["pipeline"] if n["id"] == pid][0]
 
 
+def test_condition_names_have_canonical_definitions():
+    """审计 P1：每个 condition 必须在 phase-order 顶层 condition_definitions 中有定义。"""
+    data = _pipeline()
+    defs = data.get("condition_definitions") or {}
+    assert defs, "phase-order.yaml 缺 condition_definitions"
+    missing = [n["id"] for n in data["pipeline"]
+               if n.get("condition") and n.get("condition") not in defs]
+    assert not missing, f"节点引用未定义 condition: {missing}"
+
+
 def test_mode_gate_precedes_all_worker_spawns():
     """审计 P0-1：默认单主控，多 Agent 只能在 mode gate 通过后进入 worker 节点。"""
     p = _pipeline()["pipeline"]
@@ -45,11 +55,45 @@ def test_mode_gate_precedes_all_worker_spawns():
     mode = _node("pre_spawn_enforcement")
     assert mode.get("blocking") is True
     assert mode.get("condition") == "multi_agent_owner_opt_in_and_host_hardened"
-    assert mode.get("on_not_triggered") == "single_controller_fallback"
+    assert mode.get("on_not_triggered") == "record_single_controller_mode"
     retrieval = _node("retrieval")
     assert retrieval.get("condition") == "mode_is_multi_agent"
-    assert retrieval.get("on_not_triggered") == "single_controller_fallback"
+    assert retrieval.get("on_not_triggered") == "record_single_controller_mode"
     assert ids.index("pre_spawn_enforcement") < ids.index("retrieval")
+
+
+def test_every_spawnable_worker_has_executor_by_mode():
+    """P0：模式降级只能替换执行者，不能创建旁路；所有 worker 节点必须声明两种执行者。"""
+    missing = []
+    for n in _pipeline()["pipeline"]:
+        if n.get("kind") in {"agent", "parallel_agents", "conditional_agent", "advisory_agent"}:
+            ex = n.get("executor_by_mode") or {}
+            if set(ex) != {"multi_agent", "single_controller"}:
+                missing.append(n["id"])
+    assert not missing, f"缺 executor_by_mode 的 worker 节点: {missing}"
+
+
+def test_all_paths_reach_quality_gates_before_acceptance():
+    """P0：任意模式路径都必须经过 T7、T7.5、T8 和 Phase 5，禁止 fallback 直达终态。"""
+    data = _pipeline(); by = {n["id"]: n for n in data["pipeline"]}
+    required = {"t7_audit", "t7_5_integrity", "t8_technical_final", "phase5_acceptance"}
+    successors = {}
+    for n in data["pipeline"]:
+        out = []
+        for key in ("next", "after_trigger", "on_fail", "on_not_triggered"):
+            v = n.get(key)
+            if isinstance(v, str) and v in by: out.append(v)
+        successors[n["id"]] = out
+    terminals = []
+    def walk(node, seen, path):
+        if node in seen: return
+        seen = seen | {node}; path = path + [node]
+        if node == "phase5_acceptance": terminals.append(path); return
+        for nxt in successors[node]: walk(nxt, seen, path)
+    walk("phase0_definition", set(), [])
+    assert terminals, "从 Phase 0 不可达 Phase 5"
+    bad = [p for p in terminals if not required.issubset(p)]
+    assert not bad, "存在绕过质量门的路径: " + " -> ".join(bad[0])
 
 
 def test_methodology_snapshot_is_explicit_opt_in():
