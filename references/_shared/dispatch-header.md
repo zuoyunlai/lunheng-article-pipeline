@@ -46,6 +46,7 @@
 > - **不轮询**：启动后**等 completion 事件**，**禁止**用 `exec` sleep / `sessions_list` 搭轮询循环（官方操作准则：「start child work once and wait for completion events」）。
 > - **终答后到达的 completion** → 回**静默标记 `NO_REPLY`**（不另发可见消息）。
 > - **回传硬上限**：completion 回传 findings **≤ 4096 字符** / 单条结果 **≤ 512** / 路由通知 **≤ 1024**（平台硬上限，**超限即被截断且不报错**）→ **大报告一律写盘**，回传只带**摘要 + 产物路径 + 「已写盘」声明**。
+> - **产物写入边界（v2.12.46）**：**我的角色产物由我自己写盘**（T1/T2/T3 检索卡、T4 大纲、T5 初稿与修订稿、T6/T7/G14/T9 各自报告）；**禁写主控权威文件**：`status.md` / `drafts/current_draft.md` / `final/定稿.md` / `final/交付说明.md` / `final/M-Gate-Report-*.json`。写完自检「文件存在 + 路径正确 + 必填结构完整」，再回传摘要。
 > - **display-cap 截断应对（v2.12.43）**：**识别信号（三取一）** = ① 回传文本中途中止 ② 缺 Stats line ③ 缺「已写盘 + 产物路径」声明。**处置三步**：① **先 `read` 磁盘产物**（磁盘产物**优先**于回传内容）；② 产物缺 → 主控按该角色会话拉 `sessions_history` 整合（**不轮询** `subagents(action=list)`）；③ 整合产物头部标 `[主控 fallback 产物]`，`status.md` 记 `display_cap_truncated`，并按既有「**子代理实际产出 vs 主控叠加**」两栏分层（**不另立格式**）。
 > - **announce 逐层传递**：每层只见**直接子代**的 announce（论衡仅 1 层，不受影响）。
 

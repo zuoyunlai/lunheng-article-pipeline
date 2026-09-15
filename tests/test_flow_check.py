@@ -48,6 +48,41 @@ def test_condition_names_have_canonical_definitions():
     assert not missing, f"节点引用未定义 condition: {missing}"
 
 
+def test_all_paths_pass_through_human_checkpoints():
+    """人在环：Phase 0 → Phase 5 验收的每条路径都必须经过四个主人决策节点。"""
+    data = _pipeline()
+    by = {n["id"]: n for n in data["pipeline"]}
+    owners = set(data.get("owner_checkpoints") or [])
+    assert owners == {"phase0_definition", "phase2_5_outline", "phase3_5_insight", "phase5_acceptance"}, \
+        f"人在环节点集被改动: {sorted(owners)}"
+    succ = {}
+    for n in data["pipeline"]:
+        out = []
+        for k in ("next", "after_trigger", "on_fail"):
+            v = n.get(k)
+            if isinstance(v, str) and v in by:
+                out.append(v)
+        succ[n["id"]] = out
+    paths = []
+    def walk(x, path, seen):
+        if x in seen:
+            return
+        path = path + [x]
+        seen = seen | {x}
+        if x == "phase5_acceptance":
+            paths.append(path)
+            return
+        for y in succ[x]:
+            walk(y, path, seen)
+    walk("phase0_definition", [], set())
+    assert paths, "不可达 Phase 5 验收"
+    bad = [p for p in paths if not owners.issubset(p)]
+    assert not bad, "存在绕过人在环节点的路径: " + " -> ".join(bad[0])
+    for n in data["pipeline"]:
+        if n.get("kind") == "owner_checkpoint":
+            assert n.get("decisions"), f"{n['id']} 缺 decisions 枚举（不得空手推进）"
+
+
 def test_phase_numbering_is_explicit_and_monotonic():
     """v2.12.46：Phase 编号为第一类真源字段 —— 每节点声明 phase/phase_seq，唯一且沿前向边不回退。"""
     data = _pipeline()
