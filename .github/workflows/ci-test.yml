@@ -41,28 +41,27 @@ jobs:
           echo "=========================================="
           echo "论衡 M 门 13 项算法格式测试"
           echo "=========================================="
-          python tests/test_m_gate.py
+          python -m pytest tests/test_m_gate.py -q
         env:
           # 注：当前 v2.5.6 不依赖真实 LLM API key（仅 fixture 格式检查）
           # v2.6.0 Phase 2 将集成真实 LLM 调用（需 OPENAI_API_KEY）
           PYTHONPATH: ${{ github.workspace }}
-      
+
       - name: 跑 T9 + G14 规则一致性测试（v2.5.12 新增，回应审计 P1-3）
         run: |
           echo "=========================================="
           echo "论衡 T9 + G14 规则一致性测试"
           echo "=========================================="
-          python tests/test_rules_consistency.py
+          python -m pytest tests/test_rules_consistency.py -q
         env:
           PYTHONPATH: ${{ github.workspace }}
-      
+
       - name: 跑权限口径 + 流程图真源测试（v2.12.30 新增，回应审计 P0-1/P0-2/P0-3）
         run: |
           echo "=========================================="
           echo "论衡 权限口径 + 流程图真源测试"
           echo "=========================================="
-          python tests/test_capability_assert.py
-          python tests/test_flow_check.py
+          python -m pytest tests/test_capability_assert.py tests/test_flow_check.py -q
         env:
           PYTHONPATH: ${{ github.workspace }}
 

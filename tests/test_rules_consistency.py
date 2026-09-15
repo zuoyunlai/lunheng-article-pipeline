@@ -214,40 +214,17 @@ def test_G14_selfcheck_threshold_consistency():
 
 
 # =============================================================================
-# 主入口
+# 主入口（v2.12.42 删）
 # =============================================================================
+# 历史：本文件原含 __main__ 块，CI workflow（.github/workflows/ci-test.yml）以
+#   `python tests/test_rules_consistency.py` 形式直接跑，触发 __main__。
+#   v2.12.40 把函数 `test_wordcount_dual_caliber` 重命名为 `test_wordcount_single_caliber`，
+#   忘了同步本列表，CI 因此 NameError 失败（pytest 不会执行 __main__，所以本机漏检）。
+#   删 __main__ 后 CI 必须走 `pytest tests/...` —— 与项目其他测试统一入口、避免再漂。
 if __name__ == "__main__":
-    print("=" * 60)
-    print("论衡 T9 + G14 + 字数规则一致性测试（v2.5.13）")
-    print("=" * 60)
-    print()
-
-    tests = [
-        test_T9_6_dimensions_consistency,
-        test_T9_4_tiers_consistency,
-        test_G14_8_categories_consistency,
-        test_G14_3_tiers_consistency,
-        test_wordcount_dual_caliber,
-        test_wordcount_3_tiers_consistency,
-        test_wordcount_no_byte_bug,
-        test_G14_selfcheck_threshold_consistency,
-    ]
-
-    passed = 0
-    failed = 0
-    for test in tests:
-        try:
-            test()
-            passed += 1
-        except AssertionError as e:
-            print(f"  ✗ {test.__name__}: {e}")
-            failed += 1
-        except Exception as e:
-            print(f"  ✗ {test.__name__}: ERROR {e}")
-            failed += 1
-
-    print()
-    print("=" * 60)
+    raise SystemExit(
+        "本文件请通过 pytest 跑（CI 一致）：pytest tests/test_rules_consistency.py"
+    )
     print(f"PASS: {passed}/{len(tests)}  FAIL: {failed}/{len(tests)}")
     print("=" * 60)
 
