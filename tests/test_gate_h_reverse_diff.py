@@ -14,7 +14,7 @@
   ① 反向差集判据改为 **仓库内快照** `references/_shared/lessons-max.snapshot`（hermetic）——
     不再受仓库外 `memory/lessons.md` 的「已发布的绿可被墙外追加追溯性推翻」影响
   ② 外部真源仅作 **参照告警**（warn），不参与 exit code
-  ③ 排除表 `LUNHENG_LESSON_EXCLUDE` 默认 `340 341 355`（宿主/通用类，索引设计上不入本索引）
+  ③ 排除表 `LUNHENG_LESSON_EXCLUDE` 默认 `340 341 355 374 375 376`（宿主/工作区/通用类，索引设计上不入本索引）
 
 本文件锁死的样本（教训 #334：门类改动必须配「应当放行」的正向样本）：
   ① 正向：真源新增「标题不含论衡字样」**且未列入排除表**的编号 → 快照告警但不 fail（hermetic）
@@ -112,7 +112,7 @@ def test_snapshot_advisory_when_source_exceeds_snapshot(tmp_path):
     idx = _idx_decl()
     snap = _snap_max()
     assert snap is not None, "快照文件缺失"
-    # 选未列入排除表（340/341/355）的编号
+    # 选未列入排除表（340/341/355/374/375/376）的编号
     new_num = snap + 50  # 远超快照与排除表
     probe = tmp_path / "lessons.md"
     probe.write_text(
@@ -166,7 +166,7 @@ def test_no_false_positive_when_exclude_table_leads_source(tmp_path):
 
 @requires_real_src
 def test_host_class_numbers_excluded_from_advisory(tmp_path):
-    """#340/#341/#355 宿主类不计入 SRC_MAX，告警行不出现这些编号。
+    """#340/#341/#355/#374/#375/#376 宿主/工作区类不计入 SRC_MAX，告警行不出现这些编号。
 
     2026-09-14 去环境耦合修订：旧实现「主真源全文 + 合成条目」却断言告警行点名 #342 ——
     但告警行**只点 SRC_MAX（最大非排除编号）**，主真源持续增长（实测已到 #365）后该断言
@@ -183,10 +183,13 @@ def test_host_class_numbers_excluded_from_advisory(tmp_path):
         + "\n## #340 宿主/通用类样本（索引设计上不入本索引）\n"
         "## #341 宿主/通用类样本二\n"
         "## #355 宿主/通用类样本三\n"
+        "## #374 工作区审计类样本四\n"
+        "## #375 工作区审计类样本五\n"
+        "## #376 工作区审计类样本六\n"
         "## #342 论衡类样本（标题不含「论衡」字样）\n",
         encoding="utf-8")
     high = sorted({n for n in _src_numbers(base_text) if n > 342})
-    exclude = " ".join(["340", "341", "355"] + [str(n) for n in high])
+    exclude = " ".join(["340", "341", "355", "374", "375", "376"] + [str(n) for n in high])
     low_snap = tmp_path / "snapshot-low"
     low_snap.write_text("300\n", encoding="utf-8")
     r, out = _run_gate(probe, {"LUNHENG_LESSON_EXCLUDE": exclude,
@@ -195,7 +198,7 @@ def test_host_class_numbers_excluded_from_advisory(tmp_path):
     advisories = _advisory_lines(out)
     assert advisories, f"SRC_MAX 342 > 快照 300，应产生参照告警：\n{out}"
     for line in advisories:
-        for n in (340, 341, 355):
+        for n in (340, 341, 355, 374, 375, 376):
             assert f"#{n}" not in line, f"宿主类 #{n} 不应出现在告警中：{line}"
         assert "#342" in line, f"#342 应被计入：{line}"
 
@@ -210,6 +213,8 @@ def test_default_exclusion_table_not_empty():
     # 排除表默认必须含 #340/#341（历史宿主类）+ 不得被清空
     assert "340" in defaults, f"排除表缺 #340（历史宿主类）：{defaults}"
     assert "341" in defaults, f"排除表缺 #341（历史宿主类）：{defaults}"
+    for n in ("355", "374", "375", "376"):
+        assert n in defaults, f"排除表缺 #{n}（宿主/工作区类）：{defaults}"
     # SRC_MAX 解析口径不得再依赖标题里的「论衡」字样
     src_after_excl = src.split("LUNHENG_LESSON_EXCLUDE")[1] if "LUNHENG_LESSON_EXCLUDE" in src else src
     assert "论衡" not in src_after_excl.split("SRC_MAX=")[1].split("if [ -n")[0] if "SRC_MAX=" in src_after_excl else True, \
