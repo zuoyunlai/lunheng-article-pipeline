@@ -12,6 +12,47 @@
 
 ---
 
+## [v2.12.46] — 2026-09-15
+
+> **主题：架构定案 —— 多 Agent 九角色为唯一标准架构；Phase 编号真源化；角色产物写入边界；人在环机械门。**
+> **性质：架构语义收敛 + 真源字段化 + 机械门补齐。无新增能力、无破坏性行为变更。**
+
+### 一、★ 多 Agent 为唯一标准架构（删除「单主控」并列模式）
+
+> **背景**：v2.12.13 起为回应宿主权限不确定性引入「默认单主控」兼容策略；此前又以 `single_controller_fallback` 实现，导致**默认路径可绕过整条质量链直达 Phase 5**（全量复审 P0）。业主定案：论衡的九角色就是多 Agent 架构，**不存在与之并列的第二种架构**。
+
+- 删除 `executor_by_mode` / `single_controller` / `mode_is_multi_agent` / 全局模式旁路与 `record_single_controller_mode` 出口
+- 新增顶层 `architecture`：`standard: multi_agent_role_pipeline`、`worker_roles: [T1..T7, T9, G14]`、`worker_failure_policy: owner_takeover_with_disclosure`、`fallback_is_not_equivalent: true`
+- worker 节点统一声明 `role` / `write_authority: executor` / `verification_authority: 主控` / `on_worker_failure`（接管者 = 主控，`retry_limit: 1`）
+- **worker 不可用/失败 = 单节点故障**：只接管失败节点 + `status.md` 记「worker 接管记录」+ 交付说明披露 L1 独立性风险；**不改架构、不跳质量门**
+- 宿主不存在「架构上不兼容多 Agent」；实际发生的是策略拒绝 / 超时 / 失败 / 无产物 / 配额不可用
+
+### 二、★ Phase 编号真源化
+
+- 23 个节点逐一新增第一类字段 `phase`（文档层标签）+ `phase_seq`（流水线序号）
+- 新增顶层 `phase_order` 编号表（唯一真源；主控呈现 Phase 标签不得自创）
+- `flow-check.py` 新增**规则 11**：phase/phase_seq 完整性 + 唯一性 + 与 `phase_order` 两处一致 + 沿 next/after_trigger/on_fail **序号不得回退**（`after_each` 为重跑动作，不计）
+- `status.md` 模板「当前阶段」枚举、`pipeline-overview.md` 标签同步对齐编号真源
+
+### 三、角色产物写入边界
+
+- **角色写自己的产物**：T1/T2/T3 检索卡、T4 大纲、**T5 初稿与修订稿（T5 = 正式写手，落盘职责保留）**、T6/T7/G14/T9 各自报告
+- **主控独占**：`status.md` / `drafts/current_draft.md` / `final/定稿.md` / `final/交付说明.md` / `final/M-Gate-Report-*.json`
+- `dispatch-header.md` 新增「产物写入边界」条；`任务简报` 模板新增「运行架构（固定）+ worker 接管披露」段（与 status / 交付说明**三处一致**）
+
+### 四、人在环机械门
+
+- 新增 `test_all_paths_pass_through_human_checkpoints`：枚举 Phase 0 → Phase 5 验收的**所有**路径，断言每条都经过 4 个 owner checkpoint；每个 checkpoint 必须有 `decisions` 枚举
+- Phase 0 外发同意门（fail-closed）与心跳写盘同意门保持不变
+
+### 五、验收
+
+- `pytest` **285 passed**；自审门 **26 PASS / 0 FAIL**
+- `flow-check` / `link-check` / `check-version` / `shellcheck` / `py_compile` / `diff-check` 全绿
+- `SKILL.md` 体量 9954 ≤ 10000 字符
+
+---
+
 ## [v2.12.45] — 2026-09-15
 
 > **主题：ClawHub 审计复核整改 — 一致性 pass（消 T09 + SDI-4 0.96 两条 [unexpected]）+ 技能侧 SDI/SDI-2/SQP-2 配套修复。**
