@@ -49,14 +49,12 @@
 [ack 100% 17:52] 完成第6-7节+参考文献（489+432+清单）
 ```
 
-### 3. LLM 可用性初判
-- **每个角色启动时**依赖宿主 agent 的 `model.fallbacks` 配置链（**宿主维护项，论衡不绑定模型 ID；以下为本机开发示例，实际以宿主 OpenClaw 配置为准）：
-  - primary: `deepseek/（当前候选见 SKILL.md 能力档 / 模型候选池）`（本机开发示例）  <!-- v2.12.28：原示例模型已下线/改名，改为指针 -->
-  - fallback 1: `minimax-portal/MiniMax-M3`（本机开发示例，曾验证 fallback 成功 T4 实战）
-  - fallback 2: `deepseek/deepseek-v4-flash`（本机开发示例，便宜快）
-  - fallback 3: `coding-plan/glm-5.3`（本机开发示例，跨供应商最终兜底）
-- **预检方法**：每个角色 session 第一次 LLM 调用前，先发一个 1-token ping（"ok"），若 30 秒内无响应则降级到下一档
-- **降级日志**：写入 final message / 心跳文件 `run/<项目>/.tmp/<角色>-heartbeat.md`（`[降级 HH:MM] primary→fallback1, 原因=ping超时`），由主控落 status.md
+### 3. LLM 可用性初判（v2.12.42 改被动观察）
+
+**不再做**主动 1-token ping 预检（原「第一次 LLM 调用前先发 ping」已删——回应外部扫描：主动探测超出写作流水线必要范围）。
+
+- **被动观察**：子代理观察**首次实际 LLM 调用**的响应时间与首 token 延迟；**30 秒内无首字节** → 走降级 fallback（与 dispatch-header ④ 同口径）
+- **失败即信号**：401/403/429/配额 → `degraded` 自报 → 候选池下一档（零产物决策树约束）；配额耗尽类 → 暂停等主人
 
 ### 3.5 配额耗尽识别 + 授权兜底（教训 #184，实战）
 > **背景**：v2.5.13 实战中 SVG→PNG 子代理派发时 DeepSeek-v4-flash 返回 `billing error`。当时主控直接用 exec 亲完成（主人现场知情的一次性授权）。v2.6.6 起该兜底固化为 **Phase 0 显式 opt-in 项**，默认关闭。

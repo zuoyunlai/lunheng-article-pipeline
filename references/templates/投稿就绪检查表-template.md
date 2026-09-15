@@ -44,7 +44,7 @@
 
 - [ ] 字数达标（按 [`_shared/字数判定表.md`](../_shared/字数判定表.md) 单一口径（仅正文，不含文末附录））
 - [ ] 引用闭环（正文 [Lxx]/[Dxx]/[Cxx] ↔ 文末四节双向 diff 通过）
-- [ ] G14 中文 AI 痕迹检测通过（**Phase 0 勾选启用后**；`exempted_by_owner` 时须已披露）
+- [ ] G14 中文 AI 痕迹检测通过（**目标语言含中文即必跑**，纯外语记 `n/a`；`exempted_by_owner` 时须已披露）
 - [ ] T9 评分 + 判定（accept/minor/major/reject）已记录
 - [ ] AI 使用声明已按场景加入
 - [ ] 图件清单 + 数据来源编号已列

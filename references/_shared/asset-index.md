@@ -55,7 +55,7 @@
 
 **T9 同行评审**（行业/学术默认开启，公众号默认关闭）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject。详见 [`references/agents/09-审稿-peer-reviewer.md`](../agents/09-审稿-peer-reviewer.md) + [`references/templates/审稿报告-template.md`](../templates/审稿报告-template.md)。
 
-**G14 中文 AI 痕迹深度检测闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail 触发 T5 修订 2 轮。详见 [`references/gates/14-中文AI痕迹-gate.md`](../gates/14-中文AI痕迹-gate.md)。**默认不启用；Phase 0 勾选启用（已启用后可显式关闭并披露）**。  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
+**G14 中文 AI 痕迹深度检测闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → `t5_style_revision`（仅风格层，不重跑 G14）。详见 [`references/gates/14-中文AI痕迹-gate.md`](../gates/14-中文AI痕迹-gate.md)。**目标语言含中文即必跑（非可选）；位置 = Phase 4.4 前置（`g14_style_gate`），全流程只审一次**。  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
 
 ## 核心文档索引（按需加载）
 
@@ -65,7 +65,7 @@
 |------|------|---------|
 | 核心概念单一真源（10 角色 + 三层防御 + 数据信任 3 档 + 工具边界）| [`glossary-full.md`](glossary-full.md)；子代理必读精简版 [`glossary-core.md`](glossary-core.md) | 🟡 按需 |
 | 快速开始（5 分钟上手）| [`QUICKSTART.md`](../../QUICKSTART.md) | 新用户首读 |
-| 模型 5 档候选池 + 映射规则 | [`model-assignment.md`](../model-assignment.md) | Phase 0 模型自检 |
+| 模型 5 档候选池 + 映射规则 | [`model-assignment.md`](../model-assignment.md) | Phase 0 静态映射 |
 | 交付边界 + F1-F9 失败模式 + M 门 + 阶段闸门 | [`deliverables.md`](../deliverables.md) | Phase 0 读 / Phase 4-5 复核 |
 | F 体系详解 | [`failure-modes.md`](failure-modes.md) | Phase 0 / 4 |
 | 错误友好化（12 类常见错误）| [`errors.md`](../errors.md) | 出错时查 |

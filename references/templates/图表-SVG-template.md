@@ -37,6 +37,9 @@
   <text x="350" y="45" text-anchor="middle" font-size="22" font-weight="bold" fill="#2A2826">【图表标题】</text>
   <text x="350" y="68" text-anchor="middle" font-size="12" fill="#6A6560">【副标题/口径说明】</text>
   <text x="350" y="86" text-anchor="middle" font-size="10" fill="#8A8580">数据来源：【[Dxx]/[Cxx] 编号，详见文末引用来源】</text>
+  <!-- v2.12.42 对外层规定：上行内部编号仅用于审计层；交付/投稿版必须替换为规范著录（作者+年份 / 机构+年份），
+       且正文改稿后要重扫本图全部 text 节点（术语随正文漂移，曾出现正文已改而图内仍印旧称与内部编号）。
+       判据真源 = references/_shared/可发表性判定表.md § 维度 5.4 -->
 
   <!-- 图表主体（见下方各类型） -->
 

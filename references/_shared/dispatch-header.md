@@ -26,6 +26,7 @@
 > - `allow_review`（T9/G14）: `["read"]` — **上游只读 + 自有报告可写（授权路径内）**
 
 > 🫀 **心跳 + 分阶段 ack + 报告长度（**真源**，v2.12.28 补）**：① **心跳信号**：启动 **30 秒内** + 每 **5 分钟**一次，**写自己的心跳文件** `run/<项目>/.tmp/<两位角色号>-<角色名>-heartbeat.md`（如 `01-文献检索-heartbeat.md`；v2.12.38 钉死命名格式，消除无前缀变体；周期性磁盘写入，限当前项目目录）；启动**宽限期 2 分钟**内不期望心跳。② **分阶段 ack**：<2 分钟启动 ack 即可；2-5 分钟启动 + 完成；5-15 分钟**五段**（25/50/75/100%）；>15 分钟**禁止**（必须拆任务）。③ **报告长度上限**：**写盘**上限见 `phase-order.yaml` 各节点 `output_chars_max`；**回传**上限 = **平台硬上限 4096 字符**（大报告一律写盘、回传只带摘要）。
+> **同意绑定（v2.12.42，消「写盘先于同意」读法）**：心跳写盘属 Phase 0「将创建的文件清单」的同意范围（清单含 `.tmp/` 心跳文件即视为同意心跳写盘）；未经 Phase 0 同意不开工、不写盘。
 > **角色卡与派发话术不得重列以上三条** —— 一律指针到本文件（防漂移）。
 
 > ④ **LLM 可用性初判**：观察首次 LLM 调用响应时间与首 token 延迟；**30 秒内无首字节** → 走降级 fallback 链。⑤ **禁止假装在线**：心跳/ack 必须真实反映进度（残留自检见 M-Form-5）。
@@ -55,6 +56,6 @@
 > - **provider 拒答（refusal）= 终态**（v2.12.27 补）：平台**不做**自动恢复 / 压缩重试 / 切到无关模型；报 `degraded` 并**呈报主控**，不要期待自动兜底。**上下文溢出类错误**（`request_too_large` / `input exceeds…`）**不走 fallback**，属压缩/重试范畴 —— 不要写成「已 fallback」。
 > - **先别急着报 degraded：平台会先自动重试**（v2.12.27 补）——模型侧对 `429` / 过载等**临时故障自动恢复**（限流最多 **10 次**、其他瞬时故障 **8 次 / 90 秒窗口**，指数退避 + 抖动）；**只有平台已给出终态失败**时才报 `degraded`，否则会把平台本可吸收的抖动误报成降级。**计费失败 / 认证错误 / provider 拒答不进重试预算**（这类直接报）；「用量窗口耗尽」才直接走 auth-profile / 模型 fallback。
 > - **超时分层（v2.12.27 补）**：① `agent.wait` 默认 **30s**（只等、不终止运行）② **模型空闲看门狗**：云 **120s** / 自托管 **300s**（无响应分片即中止请求）③ provider HTTP 超时（`models.providers.<id>.timeoutSeconds`）④ 运行总预算（平台默认 48h）⑤ 本 skill 角色级硬卡（见 SKILL.md 硬卡阈值表）。**判因时先分清是哪一层** —— 「模型空闲中止」≠「子代理静默」，不要一律记成 spawn 失败。
-> **token 统计**：子代理 token 由**完成事件（completion event）末尾的 Stats line** 提供——精确值，固定含 `Token usage`（input/output/total）+ `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`，主控 `sessions_yield` 收到 completion event 时提取记入 status.md 4.7 表，取代 v2.5.18 三级降级。**Stats line 缺失**：标「未捕获（平台未回传）」告警，**禁止估算/静默跳过**。**sessions_spawn 返回值无 stats 字段**（教训 #256）。
+> **token 统计**：子代理 token 由**完成事件（completion event）末尾的 Stats line** 提供——精确值，固定含 `Token usage`（input/output/total）+ `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`（**后两者不记录**，v2.12.42——主控只提取前三类字段，会话关联用角色名），主控 `sessions_yield` 收到 completion event 时提取记入 status.md 4.7 表，取代 v2.5.18 三级降级。**Stats line 缺失**：标「未捕获（平台未回传）」告警，**禁止估算/静默跳过**。**sessions_spawn 返回值无 stats 字段**（教训 #256）。
 - **口径澄清一：Stats line 缺失不判「平台异常」（v2.12.32 实测下调）**：实测 6 个子会话（T1b/T4/T7 复核/G14 v3/T9/组装）未回传 Stats line——**属平台版本行为而非异常**，原「缺失 = 平台异常」的强断言已下调为「未捕获」标注 + 不估算。
 - **口径澄清二：两个 token 字段不是同一口径（v2.12.32 实测）**：① completion event 末尾 Stats line 的 `Token usage`（input/output/total）＝**权威值**；② 会话文本行展示的 `tokens`＝含 prompt/cache 的更大值（实测 T6 132k vs 155k、T5 v3 204k vs 288k）。**记录一律用 ①**，不得混用或据此互相校验。

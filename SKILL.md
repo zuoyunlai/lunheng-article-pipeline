@@ -53,7 +53,7 @@ metadata:
 - **两个层级别混（本修订起显式区分）**：
   - **工具级 opt-in（1 个，默认禁止）**：**仅封面** `image_generate`；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 调阅（**调用即把图像 prompt 外发至宿主配置的图像 provider**，属 Phase 0 同意范围；真源 = frontmatter `metadata.tools.opt_in`）。
   - **服务级外发同意（4 类，逐项知情同意）**：**唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律**引用不重列**（重列必漂移，历史曾现 4 份互斥清单）。
-  - **行为预授权**：配额耗尽 / G14 Warning 未勾选 = 暂停等主人拍板（fail-closed）；永不覆盖 `denied`。
+  - **行为预授权**：配额耗尽 / G14 Warning 预授权未给 = 暂停等主人拍板（fail-closed）；永不覆盖 `denied`。
 - 🔍 **零 exec ≠ 零出网**：「零 exec」指不调用**执行类**工具（`exec`/`process`/`code_execution`）；`denied` 另含 `browser`/`terminal`/`computer`/`nodes` 等**非执行类**工具，故该口号**不涵盖**它们。零 exec **≠「不外发数据」**。检索类工具**默认启用**，仅发送「检索关键词 + 目标 URL」，须经 Phase 0 明示同意后才执行。
 - 🔒 **权限边界**：纯 skill，**任意 OpenClaw 配置开箱可用**，不要求也不附带宿主配置项；工具面由宿主决定，论衡不读改宿主配置、不作前提假设。收紧子代理权限的**可选**加固配方见上条（**不构成前提**）。敏感题材**默认**切**单主控模式**（关 G14、跳并行出网；4 个检索工具逐项同意）。**未加固时**（宿主无第②/③层硬边界）：Phase 0 须显式披露「仅软约束生效」并记 `加固状态: 未加固（降级）`（外部审计口径，v2.12.39）。
 - ⚠️ **spawn 可靠性边界**：跟踪延迟属平台责任（实测 T4 静默数分钟）；watchdog（8 min）仅降级兜底，非可靠性保证。
