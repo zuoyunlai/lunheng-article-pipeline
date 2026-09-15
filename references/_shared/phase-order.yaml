@@ -21,7 +21,7 @@
 #      `verdict_scale.<名>` 有定义，且定义含 `tiers`（四档）与 `default_handling`（四档全覆盖，禁 fail-open）。
 #      未接线 = 构建期 flow-check 失败。原实况为「只写名称、无同名定义、节点无分档处置」→「路径/参数错误」档 fail-open 放行；
 #   ⑨ `on_fail` / `verdict_handling` 中出现的节点 id 必须已定义（v2.12.40 新增键，纳入规则①的引用校验面）。
-version: 2.12.42
+version: 2.12.43
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。
@@ -245,7 +245,7 @@ pipeline:
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 当前权威稿已落盘；上游改写后必须重新组装
     owner: 主控
     output: final/定稿.md
-    note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿
+    note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿。**v2.12.43 投稿域 vs 工程域**：本节点**只产投稿版**（纯学术结构），**禁**写入头部工程元数据段与「## 投稿就绪附录」段；工程信息一律由 t8_technical_final 写入 final/交付说明.md。禁入清单真源 = deliverables.md「投稿域 vs 工程域」
     next: t9_review
   - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent
