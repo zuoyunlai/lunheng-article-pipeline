@@ -78,11 +78,27 @@ pipeline:
   - id: pre_spawn_enforcement
     kind: mode_declaration
     owner: 主控
-    blocking: false
+    blocking: true
+    input: 01-任务简报.md
+    output: status.md（运行模式与加固确认）
+    condition: multi_agent_owner_opt_in_and_host_hardened
+    verdict_scale: four_tier
+    on_not_triggered: single_controller_fallback
+    note: "默认单主控；仅当主人在 Phase 0 显式确认多 Agent，且宿主已落地 tools.subagents.tools.deny + maxSpawnDepth=1 时，才允许后续 parallel_agents/agent 节点 spawn。"
     next: retrieval
+  - id: single_controller_fallback
+    kind: owner_agent
+    owner: 主控
+    input: 01-任务简报.md
+    output: literature/文献卡.md + data/数据卡.md + cases/案例卡.md + analysis/分析大纲.md + drafts/初稿-v1.md + final/定稿.md + final/交付说明.md
+    note: "未满足多 Agent 两条件时的唯一执行路径：主控亲为，默认不联网、不 spawn；只消费主人投喂或已获同意的本地材料，并在 status.md 记录降级原因。"
+    next: phase5_acceptance
   - id: retrieval
     input: 01-任务简报.md（+ owner 已确认的模式/语言/同意记录）
     kind: parallel_agents
+    condition: mode_is_multi_agent
+    verdict_scale: four_tier
+    on_not_triggered: single_controller_fallback
     agents: [T1, T2, T3]
     output:
       T1: literature/文献卡.md
@@ -247,13 +263,23 @@ pipeline:
     output: final/定稿.md
     note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿。**v2.12.43 投稿域 vs 工程域**：本节点**只产投稿版**（纯学术结构），**禁**写入头部工程元数据段与「## 投稿就绪附录」段；工程信息一律由 t8_technical_final 写入 final/交付说明.md。禁入清单真源 = deliverables.md「投稿域 vs 工程域」
     next: t9_review
+  - id: methodology_snapshot
+    kind: owner_agent
+    owner: 主控
+    input: status.md + final/交付说明.md
+    output: run/<项目名>/audits/methodology-footprint-{项目名}.md
+    condition: methodology_snapshot_opt_in
+    verdict_scale: four_tier
+    on_not_triggered: record_not_triggered_in_status
+    note: "仅主人在 Phase 0 显式勾选方法论快照时新增；未勾选不创建。"
+    next: phase5_acceptance
   - id: t9_review   # 别名：文档层「Phase 4.5」
     kind: advisory_agent
     verdict_scale: four_tier   # v2.12.40：T9 报告判定落四档
     # v2.12.40 业主定案 A2：输入由 `drafts/current_draft.md`（未定稿稿件）改为 **`final/定稿.md`（终稿）**——
     #   T9 定位为「**终稿落成后模拟投递刊物编辑审稿**」。节点位于 final_assembly 之后，故「终稿落成后」已满足。
     input: final/定稿.md
-    condition: mode_default_or_owner_enabled   # 命中定义：运行模式为多 Agent（默认）且体裁属行业/学术（公众号体裁 = 不命中，除非主人显式开启）
+    condition: mode_is_multi_agent_and_owner_enabled   # 多 Agent 仅在 pre_spawn_enforcement 已通过后命中
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：T9 关闭时必须留痕
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。
@@ -282,7 +308,7 @@ pipeline:
     inputs: [final/图件/*.svg, final/定稿.md, final/交付说明.md]   # v2.12.41：原写 final/*.md 通配 → 改显式（通配使「被消费但无生产者」检查失明）
     output: final/交付说明.md
     output_chars_max: 10000
-    next: phase5_acceptance
+    next: methodology_snapshot
   - id: phase5_acceptance
     kind: owner_checkpoint
     decisions: [accepted, revision_requested, restart_phase, deferred]

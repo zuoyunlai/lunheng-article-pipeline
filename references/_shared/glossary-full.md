@@ -50,7 +50,7 @@
 - **输出**：`[Cxx]` 案例卡
 - **0 条空卡协议**：0 条场景输出 `[C-空]`
 - **并行模式**：T1 ∥ T2 ∥ T3 独立运行
-- **任何量级必 spawn**：含 cases = 0 也走空卡协议
+- **多 Agent 路径启用 T3**：仅 `mode_is_multi_agent` 且 Phase 0 已确认案例需求时 spawn；含 cases = 0 也走空卡协议，single-controller 不 spawn
 
 ### T4 - 分析（Analyst）
 - **职责**：论点拆解 + 论证结构设计 + 大纲编写

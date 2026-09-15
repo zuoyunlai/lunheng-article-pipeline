@@ -188,6 +188,14 @@ echo ""
 
 # 检查文件顶部版本号（前 5 行）
 echo "=== 文件顶部版本号检查（前 5 行）==="
+# SKILL.md 同时有 frontmatter 真源与正文版本头，二者必须一致（审计 P1-1）。
+SKILL_HEADER_VER="$(sed -n 's/^> 版本：v\([0-9][0-9.]*\).*/\1/p' "$SKILL_MD" | head -1)"
+if [ "$SKILL_HEADER_VER" != "$EXPECTED" ]; then
+  echo "❌ SKILL.md 正文版本头 v${SKILL_HEADER_VER:-缺失} ≠ frontmatter v$EXPECTED" >&2
+  FAIL=$((FAIL+1))
+else
+  echo "✅ SKILL.md 正文版本头与 frontmatter 一致（v$EXPECTED）"
+fi
 HEADER_PASS=0
 HEADER_FAIL=0
 

@@ -86,6 +86,15 @@ def test_readme_prose_version_matches_frontmatter():
     assert prose.group(1) == ver, f"README 正文版本 v{prose.group(1)} ≠ frontmatter {ver}"
 
 
+def test_skill_body_version_header_matches_frontmatter():
+    """审计 P1-1：SKILL.md 正文版本头不得落后于 frontmatter。"""
+    m = re.search(r"^\s{4}version:\s*(\S+)", SKILL.read_text(encoding="utf-8"), re.M)
+    assert m, "SKILL.md 缺 frontmatter version"
+    h = re.search(r"^> 版本：v([0-9]+\.[0-9]+\.[0-9]+)", SKILL.read_text(encoding="utf-8"), re.M)
+    assert h, "SKILL.md 缺正文版本头"
+    assert h.group(1) == m.group(1), f"SKILL.md 正文版本 v{h.group(1)} ≠ frontmatter {m.group(1)}"
+
+
 def test_yaml_declares_t6_lite_tier_rule():
     """P1-5 真源缺口：T6 轻量档跳过规则须在真源声明（v2.12.40 统一为标准键 degrade）"""
     t = YAML.read_text(encoding="utf-8")

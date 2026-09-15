@@ -65,6 +65,7 @@ echo ""
 # 路径规则：内容文件（glossary/agents 等）相对 CONTENT_DIR；入口文件（README/QUICKSTART）用 @ 前缀，相对 ENTRY_DIR
 SYNCS=(
   # 核心文档（顶部插入版本号）
+  "@SKILL.md|body_header"
   "_shared/glossary-full.md|header"
   "_shared/glossary-core.md|header"
   "pipeline-readme.md|header"
@@ -172,6 +173,7 @@ SYNCS=(
 # v2.12.20（教训 #331）：header 模式改为「排队 + 末尾一次性归一化」，写入路径统一由
 #   scripts/normalize-version-header.py 承担（幂等）。
 HEADER_FILES=()
+BODY_HEADER_FILES=()
 UPDATED=0
 SKIPPED=0
 
@@ -201,7 +203,13 @@ for sync in "${SYNCS[@]}"; do
     SKIPPED=$((SKIPPED+1))
     continue
   fi
-  if [ "$mode" == "header" ]; then
+  if [ "$mode" == "body_header" ]; then
+    BODY_HEADER_FILES+=("$full_path")
+    if [ "$DRY_RUN" == true ]; then
+      echo "📝 将同步：$file（正文版本头 v$EXPECTED）"
+    fi
+    UPDATED=$((UPDATED+1))
+  elif [ "$mode" == "header" ]; then
     # v2.12.20（教训 #331）：旧实现用
     #   sed -i "${CLOSE_LINE}a\ ... \ ..."
     # 追加版本戳行——sed 的 `a\` 把尾部续行当成文本内容，等于多写一个空行；末尾的
@@ -278,6 +286,17 @@ else
   else
     python3 "$SCRIPT_DIR/normalize-version-header.py" "${NORMALIZE_ARGS[@]}"
   fi
+  for BODY_FILE in "${BODY_HEADER_FILES[@]}"; do
+    python3 - "$BODY_FILE" "$EXPECTED" <<'PY'
+import re, sys
+p, version = sys.argv[1], sys.argv[2]
+s = open(p, encoding="utf-8").read()
+new, n = re.subn(r"^> 版本：v[0-9]+\.[0-9]+\.[0-9]+（自动同步 [^）]+）$", f"> 版本：v{version}（自动同步 " + __import__('datetime').date.today().isoformat() + "）", s, count=1, flags=re.M)
+if n != 1:
+    raise SystemExit(f"正文版本头缺失或重复：{p}")
+open(p, "w", encoding="utf-8").write(new)
+PY
+  done
 fi
 
 echo ""

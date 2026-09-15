@@ -38,6 +38,28 @@ def _node(pid):
     return [n for n in _pipeline()["pipeline"] if n["id"] == pid][0]
 
 
+def test_mode_gate_precedes_all_worker_spawns():
+    """审计 P0-1：默认单主控，多 Agent 只能在 mode gate 通过后进入 worker 节点。"""
+    p = _pipeline()["pipeline"]
+    ids = [n["id"] for n in p]
+    mode = _node("pre_spawn_enforcement")
+    assert mode.get("blocking") is True
+    assert mode.get("condition") == "multi_agent_owner_opt_in_and_host_hardened"
+    assert mode.get("on_not_triggered") == "single_controller_fallback"
+    retrieval = _node("retrieval")
+    assert retrieval.get("condition") == "mode_is_multi_agent"
+    assert retrieval.get("on_not_triggered") == "single_controller_fallback"
+    assert ids.index("pre_spawn_enforcement") < ids.index("retrieval")
+
+
+def test_methodology_snapshot_is_explicit_opt_in():
+    """审计 P0-2：快照只能由独立 opt-in 节点生成。"""
+    n = _node("methodology_snapshot")
+    assert n.get("condition") == "methodology_snapshot_opt_in"
+    assert n.get("on_not_triggered") == "record_not_triggered_in_status"
+    assert n.get("output") == "run/<项目名>/audits/methodology-footprint-{项目名}.md"
+
+
 def test_phase_order_has_no_duplicate_keys():
     """真源不得有重复键（重复键 = 后键静默覆盖，真源失真）"""
     _pipeline()  # 解析失败即抛 ConstructorError
@@ -168,9 +190,16 @@ def test_flow_check_detects_missing_producer():
     import os
     p = YAML_PATH  # 绝对路径（v2.12.39 修：原相对路径依赖 CWD，属顺序依赖的脆弱测试）
     src = p.read_text(encoding="utf-8")
-    # 移除 final_assembly 节点的 output 声明 → 制造 final/定稿.md 无生产者
-    bad = src.replace("    output: final/定稿.md\n", "")
-    assert bad != src, "反向注入点未命中（final_assembly.output 写法已变）"
+    # 只移除 final_assembly 节点的 output 声明；单主控 fallback 也可能生产同一路径，不能全局 replace。
+    marker = "  - id: final_assembly"
+    start = src.index(marker)
+    end = src.find("\n  - id:", start + len(marker))
+    block = src[start:] if end < 0 else src[start:end]
+    assert "    output: final/定稿.md\n" in block, "反向注入点未命中（final_assembly.output 写法已变）"
+    bad_block = block.replace("    output: final/定稿.md\n", "", 1)
+    bad = src[:start] + bad_block + src[start + len(block):]
+    # 同时移除单主控 fallback 的同一路径生产声明，确保注入样本确实没有生产者。
+    bad = bad.replace("    output: literature/文献卡.md + data/数据卡.md + cases/案例卡.md + analysis/分析大纲.md + drafts/初稿-v1.md + final/定稿.md + final/交付说明.md\n", "    output: literature/文献卡.md + data/数据卡.md + cases/案例卡.md + analysis/分析大纲.md + drafts/初稿-v1.md + final/交付说明.md\n", 1)
     backup = src
     cwd = os.getcwd()
     os.chdir(ROOT)

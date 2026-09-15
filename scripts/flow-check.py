@@ -87,10 +87,10 @@ def main():
     ids = [n['id'] for n in P]
     errs = []
 
-    for n in P:                                    # 1 引用有效性（v2.12.40：纳入 on_fail 出口边）
-        for k in ('next', 'after_trigger', 'on_fail'):
+    for n in P:                                    # 1 引用有效性（记录动作允许作为条件出口）
+        for k in ('next', 'after_trigger', 'on_fail', 'on_not_triggered'):
             v = n.get(k)
-            if isinstance(v, str) and v and not v.startswith('rerun_') and v not in ids:
+            if isinstance(v, str) and v and not v.startswith(('rerun_', 'record_')) and v not in ids:
                 errs.append(f"{n['id']}.{k}->{v}")
         for v in (n.get('after_each') or []):
             if isinstance(v, str) and v not in ids and not v.startswith('rerun_'):
@@ -102,7 +102,7 @@ def main():
         reach.add(i)
         for n in P:
             if n['id'] == i:
-                for k in ('next', 'after_trigger', 'on_fail'):
+                for k in ('next', 'after_trigger', 'on_fail', 'on_not_triggered'):
                     v = n.get(k)
                     if isinstance(v, str) and v in ids:
                         walk(v)

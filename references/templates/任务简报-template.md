@@ -341,7 +341,7 @@ Phase 1.5 运行记录：`not_triggered`（理由：无待复核 Dxx 且无未�
 - [ ] Phase 3.5 洞察补充（主人）→ 写手 v2 融入
 - [ ] T6 批判伙伴（轻量档可跳过）→ analysis/批判报告-vN.md
 - [ ] T7 审计→ audits/审计报告-v1.md
-- [ ] T3 案例检索→ cases/案例卡.md（**任何量级必 spawn**，含 0 条场景走空卡协议；T2 不再兼带案例，教训 #267）
+- [ ] T3 案例检索→ cases/案例卡.md（仅多 Agent + Phase 0 确认案例需求时 spawn；cases=0 走空卡协议；single-controller 由主控亲为或记录原因；T2 不再兼带案例，教训 #267）
 - [ ] T8 终检交付（主控亲完成）→ final/定稿.md + 证据包/ + 交付说明.md
 
 ## 主人深度洞察素材

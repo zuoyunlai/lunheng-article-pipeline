@@ -14,7 +14,7 @@
 
 ```
 Phase 0 定题        与主人确认主题/篇幅/受众/配图意向 → run/<项目名>/01-任务简报.md + status.md；checkpoint-card 骨架呈现
-Phase 1 并行检索    T1 ∥ T2 ∥ T3（三方真并行，sessions_yield 等待；T3 任何量级必 spawn，含 0 条空卡协议）
+Phase 1 检索        默认单主控；仅 `mode_is_multi_agent` 且 Phase 0 同意后 T1 ∥ T2 ∥ T3 并行（T3 含 0 条空卡协议）
 Phase 1.5 定向回查  条件触发窗口（任务简报标 [Dxx 待复核] / 🔴 二手转引未回溯 / T9 证据强度低）；触发则 spawn T1b → 更新数据卡 → 重跑 T2.5；未触发必须记录 not_triggered + 依据
 T2.5 完整性门       主控 checkpoint（T2 → T4 间）：数据卡条数 ≥ 任务简报需求数 + 信任级别完整 → 通过才派 T4；不通过 → T2 重检索或主控补数据
 Phase 2 分析        T4 → analysis/分析大纲.md（论点-论据映射 + 反方论证规划 + 三角验证）
