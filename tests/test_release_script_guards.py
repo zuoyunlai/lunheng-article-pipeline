@@ -11,6 +11,7 @@
   - P1-2：cleanup-skill-store.sh 无条件 `git reflog expire --expire=now --all` +
           `git gc --prune=now`（不可逆），与脚本头部「所有删前先备份」承诺矛盾。
 """
+import os
 import pathlib
 import re
 import subprocess
@@ -73,14 +74,31 @@ def test_build_fails_closed_without_git():
 
 
 def test_build_nongit_guard_is_functional(tmp_path):
-    """功能验证：在无 .git 的副本上构建必须失败（而非静默产出包）"""
+    """功能验证：在无 .git 的副本上构建必须失败（而非静默产出包）
+
+    2026-09-16 修正（输出根污染）：本用例此前**未隔离输出根**。build 脚本的
+    「非 git」门位于复制步骤**之后**（scripts/build-clawhub-release.sh 的 2a' 段），
+    `rm -rf $OUT_ROOT/9.9.9` + `mkdir` + `rsync` 都已落盘才 exit 1 —— 于是每次 pytest
+    都在**共享**输出根 `~/lunheng-build/lunheng-outputs/clawhub-release/` 留下一个
+    84 文件的假包 `9.9.9/`，与真实发布包（2.12.4x）混在同一目录，干扰「哪些是真实产物」
+    的判断。现显式把 `OUTPUTS_ROOT` 指向 `tmp_path`（与 test_outputs_root_semantics.py
+    同源口径），并断言 build 自报的输出目录确在临时根内：断言语义不变，写盘只落临时目录。
+    """
     import shutil
     dst = tmp_path / "copy"
     shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns(".git", "outputs", "__pycache__"))
+    out_root = tmp_path / "outputs"
     r = subprocess.run(["bash", str(dst / "scripts" / "build-clawhub-release.sh"), "9.9.9"],
-                       capture_output=True, text=True, cwd=str(dst))
+                       capture_output=True, text=True, cwd=str(dst),
+                       env={**os.environ, "OUTPUTS_ROOT": str(out_root)})
     assert r.returncode != 0
     assert "非 git 环境" in (r.stderr + r.stdout)
+    # 反向断言：产物必须落在临时输出根内 —— 若哪天本用例又写回共享根，此处先炸
+    m = re.search(r"输出：(.+)", r.stdout)
+    assert m, f"build 未打印输出目录：\n{r.stdout[-500:]}"
+    produced = pathlib.Path(m.group(1).strip())
+    assert produced.resolve().is_relative_to(tmp_path.resolve()), \
+        f"非 git 构建把产物写到了临时目录之外（污染共享输出根）：{produced}"
     # 豁免开关存在时可继续（此处只验证开关被识别，不跑完整构建）
     src = (dst / "scripts" / "build-clawhub-release.sh").read_text(encoding="utf-8")
     assert "LUNHENG_ALLOW_NO_GIT=1 显式豁免" in src
