@@ -83,6 +83,25 @@ echo "🔧 生成 ClawHub 净化发布包 v$VERSION"
 echo "   源：$SKILL_ROOT"
 echo "   输出：$OUT_DIR"
 
+# ---- 0. 非 git 环境 fail-closed（2026-09-16 前置；原属 2a' 段）----
+# 背景（教训 #333 / 第三方审计 P1-3）：原实现「非 git 环境 → 整段跳过」= **静默放弃**唯一
+#   能发现「未跟踪残留入包」的机械门（教训 #333 正是这类事故）。改 fail-closed：
+#   非 git 环境直接停构建；确需豁免者须显式设 LUNHENG_ALLOW_NO_GIT=1（并打印告警）。
+# 2026-09-16 前置（原位置：复制步骤**之后**的 2a' 段）：判定在 rm -rf/mkdir/rsync 之后才执行时，
+#   失败构建仍会在共享输出根留下半成品包（实测 `build 9.9.9` → rc=1 但已落盘 84 文件）。
+#   本门只依赖 SKILL_ROOT 是否为 git 仓库，不依赖包内容 ⇒ 前置到任何写盘动作之前，失败零输出。
+if ! git -C "$SKILL_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+  if [[ "${LUNHENG_ALLOW_NO_GIT:-0}" == "1" ]]; then
+    echo "⚠️ 非 git 环境：跳过「未跟踪文件」反向断言（LUNHENG_ALLOW_NO_GIT=1 显式豁免）" >&2
+    echo "   本次**未**校验包内文件是否全部可追溯到 git 跟踪文件，风险自担。" >&2
+  else
+    echo "❌ 非 git 环境：无法校验「包内文件是否全部可追溯到 git 跟踪文件」（教训 #333）。" >&2
+    echo "   该检查是发现「未跟踪残留入包」的唯一机械门，不允许静默跳过。" >&2
+    echo "   修法：在 git 仓库内构建；确需非 git 构建请显式设 LUNHENG_ALLOW_NO_GIT=1。" >&2
+    exit 1
+  fi
+fi
+
 # ---- 1. 清空旧输出 ----
 rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
@@ -179,20 +198,8 @@ rm -rf "$OUT_DIR/memory" "$OUT_DIR/AGENTS.md" "$OUT_DIR/SOUL.md" "$OUT_DIR/USER.
 # ---- 2a'. 反向断言（v2.12.23，教训 #333）：包内文件必须全部可追溯到 git 跟踪文件 ----
 # 只比文件数（81）看不出问题——81 这个数字在泄漏时同样「正常」。故用集合差集 fail-closed：
 # 任何「在包内但未被 git 跟踪」的文件 = 未跟踪残留入包，立即停构建。
-# v2.12.30（回应第三方审计 P1-3）：原实现「非 git 环境 → 整段跳过」= **静默放弃**唯一
-#   能发现「未跟踪残留入包」的机械门（教训 #333 正是这类事故）。改 fail-closed：
-#   非 git 环境直接停构建；确需豁免者须显式设 LUNHENG_ALLOW_NO_GIT=1（并打印告警）。
-if ! git -C "$SKILL_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
-  if [[ "${LUNHENG_ALLOW_NO_GIT:-0}" == "1" ]]; then
-    echo "⚠️ 非 git 环境：跳过「未跟踪文件」反向断言（LUNHENG_ALLOW_NO_GIT=1 显式豁免）" >&2
-    echo "   本次**未**校验包内文件是否全部可追溯到 git 跟踪文件，风险自担。" >&2
-  else
-    echo "❌ 非 git 环境：无法校验「包内文件是否全部可追溯到 git 跟踪文件」（教训 #333）。" >&2
-    echo "   该检查是发现「未跟踪残留入包」的唯一机械门，不允许静默跳过。" >&2
-    echo "   修法：在 git 仓库内构建；确需非 git 构建请显式设 LUNHENG_ALLOW_NO_GIT=1。" >&2
-    exit 1
-  fi
-fi
+# 注：「非 git 环境 fail-closed」前置门已于 2026-09-16 上移到写盘动作之前（见 §0）——
+#   本段只保留 git 环境下的反向断言本体（需复制结果，无法前置）。
 if git -C "$SKILL_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   _PF_TRACKED="$(mktemp -t lunheng-tracked.XXXXXX)"
   _PF_PKG="$(mktemp -t lunheng-pkg.XXXXXX)"
