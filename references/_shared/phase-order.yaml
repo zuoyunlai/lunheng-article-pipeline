@@ -110,7 +110,7 @@ condition_definitions:
     requires: [owner_peer_review_consent]
   methodology_snapshot_opt_in:
     requires: [owner_methodology_snapshot_consent]
-  any_listed_trigger_condition_met:
+  phase1_5_targeted_review_any_trigger_hit:    # v2.12.49 改名（原 any_listed_trigger_condition_met，名字太空，平台审核判 SQP-1 通用名）：Phase 1.5 复核窗口「列表任一命中」即触发；含义 = trigger_conditions 中 ① 简报标注 [Dxx 待复核] 或 ② t2_5 红数据未回溯 任一为真
     requires: [phase0_review_flags]
   T6_requires_revision:
     requires: [t6_report_p0_or_p1]
@@ -170,7 +170,7 @@ pipeline:
     verdict_scale: four_tier   # v2.12.40：结论落四档（通过/不通过/无法判定/路径或参数错误），不用退出码
     rerun_after_report: true   # v2.12.40「报告后激活」：依赖 t2_5_integrity 闸门结果 → 必须在该判定重跑后取数
     input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
-    condition: any_listed_trigger_condition_met   # 激活逻辑：下方 trigger_conditions 列表中「任一」命中即触发本复核窗口；全部未命中 → 走 on_not_triggered（v2.12.28 对齐）
+    condition: phase1_5_targeted_review_any_trigger_hit   # 激活逻辑：下方 trigger_conditions 列表中「任一」命中即触发本复核窗口；全部未命中 → 走 on_not_triggered（v2.12.28 对齐；v2.12.49 改名自 any_listed_trigger_condition_met，平台审核判 SQP-1 通用名）
     on_not_triggered: record_not_triggered_in_status
     owner_visible: true
     blocking: false
