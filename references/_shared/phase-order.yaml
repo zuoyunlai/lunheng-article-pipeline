@@ -407,7 +407,9 @@ pipeline:
     # v2.12.40 业主定案 A2：输入由 `drafts/current_draft.md`（未定稿稿件）改为 **`final/定稿.md`（终稿）**——
     #   T9 定位为「**终稿落成后模拟投递刊物编辑审稿**」。节点位于 final_assembly 之后，故「终稿落成后」已满足。
     input: final/定稿.md
-    condition: owner_peer_review_enabled   # 命中定义：体裁属行业/学术且主人已启用同行评审（公众号 = 不命中，除非主人显式开启）
+    condition: owner_peer_review_enabled   # 命中定义：主人已启用同行评审（仅靠 consent 判定；体裁仅供主人参考、非门控）。
+                                # v2.12.46 口径修正：体裁不再机械门控，公众号亦可由主人显式开启。
+                                # condition_definitions.owner_peer_review_enabled = requires owner_peer_review_consent。
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：T9 关闭时必须留痕
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。

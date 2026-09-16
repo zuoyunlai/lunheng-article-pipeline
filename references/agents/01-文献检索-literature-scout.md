@@ -83,11 +83,11 @@
   - **为什么独立子任务**：T1/T2/T3 是三方并行检索，未定据点（无法针对特定 Dxx 精检索）；T1b 是定向检索（只对特定 Dxx 回查）。
 
 - **中文数据源集成派发（教训 #174，主人实测反馈）**：主控 prompt 含以下指令（**默认关闭，Phase 0 勾选②学术元数据才加**；未勾选或选「④全部拒绝」时不加）。**完整 URL / 梯队说明见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md)（单一真源，勿在此复制 URL，教训 #269）**：
-  1. **OpenAlex API（opt-in：Phase 0 勾选后启用，第一梯队，只读公开 API 无需 Key）**：
+  1. **OpenAlex API（opt-in：Phase 0 勾选后启用，第一梯队，只读公开 API 无需 Key）**：v2.12.46 强化数据流声明 —— **仅发送检索关键词 + 排序/过滤参数；不发送稿件正文、文献卡、数据卡、案例卡、审计报告、主人洞察等任何内容；不携带任何身份/凭据/会话信息**（v2.12.46 口径与 `00-主控-扩展职责.md §中文数据源集成` 同步）
      - 调用方式：`web_fetch` 真拉 OpenAlex JSON（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
      - LLM 解析 JSON 提取 [Lxx] 元数据：`id / doi / title / publication_date / authorships[].author.display_name / cited_by_count / concepts[].display_name`
      - **实战 60-70% 真实 API 效果**（LLM 解析 JSON 偶有错误，大文档 20+ 篇时建议分批）
-  2. **Crossref API（opt-in：Phase 0 勾选后启用，第一梯队，只读公开 API 无需 Key）**：
+  2. **Crossref API（opt-in：Phase 0 勾选后启用，第一梯队，只读公开 API 无需 Key）**：v2.12.46 强化数据流声明 —— **仅发送检索关键词 + 排序/过滤参数；不发送稿件正文、文献卡、数据卡、案例卡、审计报告、主人洞察等任何内容；不携带任何身份/凭据/会话信息**
      - 调用方式：`web_fetch` 真拉 Crossref JSON（URL 见 [`../_shared/中文数据源集成.md`](../_shared/中文数据源集成.md) §二）
      - LLM 解析 JSON 提取元数据（DOI / 标题 / 作者 / 期刊）
   3. **去重合并**：DOI 相同 / URL 相同 / 标题编辑距离 < 10% 三选一即合并（合并后保留 OpenAlex 元数据更全）
