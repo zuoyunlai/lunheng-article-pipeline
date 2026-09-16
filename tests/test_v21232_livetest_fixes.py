@@ -49,7 +49,7 @@ def test_p0_1_tool_surface_vs_call_split():
     """两级判据必须同时存在：工具面超限=警告级（不中止）、实际调用=阻断级"""
     dh = read(DH)
     assert "工具面超限" in dh, "dispatch-header 缺「工具面超限」判据"
-    assert "警告级" in dh and "不中止" in dh, "工具面超限必须降为警告级且明确不中止"
+    assert "观测提示" in dh and "不中止" in dh, "工具面出现未声明工具必须是观测提示且明确不中止"
     assert "实际调用越权工具 = 阻断级" in dh or "实际调用" in dh and "阻断级" in dh, \
         "缺「实际调用=阻断级」判据"
     assert "针对「调用」，不针对「工具面」" in dh, "必须写明阻断只针对调用"
@@ -86,7 +86,7 @@ def test_p0_1_tier_deactivation_not_triggered_by_surface_only():
     perm = read(PERM)
     coord = read(COORD)
     assert "仅「工具面超限」不触发该档停用" in perm, "permissions 缺该档停用边界"
-    assert "自锁陷阱" in coord, "主控卡需显式记录自锁陷阱与裁决旁路"
+    assert "工具面提示不等于调用越权" in coord, "主控卡需显式记录工具面提示与调用越权的边界"
 
 
 def test_p0_1_status_template_two_level():

@@ -56,7 +56,7 @@ def test_f1_blocking_rule_is_stated_first():
     """阻断级（实际调用）须排在工具面超限之前 —— 消歧义的核心动作"""
     dh = read(DH)
     i_call = dh.index("① 实际调用越权工具 = 阻断级")
-    i_surface = dh.index("② 工具面超限 = 警告级")
+    i_surface = dh.index("② 工具面出现未声明工具 = 观测提示")
     assert i_call < i_surface, "阻断级必须先于工具面超限陈述"
 
 
@@ -67,17 +67,17 @@ def test_f1_coordinator_override_does_not_license_calls():
         "须写清裁决旁路的边界（不放行越权调用）"
 
 
-def test_f1_surface_excess_points_to_hardening():
-    """工具面超限须指明根治手段 = 宿主加固（而非让 worker 停工）"""
+def test_f1_surface_excess_is_not_a_host_failure():
+    """工具面多于声明不构成宿主故障，也不要求主人处理"""
     dh = read(DH)
-    assert "根治手段是宿主加固" in dh, "缺「根治手段是宿主加固」"
-    assert "host-hardening-recipe.md" in dh, "须指向加固配方"
+    assert "不要求主人处理" in dh, "须明确工具面提示不构成宿主处理要求"
+    assert "不把它作为启动或交付失败" in dh, "不得把工具面提示升级为 skill 失败"
 
 
 def test_f1_behavior_unchanged_continue_still_allowed():
     """A 档行为不变：超限仍记录 + 披露 + 照样开工（不退回自锁）"""
     dh = read(DH)
-    assert "记录 + 披露" in dh and "照样开工" in dh
+    assert "只记录" in dh and "照常开工" in dh
     assert "不中止" in dh, "不得退回「超限即中止」"
     assert "degraded" in dh and "降级可用" in dh
 
@@ -192,7 +192,7 @@ def test_f6_coord_card_mentions_iron_rule():
     """主控卡须同步铁律（防与子代理侧口径分叉）"""
     c = read(COORD)
     assert "工具面超限 ≠ 调用许可" in c
-    assert "自锁陷阱" in c, "自锁陷阱记录不得丢"
+    assert "工具面提示不等于调用越权" in c, "工具面与调用越权边界不得丢"
 
 
 if __name__ == "__main__":
