@@ -586,15 +586,15 @@ fi
 
 # =============================================================================
 # 共享：M 门族扫描文件集（一次 find，M.2/M.3/M.4 复用；v2.7.5 批3 优化）
-# 注：CHANGELOG.md 除外——它是历史记录，逐字保留历次 Release 正文（含已修复问题的原文与
+# 注：CHANGELOG.md / CHANGELOG-archive.md 除外——它们是历史记录，逐字保留历次 Release 正文（含已修复问题的原文与
 #   审计结论引文），按「当前状态一致性」口径扫描必然产生永久误报；门 M/M.3/M.4 查的是
-#   现行技能内容，不是历史轨迹。
+#   现行技能内容，不是历史轨迹。（v2.12.47：主文件拆为 5 期 + 归档，两份同属历史资产，须同排除）
 MD_SCAN_FILES=$(find "$SKILL_ROOT" -name '*.md' \
     -not -path '*/outputs/*' -not -path '*/.git/*' \
     -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
     -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
     -not -name '*.bak*' \
-    -not -name 'CHANGELOG.md' 2>/dev/null)
+    -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' 2>/dev/null)
 MD_SCAN_COUNT=$(echo "$MD_SCAN_FILES" | grep -c . || true)
 
 # 门 M：发布包 exec/process 授权语句一致性（v2.6.8 新增，回应 ClawHub T05 三连击）
@@ -851,7 +851,7 @@ while IFS= read -r -d '' f; do
   Q_FILES+=("$f")
 done < <(find "$SKILL_ROOT" -name '*.md' -not -path '*/.git/*' -not -path '*/outputs/*' \
   -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
-  -not -name 'CHANGELOG.md' -not -name 'README.md' -print0)
+  -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' -not -name 'README.md' -print0)
 Q_PATTERNS=(
   'ClawHub A\.I\.G'
   'A\.I\.G'

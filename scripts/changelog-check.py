@@ -26,6 +26,9 @@ from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 CHANGELOG = SKILL_ROOT / "CHANGELOG.md"
+# v2.12.47：主文件只保留最近 5 期，更早章节逐字迁入 CHANGELOG-archive.md。
+# 「每个版本 tag 都有章节」的校验口径跨两份文件生效（见 changelog_files）。
+CHANGELOG_ARCHIVE = SKILL_ROOT / "CHANGELOG-archive.md"
 SKILL_MD = SKILL_ROOT / "SKILL.md"
 
 # 章节标题用方括号包裹版本号：Release 正文里也有「## v2.2.6 核心改进」这类同形行，
@@ -58,10 +61,23 @@ def version_key(tag):
     return tuple(parts + [0] * (4 - len(parts)))
 
 
+def changelog_files():
+    """参与校验的 changelog 文件（主文件 + 历史归档；缺归档也兼容）。"""
+    return [p for p in (CHANGELOG, CHANGELOG_ARCHIVE) if p.exists()]
+
+
+def archived_versions():
+    """仅在归档文件里出现的版本（--fill 据此判定「已记录」，不重复回填进主文件）。"""
+    if not CHANGELOG_ARCHIVE.exists():
+        return set()
+    return set(HEADING_RE.findall(CHANGELOG_ARCHIVE.read_text(encoding="utf-8")))
+
+
 def changelog_versions():
     if not CHANGELOG.exists():
         return set()
-    return set(HEADING_RE.findall(CHANGELOG.read_text(encoding="utf-8")))
+    return {v for p in changelog_files()
+            for v in HEADING_RE.findall(p.read_text(encoding="utf-8"))}
 
 
 def repo_slug():
@@ -143,7 +159,8 @@ def cmd_check(online):
 
     missing = [t for t in tags if t not in documented]
     print(f"📌 当前版本（SKILL.md）：v{expected}")
-    print(f"📌 本地版本 tag：{len(tags)} 个；CHANGELOG 章节：{len(documented)} 个")
+    print(f"📌 本地版本 tag：{len(tags)} 个；changelog 章节：{len(documented)} 个"
+          f"（主文件 {CHANGELOG.name} + 归档 {CHANGELOG_ARCHIVE.name}）")
     print("")
 
     fail = 0
@@ -162,7 +179,11 @@ def cmd_check(online):
         print(f"⚠️  CHANGELOG 有章节但本地无对应 tag（核对是否拼写错误）：{', '.join(ghost)}")
 
     # 围栏闭合性：某章节里 ``` 为奇数会让其后**全部版本**渲染成代码块（不可见排版崩坏）
-    _, sections = split_changelog(CHANGELOG.read_text(encoding="utf-8"))
+    # v2.12.47：主文件与归档文件都查（章节跨两份，漏一份即漏检）
+    sections = []
+    for _p in changelog_files():
+        _, _sec = split_changelog(_p.read_text(encoding="utf-8"))
+        sections += _sec
     unbalanced = [
         v for v, body in sections
         if sum(1 for l in body.splitlines() if l.strip().startswith("```")) % 2
@@ -229,10 +250,13 @@ def cmd_fill():
     text = CHANGELOG.read_text(encoding="utf-8") if CHANGELOG.exists() else ""
     header, sections = split_changelog(text)
     known = {v: s for v, s in sections}
+    # v2.12.47：归档文件里的版本同样算「已记录」——否则 --fill 会把 165 条历史章节
+    # 重新灌回主文件（与「主文件只留 5 期」相悖）。
+    already = archived_versions()
     added = []
     closed = []
     for tag, rel in released.items():
-        if tag not in known and VERSION_TAG_RE.match(tag):
+        if tag not in known and tag not in already and VERSION_TAG_RE.match(tag):
             text_new, auto_closed = section_for(rel)
             known[tag] = text_new
             added.append(tag)
@@ -254,8 +278,10 @@ def cmd_fill():
 
 
 def cmd_report():
-    text = CHANGELOG.read_text(encoding="utf-8")
-    _, sections = split_changelog(text)
+    sections = []
+    for _p in changelog_files():
+        _, _sec = split_changelog(_p.read_text(encoding="utf-8"))
+        sections += _sec
     thin = []
     for v, body in sections:
         # 去掉标题行后的正文字符数

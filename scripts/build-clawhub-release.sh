@@ -107,13 +107,14 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude '.bak-*' --exclude 'docs' --exclude '.gitignore' \
     --exclude 'audits' --exclude 'scripts' --exclude '.github' \
     --exclude 'references/_shared/archive' --exclude 'references/design' \
-    --exclude 'references/_shared/m_exist_1_diff.sh' \
+    --exclude 'references/_shared/lessons-max.snapshot' \
     --exclude 'references/_shared/通用韧化块-v2.1.0.md' \
     --exclude 'references/_shared/版本升级自审门-*.md' \
     --exclude 'references/_shared/M-Gate-渐进式验证-*.md' \
     --exclude 'references/templates/README-模板拆分方案.md' \
     --exclude 'README.md' \
     --exclude 'CHANGELOG.md' \
+    --exclude 'CHANGELOG-archive.md' \
     --exclude 'tests' \
     --exclude 'references/设计文档.md' \
     --exclude 'references/设计文档-架构.md' \
@@ -145,8 +146,10 @@ else
   find "$OUT_DIR" -name '*.bak.*' -delete
   find "$OUT_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
   find "$OUT_DIR" -name '*.pyc' -delete
-  rm -f "$OUT_DIR/references/_shared/m_exist_1_diff.sh" "$OUT_DIR/PERFORMANCE-PROFILE.md"
+  rm -f "$OUT_DIR/PERFORMANCE-PROFILE.md"
   rm -f "$OUT_DIR/references/_shared/教训索引.md"
+  # v2.12.47：维护者侧门 H 判据快照（不随包交付，与教训索引同侧）
+  rm -f "$OUT_DIR/references/_shared/lessons-max.snapshot"
   # ② v2.12.12：维护者扫描器豁免清单（非 md，消费者无用）不再随包分发
   rm -f "$OUT_DIR/.safe-pattern-manifest.json"
   rm -f "$OUT_DIR/references/_shared/通用韧化块-v2.1.0.md"
@@ -154,6 +157,7 @@ else
   rm -f "$OUT_DIR/references/templates/README-模板拆分方案.md"
   rm -f "$OUT_DIR/README.md"
   rm -f "$OUT_DIR/CHANGELOG.md"
+  rm -f "$OUT_DIR/CHANGELOG-archive.md"
   rm -f "$OUT_DIR/references/设计文档.md" "$OUT_DIR/references/设计文档-架构.md" "$OUT_DIR/references/设计文档-哲学.md"
   rm -f "$OUT_DIR"/RELEASE-*.md
   rm -f "$OUT_DIR"/references/_shared/版本升级自审门-*.md
@@ -215,6 +219,7 @@ fi
 # 避免日后新增顶层文档时被 rsync 默认带入、直到最终残留扫描才炸。
 FORBIDDEN_IN_PACKAGE=(
   'CHANGELOG.md'
+  'CHANGELOG-archive.md'
   'README.md'
   'CONTRIBUTING.md'
   'SECURITY.md'
