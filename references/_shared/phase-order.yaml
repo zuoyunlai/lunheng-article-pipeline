@@ -21,7 +21,7 @@
 #      `verdict_scale.<名>` 有定义，且定义含 `tiers`（四档）与 `default_handling`（四档全覆盖，禁 fail-open）。
 #      未接线 = 构建期 flow-check 失败。原实况为「只写名称、无同名定义、节点无分档处置」→「路径/参数错误」档 fail-open 放行；
 #   ⑨ `on_fail` / `verdict_handling` 中出现的节点 id 必须已定义（v2.12.40 新增键，纳入规则①的引用校验面）。
-version: 2.12.46
+version: 2.12.47
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。

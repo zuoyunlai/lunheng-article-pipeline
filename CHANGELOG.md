@@ -12,6 +12,43 @@
 
 ---
 
+## [v2.12.47] — 2026-09-16
+
+> **主题：v2.12.46 扫描整改落地 + 仓库冗余清理；changelog 分层（主文件 5 期 + 归档）。**
+> **性质：一致性整改 + 仓库可维护性清理 + 文档结构分层。无新增能力、无破坏性行为变更。**
+
+### 一、v2.12.46 ClawHub 扫描整改（8 文件）
+
+- **协调器工具面对齐**：`00-主控-coordinator.md` 能力白名单与 `SKILL.md` frontmatter 16 项逐项对齐（删 `ov_*` / `openviking_tool_result_*` 共 9 项过声明）
+- **脱敏升为条件强制**：`phase-3-details.md` 内幕 / 未公开案例 / 内部资料 / 个人隐私 4 类触发即强制（脱敏方式四选一，脱敏前不得写 `drafts/`）
+- **数据流声明强化**：`01-文献检索` / `03-案例检索` 角色卡明列 OpenAlex / Crossref「仅发送检索关键词 + 排序/过滤参数；不发送稿件正文 / 各类卡 / 主人洞察；不携带身份 / 凭据」
+- **术语消歧**：`dispatch-header.md` 区分模型 fallback（兑底换档）与主控 fallback（worker 节点接管）；T9 禁用主控 fallback
+- **会话管理原语作用域**：`00-主控` 卡补「硬限定主控自己 spawn 的子代理树」
+- **引用政策**：T1 派发「默认 GB/T」改为「不静默 fallback」，绑定回任务简报
+- **T9 触发**：`phase-order.yaml` 注释与 `condition_definitions` 对齐（体裁不再机械门控，仅靠 consent）
+- **T9 交接报告**：移除「主控 fallback 亲出」（T9 违反独立性硬定义，失败走 `degraded_executor: T9` 披露，不补做）
+
+### 二、仓库冗余清理
+
+- 删除 `references/_shared/m_exist_1_diff.sh`：零 exec 立场下主控永久不可达（唯一使用方式是宿主 shell 手跑，与「纯 skill」定位冲突）；同步清理 `build-clawhub-release.sh` 中配套的 `exclude` / `rm` 失效引用
+- `references/_shared/lessons-max.snapshot` 加入发布包排除清单（rsync + 非 rsync 两分支）—— 按该文件头注自述「不随包交付」修正长期矛盾；该文件是门 H 反向差集的 **hermetic 判据基准**，**必须留在仓库**
+- 删除仓库外过期产物与工作区缓存（`clawhub-scan…-2.12.37.zip` / `__pycache__` / `.pytest_cache`）
+
+### 三、changelog 分层（主文件 5 期 + 归档）
+
+- `CHANGELOG.md` 只保留**最近 5 期**（本版起）；v2.12.41 及更早逐字迁入新增的 `CHANGELOG-archive.md`
+- 拆分**逐字无损**（170 章节全覆盖，逐章内容比对零差异）
+- `scripts/changelog-check.py` 改为读两份：`--check` 校验面跨两份（「每个版本 tag 都有章节」纪律不变）；`--fill` 不再把归档版本灌回主文件；围栏闭合检查与 `--report` 同步覆盖两份
+- **新增主文件容量门**：主文件保有章节数 > 5 即红（防「加新版忘轮转」）
+- 同步面：`self-audit-gate.sh` 历史资产排除名单补归档（防空历史「教训 #N」触发门 M/M.3/M.4 永久误报）；`build-clawhub-release.sh` 归档纳入 `exclude` / `rm` / `FORBIDDEN_IN_PACKAGE`；`changelog-check.yml` 触发路径补归档；`README.md` 口径同步
+
+### 四、验收
+
+- `pytest` **285 passed**；自审门 **26 PASS / 0 FAIL**；`changelog-check --check` 通过；`flow-check` / `link-check`（425 链 / 89 md） / `check-version` 全绿
+- `SKILL.md` 体量 **9954 ≤ 10000** 字符（棘轮守约）
+
+---
+
 ## [v2.12.46] — 2026-09-15
 
 > **主题：架构定案 —— 多 Agent 九角色为唯一标准架构；Phase 编号真源化；角色产物写入边界；人在环机械门。**
@@ -197,56 +234,6 @@
 ### 验收
 
 - pytest **275 passed / 0 failed** ｜ 自审门 **26 PASS / 0 FAIL** ｜ SKILL.md **9,992 / 10,000** 字符（棘轮内）
-
----
-
-## [v2.12.42] — 2026-09-15
-
-> **主题：扫描收尾九项 —— 删记忆残留 / G14 清扫 + 机械门 / ★全删探测（业主裁决）/ ★B 档设计取舍明示（选项 A）。**
-> **性质：安全整改 + 机制精简（探测整套删除）+ 新增机械门。**
-
-### 一、P0×3
-
-- **checkpoint-card 删「主控读记忆 / 记忆读取」**：v2.12.35 已删记忆支持，模板是过时残留（2026-09-15 扫描 AIG T05 实证）；改为「读当前项目材料」+ 可选服务两项
-- **G14 stale 语言清扫累计 15 处**：v2.12.41 漏 5 处（asset-index / glossary×2 / 投稿就绪 / quickref / README×2 / SKILL 措辞 / permissions）—— 手工 grep 模式太窄
-- **★ 新机械门** `tests/test_scan_stale_language.py`（3 项）：G14 stale 语言 / 探测 stale 语言 / 记忆能力复活 —— **首跑即抓 5 处漏网**，实证「清扫必须配机械门」
-
-### 二、★ 全删探测（业主裁决 2026-09-15：
-「全删探测」）
-
-删掉整套「Phase 0 逐模型 1-token ping + 余额预检 + 派发前预算闸门」（回应扫描：模型清单枚举与主动探测超出写作流水线必要范围）：
-
-- **改为静态映射**（读一次 `session_status` 配置清单，非探测、不查余额）+ **运行时首败降级**（`degraded` 自报 → 候选池下一档；配额耗尽 → 等主人拍板；同项目已确认失败 → 直接降档）
-- **sessionKey / sessionId 一律不记录**（角色名即关联，聚合成本不需要会话标识）
-- 教训 #236 残余风险（配置存在 ≠ 可用）由运行时降级承担 —— 撞墙成本从「Phase 0 多次探测」降为「一次失败调用 + 自动降档」
-- 涉及 15 文件（status-template §4.6 重写 / 模型候选池 §二§三重写 / 4 张角色卡 / readme / coordinator / 关键协议 / deliverables / archive-sop / dispatch-header / design §3）
-
-### 三、★ 选项 A（业主裁决）：T05 设计取舍明示
-
-- **措辞降对比度**：「工具面超限 → 继续开工」→「工具面超限 → **呈主人裁决** + 敏感题材自动降单主控」（agents/00 + permissions）
-- **README 新增「权限设计取舍」明示段**：B 档定位 + 铁律「工具面超限 ≠ 调用许可」+ v2.12.32 实测否决史 + 「**这是有意的设计取舍，不是未修复的缺陷**」
-
-### 四、P1×4（消扫描 Intent-Code Divergence）
-
-- **心跳↔Phase 0 同意绑定**（dispatch-header + 执行韧化协议-exec 各 1 句，消「写盘先于同意」读法，96-98%×3 条）
-- **重试矩阵分层澄清**（任务级降级策略 vs 平台层恢复，消 89%）
-- **能力自检消歧义**（自省自身会话可见工具面 ≠ 读宿主配置，消 93%）
-- **代笔窄例外封闭清单**（P1-D/AI 披露/元叙事/≤5% → T8 亲修，逐条登记，消 87%）
-
-### 五、扫描预期（下版核对）
-
-| 项 | v2.12.41 实况 | v2.12.42 预期 |
-|---|---|---|
-| AIG checkpoint 记忆残留 | T05 Warning | **消失**（已删） |
-| AIG 遥测采集 | T05 Warning（认可⑤但要求少采） | **转 expected/消失**（采集面本身收缩） |
-| AIG T05 最小权限 | **Error/High** | 降档（README 明示设计取舍） |
-| SS G14 矛盾（3 条） | 97/95/95% | **归零**（15 处全清 + 机械门钉死） |
-| SS 探测/心跳矛盾 | 96-98% | 消（同意绑定 + 探测删除） |
-
-### 验收
-
-- pytest **275 passed**（含新增 3 项机械门）｜ 自审门 **26 PASS / 0 FAIL**
-- flow ✓ / link ✓（406 条）｜ check-version v2.12.42 ｜ `SKILL.md` **9,969 / 10,000**
 
 ---
 

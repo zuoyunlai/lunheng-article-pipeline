@@ -29,6 +29,8 @@ CHANGELOG = SKILL_ROOT / "CHANGELOG.md"
 # v2.12.47：主文件只保留最近 5 期，更早章节逐字迁入 CHANGELOG-archive.md。
 # 「每个版本 tag 都有章节」的校验口径跨两份文件生效（见 changelog_files）。
 CHANGELOG_ARCHIVE = SKILL_ROOT / "CHANGELOG-archive.md"
+# v2.12.47：主文件容量上限（主人定案「保留 5 期」）。超限即红——轮转 = 把最旧一章移入归档。
+CHANGELOG_KEEP = 5
 SKILL_MD = SKILL_ROOT / "SKILL.md"
 
 # 章节标题用方括号包裹版本号：Release 正文里也有「## v2.2.6 核心改进」这类同形行，
@@ -177,6 +179,14 @@ def cmd_check(online):
     ghost = sorted(documented - set(tags), key=version_key)
     if ghost:
         print(f"⚠️  CHANGELOG 有章节但本地无对应 tag（核对是否拼写错误）：{', '.join(ghost)}")
+
+    # v2.12.47：主文件容量门——只保留最近 CHANGELOG_KEEP 期，超限即红
+    #   （防「加新版忘轮转」导致主文件无界增长；轮转 = 把最旧一章移入归档）
+    _, _main_sections = split_changelog(CHANGELOG.read_text(encoding="utf-8"))
+    if len(_main_sections) > CHANGELOG_KEEP:
+        print(f"❌ {CHANGELOG.name} 保有 {len(_main_sections)} 期，超过上限 {CHANGELOG_KEEP} 期："
+              f"把最旧的 {len(_main_sections) - CHANGELOG_KEEP} 章移入 {CHANGELOG_ARCHIVE.name}")
+        fail = 1
 
     # 围栏闭合性：某章节里 ``` 为奇数会让其后**全部版本**渲染成代码块（不可见排版崩坏）
     # v2.12.47：主文件与归档文件都查（章节跨两份，漏一份即漏检）
