@@ -21,6 +21,16 @@
 #      `verdict_scale.<名>` 有定义，且定义含 `tiers`（四档）与 `default_handling`（四档全覆盖，禁 fail-open）。
 #      未接线 = 构建期 flow-check 失败。原实况为「只写名称、无同名定义、节点无分档处置」→「路径/参数错误」档 fail-open 放行；
 #   ⑨ `on_fail` / `verdict_handling` 中出现的节点 id 必须已定义（v2.12.40 新增键，纳入规则①的引用校验面）。
+#   ⑩ **owner_checkpoint 必须具备完整人环闸门声明**（v2.12.49 新增，修 P2-1「阻断语义只活在散文」）：
+#      每个 `kind: owner_checkpoint` 节点必须声明 `blocking: true` + `owner_visible: true` + 非空 `decisions`
+#      + `timeout_fallback`；顶层 `owner_checkpoints` 列表必须与该 kind 的节点集**双向一致**。
+#      未声明 = 构建期 flow-check 失败（规则 12）。本条把「人环闸门不可自动绕过」从文档纪律升级为机械可校验。
+#      反面实例（v2.12.48 前实况）：恰是最不能自动推进的四个节点**全都没写 blocking**，
+#      而 pre_spawn_enforcement / phase1_5_targeted_review / t9_review 都写了 —— 本文件自称
+#      「流程顺序与阻断关系的唯一真源」，却独独承载不到「人环闸门阻断」这一条。
+#   ⑪ **无应答处置的唯一真源 = 顶层 `owner_timeout_policy`**（v2.12.49 新增，修 P2-2）：
+#      人环节点无应答一律 `pending_owner_halt`（写 status `pending_owner` + 告警挂起，不静默推进）；
+#      静默**永不**等于有效决策。docs 层只引用本节，**不得重列分钟数**（一条款一真源）。
 version: 2.12.48
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
@@ -64,6 +74,25 @@ verdict_scale:
   report_after_rerun_doctrine: >
     凡 condition 依赖他角色报告、或 mechanical_checkpoint 前置为「相关报告/产物已落盘」者，
     必须在报告落盘后重跑；主控预跑的结果不得直接当作闸门输入。节点级标注 = rerun_after_report: true。
+
+# ⚠️ 人在环节点无应答处置的**唯一真源**（v2.12.49 新增，修 P2-2）
+#   已删除的旧语义（防回潮）：「Phase 5 复用『不答 = 接受当前定稿』」。
+#     该写法使 Phase 5 成为**全流程唯一 fail-open 人环节点** —— 静默 60 分钟即等于主人拍板「接受」；
+#     且它只活在散文（`glossary-full.md` §十二 / `00-主控-扩展职责.md` §二十一），真源 yaml 未表达，
+#     与「无明确决策 = 未通过」正面张力。
+#   现口径：四个 owner_checkpoint **一律 fail-closed**，无例外。无应答 = 写 status `pending_owner`
+#     + 告警挂起。静默、主控推断、子代理回执、「产物文件已存在」**均不得记为 accepted**。
+#   Phase 5 虽为终态节点（无下游 Phase 可推进），但「接受」仍是主人决策：定稿文件已在磁盘，
+#     挂起不丢任何产物；主人事后一句 accepted 即可收口。恢复旧行为须经主人明确裁决并在此登记。
+owner_timeout_policy:
+  no_answer_minutes: 60
+  fallback_kinds:
+    pending_owner_halt: 写 status.md `pending_owner` + 告警挂起，不静默推进（四节点统一，无例外）
+  default_fallback: pending_owner_halt
+  doctrine: >
+    无明确决策 = 未通过。主人 N 分钟（no_answer_minutes）无应答 → 主控写 status.md `pending_owner`
+    并告警挂起，不静默推进。任何「主人未回复」「主控代为判断」「子代理说已确认」「产物文件已存在」
+    都不是有效决策，不得据此推进下一节点，也不得记为 accepted。
 # ⚠️ v2.12.46（业主定案）：论衡**只有一个标准架构 = 多 Agent 九角色流水线**。
 #   T1-T7 / T9 / G14 = worker 角色，各自写自己的正式角色产物；主控（T0/T8）负责流程状态、
 #   权威稿同步、配图、定稿组装、终检与交付裁决。**不存在与多 Agent 并列的「单主控模式」**：
@@ -133,7 +162,10 @@ pipeline:
     phase: "Phase 0"
     phase_seq: 0
     kind: owner_checkpoint
+    blocking: true        # v2.12.49：人环闸门 —— 无明确决策不得推进（真源 = owner_timeout_policy）
+    owner_visible: true   # v2.12.49：必须按 checkpoint-card-template 向主人呈现
     decisions: [approved, revision_requested, restart_phase]   # v2.12.28 补：与其余人工节点结构对齐
+    timeout_fallback: pending_owner_halt
     output: 01-任务简报.md
     next: pre_spawn_enforcement
   - id: pre_spawn_enforcement
@@ -210,7 +242,10 @@ pipeline:
     phase: "Phase 2.5"
     phase_seq: 6
     kind: owner_checkpoint
+    blocking: true        # v2.12.49：无明确决策不得推进（改方向成本最低的关卡，尤其不得自动放行）
+    owner_visible: true
     decisions: [approved, revision_requested, restart_phase]
+    timeout_fallback: pending_owner_halt
     next: t5_draft_v1
   - id: t5_draft_v1
     phase: "Phase 3"
@@ -228,7 +263,10 @@ pipeline:
     phase: "Phase 3.5"
     phase_seq: 8
     kind: owner_checkpoint
+    blocking: true        # v2.12.49：「无补充」也是决策，必须留痕；静默不得当作无补充
+    owner_visible: true
     decisions: [insight, no_insight]
+    timeout_fallback: pending_owner_halt
     next: current_draft_sync
   - id: current_draft_sync   # 别名：文档层「Phase 3.6 前置」（非独立 Phase 标签，主控呈现时归入 Phase 3.6）
     phase: "Phase 3.6 前置"
@@ -452,5 +490,8 @@ pipeline:
     phase: "Phase 5 验收"
     phase_seq: 22
     kind: owner_checkpoint
+    blocking: true        # v2.12.49：旧口径「不答 = 接受当前定稿」已删除 —— 静默不得记为 accepted
+    owner_visible: true
     decisions: [accepted, revision_requested, restart_phase, deferred]
+    timeout_fallback: pending_owner_halt
     terminal: accepted

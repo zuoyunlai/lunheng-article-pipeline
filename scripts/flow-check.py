@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""论衡流程图检查（v2.12.28 新增；v2.12.30 扩；v2.12.37 扩；v2.12.40 扩）
+"""论衡流程图检查（v2.12.28 新增；v2.12.30 扩；v2.12.37 扩；v2.12.40 扩；v2.12.49 扩）
 
 检查项：
   1 引用有效性（next / after_trigger / after_each / **on_fail** 指向已知节点或 rerun_* 动作）
@@ -17,6 +17,10 @@
     且定义含恰好 4 档 + `default_handling` 四档全覆盖 —— 防「声明四档却无处置」的 fail-open。
  11 **Phase 编号**（v2.12.46）：每个节点须声明 `phase` + `phase_seq`；seq 全局唯一且与顶层
     `phase_order` 一致；沿 next/after_trigger/on_fail 边**序号不得回退**（after_each 为重跑动作，不计）。
+ 12 **人环闸门声明**（v2.12.49，修 P2-1 / P2-2）：顶层 `owner_checkpoints` 与 `kind: owner_checkpoint`
+    节点集必须**双向一致**；每个此类节点须声明 `blocking: true` + `owner_visible: true` + 非空 `decisions`
+    + `timeout_fallback`，且该取值须在顶层 `owner_timeout_policy.fallback_kinds` 中有定义。
+    防两类缺口：①「人环闸门只写在散文、真源不承载」；②「无应答静默自动推进」（fail-open）。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import pathlib, re, sys, yaml
@@ -230,6 +234,31 @@ def main():
             b = seq_map.get(v)
             if a is not None and b is not None and b < a:
                 errs.append(f"{n['id']}(seq {a}).{k}->{v}(seq {b}) 序号回退")
+
+    # 12 人环闸门声明（v2.12.49 修 P2-1/P2-2：阻断语义此前只活在散文，真源不承载）
+    otp = d.get('owner_timeout_policy') or {}
+    fb_kinds = otp.get('fallback_kinds') or {}
+    if not isinstance(otp.get('no_answer_minutes'), int) or otp.get('no_answer_minutes') <= 0:
+        errs.append('owner_timeout_policy.no_answer_minutes 缺失或非正整数')
+    if otp.get('default_fallback') not in fb_kinds:
+        errs.append(f"owner_timeout_policy.default_fallback 未在 fallback_kinds 中定义: {otp.get('default_fallback')}")
+    ck_declared = list(d.get('owner_checkpoints') or [])
+    ck_kind = [n['id'] for n in P if n.get('kind') == 'owner_checkpoint']
+    if set(ck_declared) != set(ck_kind):
+        errs.append('owner_checkpoints 与 kind: owner_checkpoint 节点集不一致'
+                    f"（缺 {sorted(set(ck_kind) - set(ck_declared))} / 多 {sorted(set(ck_declared) - set(ck_kind))}）")
+    for n in P:
+        if n.get('kind') != 'owner_checkpoint':
+            continue
+        if n.get('blocking') is not True:
+            errs.append(f"{n['id']}（owner_checkpoint）未声明 blocking: true —— 人环闸门不得可自动绕过")
+        if n.get('owner_visible') is not True:
+            errs.append(f"{n['id']}（owner_checkpoint）未声明 owner_visible: true")
+        if not n.get('decisions'):
+            errs.append(f"{n['id']}（owner_checkpoint）缺 decisions 枚举")
+        fb = n.get('timeout_fallback')
+        if fb not in fb_kinds:
+            errs.append(f"{n['id']}.timeout_fallback->{fb}（未在 owner_timeout_policy.fallback_kinds 中定义）")
 
     print(';'.join(errs))
     return 0 if not errs else 2

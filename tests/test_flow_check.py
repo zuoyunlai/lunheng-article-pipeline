@@ -338,6 +338,84 @@ def test_flow_check_detects_missing_producer():
         os.chdir(cwd)
 
 
+def test_owner_checkpoints_declare_gate_semantics():
+    """v2.12.49（修 P2-1）：人环闸门的阻断语义必须落在真源字段上，而不只活在散文。"""
+    data = _pipeline()
+    otp = data.get("owner_timeout_policy") or {}
+    fb_kinds = otp.get("fallback_kinds") or {}
+    assert fb_kinds, "缺 owner_timeout_policy.fallback_kinds"
+    assert otp.get("default_fallback") in fb_kinds, "default_fallback 未在 fallback_kinds 定义"
+    ck = [n for n in data["pipeline"] if n.get("kind") == "owner_checkpoint"]
+    assert {n["id"] for n in ck} == set(data.get("owner_checkpoints") or []), \
+        "顶层 owner_checkpoints 与 kind: owner_checkpoint 节点集不一致"
+    for n in ck:
+        assert n.get("blocking") is True, f"{n['id']} 未声明 blocking: true（人环闸门可被静默绕过）"
+        assert n.get("owner_visible") is True, f"{n['id']} 未声明 owner_visible: true"
+        assert n.get("decisions"), f"{n['id']} 缺 decisions 枚举"
+        assert n.get("timeout_fallback") in fb_kinds, \
+            f"{n['id']}.timeout_fallback 未在 fallback_kinds 中定义: {n.get('timeout_fallback')}"
+
+
+def test_owner_timeout_policy_is_single_source():
+    """v2.12.49（修 P3-1）：无应答分钟数只在 phase-order.yaml 定义，docs 层不得重列。"""
+    data = _pipeline()
+    assert isinstance(data["owner_timeout_policy"]["no_answer_minutes"], int)
+    assert data["owner_timeout_policy"]["no_answer_minutes"] > 0
+    for rel in ("references/_shared/glossary-full.md",
+                "references/_shared/phase-2-details.md",
+                "references/_shared/执行韧化协议-design.md"):
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        assert "60 分钟" not in text, f"{rel} 重列了无应答分钟数（违一条款一真源）"
+
+
+def test_phase5_silence_is_not_acceptance():
+    """v2.12.49（修 P2-2）：已删除「Phase 5 不答 = 接受当前定稿」——不得回潮。
+
+    允许出现的唯一情形：出现在「已删除 / 旧写法」语境里（防回潮登记）。
+    任何一行把它当仍生效的口径陈述，即判失败。
+    """
+    raw = YAML_PATH.read_text(encoding="utf-8")
+    n = _node("phase5_acceptance")
+    assert n.get("timeout_fallback") == "pending_owner_halt", \
+        "Phase 5 又变成 fail-open（静默自动接受）"
+    DELETED_MARKERS = ("已删除", "旧写法", "旧口径", "防回潮", "已收紧")
+    for rel in ("references/_shared/glossary-full.md",
+                "references/agents/00-主控-扩展职责.md"):
+        for i, line in enumerate((ROOT / rel).read_text(encoding="utf-8").splitlines(), 1):
+            if "不答 = 接受当前定稿" in line:
+                assert any(m in line for m in DELETED_MARKERS), \
+                    f"{rel}:{i} 把旧 fail-open 口径当仍生效口径陈述"
+    assert "已删除的旧语义" in raw, "真源未登记被删除的 fail-open 口径（防回潮缺口）"
+
+
+def test_flow_check_detects_missing_owner_gate_declaration():
+    """反向注入：owner_checkpoint 缺 blocking: true 必须被规则 12 检出（防新规则退化成永真）。"""
+    import contextlib
+    import io
+    import os
+    src = YAML_PATH.read_text(encoding="utf-8")
+    marker = "  - id: phase5_acceptance"
+    start = src.index(marker)
+    block = src[start:]
+    lines = block.splitlines(keepends=True)
+    kept = [ln for ln in lines if not ln.lstrip().startswith("blocking: true")]
+    assert len(kept) == len(lines) - 1, "反向注入点未命中（phase5_acceptance 的 blocking 写法已变）"
+    bad = src[:start] + "".join(kept)
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        YAML_PATH.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— 人环闸门规则退化"
+        assert "phase5_acceptance" in out, f"报错未指向 phase5_acceptance: {out}"
+    finally:
+        YAML_PATH.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

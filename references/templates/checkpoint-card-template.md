@@ -75,6 +75,7 @@
   - B. 补改（指出要改的点，T5/T8 修订）
   - C. 重走某阶段（指定从哪个 Phase 重来）
   - D. 延期（暂不决定，项目挂起）
+- **静默不等于接受（v2.12.49）**：主人未应答时，主控写 status `pending_owner` + 告警挂起，**不得记 `accepted`、不得标 T8.5 GRANTED**（真源 = `phase-order.yaml` `owner_timeout_policy`）。定稿文件已在磁盘，挂起不丢产物
 - **必呈现**：
   - 终稿字数
   - AI 痕迹终检结果

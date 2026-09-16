@@ -278,7 +278,7 @@ T4 建议 [N] 个图表：
 
 ### 超时兜底（不改变「无明确决策 = 未通过」）
 
-主人 60 分钟无应答 → 主控写 status `pending_owner` 并告警挂起，不静默推进。
+主人无应答 → 主控写 status `pending_owner` 并告警挂起，不静默推进。**分钟数与分节点处置的唯一真源 = [`phase-order.yaml`](phase-order.yaml) `owner_timeout_policy`**（一条款一真源，本文件不重列）。
 
 ---
 
