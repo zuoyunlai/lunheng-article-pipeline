@@ -93,6 +93,26 @@ owner_timeout_policy:
     无明确决策 = 未通过。主人 N 分钟（no_answer_minutes）无应答 → 主控写 status.md `pending_owner`
     并告警挂起，不静默推进。任何「主人未回复」「主控代为判断」「子代理说已确认」「产物文件已存在」
     都不是有效决策，不得据此推进下一节点，也不得记为 accepted。
+
+# ⚠️ 终态冻结真源（v2.12.49 新增，修 M-2「终态后修改直接出门」）
+#   `phase5_acceptance.terminal = accepted` 标记后，下列对受管产物的写入**必须回到 g14_style_gate 重跑**，
+#   且 `rerun_after_post_acceptance` 必须为 true：
+#   1. `final/` 子树（含定稿/图件/交付说明/证据包）
+#   2. `drafts/current_draft.md`（「当前权威稿」指针）
+#   未重跑就标 accepted = 假绿灯；flow-check 规则 15 在 `phase5_acceptance` 与 `g14_style_gate` 两处做双向校验。
+#   G14 「只审一次」语义**仅适用未越出终态的场景**；跨过终态后**必须重跑**（防止补图/补占位等未审计修改出厂）。
+terminal_freeze:
+  protected_paths:
+    - final/
+    - drafts/current_draft.md
+  freeze_state: accepted
+  reopen_required_gates: [g14_style_gate, t9_review]   # 重跑顺序：先风格、后同行
+  rerun_after_post_acceptance: true
+  enforcement: flow_check_rule_15 + t8_assertion
+  doctrine: >
+    终态后任何写入受保护路径 ⇒ 主控必须 (1) 状态机 status.md 记 post_acceptance_reopen + 原因，
+    (2) 依次重跑 g14_style_gate / t9_review / final_assembly / t8_technical_final，
+    (3) 重新取主人在 phase5_acceptance 拍板（仍走 owner_checkpoint，不得默认保留旧 accepted）。
 # ⚠️ v2.12.46（业主定案）：论衡**只有一个标准架构 = 多 Agent 九角色流水线**。
 #   T1-T7 / T9 / G14 = worker 角色，各自写自己的正式角色产物；主控（T0/T8）负责流程状态、
 #   权威稿同步、配图、定稿组装、终检与交付裁决。**不存在与多 Agent 并列的「单主控模式」**：
@@ -350,6 +370,7 @@ pipeline:
     kind: mechanical_checkpoint
     verdict_scale: four_tier   # v2.12.40：结论落四档；审计报告缺失 = 路径或参数错误（不触发修订）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 审计报告 + 本轮 M 门记录已落盘；不得用预跑/上轮记录
+    audited_artifact_required: true   # v2.12.49 M-8：以下游只读档报告必须声明 audited_artifact 三元组（path / bytes / sha256）；t7_5_integrity 校验集合相等（下游报告与 current_draft_sync 同步的版本一致）
     owner: 主控
     write_authority: owner
     input: audits/审计报告-vN.md   # v2.12.41 修依赖倒置：本闸**不得**读 final/M-Gate-Report（那是本闸的**产出**；v2.12.33 已定「T7.5 不 check T8 产物」），改读本轮章节级 M 门记录（status.md）
@@ -366,6 +387,7 @@ pipeline:
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     rerun_after_report: false   # v2.12.40 业主定案 A1：**全流程仅 1 次**；audit_revision.after_each 的 rerun_g14_if_enabled 已删
+    rerun_after_post_acceptance: true   # v2.12.49 M-2：终态后修改 final/ 或 drafts/current_draft.md ⇒ 必须重跑 G14（与「rerun_after_report」互不覆盖；「rerun_after_report」指报告落盘后激活，本字段指跨过终态后必重启）
     # 执行前提（业主定案 A2：「T5 之前若有修订但还不能定稿，则 G14 还是不执行」）：
     #   本闸是**定稿前最后一道闸**。前置修订尚未收敛（audit_revision 未退出 / 仍有未决 P0·P1 修订项 / 尚不能定稿）
     #   → **不执行本闸**，先完成修订；只有进入「可定稿」状态才开闸。
@@ -422,7 +444,8 @@ pipeline:
     owner: 主控
     write_authority: owner
     output: final/定稿.md
-    note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿。**v2.12.43 投稿域 vs 工程域**：本节点**只产投稿版**（纯学术结构），**禁**写入头部工程元数据段与「## 投稿就绪附录」段；工程信息一律由 t8_technical_final 写入 final/交付说明.md。禁入清单真源 = deliverables.md「投稿域 vs 工程域」
+    fingerprint: required   # v2.12.49 M-1：产出后必须写 final/定稿.sha256（主控 read + 主人 host shell 补算 sha256sum 写入）；指纹真源
+    note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。**v2.12.49 M-1**：产出同步写 `final/定稿.sha256`，下游 T7/T9/G14/T8 报告必填 `audited_artifact.{path,bytes,sha256}` 三元组；T8 终检做 sha256 集合相等断言（与 T7/G14/T9 一致 ⇒ 合格）。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿。**v2.12.43 投稿域 vs 工程域**：本节点**只产投稿版**（纯学术结构），**禁**写入头部工程元数据段与「## 投稿就绪附录」段；工程信息一律由 t8_technical_final 写入 final/交付说明.md。禁入清单真源 = deliverables.md「投稿域 vs 工程域」
     next: t9_review
   - id: methodology_snapshot
     phase: "Phase 5 终检后置（方法论留档）"
@@ -442,6 +465,8 @@ pipeline:
     phase_seq: 19
     kind: advisory_agent
     verdict_scale: four_tier   # v2.12.40：T9 报告判定落四档
+    fingerprint: required   # v2.12.49 M-1：报告必填 audited_artifact.{path,bytes,sha256}
+    audited_artifact_required: true   # v2.12.49 M-1/M-8：以下游只读档报告必须声明三元组
     # v2.12.40 业主定案 A2：输入由 `drafts/current_draft.md`（未定稿稿件）改为 **`final/定稿.md`（终稿）**——
     #   T9 定位为「**终稿落成后模拟投递刊物编辑审稿**」。节点位于 final_assembly 之后，故「终稿落成后」已满足。
     input: final/定稿.md
@@ -481,6 +506,8 @@ pipeline:
     role: T8
     write_authority: owner
     verification_authority: 主控
+    fingerprint: required   # v2.12.49 M-1：交付说明头部必填 final/定稿.sha256，与 T7/G14/T9 三方一致 ⇒ 合格；不一致 ⇒ 不合格（审计对象漂移）
+    audited_artifact_required: true   # v2.12.49 M-1/M-8：本节点报告必填 audited_artifact 三元组；与 T7/G14/T9 集合相等 ⇒ 合格
     # v2.12.13（方案 3.1）：显式声明输入含 SVG 图件——SVG 嵌入文本孤儿检查已从 T7 移交 T8
     inputs: [final/图件/*.svg, final/定稿.md, final/交付说明.md]   # v2.12.41：原写 final/*.md 通配 → 改显式（通配使「被消费但无生产者」检查失明）
     output: final/交付说明.md
@@ -494,4 +521,4 @@ pipeline:
     owner_visible: true
     decisions: [accepted, revision_requested, restart_phase, deferred]
     timeout_fallback: pending_owner_halt
-    terminal: accepted
+    terminal: accepted   # v2.12.49 M-2：终态标记真源；详见顶层 terminal_freeze 段

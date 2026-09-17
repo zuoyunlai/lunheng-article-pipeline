@@ -12,6 +12,15 @@
 > **建议**：accept / minor revision / major revision / reject
 > **独立性声明**：见下方同名段（必填）
 
+> ⚠️ **v2.12.49 M-1**：本报告必填 `audited_artifact` 三元组，与 T7 / G14 / T8 三处一致 ⇒ 合格；任一处 hash 不同 ⇒ 门失败（审计对象漂移）。
+
+```
+### audited_artifact（v2.12.49 必填）
+- path: final/定稿.md
+- bytes: <主控 read 后填>
+- sha256: <主人在 host shell 跑 sha256sum 补算>
+```
+
 ---
 
 ## 🔒 独立性声明（必填，放报告头部）

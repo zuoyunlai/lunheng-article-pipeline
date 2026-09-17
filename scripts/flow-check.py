@@ -260,6 +260,35 @@ def main():
         if fb not in fb_kinds:
             errs.append(f"{n['id']}.timeout_fallback->{fb}（未在 owner_timeout_policy.fallback_kinds 中定义）")
 
+    # 13 终态冻结真源（v2.12.49 M-2）：phase5_acceptance 须声明 terminal；rerun_after_post_acceptance 拓扑检查
+    tf = d.get('terminal_freeze') or {}
+    p5a = byid.get('phase5_acceptance')
+    if p5a is not None:
+        if not p5a.get('terminal'):
+            errs.append('phase5_acceptance 未声明 terminal（v2.12.49 M-2：终态真源缺失 → 终态冻结规则不能机械校验）')
+        if p5a.get('terminal') == 'accepted':
+            g14 = byid.get('g14_style_gate')
+            if g14 is not None and not g14.get('rerun_after_post_acceptance'):
+                errs.append('g14_style_gate 未声明 rerun_after_post_acceptance: true（M-2：终态后修改必须重跑 G14）')
+
+    # 14 交付物指纹真源（v2.12.49 M-1）：声明 fingerprint: required 的节点必须同步可被消费者读到 audited_artifact
+    #    机械门为下游报告必填字段（具体字段约束在 T8 / 交接报告模板层，不在此重复）；本规则保证 YAML 真源**双向一致**。
+    fp_required = [n['id'] for n in P if n.get('fingerprint') == 'required']
+    if 'final_assembly' in fp_required and 't8_technical_final' not in fp_required:
+        errs.append('final_assembly 声明 fingerprint: required，但 t8_technical_final 未同步声明（缺一即下游不可机械断言）')
+    for nid in fp_required:
+        node = byid[nid]
+        if not node.get('output'):
+            errs.append(f"{nid} 声明 fingerprint: required 但缺 output（交付物路径缺失 → 无法绑定 sha256 真源）")
+
+    # 15 审计对象一致真源（v2.12.49 M-8）：以下游只读档报告节点须声明 audited_artifact_required
+    #    防止「节点靠散文约定做断言」漏检 — 形如 t7_5_integrity / t8_technical_final / t9_review 须显式声明
+    #    audited_artifact_required: true；不声明 = 交付物可能被错路由读不到真源。
+    required_audit = {'t7_5_integrity', 't8_technical_final', 't9_review'}
+    missing = sorted(nid for nid in required_audit if byid.get(nid) and not byid[nid].get('audited_artifact_required'))
+    if missing:
+        errs.append(f'以下节点必须声明 audited_artifact_required: true（M-8）：{missing}')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

@@ -416,6 +416,143 @@ def test_flow_check_detects_missing_owner_gate_declaration():
         os.chdir(cwd)
 
 
+# ===== v2.12.49 M-1 交付物指纹 =====
+
+def test_m1_fingerprint_required_nodes_declared():
+    """M-1：final_assembly / t9_review / t8_technical_final 三节点必须声明 fingerprint: required。"""
+    data = _pipeline()
+    fp_required = {n["id"] for n in data["pipeline"] if n.get("fingerprint") == "required"}
+    assert {"final_assembly", "t9_review", "t8_technical_final"} <= fp_required, \
+        f"fingerprint: required 节点集不足: {fp_required}"
+
+
+def test_m1_audited_artifact_field_required_in_templates():
+    """M-1：交接报告 + 审稿报告模板头部必填 audited_artifact 三元组。"""
+    for rel in ("references/templates/交接报告-template.md",
+                "references/templates/审稿报告-template.md"):
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        assert "audited_artifact" in text, f"{rel} 缺 audited_artifact 字段"
+        assert all(k in text for k in ("path", "bytes", "sha256")), \
+            f"{rel} audited_artifact 三元组（path/bytes/sha256）不全"
+
+
+def test_m1_flow_check_detects_missing_fingerprint_pair():
+    """反向注入：final_assembly 声明 fingerprint 但 t8 未同步 ⇒ 规则 13 检出。"""
+    import contextlib, io, os
+    src = YAML_PATH.read_text(encoding="utf-8")
+    marker = "  - id: t8_technical_final"
+    start = src.index(marker)
+    # 取该节点块（约 12 行）
+    lines = src[start:].splitlines(keepends=True)
+    end = next((i for i, ln in enumerate(lines)
+                if i > 3 and (ln.startswith("  - id:") or ln.startswith("- id:"))), len(lines))
+    block = lines[:end]
+    kept = [ln for ln in block if not ln.lstrip().startswith("fingerprint:")]
+    bad = src[:start] + "".join(kept) + src[start + sum(len(x) for x in lines[:end]):]
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        YAML_PATH.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— M-1 指纹同步规则退化"
+        assert "t8_technical_final" in out, f"报错未指向 t8_technical_final: {out}"
+    finally:
+        YAML_PATH.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
+# ===== v2.12.49 M-2 终态冻结 =====
+
+def test_m2_terminal_freeze_top_level_declared():
+    """M-2：顶层 terminal_freeze 块必须存在且包含 protected_paths / freeze_state / reopen_required_gates。"""
+    tf = _pipeline().get("terminal_freeze") or {}
+    assert tf, "phase-order.yaml 缺顶层 terminal_freeze 段（M-2 必填）"
+    assert tf.get("freeze_state") == "accepted"
+    assert "final/" in tf.get("protected_paths", [])
+    assert "drafts/current_draft.md" in tf.get("protected_paths", [])
+    assert "g14_style_gate" in tf.get("reopen_required_gates", [])
+    assert tf.get("rerun_after_post_acceptance") is True
+
+
+def test_m2_phase5_acceptance_declares_terminal():
+    """M-2：phase5_acceptance 节点必须声明 terminal: accepted（终态真源）。"""
+    assert _node("phase5_acceptance").get("terminal") == "accepted", \
+        "phase5_acceptance 未声明 terminal: accepted（M-2 终态真源缺失）"
+
+
+def test_m2_g14_style_gate_has_rerun_after_post_acceptance():
+    """M-2：g14_style_gate 必须声明 rerun_after_post_acceptance: true（终态后修改必重跑）。"""
+    g14 = _node("g14_style_gate")
+    assert g14.get("rerun_after_post_acceptance") is True, \
+        "g14_style_gate 未声明 rerun_after_post_acceptance: true（M-2：跨终态修改 G14 必重跑）"
+
+
+def test_m2_flow_check_detects_missing_terminal():
+    """反向注入：phase5_acceptance 缺 terminal ⇒ 规则 13 检出。"""
+    import contextlib, io, os
+    src = YAML_PATH.read_text(encoding="utf-8")
+    marker = "  - id: phase5_acceptance"
+    start = src.index(marker)
+    lines = src[start:].splitlines(keepends=True)
+    end = next((i for i, ln in enumerate(lines)
+                if i > 3 and (ln.startswith("  - id:") or ln.startswith("- id:"))), len(lines))
+    block = lines[:end]
+    kept = [ln for ln in block if not ln.lstrip().startswith("terminal:")]
+    bad = src[:start] + "".join(kept) + src[start + sum(len(x) for x in lines[:end]):]
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        YAML_PATH.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— M-2 终态规则退化"
+        assert "terminal" in out, f"报错未指向 terminal: {out}"
+    finally:
+        YAML_PATH.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
+# ===== v2.12.49 M-8 审计对象一致 =====
+
+def test_m8_audited_artifact_required_on_critical_nodes():
+    """M-8：t7_5_integrity / t8_technical_final / t9_review 必须声明 audited_artifact_required: true。"""
+    required = {"t7_5_integrity", "t8_technical_final", "t9_review"}
+    missing = sorted(nid for nid in required if not _node(nid).get("audited_artifact_required"))
+    assert not missing, f"以下节点缺 audited_artifact_required: true（M-8）：{missing}"
+
+
+def test_m8_flow_check_detects_missing_audited_artifact_required():
+    """反向注入：t7_5_integrity 缺 audited_artifact_required ⇒ 规则 15 检出。"""
+    import contextlib, io, os
+    src = YAML_PATH.read_text(encoding="utf-8")
+    marker = "  - id: t7_5_integrity"
+    start = src.index(marker)
+    lines = src[start:].splitlines(keepends=True)
+    end = next((i for i, ln in enumerate(lines)
+                if i > 3 and (ln.startswith("  - id:") or ln.startswith("- id:"))), len(lines))
+    block = lines[:end]
+    kept = [ln for ln in block if not ln.lstrip().startswith("audited_artifact_required:")]
+    bad = src[:start] + "".join(kept) + src[start + sum(len(x) for x in lines[:end]):]
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        YAML_PATH.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— M-8 审计一致规则退化"
+        assert "audited_artifact_required" in out, f"报错未指向 audited_artifact_required: {out}"
+    finally:
+        YAML_PATH.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

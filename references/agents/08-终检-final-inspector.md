@@ -130,6 +130,33 @@
 
 ---
 
+## v2.12.49 新增机械断言（M-1 / M-2 / M-8 架构）
+
+> **本节是 v2.12.49 合并批次修订引入的机械断言集合；真源 = `phase-order.yaml`（`terminal_freeze` 顶层块 / `fingerprint` 节点字段 / `audited_artifact_required` 节点字段）。T8 主控亲为执行时必须跑完这三项；任一项不过 = 判不合格，与原 48 项平级。**
+
+### M-1：交付物指纹绑定
+
+1. **写指纹**：`final/定稿.md` 产出后，主控 `read` 后必须由主人在 host shell 跑 `sha256sum` 补算并写入 `final/定稿.sha256`（见 `_shared/host-verify-recipe.md` §指纹补算模板）。
+2. **报头必填**：T7 / G14 / T9 / T8 四类只读档报告（含交付说明）头部必填 `audited_artifact.{path,bytes,sha256}` 三元组；任一缺失 = 该报告作废。
+3. **集合相等**：T8 终检现场重算 `final/定稿.sha256`，与 T7/G14/T9 三方声明值集合相等 ⇒ 合格；任一不一致 ⇒ **判不合格（审计对象漂移）**，返回 T5 v(N+1) 重走。
+4. **交付说明头部**：必填 `deliverables_fingerprint` 字段（路径 / bytes / sha256），主人验收时可比对。
+
+### M-2：终态冻结
+
+1. **`phase5_acceptance.terminal` 真源 = `accepted`**（YAML 顶层；v2.12.49 起机械校验）。**接受后任何写入 `final/` 或 `drafts/current_draft.md` 使终态失效**（主人拍板补图 / 补占位 / 重出定稿 = 全部需要重开）。
+2. **重开路线**：终态后修改 ⇒ 主控必须按 `terminal_freeze.reopen_required_gates` 顺序重跑 `g14_style_gate → t9_review → final_assembly → t8_technical_final`，**再走一次 phase5_acceptance 拍板**（默认保留旧 accepted 是不合格）。
+3. **`status.md` 留痕**：`post_acceptance_reopen` 字段记原因 + 时间戳 + 重跑链上各节点 sha256。
+4. **G14 重跑原则**：跨过终态后 G14 「全流程仅 1 次」**不适用**（`g14_style_gate.rerun_after_post_acceptance: true`）；补增补图场景下不复检 = 永久盲区。
+
+### M-8：审计对象一致
+
+1. **下游只读档报告必填 `audited_artifact`**：T7 / G14 / T9 / T8 四处 sha256 必须**两两相等**；任一处不一致 = 门失败（详见 M-1 第 3 条）。
+2. **`t7_5_integrity` 与 `t8_technical_final` 是集合相等断言点**：上游报告落盘后做**单点对多点**集合比对；差集非空 = 审计对象曾经被多版本路由（如 `final_assembly` 重出后未同步所有报告）。
+3. **`current_draft_sync` 是 sha256 锚点真源**：下游报告 sha256 必须等于 `current_draft_sync` 同步那一刻的 `final/定稿.md` sha256；等于更早或更晚版本 = 静默漂移。
+4. **T8 终检现场复算**：不信任任何已落盘 sha256，必须 `read` 后当场 `sha256sum` 重算；复算值与四处声明值集合相等 ⇒ 合格。
+
+---
+
 ## 铁律
 
 1. **不代写**：T8 不替写手补论证、补数据、补案例——只核验 + 小幅修补
