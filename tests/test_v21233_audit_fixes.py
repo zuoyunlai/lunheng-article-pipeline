@@ -17,6 +17,9 @@ Tencent AIG 1 条 + NVIDIA SkillSpector 15 条 + static-analysis clean）：
       扫描器逐个解析失败 ⇒ 拆成独立行（每格一个仓库根相对路径）。
   F5  SkillSpector Intent-Code Divergence（Medium 96%）—— 「只读」后开例外，读作矛盾
       ⇒ 改为「两径定义」（上游只读 / 自有报告可写），保留既有行为。
+      ⚠️ **v2.12.51 D-3 推翻本项**：v2.12.50 一致性审计裁定「两径定义」是回归
+      （只读档确无 write 工具，报告应由主控 write 落盘）⇒ 统一为「主控代写盘」；
+      本文件 F5/F6 断言已同步改写为 D-3 口径（旧断言反转为「不得留直写授权」）。
   F6  只读档落盘口径须三处（permissions / dispatch-header / 角色卡）一致，防漂移。
 
 设计原则：每条断言「修复后的口径」，可被变异击杀；不断言实现细节。
@@ -152,31 +155,33 @@ def test_f4_relative_basis_still_declared():
 # =============================================================================
 # F5 / F6 只读档两径定义 + 三处一致
 # =============================================================================
-def test_f5_readonly_is_two_path_definition():
-    """只读档须写成「两径定义」而非「先只读、再破例」"""
+# =============================================================================
+# F5 / F6 只读档写盘主体（v2.12.51 D-3：统一为「主控代写盘」）
+# =============================================================================
+def test_f5_readonly_is_owner_written_single_source():
+    """v2.12.51 D-3：只读档落盘主体唯一 = 主控代写盘（v2.12.33「两径定义」已废止）"""
     p = read(PERM)
-    assert "只读档落盘例外" in p, "锚点不得删（v2.12.32 测试钉死）"
-    assert "两径定义" in p, "缺「两径定义」框架"
-    assert "一次定义两条路径、无追加例外" in p, "须写明无追加例外"
-    assert "授权路径之外一律只读" in p
+    assert "只读档落盘口径（v2.12.51 D-3 统一" in p, "缺 D-3 统一口径段"
+    assert "两径定义" in p, "须登记被废止的旧口径（防回潮）"
+    assert "由主控 `write` 落盘" in p, "缺「报告由主控 write 落盘」唯一口径"
+    assert "不得直写任何路径" in p, "缺「只读档不得直写」禁令"
 
 
-def test_f5_no_contradictory_phrasing():
-    """不得留「先说只读、再破例」的自相矛盾措辞"""
+def test_f5_no_direct_write_authorization_left():
+    """v2.12.51 D-3：不得留任何「自有报告可写 / 授权路径直写」的旧授权措辞"""
     p = read(PERM)
-    assert "不是「先说只读、再破例」" in p or "并非「先说只读、再破例」" in p, \
-        "须显式否掉矛盾读法"
-    # 旧的「主控代写盘」口径已被直写授权取代
-    assert "报告经交接回传、主控代写盘" not in p, "permissions 表仍留旧的「主控代写盘」口径"
+    assert "自有报告可写" not in p, "permissions 仍留「自有报告可写」（D-3 已废止）"
+    assert "授权路径之外一律只读" not in p, "permissions 仍留旧「两径」授权框架"
 
 
 def test_f6_readonly_tier_consistent_across_docs():
-    """只读档口径三处一致（permissions / dispatch-header / 角色卡）"""
+    """v2.12.51 D-3：只读档口径三处一致（permissions / dispatch-header / 角色卡）"""
     p = read(PERM)
     dh = read(DH)
     audit_card = read(ROOT / "references/agents/07-审计-auditor.md")
-    assert "上游只读 + 自有报告可写" in p, "permissions 表未用统一措辞"
-    assert "上游只读 + 自有报告可写" in dh, "dispatch-header 档位行未同步"
+    assert "报告由主控落盘" in p, "permissions 表未用统一措辞（D-3）"
+    assert "报告由主控落盘" in dh, "dispatch-header 档位行未同步（D-3）"
+    assert "自有报告可写" not in dh, "dispatch-header 仍留旧直写授权（D-3）"
     # 角色卡仍须保留「无 write 工具」这一诚实边界说明
     assert "无 write 工具" in audit_card or "只读档" in audit_card
 

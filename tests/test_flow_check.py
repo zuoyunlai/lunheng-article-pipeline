@@ -10,13 +10,84 @@
 
 本测试锁死：真源可解析（无重复键）/ 多产物映射完整 / 被多方消费的产物有生产者 / 全门绿。
 """
+import hashlib
 import importlib.util
 import pathlib
+import re
+import shutil
+import subprocess
+import sys
 
 import yaml
 
 ROOT = pathlib.Path(__file__).parent.parent
 YAML_PATH = ROOT / "references" / "_shared" / "phase-order.yaml"
+
+# ===== v2.12.51 D-4：反向注入一律在「整仓副本」上施加，真源只读 =====
+# 背景：v2.12.51 前 ≥11 处反向注入直接 write_text 真源（phase-order.yaml / 字数判定表.md /
+#   可发表性判定表.md / 08-终检-final-inspector.md），仅靠 try/finally 恢复
+#   —— kill / 超时 / 并行即永久污染真源。
+# 现口径：copytree 整仓到 tmp_path → 在**副本**上变异 → 跑**副本的** scripts/flow-check.py
+#   （cwd 必须 = 副本根：main() 读相对路径 references/_shared/phase-order.yaml）
+#   → 断言 RC≠0 + 报错指向预期节点/路径 + **真源 sha256 前后不变**（硬断言）。
+COPY_IGNORE = shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache", "*.pyc")
+YAML_REL = "references/_shared/phase-order.yaml"
+
+
+def _sha256(path):
+    return hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()
+
+
+def _sandbox(tmp_path):
+    """整仓副本（真源字节级只读）。"""
+    dst = pathlib.Path(tmp_path) / "repo"
+    if dst.exists():
+        shutil.rmtree(dst)
+    shutil.copytree(ROOT, dst, ignore=COPY_IGNORE)
+    return dst
+
+
+def _flow_check_in(copy_root):
+    """在副本根跑**副本的** flow-check（cwd 必须 = 副本根，见 D-4）。"""
+    proc = subprocess.run(
+        [sys.executable, str(pathlib.Path(copy_root) / "scripts" / "flow-check.py")],
+        cwd=str(copy_root), capture_output=True, text=True)
+    return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+
+
+def _inject_and_expect(rel_path, mutate, expect, tmp_path):
+    """副本注入契约：① 真源 sha256 前后不变；② 副本 flow-check RC≠0；③ 报错含 expect。"""
+    truth = ROOT / rel_path
+    before = _sha256(truth)
+    copy_root = _sandbox(tmp_path)
+    target = copy_root / rel_path
+    src = target.read_text(encoding="utf-8")
+    bad = mutate(src)
+    assert bad != src, f"反向注入点未命中：{rel_path}"
+    target.write_text(bad, encoding="utf-8")
+    rc, out = _flow_check_in(copy_root)
+    assert _sha256(truth) == before, f"真源被测试污染（sha256 变了）：{rel_path}"
+    assert rc != 0, f"反向注入未被检出（RC=0）—— 规则退化成永真：{rel_path}"
+    assert expect in out, f"报错未指向「{expect}」：{out}"
+    return out
+
+
+def _node_block(src, marker):
+    """取节点 YAML 块：返回 (start, block)，block 从 marker 到下一个 `  - id:` 之前。"""
+    start = src.index(marker)
+    lines = src[start:].splitlines(keepends=True)
+    end = next((i for i, ln in enumerate(lines)
+                if i > 3 and (ln.startswith("  - id:") or ln.startswith("- id:"))), len(lines))
+    return start, "".join(lines[:end])
+
+
+def _drop_key(src, marker, key):
+    """删掉 marker 节点块内所有以 key 开头的行（反向注入通用手法）。"""
+    start, block = _node_block(src, marker)
+    lines = block.splitlines(keepends=True)
+    kept = [ln for ln in lines if not ln.lstrip().startswith(key)]
+    assert len(kept) < len(lines), f"反向注入点未命中（{marker} 块内无 {key}）"
+    return src[:start] + "".join(kept) + src[start + len(block):]
 
 
 def _load(path, name):
@@ -120,12 +191,22 @@ def test_architecture_is_multi_agent_role_pipeline():
 
 
 def test_every_worker_node_declares_role_writability_and_takeover():
-    """worker 节点必须声明角色、写入权、核验权与失败接管策略（节点级接管，非整轮降级）。"""
+    """worker 节点必须声明角色、写入权、核验权与失败接管策略（节点级接管，非整轮降级）。
+
+    v2.12.51 D-3：写入权按档位分两类 ——
+      · 只读档（T6 / T7 / T9 / G14）= 报告由主控 write 落盘 ⇒ 必须 `owner`
+      · 自有产物节点（T4 分析 / T5 写手 / 检索三卡）⇒ 必须 `executor`
+    """
+    READONLY_ROLES = {"T6", "T7", "T9", "G14"}
     missing = []
     for n in _pipeline()["pipeline"]:
         if n.get("kind") in {"agent", "parallel_agents", "conditional_agent", "advisory_agent"}:
-            if not n.get("role") or n.get("write_authority") != "executor":
-                missing.append(f"{n['id']}.role/write_authority")
+            if not n.get("role"):
+                missing.append(f"{n['id']}.role")
+            expected_wa = "owner" if n.get("role") in READONLY_ROLES else "executor"
+            if n.get("write_authority") != expected_wa:
+                missing.append(
+                    f"{n['id']}.write_authority={n.get('write_authority')}（应为 {expected_wa}）")
             if n.get("verification_authority") != "主控":
                 missing.append(f"{n['id']}.verification_authority")
             takeover = n.get("on_worker_failure") or {}
@@ -307,37 +388,15 @@ def test_t8_declares_review_report_input():
     assert "审稿报告" in decl, f"t8_technical_final 未声明审稿报告输入: {decl}"
 
 
-def test_flow_check_detects_missing_producer():
-    """反向注入：无生产者的单消费者路径必须被检出（防新规则退化成永真）。"""
-    import tempfile
-    import os
-    p = YAML_PATH  # 绝对路径（v2.12.39 修：原相对路径依赖 CWD，属顺序依赖的脆弱测试）
-    src = p.read_text(encoding="utf-8")
-    # 移除 final_assembly 节点的 output 声明 → 制造 final/定稿.md 无生产者
-    marker = "  - id: final_assembly"
-    start = src.index(marker)
-    end = src.find("\n  - id:", start + len(marker))
-    block = src[start:] if end < 0 else src[start:end]
-    assert "    output: final/定稿.md\n" in block, "反向注入点未命中（final_assembly.output 写法已变）"
-    bad_block = block.replace("    output: final/定稿.md\n", "", 1)
-    bad = src[:start] + bad_block + src[start + len(block):]
-    backup = src
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        p.write_text(bad, encoding="utf-8")
-        out = []
-        import io
-        import contextlib
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— 入参链闭合规则退化"
-        assert "final/定稿.md" in out, f"报错未指向 final/定稿.md: {out}"
-    finally:
-        p.write_text(backup, encoding="utf-8")
-        os.chdir(cwd)
+def test_flow_check_detects_missing_producer(tmp_path):
+    """反向注入（D-4 副本注入）：无生产者的单消费者路径必须被检出（防新规则退化成永真）。"""
+    def mutate(src):
+        start, block = _node_block(src, "  - id: final_assembly")
+        assert "    output: final/定稿.md\n" in block, \
+            "反向注入点未命中（final_assembly.output 写法已变）"
+        bad_block = block.replace("    output: final/定稿.md\n", "", 1)
+        return src[:start] + bad_block + src[start + len(block):]
+    _inject_and_expect(YAML_REL, mutate, "final/定稿.md", tmp_path)
 
 
 def test_owner_checkpoints_declare_gate_semantics():
@@ -390,32 +449,11 @@ def test_phase5_silence_is_not_acceptance():
     assert "已删除的旧语义" in raw, "真源未登记被删除的 fail-open 口径（防回潮缺口）"
 
 
-def test_flow_check_detects_missing_owner_gate_declaration():
-    """反向注入：owner_checkpoint 缺 blocking: true 必须被规则 12 检出（防新规则退化成永真）。"""
-    import contextlib
-    import io
-    import os
-    src = YAML_PATH.read_text(encoding="utf-8")
-    marker = "  - id: phase5_acceptance"
-    start = src.index(marker)
-    block = src[start:]
-    lines = block.splitlines(keepends=True)
-    kept = [ln for ln in lines if not ln.lstrip().startswith("blocking: true")]
-    assert len(kept) == len(lines) - 1, "反向注入点未命中（phase5_acceptance 的 blocking 写法已变）"
-    bad = src[:start] + "".join(kept)
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        YAML_PATH.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— 人环闸门规则退化"
-        assert "phase5_acceptance" in out, f"报错未指向 phase5_acceptance: {out}"
-    finally:
-        YAML_PATH.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_flow_check_detects_missing_owner_gate_declaration(tmp_path):
+    """反向注入（D-4 副本注入）：owner_checkpoint 缺 blocking: true 必须被规则 12 检出。"""
+    def mutate(src):
+        return _drop_key(src, "  - id: phase5_acceptance", "blocking: true")
+    _inject_and_expect(YAML_REL, mutate, "phase5_acceptance", tmp_path)
 
 
 # ===== v2.12.49 M-1 交付物指纹 =====
@@ -438,32 +476,11 @@ def test_m1_audited_artifact_field_required_in_templates():
             f"{rel} audited_artifact 三元组（path/bytes/sha256）不全"
 
 
-def test_m1_flow_check_detects_missing_fingerprint_pair():
-    """反向注入：final_assembly 声明 fingerprint 但 t8 未同步 ⇒ 规则 13 检出。"""
-    import contextlib, io, os
-    src = YAML_PATH.read_text(encoding="utf-8")
-    marker = "  - id: t8_technical_final"
-    start = src.index(marker)
-    # 取该节点块（约 12 行）
-    lines = src[start:].splitlines(keepends=True)
-    end = next((i for i, ln in enumerate(lines)
-                if i > 3 and (ln.startswith("  - id:") or ln.startswith("- id:"))), len(lines))
-    block = lines[:end]
-    kept = [ln for ln in block if not ln.lstrip().startswith("fingerprint:")]
-    bad = src[:start] + "".join(kept) + src[start + sum(len(x) for x in lines[:end]):]
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        YAML_PATH.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— M-1 指纹同步规则退化"
-        assert "t8_technical_final" in out, f"报错未指向 t8_technical_final: {out}"
-    finally:
-        YAML_PATH.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_m1_flow_check_detects_missing_fingerprint_pair(tmp_path):
+    """反向注入（D-4 副本注入）：final_assembly 声明 fingerprint 但 t8 未同步 ⇒ 规则 14 检出。"""
+    def mutate(src):
+        return _drop_key(src, "  - id: t8_technical_final", "fingerprint:")
+    _inject_and_expect(YAML_REL, mutate, "t8_technical_final", tmp_path)
 
 
 # ===== v2.12.49 M-2 终态冻结 =====
@@ -492,31 +509,11 @@ def test_m2_g14_style_gate_has_rerun_after_post_acceptance():
         "g14_style_gate 未声明 rerun_after_post_acceptance: true（M-2：跨终态修改 G14 必重跑）"
 
 
-def test_m2_flow_check_detects_missing_terminal():
-    """反向注入：phase5_acceptance 缺 terminal ⇒ 规则 13 检出。"""
-    import contextlib, io, os
-    src = YAML_PATH.read_text(encoding="utf-8")
-    marker = "  - id: phase5_acceptance"
-    start = src.index(marker)
-    lines = src[start:].splitlines(keepends=True)
-    end = next((i for i, ln in enumerate(lines)
-                if i > 3 and (ln.startswith("  - id:") or ln.startswith("- id:"))), len(lines))
-    block = lines[:end]
-    kept = [ln for ln in block if not ln.lstrip().startswith("terminal:")]
-    bad = src[:start] + "".join(kept) + src[start + sum(len(x) for x in lines[:end]):]
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        YAML_PATH.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— M-2 终态规则退化"
-        assert "terminal" in out, f"报错未指向 terminal: {out}"
-    finally:
-        YAML_PATH.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_m2_flow_check_detects_missing_terminal(tmp_path):
+    """反向注入（D-4 副本注入）：phase5_acceptance 缺 terminal ⇒ 规则 13 检出。"""
+    def mutate(src):
+        return _drop_key(src, "  - id: phase5_acceptance", "terminal:")
+    _inject_and_expect(YAML_REL, mutate, "terminal", tmp_path)
 
 
 # ===== v2.12.49 M-8 审计对象一致 =====
@@ -528,31 +525,11 @@ def test_m8_audited_artifact_required_on_critical_nodes():
     assert not missing, f"以下节点缺 audited_artifact_required: true（M-8）：{missing}"
 
 
-def test_m8_flow_check_detects_missing_audited_artifact_required():
-    """反向注入：t7_5_integrity 缺 audited_artifact_required ⇒ 规则 15 检出。"""
-    import contextlib, io, os
-    src = YAML_PATH.read_text(encoding="utf-8")
-    marker = "  - id: t7_5_integrity"
-    start = src.index(marker)
-    lines = src[start:].splitlines(keepends=True)
-    end = next((i for i, ln in enumerate(lines)
-                if i > 3 and (ln.startswith("  - id:") or ln.startswith("- id:"))), len(lines))
-    block = lines[:end]
-    kept = [ln for ln in block if not ln.lstrip().startswith("audited_artifact_required:")]
-    bad = src[:start] + "".join(kept) + src[start + sum(len(x) for x in lines[:end]):]
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        YAML_PATH.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— M-8 审计一致规则退化"
-        assert "audited_artifact_required" in out, f"报错未指向 audited_artifact_required: {out}"
-    finally:
-        YAML_PATH.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_m8_flow_check_detects_missing_audited_artifact_required(tmp_path):
+    """反向注入（D-4 副本注入）：t7_5_integrity 缺 audited_artifact_required ⇒ 规则 15 检出。"""
+    def mutate(src):
+        return _drop_key(src, "  - id: t7_5_integrity", "audited_artifact_required:")
+    _inject_and_expect(YAML_REL, mutate, "audited_artifact_required", tmp_path)
 
 
 # ===== v2.12.49 M-3 / M-5 计数档位真源 + P2 量化锚点 =====
@@ -574,31 +551,18 @@ def test_m5_p2_quantitative_anchors_declared():
     assert "P2 ≥ 3 项" in mgate and "形态类瑕疵" in mgate, "M-Gate §🎯 缺 M-5 P2 量化锚点"
 
 
-def test_m3_m5_dual_source_lock_in_flow_check():
-    """M-3/M-5：flow-check 规则 16 必须同时锁两个文件存在新段（防单边丢掉）。"""
-    import contextlib, io, os
-    # 反向注入：把字数判定表里“实测 > 3 倍”彻底删掉，看 flow-check 是否报缺
-    wz_path = ROOT / "references/_shared/字数判定表.md"
-    src = wz_path.read_text(encoding="utf-8")
-    # 注入点：删掉该行包括分隔符（** 与 **）与上下文空格
-    import re as _re
-    bad = _re.sub(r"\|\s*\*\*实测 > 3 倍\*\*\s*\|", "| ~~删~~~~ |", src, count=1)
-    if bad == src:
-        bad = _re.sub(r"\*\*实测 > 3 倍\*\*", "~~删~~~~", src, count=1)
-    assert bad != src, "反向注入点未命中"
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        wz_path.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— M-3/M-5 双真源锁死规则退化"
-        assert "字数判定表" in out, f"报错未指向双真源: {out}"
-    finally:
-        wz_path.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_m3_m5_dual_source_lock_in_flow_check(tmp_path):
+    """M-3/M-5：flow-check 规则 16 必须同时锁两个文件存在新段（防单边丢掉）。
+
+    D-4：副本注入（原文正向写盘真源 → 改为在整仓副本上变异）；注入点 =
+    把字数判定表里“实测 > 3 倍”彻底删掉，看副本 flow-check 是否报缺。
+    """
+    def mutate(src):
+        bad = re.sub(r"\|\s*\*\*实测 > 3 倍\*\*\s*\|", "| ~~删~~~~ |", src, count=1)
+        if bad == src:
+            bad = re.sub(r"\*\*实测 > 3 倍\*\*", "~~删~~~~", src, count=1)
+        return bad
+    _inject_and_expect("references/_shared/字数判定表.md", mutate, "字数判定表", tmp_path)
 
 
 # ===== v2.12.49 M-4 G14 严重度 + M-6 轮次出口三选一 =====
@@ -626,38 +590,21 @@ def test_m6_audit_revision_three_choice_outlet_declared():
         assert must in labels, f"owner_decision 缺「{must}」选项（M-6 三选一）"
 
 
-def test_m4_m6_flow_check_dual_lock():
+def test_m4_m6_flow_check_dual_lock(tmp_path):
     """M-4/M-6：flow-check 规则 17/18 必须锁 audit_revision 三选一 + G14 severe_single_class。
 
-    反向注入：去掉 owner_decision 三个选项之一（manual_polish）。YAML 仍合法但
-    rules 17 应检出三选一缺失。两个有效信号：(a) main() 返回码 != 0；(b) 输出含 manual_polish。
-    其中 (a) 为必要条件。
+    D-4：副本注入。注入点 = 去掉 owner_decision 三个选项之一（manual_polish）。
+    YAML 仍合法，但规则 17 应检出三选一缺失。有效信号 =（a）RC≠0（必要条件）+（b）输出含 manual_polish。
     """
-    import contextlib, io, os
-    src = YAML_PATH.read_text(encoding="utf-8")
-    # 删除 manual_polish 选项整段（4 行：id/label/requires + 后行）
-    import re as _re
-    bad = _re.sub(
-        r"\n        - id: manual_polish\n          label:.*?\n          requires:.*?\n",
-        "\n        # manual_polish 被反向注入删去\n",
-        src, count=1, flags=_re.DOTALL,
-    )
-    assert bad != src, "反向注入点未命中（manual_polish 选项格式已变）"
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        YAML_PATH.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— M-6 轮次出口锁退化"
-        # 输出任一信号即可：manual_polish / owner_decision / rounds_exhausted_outlet
-        assert any(s in out for s in ("manual_polish", "owner_decision", "rounds_exhausted_outlet")), \
-            f"报错未指向 M-6 owner_decision 任意关键字符串: {out}"
-    finally:
-        YAML_PATH.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+    def mutate(src):
+        return re.sub(
+            r"\n        - id: manual_polish\n          label:.*?\n          requires:.*?\n",
+            "\n        # manual_polish 被反向注入删去\n",
+            src, count=1, flags=re.DOTALL,
+        )
+    out = _inject_and_expect(YAML_REL, mutate, "manual_polish", tmp_path)
+    assert any(s in out for s in ("manual_polish", "owner_decision", "rounds_exhausted_outlet")), \
+        f"报错未指向 M-6 owner_decision 任意关键字符串: {out}"
 
 
 # ===== v2.12.49 M-7 status 对账 + M-9 48 必查严重度列 =====
@@ -682,28 +629,12 @@ def test_m7_status_template_has_node_binding():
     assert "final/定稿.sha256" in text, "status-template §四 缺 final/定稿.sha256（M-1 配套）"
 
 
-def test_m7_m9_flow_check_dual_lock():
-    """M-7/M-9：flow-check 规则 19 须锁 §二 A-E 严重度 + status-template 节点标注。"""
-    import contextlib, io, os
-    src = (ROOT / "references/_shared/可发表性判定表.md").read_text(encoding="utf-8")
-    # 反向注入：去掉 A3 行的 **P1**（让总标记数 -1）
-    import re as _re
-    bad = _re.sub(r"(\| A3 \| .+? \| A \| )\*\*P1\*\*", r"\1~~", src, count=1)
-    assert bad != src, "反向注入点未命中（A3 P1 标记格式已变）"
-    wz_path = ROOT / "references/_shared/可发表性判定表.md"
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        wz_path.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— M-9 严重度列锁退化"
-        assert "严重度" in out and "17" in out, f"报错未指向严重度阈值: {out}"
-    finally:
-        wz_path.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_m7_m9_flow_check_dual_lock(tmp_path):
+    """M-7/M-9：flow-check 规则 19 须锁 §二 A-E 严重度 + status-template 节点标注（D-4 副本注入）。"""
+    def mutate(src):
+        return re.sub(r"(\| A3 \| .+? \| A \| )\*\*P1\*\*", r"\1~~", src, count=1)
+    out = _inject_and_expect("references/_shared/可发表性判定表.md", mutate, "严重度", tmp_path)
+    assert "17" in out, f"报错未指向严重度阈值 17: {out}"
 
 
 # ===== v2.12.49 M-10 图件路径归一 + M-11 图位决策必答 =====
@@ -743,26 +674,12 @@ def test_m11_checkpoint_card_has_figure_decision():
     assert "图位决策必答" in text, "checkpoint-card-template 缺 M-11 图位决策必答总注"
 
 
-def test_m10_m11_flow_check_dual_lock():
-    """M-10/M-11：flow-check 规则 20 须锁 phase4_4_figures.output 归一 + checkpoint-card 总注 + 04-分析声明。"""
-    import contextlib, io, os
-    src = YAML_PATH.read_text(encoding="utf-8")
-    # 反向注入：改 phase4_4_figures.output
-    bad = src.replace("output: final/图件/*.svg", "output: final/figures/", 1)
-    assert bad != src, "反向注入点未命中（phase4_4_figures.output 格式已变）"
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        YAML_PATH.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— M-10 路径锁退化"
-        assert "M-10" in out or "final/图件" in out, f"报错未指向 M-10 路径: {out}"
-    finally:
-        YAML_PATH.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_m10_m11_flow_check_dual_lock(tmp_path):
+    """M-10/M-11：规则 20 须锁 phase4_4_figures.output 归一 + checkpoint-card 总注 + 04-分析声明（D-4 副本注入）。"""
+    def mutate(src):
+        return src.replace("output: final/图件/*.svg", "output: final/figures/", 1)
+    out = _inject_and_expect(YAML_REL, mutate, "M-10", tmp_path)
+    assert "final/图件" in out or "phase4_4_figures" in out, f"报错未指向 M-10 路径: {out}"
 
 
 # ===== v2.12.49 M-13 主人操作清单 + M-14 字数口径 =====
@@ -790,27 +707,13 @@ def test_m14_word_count_unity_in_deliverables():
     assert "body_char_count" in text, "deliverables.md 缺 body_char_count 字段（M-14）"
 
 
-def test_m13_m14_flow_check_dual_lock():
-    """M-13/M-14：flow-check 规则 21 锁 T8 dispatch / 任务简报 / deliverables / 08-终检 四真源。"""
-    import contextlib, io, os
-    # 反向注入：去掉 08-终检-final-inspector.md 里的 body_char_count 字段（M-14 必填）
-    src = (ROOT / "references/agents/08-终检-final-inspector.md").read_text(encoding="utf-8")
-    bad = src.replace("body_char_count", "~~删~~~~")   # 全量替换：该字段在文件中出现多处，只替 1 处会留同名残留 → 反向注入被漏检（v2.12.49 实测）
-    assert bad != src, "反向注入点未命中（body_char_count 已不存在于 08-终检）"
-    t8_path = ROOT / "references/agents/08-终检-final-inspector.md"
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        t8_path.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— M-14 字数口径锁退化"
-        assert "M-14" in out or "body_char_count" in out, f"报错未指向 M-14: {out}"
-    finally:
-        t8_path.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_m13_m14_flow_check_dual_lock(tmp_path):
+    """M-13/M-14：规则 21 锁 T8 dispatch / 任务简报 / deliverables / 08-终检 四真源（D-4 副本注入）。"""
+    def mutate(src):
+        # 全量替换：该字段在文件中出现多处，只替 1 处会留同名残留 → 反向注入被漏检（v2.12.49 实测）
+        return src.replace("body_char_count", "~~删~~~~")
+    out = _inject_and_expect("references/agents/08-终检-final-inspector.md", mutate, "M-14", tmp_path)
+    assert "body_char_count" in out or "M-14" in out, f"报错未指向 M-14: {out}"
 
 
 # ===== v2.12.49 T 系列治本（T-1 / T-2 / T-3 / T-4 / T-5 / T-6 / T-8）=====
@@ -876,31 +779,62 @@ def test_t8_citation_style_unified():
     assert "引用体例层" in g, "M-Gate-Exist-1 缺引用体例层校验（T-8）"
 
 
-def test_t3_liveness_gate_reverse_injection():
-    """反向注入：删掉 phase-order 的 top_tier_liveness_gate ⇒ flow-check 必须报错。"""
-    import contextlib, io, os
-    y = ROOT / "references/_shared/phase-order.yaml"
-    src = y.read_text(encoding="utf-8")
-    bad = src.replace("top_tier_liveness_gate:", "~~removed~~:", 1)
-    assert bad != src, "反向注入点未命中（top_tier_liveness_gate 不在真源）"
-    cwd = os.getcwd()
-    os.chdir(ROOT)
-    try:
-        y.write_text(bad, encoding="utf-8")
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            rc = FC.main()
-        out = buf.getvalue()
-        assert rc != 0, "反向注入未被检出 —— T-3 探活门锁退化"
-        assert "top_tier_liveness_gate" in out or "T-3" in out, f"报错未指向 T-3: {out}"
-    finally:
-        y.write_text(src, encoding="utf-8")
-        os.chdir(cwd)
+def test_t3_liveness_gate_reverse_injection(tmp_path):
+    """反向注入（D-4 副本注入）：删掉 phase-order 的 top_tier_liveness_gate ⇒ flow-check 必须报错。"""
+    def mutate(src):
+        return src.replace("top_tier_liveness_gate:", "~~removed~~:", 1)
+    out = _inject_and_expect(YAML_REL, mutate, "top_tier_liveness_gate", tmp_path)
+    assert "top_tier_liveness_gate" in out or "T-3" in out, f"报错未指向 T-3: {out}"
+
+
+# ===== v2.12.51 D-3 只读档写权（正向 + 反向注入）=====
+
+def test_readonly_tier_reports_are_owner_written():
+    """D-3 正向：只读档四节点（T6/T7/T9/G14）真源必须写 `write_authority: owner`。
+
+    口径 = 只读档工具面仅 `read`，报告正文随交接回传、由主控 `write` 落盘；
+    与 10 处角色卡 / dispatch 的「主控代写盘」一致，且与 `verification_authority: 主控` 自洽。
+    """
+    byid = {n["id"]: n for n in _pipeline()["pipeline"]}
+    for pid, role in (("t6_critique", "T6"), ("t7_audit", "T7"),
+                      ("g14_style_gate", "G14"), ("t9_review", "T9")):
+        n = byid[pid]
+        assert n.get("role") == role, f"{pid}.role 异常: {n.get('role')}"
+        assert n.get("write_authority") == "owner", \
+            f"{pid} 未写 write_authority: owner（D-3：只读档报告由主控 write 落盘）"
+    # 自有产物节点不得被误改（回归护栏）
+    for pid in ("t4_analysis", "t5_draft_v1", "t5_feedback_revision", "t5_style_revision"):
+        assert byid[pid].get("write_authority") == "executor", f"{pid} 应保留 executor（自有产物）"
+    raw = YAML_PATH.read_text(encoding="utf-8")
+    assert raw.count("# v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权") == 4, \
+        "四个只读档节点的 D-3 行尾注释不齐（应恰好 4 处）"
+
+
+def test_flow_check_detects_readonly_tier_write_authority(tmp_path):
+    """D-3 反向注入（教训 #399「机械门必须能红」）：把 t6_critique 的 owner 改回 executor ⇒
+    flow-check 规则 23 必须 RC≠0 且报错指向 t6_critique。
+
+    D-4：在整仓副本上注入，真源 sha256 前后不变。
+    """
+    owner_line = ("    write_authority: owner   # v2.12.51 D-3："
+                  "只读档报告由主控 write 落盘，本节点不授写权")
+
+    def mutate(src):
+        start, block = _node_block(src, "  - id: t6_critique")
+        bad_block = block.replace(owner_line, "    write_authority: executor", 1)
+        return src[:start] + bad_block + src[start + len(block):]
+    _inject_and_expect(YAML_REL, mutate, "t6_critique", tmp_path)
 
 
 if __name__ == "__main__":
+    import inspect
+    import tempfile
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
-            fn()
+            if inspect.signature(fn).parameters:   # 需 tmp_path 的副本注入测试
+                with tempfile.TemporaryDirectory() as _td:
+                    fn(pathlib.Path(_td))
+            else:
+                fn()
             print(f"  ✓ {name}")
     print("flow-check 测试全过")

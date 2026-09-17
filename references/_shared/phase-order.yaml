@@ -31,7 +31,7 @@
 #   ⑪ **无应答处置的唯一真源 = 顶层 `owner_timeout_policy`**（v2.12.49 新增，修 P2-2）：
 #      人环节点无应答一律 `pending_owner_halt`（写 status `pending_owner` + 告警挂起，不静默推进）；
 #      静默**永不**等于有效决策。docs 层只引用本节，**不得重列分钟数**（一条款一真源）。
-version: 2.12.50
+version: 2.12.51
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。
@@ -314,7 +314,7 @@ pipeline:
     verdict_scale: four_tier
     agent: T6
     role: T6
-    write_authority: executor
+    write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     degrade: skip_in_lite_tier   # P1-5 修复：轻量档 T6「必跳」在此声明（原键名 `t6_degrade`，v2.12.40 统一为标准键
@@ -347,7 +347,7 @@ pipeline:
     kind: agent
     agent: T7
     role: T7
-    write_authority: executor
+    write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     input: drafts/current_draft.md
@@ -413,7 +413,7 @@ pipeline:
     verdict_scale: four_tier
     agent: G14
     role: G14
-    write_authority: executor
+    write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     rerun_after_report: false   # v2.12.40 业主定案 A1：**全流程仅 1 次**；audit_revision.after_each 的 rerun_g14_if_enabled 已删
@@ -516,7 +516,7 @@ pipeline:
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。
     blocking: false
     role: T9
-    write_authority: executor
+    write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     # ↓ v2.12.40 业主定案 A2：T9 独立性**硬定义**（不是建议、不得自行放宽）——错一处即报告失效

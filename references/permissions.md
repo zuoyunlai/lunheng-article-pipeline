@@ -1,4 +1,4 @@
-> 版本：v2.12.50（自动同步 2026-09-17）
+> 版本：v2.12.51（自动同步 2026-09-17）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -52,13 +52,15 @@
 | `allow_research` | T1/T2/T3 文献/数据/案例检索 | read + write + edit + web_* + tavily_* | 检索是本职 |
 | `allow_analysis` | T4 分析 | read + write + edit | 不出网，仅本地读产物 |
 | `allow_writing` | T5 写手 | read + write + edit | 纯本地写盘，不出网 |
-| `allow_audit` | T6/T7 批判/审计 | **read**（上游只读 + 自有报告可写） | 不修改上游产物；自有报告直写授权路径 |
-| `allow_review` | T9 同行评审 / G14 风格闸 | **read**（上游只读 + 自有报告可写） | 不修改上游产物；自有报告直写授权路径 |
+| `allow_audit` | T6/T7 批判/审计 | **read** | 不修改上游产物；报告由主控落盘 |
+| `allow_review` | T9 同行评审 / G14 风格闸 | **read** | 不修改上游产物；报告由主控落盘 |
 | （空） | T8 终检 | [] | T8 由主控亲完成，不 spawn 子代理 |
 
 > ⚠️ **执行层真源**：OpenClaw 2026.9.x 的 `sessions_spawn` **无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证），上表是**声明/部署建议**，不是可传参数。子代理实际工具面 = 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_*`）− 主控有效工具策略快照 + 宿主 config `tools.subagents.tools.allow/deny`（全局，无法按 spawn 逐档）。档位间差异在工具层不可逐子表达时，以 prompt 约束 + 只读路径约束兜底。`session_status`/`progress_card` 是**主控侧**可观测性工具，不给子代理。
 
-> 📄 **只读档落盘例外（v2.12.32 实测验证有效；v2.12.33 明确为「两径定义」而非破例）**：`allow_audit`（T6/T7）/ `allow_review`（T9/G14）的工具面是 `read`，其权限口径**一次定义两条路径、无追加例外**：**上游产物路径**（`drafts/` / `final/` / `data/` 等）**= 不修改上游产物**（只读）；**本角色自有报告路径**（`analysis/批判报告-vN.md` / `audits/*-vN.md`）**= 可写**，由主控在任务书中**显式授权该落盘路径**后直接写盘（回传硬上限 4096 字符下，直写可靠性显著优于回传截断）。**授权路径之外一律只读**——不是「先说只读、再破例」。
+> 📄 **只读档落盘口径（v2.12.51 D-3 统一 —— 废 v2.12.32/v2.12.33「两径定义」）**：`allow_audit`（T6/T7）/ `allow_review`（T9/G14）的工具面 = **`read`（纯只读，本档无 write/edit）**：**上游产物一律只读**（`drafts/` / `final/` / `data/` / `literature/` / `cases/` / `analysis/` / `audits/` 一视同仁）；**报告正文随交接回传（final message），由主控 `write` 落盘**；本档**不得直写任何路径**——包括 `analysis/批判报告-vN.md` / `audits/*-vN.md` / `audits/审稿报告-vN.md` 等自有报告路径（旧口径「自有报告直写授权」已废止）。
+> **为何统一为「主控代写盘」**：① 只读档确无 `write` 工具 = 更强的权限姿态（与五档表一致）；② 与 10 处角色卡 / dispatch 的「报告随交接回传、由主控 write 落盘」口径一致；③ 与四节点 `verification_authority: 主控` 自洽（核验者不落盘则无从核验）。
+> ⚠️ **机械校验**：真源 = [`_shared/phase-order.yaml`](_shared/phase-order.yaml) 中 `t6_critique` / `t7_audit` / `g14_style_gate` / `t9_review` 四节点的 `write_authority: owner`；`scripts/flow-check.py` **规则 23** 检查（改回 `executor` 即构建期红）。
 
 **约束的三层模型（v2.12.27 新增 —— 官方文档对齐）**：论衡的档位与禁令**不是只有"提示词"一层**。把三层分清，才知道"哪层能拦什么"：
 

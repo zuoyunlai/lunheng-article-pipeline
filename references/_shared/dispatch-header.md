@@ -1,4 +1,4 @@
-> 版本：v2.12.50（自动同步 2026-09-17）
+> 版本：v2.12.51（自动同步 2026-09-17）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -23,8 +23,8 @@
 > - **官方依据（v2.12.27 补）**：平台明写「**messages to workers get separate entries because sending a message does not prove that a worker started running**」（`docs/concepts/progress-drafts.md`）—— 与本「启动自检」+ 主控侧 spawn watchdog 解决的是**同一个问题**（防「以为它跑着」）。因此自检必须由**子代理自己**报，**不能**由主控的 spawn 成功回执推断。
 > - `allow_analysis`（T4）: `["read","write","edit"]`
 > - `allow_writing`（T5）: `["read","write","edit"]`
-> - `allow_audit`（T6/T7）: `["read"]` — **上游只读 + 自有报告可写（授权路径内）**，不出网/不调记忆/不调图像/不 spawn 子会话
-> - `allow_review`（T9/G14）: `["read"]` — **上游只读 + 自有报告可写（授权路径内）**
+> - `allow_audit`（T6/T7）: `["read"]` — **上游只读 + 报告由主控落盘（v2.12.51 D-3）**，不出网/不调记忆/不调图像/不 spawn 子会话
+> - `allow_review`（T9/G14）: `["read"]` — **上游只读 + 报告由主控落盘（v2.12.51 D-3）**
 
 > 🫀 **心跳 + 分阶段 ack + 报告长度（**真源**，v2.12.28 补）**：① **心跳信号**：启动 **30 秒内** + 每 **5 分钟**一次，**写自己的心跳文件** `run/<项目>/.tmp/<两位角色号>-<角色名>-heartbeat.md`（如 `01-文献检索-heartbeat.md`；v2.12.38 钉死命名格式，消除无前缀变体；周期性磁盘写入，限当前项目目录）；启动**宽限期 2 分钟**内不期望心跳。② **分阶段 ack**：<2 分钟启动 ack 即可；2-5 分钟启动 + 完成；5-15 分钟**五段**（25/50/75/100%）；>15 分钟**禁止**（必须拆任务）。③ **报告长度上限**：**写盘**上限见 `phase-order.yaml` 各节点 `output_chars_max`；**回传**上限 = **平台硬上限 4096 字符**（大报告一律写盘、回传只带摘要）。
 > **同意门（fail-closed）**：心跳写盘的**唯一**依据 = 主人对 Phase 0「将创建的文件清单」的**显式确认**，且清单**逐项**含 `.tmp/<角色>-heartbeat.md`。**主控自动列清单 / 主人沉默 / 「本来就要写盘」的推断，都不构成同意**。缺该确认 ⇒ **不写 `.tmp/`、不开工**（fail-closed）。说明：心跳属「Operational Telemetry」manifest 段，**已在本技能 manifest 中声明为 opt-in capability**；不属于隐含行为。
@@ -51,7 +51,7 @@
 > - **不轮询**：启动后**等 completion 事件**，**禁止**用 `exec` sleep / `sessions_list` 搭轮询循环（官方操作准则：「start child work once and wait for completion events」）。
 > - **终答后到达的 completion** → 回**静默标记 `NO_REPLY`**（不另发可见消息）。
 > - **回传硬上限**：completion 回传 findings **≤ 4096 字符** / 单条结果 **≤ 512** / 路由通知 **≤ 1024**（平台硬上限，**超限即被截断且不报错**）→ **大报告一律写盘**，回传只带**摘要 + 产物路径 + 「已写盘」声明**。
-> - **产物写入边界（v2.12.46）**：**我的角色产物由我自己写盘**（T1/T2/T3 检索卡、T4 大纲、T5 初稿与修订稿、T6/T7/G14/T9 各自报告）；**禁写主控权威文件**：`status.md` / `drafts/current_draft.md` / `final/定稿.md` / `final/交付说明.md` / `final/M-Gate-Report-*.json`。写完自检「文件存在 + 路径正确 + 必填结构完整」，再回传摘要。
+> - **产物写入边界（v2.12.46；v2.12.51 D-3 修订）**：**我的角色产物由我自己写盘**（T1/T2/T3 检索卡、T4 大纲、T5 初稿与修订稿）；**只读档（T6/T7/T9/G14）报告不由我写盘** —— 报告正文随交接回传（final message），由主控 `write` 落盘（v2.12.51 D-3）；**禁写主控权威文件**：`status.md` / `drafts/current_draft.md` / `final/定稿.md` / `final/交付说明.md` / `final/M-Gate-Report-*.json`。写完自检「文件存在 + 路径正确 + 必填结构完整」，再回传摘要。
 > - **display-cap 截断应对（v2.12.43）**：**识别信号（三取一）** = ① 回传文本中途中止 ② 缺 Stats line ③ 缺「已写盘 + 产物路径」声明。**处置三步**：① **先 `read` 磁盘产物**（磁盘产物**优先**于回传内容）；② 产物缺 → 主控按该角色会话拉 `sessions_history` 整合（**不轮询** `subagents(action=list)`）；③ 整合产物头部标 `[主控 fallback 产物]`，`status.md` 记 `display_cap_truncated`，并按既有「**子代理实际产出 vs 主控叠加**」两栏分层（**不另立格式**）。
 > - **announce 逐层传递**：每层只见**直接子代**的 announce（论衡仅 1 层，不受影响）。
 

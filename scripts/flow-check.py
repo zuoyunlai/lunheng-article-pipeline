@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""论衡流程图检查（v2.12.28 新增；v2.12.30 扩；v2.12.37 扩；v2.12.40 扩；v2.12.49 扩）
+"""论衡流程图检查（v2.12.28 新增；v2.12.30 扩；v2.12.37 扩；v2.12.40 扩；v2.12.49 扩；v2.12.51 扩）
 
 检查项：
   1 引用有效性（next / after_trigger / after_each / **on_fail** 指向已知节点或 rerun_* 动作）
@@ -21,6 +21,13 @@
     节点集必须**双向一致**；每个此类节点须声明 `blocking: true` + `owner_visible: true` + 非空 `decisions`
     + `timeout_fallback`，且该取值须在顶层 `owner_timeout_policy.fallback_kinds` 中有定义。
     防两类缺口：①「人环闸门只写在散文、真源不承载」；②「无应答静默自动推进」（fail-open）。
+ 13–22 **v2.12.49 M / T 系列规则**（逐条标题见脚本内联注释）：终态冻结 / 交付物指纹 /
+    审计对象一致 / 计数类档位 + P2 量化锚点 / 轮次耗尽出口三选一 / G14 严重度 /
+    status 对账 + 48 必查严重度列 / 图件路径 + 图位决策 / 主人操作清单 + 字数口径 / T 系列全项。
+ 23 **只读档写权**（v2.12.51 D-3）：`pipeline` 中 `role ∈ {T6, T7, T9, G14}` 且 `kind` 属
+    agent 类（`agent` / `conditional_agent` / `advisory_agent`）的节点，`write_authority`
+    必须为 `owner` —— 只读档工具面仅 `read`，报告正文随交接回传（final message）、
+    由主控 `write` 落盘，本节点不授写权（v2.12.32/v2.12.33「两径定义」= 已废止口径）。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import pathlib, re, sys, yaml
@@ -412,6 +419,19 @@ def main():
     m_exist_text = (_R / 'references/_shared/M-Gate-Algorithm.md').read_text(encoding='utf-8')
     if '引用体例层' not in m_exist_text:
         errs.append('M-Gate-Algorithm 缺 M-Exist-1 引用体例层校验（T-8）')
+
+    # 23 只读档写权（v2.12.51 D-3）：T6 / T7 / T9 / G14 = 只读档（工具面仅 read），
+    #    报告正文随交接回传（final message）、由主控 write 落盘 ⇒ 真源必须写 `write_authority: owner`。
+    #    防回潮：v2.12.32/v2.12.33 的「两径定义」（自有报告可直写）曾把四节点改回 executor，
+    #    与 10 处角色卡/dispatch 的「主控代写盘」口径互斥（v2.12.50 一致性审计 D-3）。
+    READONLY_TIER_ROLES = {'T6', 'T7', 'T9', 'G14'}
+    READONLY_TIER_KINDS = ('agent', 'conditional_agent', 'advisory_agent')
+    for n in P:
+        _role = n.get('role')
+        if _role in READONLY_TIER_ROLES and n.get('kind') in READONLY_TIER_KINDS:
+            if n.get('write_authority') != 'owner':
+                errs.append(f"{n['id']}.write_authority->{n.get('write_authority')}"
+                            f"（只读档 {_role} 报告由主控 write 落盘，不得授写权，应为 owner）")
 
     print(';'.join(errs))
     return 0 if not errs else 2

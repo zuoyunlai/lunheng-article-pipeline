@@ -227,11 +227,12 @@ def test_docs_token_two_fields_clarified():
     assert "权威值" in dh
 
 
-def test_docs_readonly_tier_may_write_own_report():
-    """只读档落盘例外（实测验证有效，写入文档）"""
+def test_docs_readonly_tier_report_written_by_owner():
+    """v2.12.51 D-3：只读档报告由主控 `write` 落盘（旧「落盘例外」已废止 —— 本项为反转型回归门）"""
     perm = read(PERM)
-    assert "只读档落盘例外" in perm, "permissions 缺只读档落盘例外"
+    assert "只读档落盘口径（v2.12.51 D-3 统一" in perm, "permissions 缺 D-3 统一口径段"
     assert "不修改上游产物" in perm, "须写清「只读」的边界"
+    assert "报告由主控落盘" in perm, "须写清报告落盘主体（D-3）"
 
 
 def test_docs_hardening_mentions_two_level():
