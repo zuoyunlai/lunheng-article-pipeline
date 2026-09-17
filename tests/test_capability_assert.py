@@ -8,9 +8,11 @@
   FORBIDDEN_CAPABILITIES → 文档声明禁用、脚本实际放行（假绿灯）。
 
 本测试锁死「声明 vs 执行体」：
-  - 允许面 ∩ 禁用面 = ∅
+  - 声面真交集：允许档 ∩ denied = ∅（不减法，可判红）
+  - 派生集 == 真源现算期望集（防派生集自身被改坏后断言真空）
   - frontmatter denied 的每一项都必须被断言脚本拒绝
   - 合法能力仍可通过（防修过头）
+  - 反向注入：四类破坏都必须让 --selfcheck 变红（v2.12.50，教训 #399）
 """
 import importlib.util
 import pathlib
@@ -36,16 +38,73 @@ LEGIT = ["read", "write", "edit", "web_search", "tavily_search", "ask_user",
          "ov_search", "ov_read", "sessions_spawn"]
 
 
-def test_denied_and_allowed_disjoint():
-    """允许面与禁用面必须零交集（denied 永不失效）"""
-    overlap = CAS.SKILL_DENIED & CAS.ALLOWED_CAPABILITIES
-    assert not overlap, f"denied 能力出现在允许面: {sorted(overlap)}"
+def test_declared_surface_disjoint_from_denied():
+    """声面真交集：允许档与 denied 不得同时声明同一能力（**不做减法**）
+
+    v2.12.50：原测试取 `SKILL_DENIED & ALLOWED_CAPABILITIES`，而 ALLOWED 定义时已减去
+    FORBIDDEN（⊇ denied）⇒ 交集数学上恒空，属**空转断言**（教训 #399）。
+    """
+    overlap = CAS.SKILL_DECLARED & CAS.SKILL_DENIED
+    assert not overlap, f"同一能力同时出现在允许档与 denied: {sorted(overlap)}"
 
 
-def test_allowed_and_forbidden_disjoint():
-    """ALLOWED_CAPABILITIES ∩ FORBIDDEN_CAPABILITIES = ∅"""
-    overlap = CAS.ALLOWED_CAPABILITIES & CAS.FORBIDDEN_CAPABILITIES
-    assert not overlap, f"允许面含禁用能力: {sorted(overlap)}"
+def test_readonly_extras_disjoint_from_forbidden():
+    """只读宿主扩展不得与禁用面冲突（否则会被静默减法吞掉，无从察觉）"""
+    forbidden = CAS.SKILL_DENIED | CAS.HARD_FORBIDDEN
+    overlap = CAS.HOST_READONLY_EXTRAS & forbidden
+    assert not overlap, f"只读宿主扩展与禁用面冲突: {sorted(overlap)}"
+
+
+def test_derived_sets_match_truth_source():
+    """派生集必须等于由真源现算的期望集
+
+    防「派生集自身被改坏」⇒ 所有挂派生集的断言全部真空仍报绿。
+    """
+    expected_forbidden = CAS.SKILL_DENIED | CAS.HARD_FORBIDDEN
+    expected_allowed = (CAS.SKILL_DECLARED | CAS.HOST_READONLY_EXTRAS) - expected_forbidden
+    assert CAS.FORBIDDEN_CAPABILITIES == expected_forbidden, "禁用面派生集与真源不一致"
+    assert CAS.ALLOWED_CAPABILITIES == expected_allowed, "允许面派生集与真源不一致"
+
+
+def test_selfcheck_goes_red_on_injection():
+    """反向注入（教训 #399「机械门必须能红」）：三类破坏都必须让 selfcheck 变红"""
+    keys = ('SKILL_DENIED', 'SKILL_DECLARED', 'HOST_READONLY_EXTRAS',
+            'FORBIDDEN_CAPABILITIES', 'ALLOWED_CAPABILITIES', 'validate_capabilities')
+    saved = {k: getattr(CAS, k) for k in keys}
+    cap = sorted(CAS.SKILL_DENIED)[0]
+
+    def run_injected(fn):
+        try:
+            fn()
+            return CAS.selfcheck()
+        finally:
+            for k, v in saved.items():
+                setattr(CAS, k, v)
+
+    def inj_declared_overlap():
+        CAS.SKILL_DECLARED = saved['SKILL_DECLARED'] | {cap}
+        CAS.ALLOWED_CAPABILITIES = saved['ALLOWED_CAPABILITIES'] | {cap}
+    assert run_injected(inj_declared_overlap) != 0, 'selfcheck 未检出「denied 进允许档」'
+
+    def inj_forbidden_lost():
+        CAS.FORBIDDEN_CAPABILITIES = set()
+        CAS.ALLOWED_CAPABILITIES = saved['SKILL_DECLARED'] | saved['HOST_READONLY_EXTRAS']
+    assert run_injected(inj_forbidden_lost) != 0, 'selfcheck 未检出「禁用面派生集被清空」'
+
+    def inj_denied_empty():
+        CAS.SKILL_DENIED = set()
+        CAS.FORBIDDEN_CAPABILITIES = set(CAS.HARD_FORBIDDEN)
+        CAS.ALLOWED_CAPABILITIES = saved['SKILL_DECLARED'] | saved['HOST_READONLY_EXTRAS']
+    assert run_injected(inj_denied_empty) != 0, 'selfcheck 未检出「denied 清单为空」'
+
+    def inj_always_reject():
+        def _reject(role, caps):
+            raise CAS.CapabilityAssertionError('injected')
+        CAS.validate_capabilities = _reject
+    assert run_injected(inj_always_reject) != 0, 'selfcheck 未检出「验证器一律拒绝」（反向假绿灯）'
+
+    # 收尾：注入全部回退后基线必须仍绿
+    assert CAS.selfcheck() == 0
 
 
 def test_frontmatter_denied_all_rejected():

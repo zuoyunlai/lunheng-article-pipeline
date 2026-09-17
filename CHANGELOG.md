@@ -12,6 +12,46 @@
 
 ---
 
+## [v2.12.50] — 2026-09-17
+
+> **主题：v2.12.49 后续修订——机械门空转止血（D-1/D-2，P0×2）+ 一致性回归收口预告（D-3/D-4，P1×2）。**
+> **性质：纯缺陷修复（内部一致性 + 机械门能红）。无新增能力、无破坏性变更、无安全语义变化。**
+
+### 一、机械门空转止血（D-1：能力断言 selfcheck 假绿灯 → 五路可失败断言）
+
+- `scripts/capability-assert.py:127` 原写 `SKILL_DENIED & ALLOWED_CAPABILITIES`，而 `:88` `ALLOWED` 已减去 `FORBIDDEN（⊇ denied）` ⇒ 交集**数学上恒空** ⇒ 自检永不红（教训 #399「机械门必须能红」）。
+- 改为五路可失败断言：① 解析守卫（denied/allowed 任一空即报错）② 派生一致性（FORBIDDEN/ALLOWED 必须等于真源现算，防派生集被清空后真空通过）③ 声面真交集（**不做减法**直接取 `SKILL_DECLARED & SKILL_DENIED`，命中即冲突）④ 行为断言（denied 真源每一项都必须被 `validate_capabilities` 拒绝）⑤ 镜像断言（允许面抽一项必须真被接受，防「一律拒绝」反向假绿灯）。
+- **界定（不夸大）**：门 T 主体拦截仍有效（`self-audit-gate.sh:984` 逐项 T0 拒斥走 `:110/:117` 正常逻辑）。空转的只是 selfcheck 半句；本修**仅**让 selfcheck 真判红，不动主路径。
+
+### 二、机械门空转止血（D-2：增量 M 门验证假绿灯 → fail-closed）
+
+- `scripts/incremental_m_gate.py:354` 原写 `'passed': True, # 占位`，全文件**唯一** `passed` 赋值 ⇒ `main()` 的 `if failed:`（:407）不可达 ⇒ 任何输入都印「✓ 所有 M 门验证通过」。
+- 现改为 fail-closed：`_validate_single_gate` 返回 `passed=False` / `status=unverified`；`main()` 空结果分支也直接 RC=1。M 门真验证见 `references/_shared/M-Gate-Algorithm.md`，由 agent 按流程执行。
+- 同步说明：本工具**只做变更定位 + 依赖判定**，不产出「M 门通过」结论（任何 `passed:True` 都属于历史错误，**不得**回滚此约定）。
+
+### 三、回归测试反向注入（锁死能红）
+
+- `tests/test_capability_assert.py` 增至 10 项，含四类反向注入（denied 进允许档 / 禁用面派生集被清空 / denied 清单为空 / 验证器一律拒绝 → **全部必须让 `--selfcheck` 变红**）。
+- `tests/test_incremental_m_gate.py` 增至 21 项，新增 `TestFailClosedContract` 三项反向注入（单门验证必须 passed=False / 空项目 CLI 必须 RC=1 / 真实变更 CLI 必须 RC=1）。
+- 反向注入测试锁死契约：任何让假绿灯回潮的改动都会在 CI 阶段立刻被抓。
+
+### 四、一致性回归预告（暂不修，攒批）
+
+> 本版**仅**止血 P0（机械门空转）。下列两条 P1 一致性回归**已记录**于 `outputs/论衡-一致性审计-2026-09-17.md`，留待同批或下批处理：
+
+- **D-3**：只读档「写盘责任主体」两套口径并存（主控代写盘 10 处 vs 角色直写 3 处，`permissions.md:61`「两径定义」与 `phase-order.yaml` 的 `t6/t7/g14/t9` 全 `write_authority: executor` 互斥，属 v2.7.x 已修过一次又被 v2.12.32/33 例外重开的回归）。
+- **D-4**：`tests/test_flow_check.py` ≥10 处反向注入直接 `write_text` 真源 `references/_shared/phase-order.yaml` + 字数判定表 + 08-终检，仅靠 `try/finally` 恢复 → kill/超时/并行即污染真源。
+
+**建议**：D-3 + D-4 合并走 **v2.12.51**（不攒批拖延：D-3 是真源互斥、D-4 是测试污染真源，两者都属「不该有的松」）。
+
+### 五、验收
+
+- `pytest`：326 → **329 passed**（新增 3 项反向注入：capability ×4 / incremental ×3；0 项失败）
+- 自审门：**26 PASS / 0 FAIL**（与上版持平；门 H `#398 > 快照 #373` 为预存在 informational，已界定 #398 = 宿主类）
+- `flow-check`：RC=0（与上版持平）
+- `SKILL.md` 体量棘轮：仍在 ≤10000 字符内（与上版持平）
+- 平台侧扫描 verdict：本版**无改动真源行为**，ClawHub `Moderate` 仍 = `CLEAN`（与上版持平）
+
 ## [v2.12.49] — 2026-09-17
 
 > **主题：v2.12.48 后续修订——人环闸门真源化 + 零 exec 边界澄清 + M/T 系列机制修复。**

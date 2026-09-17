@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """
 增量 M 门验证器
-版本: v2.10.0
-用途: 只验证变更部分 + 跨阶段依赖，复用未变更部分的缓存结果
+版本: v2.12.50
+用途: 定位变更范围 + 判定受影响的 M 门（**不产出验证结论**）
 v2.10.0 增强: 章节级变更检测（从文件级升级到章节级，识别「改了哪一章」）
+v2.12.50 修（教训 #399「机械门必须能红」）: 原 `_validate_single_gate` 硬编码
+  `'passed': True,  # 占位`，是全文件唯一 `passed` 赋值 ⇒ `main()` 的 `if failed:`
+  分支不可达 ⇒ 任何输入都打印「✓ 所有 M 门验证通过」（假绿灯）。
+  现改为 fail-closed：未做机械验证的 M 门一律报 `passed=False` / `status=unverified`，
+  进程退出码非 0，并在输出中明示「未验证 ≠ 通过」。M 门真验证在
+  `references/_shared/M-Gate-Algorithm.md` 由 agent 按流程执行。
 """
 
 import hashlib
@@ -160,7 +166,15 @@ class SectionChangeDetector:
 
 
 class IncrementalMGateValidator:
-    """增量 M 门验证器"""
+    """增量 M 门验证器（变更定位器）
+
+    v2.12.50：本类**只做变更定位 + 依赖判定**，不产出「M 门通过」结论。
+    任何未经机械验证的 M 门一律标 `status=unverified` / `passed=False`。
+    """
+
+    # 验证状态：'verified' 才允许计为通过；本工具当前不产出该状态
+    VERIFIED = 'verified'
+    UNVERIFIED = 'unverified'
 
     def __init__(self, project_dir: Path, enable_section_level: bool = True):
         self.project_dir = project_dir
@@ -180,11 +194,20 @@ class IncrementalMGateValidator:
         return yaml.safe_load(dep_file.read_text(encoding='utf-8'))
 
     def _load_last_results(self) -> Dict:
-        """加载上次验证结果"""
+        """加载上次验证结果
+
+        v2.12.50：缓存里的 `passed: True` 若来自占位实现（无 `status == 'verified'`），
+        **不得继承为「已验证」** —— 否则旧缓存会把假绿灯一直传下去。
+        """
         result_file = self.project_dir / '.m_gate_results.json'
-        if result_file.exists():
-            return json.loads(result_file.read_text(encoding='utf-8'))
-        return {}
+        if not result_file.exists():
+            return {}
+        data = json.loads(result_file.read_text(encoding='utf-8'))
+        for res in data.values():
+            if isinstance(res, dict) and res.get('status') != self.VERIFIED:
+                res['passed'] = False
+                res['status'] = self.UNVERIFIED
+        return data
 
     def _save_results(self, results: Dict):
         """保存验证结果"""
@@ -282,17 +305,24 @@ class IncrementalMGateValidator:
         self._save_results(results)
         self.last_results = results  # v2.10.0 修复：同步内存态，避免下次「无变更」返回旧结果
 
-        # 6. 汇总
+        # 6. 汇总（v2.12.50：只报「已验证通过」与「未验证」两类，不把未验证计成通过）
         total = len(self.dependencies)
         validated = len(gates_to_validate)
         skipped = total - validated
-        passed = sum(1 for r in results.values() if r.get('passed', False))
+        passed = sum(
+            1 for r in results.values()
+            if r.get('passed', False) and r.get('status') == self.VERIFIED
+        )
+        unverified = sum(
+            1 for r in results.values() if r.get('status') != self.VERIFIED
+        )
 
-        print(f'\n增量验证完成:')
+        print(f'\n增量变更定位完成:')
         print(f'  - 总计: {total} 项')
-        print(f'  - 本次验证: {validated} 项')
+        print(f'  - 本次重新定位: {validated} 项')
         print(f'  - 复用缓存: {skipped} 项')
-        print(f'  - 通过: {passed}/{total}')
+        print(f'  - 已验证通过: {passed}/{total}')
+        print(f'  - 未验证: {unverified} 项（本工具不产出 M 门验证结论）')
 
         return results
 
@@ -334,24 +364,24 @@ class IncrementalMGateValidator:
         Returns:
             {'passed': bool, 'message': str, 'timestamp': str}
         """
-        # 这里是占位实现，实际需要集成现有的 M 门验证逻辑
-        # TODO: 集成 references/_shared/M-Gate-Algorithm.md 中的验证函数
-        # v2.10.0: 章节级变更信息作为验证提示传给 LLM
-
-        message = f'{gate_id} 验证通过（占位实现）'
+        # v2.12.50：本工具**不做** M 门机械验证（真验证在 M-Gate-Algorithm.md 由 agent 执行）。
+        # 因此一律返回 fail-closed 的「未验证」，绝不返回 `passed: True`。
+        # 原实现为 `'passed': True,  # 占位` ⇒ 全文件唯一赋值 ⇒ main() 失败分支不可达（假绿灯）。
+        message = (
+            f'{gate_id} 未验证：本工具只做变更定位 + 依赖判定；'
+            f'M 门真验证见 references/_shared/M-Gate-Algorithm.md（由 agent 按流程执行）'
+        )
         if section_changes:
-            # 附带章节级变更信息，供 LLM 聚焦验证范围
+            # 附带章节级变更信息，供后续真验证聚焦范围
             changed_summary = '; '.join(
                 f'{f}: {", ".join(sections)}'
                 for f, sections in section_changes.items()
             )
-            message = (
-                f'{gate_id} 验证通过（占位实现）'
-                f' | 章节变更: {changed_summary}'
-            )
+            message = f'{message} | 章节变更: {changed_summary}'
 
         return {
-            'passed': True,  # 占位
+            'passed': False,
+            'status': self.UNVERIFIED,
             'message': message,
             'timestamp': datetime.now().isoformat(),
             'gate_name': self.dependencies[gate_id]['name']
@@ -404,9 +434,19 @@ def main():
     results = validator.validate_incremental(phase)
 
     # 检查是否有失败项
+    # v2.12.50：无任何结论时**不得**视为通过（原实现会把空结果判为「✓ 所有 M 门验证通过」）
+    if not results:
+        print('\n❌ 未验证：本次无受影响的 M 门且无历史结果，无任何验证结论 —— 不得视为通过')
+        sys.exit(1)
+
     failed = [k for k, v in results.items() if not v.get('passed', False)]
+    unverified = [k for k, v in results.items() if v.get('status') != 'verified']
     if failed:
-        print(f'\n❌ 验证失败，{len(failed)} 项未通过:')
+        if unverified:
+            print(f'\n❌ 未通过/未验证 {len(failed)} 项（其中未验证 {len(unverified)} 项）：')
+            print('   注：未验证 ≠ 通过。M 门真验证见 references/_shared/M-Gate-Algorithm.md。')
+        else:
+            print(f'\n❌ 验证失败，{len(failed)} 项未通过:')
         for gate_id in failed:
             print(f'  - {gate_id}: {results[gate_id]["message"]}')
         sys.exit(1)

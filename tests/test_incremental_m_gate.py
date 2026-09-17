@@ -10,6 +10,7 @@ import shutil
 from pathlib import Path
 import sys
 import json
+import subprocess
 
 # 添加脚本目录到路径
 sys.path.insert(0, str(Path(__file__).parent.parent / 'scripts'))
@@ -431,6 +432,82 @@ class TestSectionLevelValidation(unittest.TestCase):
         self.assertNotIn('引言', sections)
 
 
+
+class TestFailClosedContract(unittest.TestCase):
+    """v2.12.50 反向注入：增量 M 门验证必须能红（教训 #399「机械门必须能红」）。
+
+    原实现：'_validate_single_gate' 硬编码 'passed: True' ⇒ main() 失败分支不可达
+    （假绿灯）。本组锁死 fail-closed 契约：
+      ① 单门验证直接返回 passed=False / status=unverified
+      ② 空项目跑 CLI 必须 RC=1（不得视为通过）
+      ③ 真实文件变更跑 CLI 必须 RC=1（变更门未验证 ⇒ 不得通过）
+    """
+
+    SCRIPT = Path(__file__).parent.parent / 'scripts' / 'incremental_m_gate.py'
+    REPO = Path(__file__).parent.parent
+
+    def setUp(self):
+        self.temp_dir = Path(tempfile.mkdtemp())
+        (self.temp_dir / 'drafts').mkdir()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+
+    def _run_cli(self, *extra):
+        return subprocess.run(
+            [sys.executable, str(self.SCRIPT), str(self.temp_dir),
+             '--phase', 'phase_4', *extra],
+            capture_output=True, text=True, cwd=str(self.REPO)
+        )
+
+    def test_single_gate_returns_unverified(self):
+        """① 单门验证必须返回 passed=False / status=unverified（fail-closed）"""
+        validator = IncrementalMGateValidator(self.temp_dir)
+        # 清缓存确保从零起算
+        for f in (self.temp_dir / '.m_gate_cache.json',
+                  self.temp_dir / '.m_gate_results.json',
+                  self.temp_dir / '.m_gate_section_cache.json'):
+            f.unlink(missing_ok=True)
+        result = validator._validate_single_gate('M-Form-1', section_changes=None)
+        self.assertFalse(
+            result.get('passed'),
+            f'_validate_single_gate 不允许 passed=True，实得 {result.get("passed")}（v2.12.50 修前硬编码 True ⇒ 假绿灯）'
+        )
+        self.assertEqual(
+            result.get('status'), 'unverified',
+            f'status 必须显式 unverified，实得 {result.get("status")}'
+        )
+
+    def test_cli_returns_nonzero_on_empty(self):
+        """② 空项目跑 CLI 必须返回 RC=1（不得视为通过）"""
+        proc = self._run_cli()
+        self.assertNotEqual(
+            proc.returncode, 0,
+            f'空项目应 RC=1（fail-closed），实得 {proc.returncode}\n'
+            f'stdout: {proc.stdout}\nstderr: {proc.stderr}'
+        )
+        combined = proc.stdout + proc.stderr
+        self.assertIn(
+            '未验证', combined,
+            '失败原因必须可读（不可静默通过），输出中应含「未验证」'
+        )
+
+    def test_cli_returns_nonzero_on_real_changes(self):
+        """③ 真实文件变更跑 CLI 必须返回 RC=1（变更门未验证 ⇒ 不得通过）"""
+        # 先跑一次建立缓存（空项目 → RC=1）
+        first = self._run_cli()
+        self.assertNotEqual(first.returncode, 0, '基线：空项目应 RC=1')
+
+        # 改 drafts/a.md ⇒ 影响 M-Form-1（depends_on: drafts/*.md）
+        (self.temp_dir / 'drafts' / 'a.md').write_text('草稿内容', encoding='utf-8')
+        proc = self._run_cli()
+        self.assertNotEqual(
+            proc.returncode, 0,
+            f'真实变更应 RC=1（变更门未验证），实得 {proc.returncode}\n'
+            f'stdout: {proc.stdout}\nstderr: {proc.stderr}'
+        )
+
+
 def run_tests():
     """运行所有测试"""
     loader = unittest.TestLoader()
@@ -440,6 +517,7 @@ def run_tests():
     suite.addTests(loader.loadTestsFromTestCase(TestIncrementalMGateValidator))
     suite.addTests(loader.loadTestsFromTestCase(TestSectionChangeDetector))
     suite.addTests(loader.loadTestsFromTestCase(TestSectionLevelValidation))
+    suite.addTests(loader.loadTestsFromTestCase(TestFailClosedContract))
     
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

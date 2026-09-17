@@ -29,7 +29,8 @@
 - **denied 优先**：任何同时出现在允许面与 denied 的能力，一律判定为禁用（denied 永不失效）。
 - **角色最小权限**：每个角色只声明实际需要的能力。
 - **spawn 前校验**：主控在 spawn 前断言，失败 → 人在环介入。
-- 校验方式：`python3 scripts/capability-assert.py --selfcheck` 自检真源可读 + 无交集。
+- 校验方式：`python3 scripts/capability-assert.py --selfcheck` 自检真源可读 + 声面真交集 + 逐项拒斥行为断言
+  （v2.12.50 重写为**能判红**的四路断言；原「denied ∩ 减法后允许面」恒空，属空转门，教训 #399）。
 """
 
 import sys
@@ -123,16 +124,83 @@ def validate_capabilities(role, capabilities):
 
 
 def selfcheck() -> int:
-    """真源自检：denied 与允许面必须无交集，且 denied 全部被判定为禁用。"""
-    overlap = SKILL_DENIED & ALLOWED_CAPABILITIES
-    if overlap:
-        print(f'❌ 权限口径冲突：denied 能力出现在允许面 {sorted(overlap)}', file=sys.stderr)
+    """真源自检：权限口径必须「能被判红」（v2.12.50 重写，教训 #399「机械门必须能红」）。
+
+    原实现（v2.12.30 → v2.12.49）取 `SKILL_DENIED & ALLOWED_CAPABILITIES`，而
+    `ALLOWED_CAPABILITIES` 已在 :88 减去 `FORBIDDEN_CAPABILITIES`（⊇ SKILL_DENIED）
+    ⇒ 交集**数学上恒空**，下游那条 `cap in ALLOWED_CAPABILITIES` 亦恒假
+    ⇒ 自检**永不失败**（空转门；同族 门 B/门 S/门 T 历史假绿灯、教训 #150）。
+
+    现改为五路可失败断言（均以**声面真源**为基准，不挂派生集）：
+      ① 解析守卫：denied / 允许面任一为空 → 报错（防 frontmatter 解析失败后真空通过）
+      ② 派生一致性：模块级 FORBIDDEN/ALLOWED 必须等于由真源现算的期望集
+         （v2.12.50 二修：反向注入证明——禁用面被清空时，挂派生集的断言会全部真空仍报绿）
+      ③ 声面真交集：允许档与 denied **不做减法**直接取交 → 命中即冲突
+      ④ 行为断言：禁用面真源每一项都必须被 validate_capabilities 真拒绝
+      ⑤ 镜像断言：允许面抽一项必须被真接受（防「一律拒绝」的反向假绿灯）
+    """
+    errors = []
+
+    # 真源现算（不依赖模块级派生集）
+    expected_forbidden = SKILL_DENIED | HARD_FORBIDDEN
+    expected_allowed = (SKILL_DECLARED | HOST_READONLY_EXTRAS) - expected_forbidden
+
+    # ① 解析守卫
+    if not SKILL_DENIED:
+        errors.append('denied 清单为空 —— frontmatter 解析失败或真源缺失')
+    if not (SKILL_DECLARED or HOST_READONLY_EXTRAS):
+        errors.append('允许面为空 —— frontmatter 解析失败或真源缺失')
+
+    # ② 派生一致性
+    if FORBIDDEN_CAPABILITIES != expected_forbidden:
+        errors.append(
+            f'禁用面派生不一致：实得 {len(FORBIDDEN_CAPABILITIES)} 项 ≠ 真源现算 {len(expected_forbidden)} 项'
+            f'（差集 {sorted(expected_forbidden ^ FORBIDDEN_CAPABILITIES)}）'
+        )
+    if ALLOWED_CAPABILITIES != expected_allowed:
+        errors.append(
+            f'允许面派生不一致：实得 {len(ALLOWED_CAPABILITIES)} 项 ≠ 真源现算 {len(expected_allowed)} 项'
+            f'（差集 {sorted(expected_allowed ^ ALLOWED_CAPABILITIES)}）'
+        )
+
+    # ③ 声面真交集（不减法）
+    declared_overlap = SKILL_DECLARED & SKILL_DENIED
+    if declared_overlap:
+        errors.append(f'允许档与 denied 同时声明：{sorted(declared_overlap)}')
+    extras_overlap = HOST_READONLY_EXTRAS & expected_forbidden
+    if extras_overlap:
+        errors.append(f'只读宿主扩展与禁用面冲突：{sorted(extras_overlap)}')
+
+    # ④ 行为断言：禁用面真源必须逐项被拒
+    for cap in sorted(expected_forbidden):
+        try:
+            validate_capabilities('T0', [cap])
+        except CapabilityAssertionError:
+            continue
+        except Exception as e:  # 异常类型漂移也算失败
+            errors.append(f'禁用能力 {cap} 断言抛错类型异常：{type(e).__name__}: {e}')
+            continue
+        errors.append(f'禁用能力 {cap} 被 validate_capabilities 放行')
+
+    # ⑤ 镜像断言：允许面必须真被接受
+    sample = sorted(expected_allowed)
+    if not sample:
+        errors.append('允许面为空 —— 无法做接受性断言（反向假绿灯风险）')
+    else:
+        try:
+            validate_capabilities('T0', [sample[0]])
+        except Exception as e:
+            errors.append(f'允许能力 {sample[0]} 被误拒：{e}')
+
+    if errors:
+        for e in errors:
+            print(f'❌ 权限口径冲突：{e}', file=sys.stderr)
         return 1
-    for cap in sorted(FORBIDDEN_CAPABILITIES):
-        if cap in ALLOWED_CAPABILITIES:
-            print(f'❌ 禁用能力 {cap} 同时出现在允许面', file=sys.stderr)
-            return 1
-    print(f'✅ 权限口径一致：denied {len(FORBIDDEN_CAPABILITIES)} 项 / allowed {len(ALLOWED_CAPABILITIES)} 项，零交集')
+
+    print(
+        f'✅ 权限口径一致：denied {len(expected_forbidden)} 项逐项被拒 / '
+        f'allowed {len(expected_allowed)} 项接受性抽查通过（派生一致 + 声面交集 0）'
+    )
     return 0
 
 
