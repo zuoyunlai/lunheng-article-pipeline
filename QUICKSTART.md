@@ -1,4 +1,4 @@
-> 版本：v2.12.51（自动同步 2026-09-17）
+> 版本：v2.12.52（自动同步 2026-09-17）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -14,12 +14,12 @@
 论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.51  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.52  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
 
-> **宿主配置**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**（启动不被拒）。**唯一标准架构 = 多 Agent 九角色流水线**（不设总开关）；worker 不可用/失败 ⇒ 主控接管该节点 + 披露 L1 独立性影响（不改架构、不跳门）；宿主加固配方（0/1）只决定子代理工具面收紧程度。token 统计走精确路径（子代理完成事件 `Stats:` 行 + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
+> **宿主配置**：论衡是**纯 skill**（不建 agent、不依赖特定模型/渠道），**任意 OpenClaw 配置开箱可用**（启动不被拒）。**唯一标准架构 = 多 Agent 九角色流水线**（不设总开关）；worker 不可用/失败 ⇒ 主控接管该节点 + 披露 L1 独立性影响（不改架构、不跳门）。子代理工具面由 OpenClaw 平台决定，论衡不要求、不读取、不修改宿主配置。token 统计走精确路径（子代理完成事件 `Stats:` 行 + 主控侧 session_status 工具），不需三级降级。详见 SKILL.md「执行能力边界」段。
 
 ---
 
@@ -27,7 +27,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.51  # 建议 pi
 
 - 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）；**spawn 时 `cwd` 必须传绝对路径** `<workspace>/run/<项目名>/`（相对路径会被解析到 skill 目录，v2.12.28 实测）
 - token 统计走精确路径（子代理完成事件 `Stats:` 行 + `session_status`）；拿不到精确值 = 平台异常，不估算
-- **权限边界（宿主职责）**：论衡**唯一标准架构 = 多 Agent 九角色**；**worker 不可用/失败属单节点故障** ⇒ 主控接管该节点 + `status.md`/交付说明披露独立性影响（L1 自审残留风险）；不整轮降级、不跳质量门。子代理与主控的工具面由宿主 OpenClaw 决定；论衡不读取、不修改宿主配置，也不附带宿主侧加固配方——需要收紧子代理权限时，参见 OpenClaw 官方文档的 subagents 配置说明。
+- **权限边界（宿主职责）**：论衡**唯一标准架构 = 多 Agent 九角色**；**worker 不可用/失败属单节点故障** ⇒ 主控接管该节点 + `status.md`/交付说明披露独立性影响（L1 自审残留风险）；不整轮降级、不跳质量门。子代理与主控的工具面由 OpenClaw 平台决定；论衡不读取、不修改宿主配置，也不附带任何宿主侧配置项——需要收紧子代理权限时，参见 OpenClaw 官方文档的 subagents 配置说明。
 - 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应 25 PASS / 0 FAIL）
 
 ---

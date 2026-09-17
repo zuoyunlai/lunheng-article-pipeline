@@ -1,12 +1,49 @@
-# Changelog 归档（v2.12.46 及更早）
+# Changelog 归档（v2.12.47 及更早）
 
-> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.46 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入）。
+> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入）。
 > 拆分口径（v2.12.47）：`CHANGELOG.md` 只保留**最近 5 期**，其余逐字迁入本文件。
 > **`scripts/changelog-check.py` 同时读取两份**，故「每个版本 tag 都有章节」的校验纪律不变。
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
 > 部分历史条目链接指向 `docs/` 或 `../outputs/` 中的当时产物，已随清理移除或归档——属史料，不影响当前使用。
 
 ---
+
+---
+
+## [v2.12.47] — 2026-09-16
+
+> **主题：v2.12.46 扫描整改落地 + 仓库冗余清理；changelog 分层（主文件 5 期 + 归档）。**
+> **性质：一致性整改 + 仓库可维护性清理 + 文档结构分层。无新增能力、无破坏性行为变更。**
+
+### 一、v2.12.46 ClawHub 扫描整改（8 文件）
+
+- **协调器工具面对齐**：`00-主控-coordinator.md` 能力白名单与 `SKILL.md` frontmatter 16 项逐项对齐（删 `ov_*` / `openviking_tool_result_*` 共 9 项过声明）
+- **脱敏升为条件强制**：`phase-3-details.md` 内幕 / 未公开案例 / 内部资料 / 个人隐私 4 类触发即强制（脱敏方式四选一，脱敏前不得写 `drafts/`）
+- **数据流声明强化**：`01-文献检索` / `03-案例检索` 角色卡明列 OpenAlex / Crossref「仅发送检索关键词 + 排序/过滤参数；不发送稿件正文 / 各类卡 / 主人洞察；不携带身份 / 凭据」
+- **术语消歧**：`dispatch-header.md` 区分模型 fallback（兑底换档）与主控 fallback（worker 节点接管）；T9 禁用主控 fallback
+- **会话管理原语作用域**：`00-主控` 卡补「硬限定主控自己 spawn 的子代理树」
+- **引用政策**：T1 派发「默认 GB/T」改为「不静默 fallback」，绑定回任务简报
+- **T9 触发**：`phase-order.yaml` 注释与 `condition_definitions` 对齐（体裁不再机械门控，仅靠 consent）
+- **T9 交接报告**：移除「主控 fallback 亲出」（T9 违反独立性硬定义，失败走 `degraded_executor: T9` 披露，不补做）
+
+### 二、仓库冗余清理
+
+- 删除 `references/_shared/m_exist_1_diff.sh`：零 exec 立场下主控永久不可达（唯一使用方式是宿主 shell 手跑，与「纯 skill」定位冲突）；同步清理 `build-clawhub-release.sh` 中配套的 `exclude` / `rm` 失效引用
+- `references/_shared/lessons-max.snapshot` 加入发布包排除清单（rsync + 非 rsync 两分支）—— 按该文件头注自述「不随包交付」修正长期矛盾；该文件是门 H 反向差集的 **hermetic 判据基准**，**必须留在仓库**
+- 删除仓库外过期产物与工作区缓存（`clawhub-scan…-2.12.37.zip` / `__pycache__` / `.pytest_cache`）
+
+### 三、changelog 分层（主文件 5 期 + 归档）
+
+- `CHANGELOG.md` 只保留**最近 5 期**（本版起）；v2.12.41 及更早逐字迁入新增的 `CHANGELOG-archive.md`
+- 拆分**逐字无损**（170 章节全覆盖，逐章内容比对零差异）
+- `scripts/changelog-check.py` 改为读两份：`--check` 校验面跨两份（「每个版本 tag 都有章节」纪律不变）；`--fill` 不再把归档版本灌回主文件；围栏闭合检查与 `--report` 同步覆盖两份
+- **新增主文件容量门**：主文件保有章节数 > 5 即红（防「加新版忘轮转」）
+- 同步面：`self-audit-gate.sh` 历史资产排除名单补归档（防空历史「教训 #N」触发门 M/M.3/M.4 永久误报）；`build-clawhub-release.sh` 归档纳入 `exclude` / `rm` / `FORBIDDEN_IN_PACKAGE`；`changelog-check.yml` 触发路径补归档；`README.md` 口径同步
+
+### 四、验收
+
+- `pytest` **285 passed**；自审门 **26 PASS / 0 FAIL**；`changelog-check --check` 通过；`flow-check` / `link-check`（425 链 / 89 md） / `check-version` 全绿
+- `SKILL.md` 体量 **9954 ≤ 10000** 字符（棘轮守约）
 
 ---
 

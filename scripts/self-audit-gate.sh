@@ -790,7 +790,7 @@ fi
 #   （2026-09-10 核对：属门设计缺陷，非记录错误）。
 #   现改为：硬校验 = ①包内版本号 == 真源版本号；②包内无开发者脚本；
 #   md5 差异降为 informational 提示，不参与 PASS/FAIL 计数。
-# 警告：论衡 zero exec 哲学——md5 仅作可选加固，不阻塞 commit
+# 警告：论衡 zero exec 哲学——md5 仅作可选校验，不阻塞 commit
 # v2.13.x 整改（独立复查阻断项）：outputs/ 已迁出技能根（A5）——路径须与 build/publish/cleanup 同源；
 #   旧写法 $SKILL_ROOT/outputs/... 在迁移后恒不命中 ⇒ 门 G 退化成「恒报未生成」的假绿灯，
 #   发布前包一致性硬校验（版本号/无脚本）永久哑火。
