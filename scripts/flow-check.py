@@ -361,6 +361,23 @@ def main():
     if 'T4 不出一决定' not in t4_text and 'T4 **仅出建议**' not in t4_text:
         errs.append('04-分析-analyst 缺 M-11 T4 不出一决定声明（建议 ≠ 拍板）')
 
+    # 21 M-13/M-14 主人操作清单 + 字数口径锁死（v2.12.49）：
+    #    M-13：T8 dispatch 必含「主人自行操作建议清单」（三类动作 + 命令来源）
+    #    M-14：任务简报模板必含 body_limit 字段（正文汉字数上限整数）；deliverables.md 必含「字数口径单一化」段
+    #    M-14：08-终检-final-inspector 必含 M-14 段（body_char_count + body_limit 字段 + 复算断言）
+    t8d_text = (pathlib.Path(__file__).resolve().parent.parent / 'references/dispatch/T8-终检.md').read_text(encoding='utf-8')
+    if '主人自行操作建议清单' not in t8d_text or 'M-13' not in t8d_text:
+        errs.append('T8 dispatch 缺 M-13 主人自行操作建议清单锁')
+    jb_text = (pathlib.Path(__file__).resolve().parent.parent / 'references/templates/任务简报-template.md').read_text(encoding='utf-8')
+    if 'body_limit' not in jb_text:
+        errs.append('任务简报模板 缺 body_limit 字段（M-14 字数口径单一化）')
+    deliv_text = (pathlib.Path(__file__).resolve().parent.parent / 'references/deliverables.md').read_text(encoding='utf-8')
+    if '字数口径单一化' not in deliv_text or 'body_char_count' not in deliv_text:
+        errs.append('deliverables.md 缺 M-14 字数口径单一化 + body_char_count 字段')
+    t8r_text = (pathlib.Path(__file__).resolve().parent.parent / 'references/agents/08-终检-final-inspector.md').read_text(encoding='utf-8')
+    if 'M-14' not in t8r_text or 'body_char_count' not in t8r_text:
+        errs.append('08-终检-final-inspector 缺 M-14 段（body_char_count + body_limit）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

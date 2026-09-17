@@ -763,6 +763,54 @@ def test_m10_m11_flow_check_dual_lock():
         os.chdir(cwd)
 
 
+# ===== v2.12.49 M-13 主人操作清单 + M-14 字数口径 =====
+
+def test_m13_t8_owner_suggestion_list_declared():
+    """M-13：T8 dispatch 必含「主人自行操作建议清单」与 M-13 段锁。"""
+    text = (ROOT / "references/dispatch/T8-终检.md").read_text(encoding="utf-8")
+    assert "主人自行操作建议清单" in text, "T8 dispatch 缺主人自行操作建议清单（M-13）"
+    assert "M-13" in text, "T8 dispatch 缺 M-13 段锁"
+    # 三类动作必出现
+    for action in ("文档格式转换", "SVG → PNG 转换", "封面视觉"):
+        assert action in text, f"T8 dispatch 清单缺「{action}」动作（M-13）"
+
+
+def test_m14_body_limit_in_task_brief():
+    """M-14：任务简报模板「目标篇幅」段必含 body_limit 字段。"""
+    text = (ROOT / "references/templates/任务简报-template.md").read_text(encoding="utf-8")
+    assert "body_limit" in text, "任务简报模板 缺 body_limit 字段（M-14）"
+
+
+def test_m14_word_count_unity_in_deliverables():
+    """M-14：deliverables.md 必含字数口径单一化段 + body_char_count 字段。"""
+    text = (ROOT / "references/deliverables.md").read_text(encoding="utf-8")
+    assert "字数口径单一化" in text, "deliverables.md 缺字数口径单一化段（M-14）"
+    assert "body_char_count" in text, "deliverables.md 缺 body_char_count 字段（M-14）"
+
+
+def test_m13_m14_flow_check_dual_lock():
+    """M-13/M-14：flow-check 规则 21 锁 T8 dispatch / 任务简报 / deliverables / 08-终检 四真源。"""
+    import contextlib, io, os
+    # 反向注入：去掉 08-终检-final-inspector.md 里的 body_char_count 字段（M-14 必填）
+    src = (ROOT / "references/agents/08-终检-final-inspector.md").read_text(encoding="utf-8")
+    bad = src.replace("body_char_count", "~~删~~~~")   # 全量替换：该字段在文件中出现多处，只替 1 处会留同名残留 → 反向注入被漏检（v2.12.49 实测）
+    assert bad != src, "反向注入点未命中（body_char_count 已不存在于 08-终检）"
+    t8_path = ROOT / "references/agents/08-终检-final-inspector.md"
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        t8_path.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— M-14 字数口径锁退化"
+        assert "M-14" in out or "body_char_count" in out, f"报错未指向 M-14: {out}"
+    finally:
+        t8_path.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
