@@ -1,12 +1,53 @@
-# Changelog 归档（v2.12.41 及更早）
+# Changelog 归档（v2.12.44 及更早）
 
-> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.41 及更早的全部版本章节。
+> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.44 及更早的全部版本章节。
 > 拆分口径（v2.12.47）：`CHANGELOG.md` 只保留**最近 5 期**，其余逐字迁入本文件。
 > **`scripts/changelog-check.py` 同时读取两份**，故「每个版本 tag 都有章节」的校验纪律不变。
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
 > 部分历史条目链接指向 `docs/` 或 `../outputs/` 中的当时产物，已随清理移除或归档——属史料，不影响当前使用。
 
 ---
+
+---
+
+## [v2.12.44] — 2026-09-15
+
+> **主题：ClawHub 安全审计复核整改 —— 未加固主机改 fail-closed（默认单主控）、心跳写盘同意语去自相矛盾、期刊/渠道建议写入 manifest；配套宿主加固落地（子代理工具硬拒 + spawn 深度上限）。**
+> **性质：安全整改（含一处默认行为收紧）+ 措辞一致性修复。无破坏性接口变更。**
+
+### 一、★ 未加固主机改 fail-closed（消唯一 unexpected 项）
+
+- **默认翻转**：宿主未配 `tools.subagents.tools.deny` / `maxSpawnDepth` 时，**多 Agent 不再是默认** —— Phase 0 须由主人**显式确认**「同意仅在软约束下跑多 Agent」；**未确认 ⇒ 直接单主控模式（不 spawn）**；敏感题材**无需确认即强制单主控**。`加固状态` 记 `未加固（已降级）`
+- **判据分层**：宿主是否已加固由**主人核验并书面确认**；子代理侧**唯一可观测判据 = 启动自检回执**（非主控推断）
+- **保留的部分**：「任意配置开箱可用」保留（**不拒绝启动**）；「未加固即拒跑（A 档）」仍否决（v2.12.32 实测曾致并行层自锁零产物）。**B 档本义即「默认降级单主控」——本次是把实现对齐该本义**
+- 落 4 处：`SKILL.md` / `permissions.md`（§边界速查 + §未加固默认口径 + §为何不采纳补记）/ `host-hardening-recipe.md`
+
+### 二、心跳写盘同意语义去矛盾（消两条高置信 finding）
+
+- **删「运行本 skill 即表示主人已明示接受」**类**隐含同意**表述（`external-services.md` / `执行韧化协议-exec.md`）
+- 改为**显式同意门**：心跳写盘唯一依据 = 主人对 Phase 0「将创建的文件清单」的**显式确认**，且清单**逐项**含 `.tmp/<角色>-heartbeat.md`；**主控自动列清单 / 主人沉默 / 「本来就要写盘」的推断，都不构成同意**；缺确认 ⇒ **不写 `.tmp/`、不开工**（fail-closed）
+- `QUICKSTART.md`「运行即会写盘」→「**须先经 Phase 0 显式同意**，未确认前不写任何文件」
+
+### 三、期刊/发布渠道建议写入 manifest（消 Description-Behavior Mismatch）
+
+- `SKILL.md` frontmatter `description` 增列「**含同行评审与期刊/发布渠道匹配建议（advisory）**」—— 使 manifest 与 T9 实际行为一致
+- T9 角色卡新增「**能力声明**」段：渠道建议属**声明范围内的 advisory 能力**、**不阻塞交付**、采纳权在主人
+
+### 四、宿主加固落地（本批配套，非技能文件）
+
+- `tools.subagents.tools.deny` = **44 项**（执行类 / 凭据 / 消息 / 记忆写入 / 设备 / 递归编排全拒；`deny wins` 覆盖继承策略）
+- `agents.defaults.subagents.maxSpawnDepth = 1`（子代理成叶子，不能再派生孙代）
+- 两者均 **hot reload**，无需重启网关
+
+### 五、复核结论（判为不修，附判据）
+
+- **AE4 ×2（`deliverables.md:1` / `status-template.md:1`）**：官方 ClawScan 判定 **expected** —— 与「中文正文 + 英文标识符 / 路径」混排一致，且**控制字符扫描未发现 bidi 覆盖或零宽混淆**；判为启发式误报，**不修**
+- **E1 ×2（OpenAlex / Crossref）**：官方判定 **expected**（默认关闭的 opt-in、无需 Key、只发检索词）；保持现状，仅保留授权点同意约束
+- Static analysis **clean** / VirusTotal **0/65**
+
+### 验收
+
+- pytest · 自审门 · shellcheck · link-check · flow-check 全绿（见下）｜ SKILL.md 棘轮内
 
 ---
 

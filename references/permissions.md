@@ -1,4 +1,4 @@
-> 版本：v2.12.48（自动同步 2026-09-16）
+> 版本：v2.12.49（自动同步 2026-09-17）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -85,10 +85,7 @@
 
 > 📊 **数据图表 SVG 能力不受影响（v2.12.39 说明）**：图件由主控用 `write` **本地手写矢量图**（零外发、不依赖任何视觉/生成工具）；校验走「SVG XML/结构检查 + 嵌入文本孤儿检查（T8）+ 主人目视」。本轮移除 `view_image` 仅取消「主控自查渲染截图」这一**可选**路径，**数据图表生成能力完整保留**。
 
-**Opt-in（默认禁止，Phase 0 主人明确同意才解锁，`metadata.tools.opt_in`）**：
-- `image_generate` — 封面生成专用，**默认关闭**，主控在 Phase 0 问「是否需要生成封面」答「是」才开
-- 解锁方式：主控在 status.md「Phase 0 同意记录」段填写 `opt_in: [image_generate: yes]`，凭此记录而非凭 prompt 调阅
-- **层级说明**：本节 = **工具级 opt-in（1 个工具，仅封面）**；**服务级外发类别（4 类）的唯一真源 = [`_shared/external-services.md` 逐类表](_shared/external-services.md)** —— 本节不重列服务级类别（重列必漂移）。
+**Opt-in（v2.12.49 起已归零）**：论衡不调任何默认禁止的工具；**封面与图件去留均由主人手动操作**（T8 终检后提供「主人自行操作建议清单」）。**服务级外发类别（3 类，v2.12.49 由 4 类减去「封面」类）的唯一真源 = [`_shared/external-services.md` 逐类表](_shared/external-services.md)** —— 本节不重列服务级类别（重列必漂移）。
 - ⚠️ **授权点同意约束（v2.12.43）**：`research_extra`（检索 4 工具）虽**默认启用**，但**每次调用前**仍须核对任务简报 §0 的结构化同意记录；其中**学术元数据（OpenAlex / Crossref）为 opt-in、默认关闭**，未勾选即不得调用（与 `SKILL.md` frontmatter `research_extra` 行注释**同源**，两处一起改）。
 
 **行为授权（非工具，Phase 0 预授权记录，默认全部关闭）**：
@@ -96,7 +93,7 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 40 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。
+**禁用（`metadata.tools.denied`）— 41 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。
 
 **Workspace 路径收口**：
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树

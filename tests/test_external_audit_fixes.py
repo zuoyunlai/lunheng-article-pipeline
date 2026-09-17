@@ -36,7 +36,7 @@ EXT_SERVICES = ROOT / "references" / "_shared" / "external-services.md"
 DISPATCH_HEADER = ROOT / "references" / "_shared" / "dispatch-header.md"
 RESILIENCE = ROOT / "references" / "_shared" / "执行韧化协议-design.md"
 
-# 审计/扫描器先后点名的遗漏工具（必须进 denied；v2.12.39 从 39 扩至 40）
+# 审计/扫描器先后点名的遗漏工具（必须进 denied；v2.12.39 从 39 扩至 40；v2.12.49 从 40 扩至 41，含 image_generate）
 AUDIT_NAMED = ["message", "gateway", "secrets", "code_execution", "sessions",
                "conversations_send", "conversations_turn",
                # v2.12.38：SkillSpector/AIG + 全量审计 P1-1 补列
@@ -105,8 +105,8 @@ def test_no_stale_19_count():
 
 
 def test_denied_count_matches_declared_number():
-    """正文声明的「40 项」必须等于 frontmatter 实际条数（防数字漂移）"""
-    assert len(_denied()) == 40, f"denied 实际 {len(_denied())} 项，与正文声明的 40 项不符"
+    """正文声明的「41 项」必须等于 frontmatter 实际条数（防数字漂移）"""
+    assert len(_denied()) == 41, f"denied 实际 {len(_denied())} 项，与正文声明的 41 项不符"
 
 
 def test_declarative_stance_declared():

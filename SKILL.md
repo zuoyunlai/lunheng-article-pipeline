@@ -4,7 +4,7 @@ description: "学术论文/深度长文/行业分析流水线：含同行评审�
 metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName；其下未知子键加载器忽略（无官方依据）。读版本脚本已支持缩进写法。
-    version: 2.12.48
+    version: 2.12.49
     requires:
       bins: []
   tools:
@@ -13,9 +13,8 @@ metadata:
     coordinator_only: ["sessions_spawn", "sessions_yield", "sessions_history", "sessions_list", "subagents", "session_status", "progress_card", "ask_user"]
     # ⚠️ 授权点同意约束：本行工具调用前须核 Phase 0 同意记录；学术元数据（OpenAlex/Crossref）= opt-in
     research_extra: ["web_search", "web_fetch", "tavily_search", "tavily_extract"]
-    # 工具级 opt-in（1 个，与上条服务级 4 类分层，勿混列）；服务级类别真源 = references/_shared/external-services.md
-    opt_in: ["image_generate"]
-    denied: ["exec", "process", "code_execution", "browser", "apply_patch", "cron", "automations", "message", "gateway", "secrets", "sessions", "conversations_send", "conversations_turn", "video_generate", "music_generate", "tts", "memory_store", "skill_workshop", "memory_forget", "sessions_search", "sessions_send", "computer", "nodes", "terminal", "portal", "dashboard", "mobile_ui", "screen", "canvas", "show_widget", "agents_list", "get_goal", "create_goal", "update_goal", "suggest_task", "dismiss_task", "heartbeat_respond", "x_search", "pdf", "view_image"]
+    # 工具级 opt-in 已归零；服务级类别真源 = references/_shared/external-services.md
+    denied: ["exec", "process", "code_execution", "browser", "apply_patch", "cron", "automations", "message", "gateway", "secrets", "sessions", "conversations_send", "conversations_turn", "video_generate", "music_generate", "tts", "image_generate", "memory_store", "skill_workshop", "memory_forget", "sessions_search", "sessions_send", "computer", "nodes", "terminal", "portal", "dashboard", "mobile_ui", "screen", "canvas", "show_widget", "agents_list", "get_goal", "create_goal", "update_goal", "suggest_task", "dismiss_task", "heartbeat_respond", "x_search", "pdf", "view_image"]
   subagent_tiers:
     research:   ["base", "research_extra"]   # T1-T3
     analysis:   ["base"]                      # T4
@@ -25,7 +24,7 @@ metadata:
     # T8 = [] 主控亲完成，不 spawn
   # 不设 cwd_default：设了会被解析到 skill 目录内（项目跑进技能文件夹）；spawn 的 cwd 必须绝对路径
 ---
-> 版本：v2.12.48（自动同步 2026-09-16）
+> 版本：v2.12.49（自动同步 2026-09-17）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
@@ -49,10 +48,10 @@ metadata:
 
 - **主控工具面**：清单真源 = frontmatter `metadata.tools`（base 3 + coordinator_only 8 + research_extra 4），**正文不重列**。
 - **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：真源 = frontmatter `metadata.subagent_tiers`（research 含 T1/T2/T3 · analysis T4 · writing T5 · audit T6+T7 · review T9+G14；T8 空）。工具面**四层模型**见 [`permissions.md`](references/permissions.md)。
-- **禁用（`denied`）— 40 项**（真源 = frontmatter `metadata.tools.denied`，**自定义声明，描述本 skill 的调用边界，加载器不执行**）。论衡不要求任何宿主配置；OpenClaw 的多 Agent 能力与实际工具策略由平台负责。可选的宿主侧机械收紧建议仅见维护者附录 [`host-hardening-recipe.md`](references/_shared/host-hardening-recipe.md)，不属于本 skill 的运行前提。
+- **禁用（`denied`）— 41 项**（真源 = frontmatter `metadata.tools.denied`，**自定义声明，描述本 skill 的调用边界，加载器不执行**）。论衡不要求任何宿主配置；OpenClaw 的多 Agent 能力与实际工具策略由平台负责。可选的宿主侧机械收紧建议仅见维护者附录 [`host-hardening-recipe.md`](references/_shared/host-hardening-recipe.md)，不属于本 skill 的运行前提。
 - **两个层级别混（本修订起显式区分）**：
-  - **工具级 opt-in（1 个，默认禁止）**：**仅封面** `image_generate`；凭 `status.md`「Phase 0 同意记录」段 `opt_in:` 调阅（**调用即把图像 prompt 外发至图像 provider**，属 Phase 0 同意范围）。
-  - **服务级外发同意（4 类，逐项知情同意）**：**唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律**引用不重列**（重列必漂移，历史曾现 4 份互斥清单）。
+  - **工具级 opt-in 已归零**：论衡不调用 `image_generate`；封面改为 T8 终检后的主人自行操作建议。**服务级外发类别唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律引用不重列。
+  - **服务级外发同意（3 类，逐项知情同意）**：唯一真源见上；本文件不重列类别，防止口径漂移。
   - **行为预授权**：配额耗尽 / G14 Warning 预授权未给 = 暂停等主人拍板（fail-closed）；永不覆盖 `denied`。
 - 🧭 **四级边界（详版 → [`permissions.md`](references/permissions.md) §边界速查）**：① **「零 exec」只指执行类工具**（`exec`/`process`/`code_execution`）——`denied` 另含 `browser`/`terminal`/`computer`/`nodes` 等**非执行类**工具，且 **≠「不外发数据」**；**主控另持编排与状态面**（`coordinator_only` 8 项 = 派发/收报告的**设计内必需**能力）。② **会话可见性收口（v2.12.48）**：会话类原语（`sessions_history`/`sessions_list`/`sessions_yield`/`subagents`）**硬限定为主控自己 spawn 的子代理树**——只读/等/取消**自己**派发的会话；**严禁**枚举、读取或取消**其它会话**。越权调用 = 与白名单外调用**同等处理**。③ **display-cap 截断** 与 ④ **投稿域 vs 工程域**：见 §边界速查 ③④。检索类工具**默认启用**（仅发「关键词 + 目标 URL」），须经 Phase 0 同意后才执行。
 - 🔒 **权限边界**：论衡是纯 skill，**不要求、不读取、不修改宿主配置**；OpenClaw 原生提供多 Agent 与会话工具，论衡按既定角色流程调用这些平台能力。运行时只核对自身声明的调用边界、处理 worker 成功/失败并披露接管，不判断宿主是否“加固”。宿主若需要额外机械限制，由宿主自行维护可选配置；论衡不把它作为启动、质量或交付条件。
@@ -87,7 +86,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 - **默认启用（无开关）**：**方法论足迹面板**（`status.md` 每阶段自动更新，按档裁剪字段；边际成本≈0 且承载「方法论透明」卖点）。
 - **由条件决定（无开关）**：**G14 中文 AI 痕迹闸** —— 目标语言含中文即**必跑**（纯外语记 `n/a`）；位置 = **Phase 4.4 前置**，**全流程只审一次**；轻量档走内置自检；主人显式关闭须走「豁免 + 披露」窄口。
-- **真正可选的**：外发同意（4 类逐项，含学术元数据 opt-in）、期刊匹配 / 中文数据源 / 多格式导出（3 项 + 多格式 6 选项）、Phase 5「方法论附录」。
+- **真正可选的**：外发同意（3 类逐项，含学术元数据 opt-in）、期刊匹配 / 中文数据源 / 多格式导出（3 项 + 多格式 6 选项）、Phase 5「方法论附录」。
 - **可选项准入判据**：只留给「**有真实成本或真实取舍**」者（外发 / 花钱 API / 额外产物）；**零成本质量门由条件决定**。
 
 ---

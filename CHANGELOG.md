@@ -1,6 +1,6 @@
 # Changelog
 
-> ⚠️ **范围说明（v2.12.47 起）**：本文件只保留**最近 5 期**；**v2.12.41 及更早**的全部章节逐字迁入 [`CHANGELOG-archive.md`](CHANGELOG-archive.md)。部分历史条目链接指向 `docs/` 或 `../outputs/` 中的**当时产物**（发布说明 / 审计报告 / 设计方案），这些文件**已随清理移除或归档**，链接可能失效——**属史料，不影响当前使用**。当前版本行为以 [`SKILL.md`](SKILL.md) 与 `references/` 为准。
+> ⚠️ **范围说明（v2.12.47 起）**：本文件只保留**最近 5 期**；**v2.12.44 及更早**的全部章节逐字迁入 [`CHANGELOG-archive.md`](CHANGELOG-archive.md)。部分历史条目链接指向 `docs/` 或 `../outputs/` 中的**当时产物**（发布说明 / 审计报告 / 设计方案），这些文件**已随清理移除或归档**，链接可能失效——**属史料，不影响当前使用**。当前版本行为以 [`SKILL.md`](SKILL.md) 与 `references/` 为准。
 
 论衡（`lunheng-article-pipeline`）版本变更记录。**本文件 + [`CHANGELOG-archive.md`](CHANGELOG-archive.md) 共同构成仓库内 changelog 的单一真源**（`scripts/changelog-check.py` 同时读取两份，「每个版本 tag 都有章节」的校验不受拆分影响）；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 是同一内容的发布视图。
 
@@ -9,6 +9,77 @@
 - **发版流程**：建 GitHub Release 后执行 `python3 scripts/changelog-check.py --fill` 回填本节；也可直接手写章节。`--check` 校验「每个版本 tag 都有章节 + 围栏闭合 + 当前版本已记录」，`--online` 追加校验「每个版本 tag 都有 GitHub Release」。
 - **发版前置闸（教训 #332 / #334）**：任何对外发版动作（push / tag / GitHub Release / 净化包）前先跑 `bash scripts/release-preflight.sh <tag>`——两查一停：**在飞链**（同项目 `status=running` 会话）/ **编号占用**（本地 tag + `git ls-remote --tags` 双向）/ **工作区干净**（`git status --porcelain`），任一不过即非 0 退出（10/11/12）；通过时打印「远端 master / 本地 HEAD / tag 区间 / 在飞链=0」四行现状。`scripts/create-github-release.sh` 的写路径已强制调用本闸（并自动带 `--allow-existing-tag`：② 口径 = 「编号是否被本链之外的人占用」，避免「先 tag、后补发 Release」被自己的闸自锁），`--dry-run` / `--check` 不进闸。闸只读：不自行 push / 打 tag / 建 Release。
 - **非版本 tag**（`full-repo-consistency-audit-2026-09-06`、`before-batch1-optimization`）不进入本表。
+
+---
+
+## [v2.12.49] — 2026-09-17
+
+> **主题：v2.12.48 后续修订——人环闸门真源化 + 零 exec 边界澄清 + M/T 系列机制修复。**
+> **性质：架构行为修复 + 文档一致性治理 + 多处机械可验铁律落地。无新增能力（论衡 agent 零 exec 原则不变）。**
+
+### 一、人环闸门真源化（修 P2-1）
+
+- 4 个 owner_checkpoint（`phase0_definition` / `phase2_5_outline` / `phase3_5_insight` / `phase5_acceptance`）补 `blocking: true` + `owner_visible: true` + `timeout_fallback`；`phase-order.yaml` 头部结构约束补 ⑩
+- `scripts/flow-check.py` 新增规则 12：顶层 `owner_checkpoints` 与 `kind: owner_checkpoint` 节点集**双向一致**；每节点须有 blocking/owner_visible/decisions/timeout_fallback
+- `tests/test_flow_check.py` 增 3 项正向 + 1 项反向注入（去掉 phase5 的 blocking → 必须报错），防新规则退化成永真
+
+### 二、删除 Phase 5 fail-open 节点（修 P2-2）
+
+- 旧写法「Phase 5：不答 = 接受当前定稿」使 Phase 5 静默 60 分钟即等于主人拍板「接受」；且只活在散文，与「无明确决策 = 未通过」正面张力
+- 现四节点一律 fail-closed：无应答 = 写 status `pending_owner` + 告警挂起。静默、主控推断、子代理回执、「产物已存在」均不得记为 accepted
+- 旧口径在 `phase-order.yaml` 登记为「已删除的旧语义（防回潮）」，并有测试锁死
+
+### 三、无应答分钟数归一（修 P3-1）
+
+- 唯一真源 = `phase-order.yaml` 的 `owner_timeout_policy.no_answer_minutes: 60`
+- `glossary-full.md` / `phase-2-details.md` / `执行韧化协议-design.md` 三处字面重列改为引用（一条款一真源）
+
+### 四、`image_generate` 退出 opt-in 入 denied（M-12 反演）
+
+- 封面与图件去留由主人手动操作，论衡 agent 零 exec 原则不变
+- `denied` 从 40 项扩至 41 项（与 `video_generate` / `music_generate` / `tts` 同构）；工具级 opt-in 归零；服务级外发 4→3 类
+- 同步 SKILL.md / permissions.md / 00-主控-coordinator.md / 00-主控-扩展职责.md / glossary-full.md / pipeline-readme.md / test_external_audit_fixes.py
+
+### 五、M 系列机制修订（14 项）
+
+> 详见仓库根 `outputs/论衡-修订方案-2026-09-16.md`（方案已审定）；本节仅摘要标题
+
+- **M-1** 交付物指纹绑定（sha256 入 status.md `deliverables_fingerprint`）
+- **M-2** 终态后修改必重开流水线（fail-closed）
+- **M-3** 计数类断言真源（指向交付物文件，不重报数字）
+- **M-4** G14 严重度参与判定（warning 不再静默通过）
+- **M-5** P2 量化锚点 + 累积升级（5+ 同色 ⇒ 升档）
+- **M-6** 轮次耗尽出口改三选一（不静默接受）
+- **M-7** status.md 对账机械门（与 current_draft.md / final/ 双向断言）
+- **M-8** 审计对象一致性断言
+- **M-9** 48 必查清单加「严重度」列
+- **M-10** 图件路径归一 + 局限性入真源
+- **M-11** Phase 2.5 图位决策必答 + 机械门；**写 SVG 数据图表 = 论衡职责**（主控 `write` 手写，零 exec/零外发）
+- **M-13** T8 后「主人自行操作建议清单」（封面 / SVG→PNG / 格式转换）
+- **M-14** 字数口径单一化（真源 = 正文汉字数）
+
+### 六、T 系列治本调整（8 项）
+
+> 架构层面修复，与本批次**同走 v2.12.49**（主人 2026-09-16 23:25 裁定 D-4 = 合并）；详修订方案 §三
+
+### 七、零 exec 边界澄清（主人 2026-09-16 23:12 / 23:31 裁定）
+
+- SVG 数据图表**生成** = 论衡职责（主控 `write` 纯文本，零 exec 零外发），不动
+- SVG→PNG / 文生图封面 / 文档格式转换（docx/pdf/latex）= 主人 host shell 手动执行，论衡 agent 不操作
+- 论衡 agent（含主控）零 shell 权限设计原则不变
+
+### 八、修复 P3-2 误报（不改文件，仅澄清）
+
+- 原判「3 处 `templates/...` 裸引用路径不可达」不成立——本仓库约定：references/ 下反引号裸路径以 **references/ 根**为基准；三条全部可达
+- 「6 张图去留」具体决定 ≠ 「图件生成」流水线职责（教训 #389）
+
+### 九、验收
+
+- pytest **289 passed**（flow-check 新增 4 项）
+- 自审门 **26 PASS / 0 FAIL**
+- SKILL.md 体量棘轮 **9855 ≤ 10000** 字符
+- 版本号同步覆盖 **90+ 项文件**（`sync-version.sh` 自动化）
+- dca71a7 / 02db518 已合入 master（领先 origin 2 commits），**未升版本号前的 worktree 已升号**
 
 ---
 
@@ -180,45 +251,3 @@
 - pytest · 自审门 · shellcheck · link-check · flow-check · check-version 全绿（见下）｜ SKILL.md **9,906 / 10,000** 棘轮内
 
 ---
-
-## [v2.12.44] — 2026-09-15
-
-> **主题：ClawHub 安全审计复核整改 —— 未加固主机改 fail-closed（默认单主控）、心跳写盘同意语去自相矛盾、期刊/渠道建议写入 manifest；配套宿主加固落地（子代理工具硬拒 + spawn 深度上限）。**
-> **性质：安全整改（含一处默认行为收紧）+ 措辞一致性修复。无破坏性接口变更。**
-
-### 一、★ 未加固主机改 fail-closed（消唯一 unexpected 项）
-
-- **默认翻转**：宿主未配 `tools.subagents.tools.deny` / `maxSpawnDepth` 时，**多 Agent 不再是默认** —— Phase 0 须由主人**显式确认**「同意仅在软约束下跑多 Agent」；**未确认 ⇒ 直接单主控模式（不 spawn）**；敏感题材**无需确认即强制单主控**。`加固状态` 记 `未加固（已降级）`
-- **判据分层**：宿主是否已加固由**主人核验并书面确认**；子代理侧**唯一可观测判据 = 启动自检回执**（非主控推断）
-- **保留的部分**：「任意配置开箱可用」保留（**不拒绝启动**）；「未加固即拒跑（A 档）」仍否决（v2.12.32 实测曾致并行层自锁零产物）。**B 档本义即「默认降级单主控」——本次是把实现对齐该本义**
-- 落 4 处：`SKILL.md` / `permissions.md`（§边界速查 + §未加固默认口径 + §为何不采纳补记）/ `host-hardening-recipe.md`
-
-### 二、心跳写盘同意语义去矛盾（消两条高置信 finding）
-
-- **删「运行本 skill 即表示主人已明示接受」**类**隐含同意**表述（`external-services.md` / `执行韧化协议-exec.md`）
-- 改为**显式同意门**：心跳写盘唯一依据 = 主人对 Phase 0「将创建的文件清单」的**显式确认**，且清单**逐项**含 `.tmp/<角色>-heartbeat.md`；**主控自动列清单 / 主人沉默 / 「本来就要写盘」的推断，都不构成同意**；缺确认 ⇒ **不写 `.tmp/`、不开工**（fail-closed）
-- `QUICKSTART.md`「运行即会写盘」→「**须先经 Phase 0 显式同意**，未确认前不写任何文件」
-
-### 三、期刊/发布渠道建议写入 manifest（消 Description-Behavior Mismatch）
-
-- `SKILL.md` frontmatter `description` 增列「**含同行评审与期刊/发布渠道匹配建议（advisory）**」—— 使 manifest 与 T9 实际行为一致
-- T9 角色卡新增「**能力声明**」段：渠道建议属**声明范围内的 advisory 能力**、**不阻塞交付**、采纳权在主人
-
-### 四、宿主加固落地（本批配套，非技能文件）
-
-- `tools.subagents.tools.deny` = **44 项**（执行类 / 凭据 / 消息 / 记忆写入 / 设备 / 递归编排全拒；`deny wins` 覆盖继承策略）
-- `agents.defaults.subagents.maxSpawnDepth = 1`（子代理成叶子，不能再派生孙代）
-- 两者均 **hot reload**，无需重启网关
-
-### 五、复核结论（判为不修，附判据）
-
-- **AE4 ×2（`deliverables.md:1` / `status-template.md:1`）**：官方 ClawScan 判定 **expected** —— 与「中文正文 + 英文标识符 / 路径」混排一致，且**控制字符扫描未发现 bidi 覆盖或零宽混淆**；判为启发式误报，**不修**
-- **E1 ×2（OpenAlex / Crossref）**：官方判定 **expected**（默认关闭的 opt-in、无需 Key、只发检索词）；保持现状，仅保留授权点同意约束
-- Static analysis **clean** / VirusTotal **0/65**
-
-### 验收
-
-- pytest · 自审门 · shellcheck · link-check · flow-check 全绿（见下）｜ SKILL.md 棘轮内
-
----
-

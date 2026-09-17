@@ -31,7 +31,7 @@
 #   ⑪ **无应答处置的唯一真源 = 顶层 `owner_timeout_policy`**（v2.12.49 新增，修 P2-2）：
 #      人环节点无应答一律 `pending_owner_halt`（写 status `pending_owner` + 告警挂起，不静默推进）；
 #      静默**永不**等于有效决策。docs 层只引用本节，**不得重列分钟数**（一条款一真源）。
-version: 2.12.48
+version: 2.12.49
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。
