@@ -142,7 +142,7 @@
 - 数据源：子代理完成事件 Stats line（Token usage input/output/total）+ session_status 工具（OpenClaw 9.1+）
 ```
 
-**v2.6.1 重写根因**（教训 #192）：OpenClaw 9.1 提供精确 API（子代理完成事件末尾 Stats line + session_status 工具），**v2.5.18 三级降级机制是设计偏慎**，原「宿主无关」表述隐含「拿不到精确值」的错误前提。仅精确统计，Stats line 缺失 = 平台异常（标告警，不是填「未配置」/「N/A」）。**教训 #256**：早前文档把 token 来源误写为「sessions_spawn 返回值 stats」，实测 spawn 返回值无 stats 字段，真实来源是子代理完成事件末尾的 Stats line（`Token usage` input/output/total）。
+**v2.6.1 重写根因**（教训 #407，原 #192）：OpenClaw 9.1 提供精确 API（子代理完成事件末尾 Stats line + session_status 工具），**v2.5.18 三级降级机制是设计偏慎**，原「宿主无关」表述隐含「拿不到精确值」的错误前提。仅精确统计，Stats line 缺失 = 平台异常（标告警，不是填「未配置」/「N/A」）。**教训 #256**：早前文档把 token 来源误写为「sessions_spawn 返回值 stats」，实测 spawn 返回值无 stats 字段，真实来源是子代理完成事件末尾的 Stats line（`Token usage` input/output/total）。
 
 **待 merge 反哺清单（主人实测）**：交付说明加「待 merge 反哺清单」checklist，固化为 T8 模板动作——列出 T7 反哺报告建议的规则 + merge 目标角色卡，等主人人工 review 后手动 merge（**不自动 commit**）。
 
