@@ -43,7 +43,7 @@
 ## 人在环决策记录（四节点，缺一不可）
 
 - **Phase 0 定题**: decision=<start|补充信息|暂停|拒绝> / owner_confirmed_at=<时间> / evidence=01-任务简报.md
-- **Phase 2.5 大纲**: decision=<approved|revision_requested|restart_phase> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md
+- **Phase 2.5 大纲**: decision=<approved|revision_requested|restart_phase> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md / **v2.12.49 M-11**：figures=<N> / figure_decision=<采用 T4 建议|调整图位数|取消图表> —— **任一字段缺失 = 不合格**（t7_5_integrity / T8 机械门均报）
 - **Phase 3.5 洞察**: decision=<insight|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md
 - **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md
 

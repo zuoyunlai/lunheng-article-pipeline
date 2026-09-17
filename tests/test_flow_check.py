@@ -704,6 +704,65 @@ def test_m7_m9_flow_check_dual_lock():
         os.chdir(cwd)
 
 
+# ===== v2.12.49 M-10 图件路径归一 + M-11 图位决策必答 =====
+
+def test_m10_figure_path_normalized():
+    """M-10：phase4_4_figures.output 必须归一为 'final/图件/*.svg'（唯一真源）。"""
+    pf4 = _node("phase4_4_figures")
+    assert pf4.get("output") == "final/图件/*.svg", \
+        f"phase4_4_figures.output ≠ 'final/图件/*.svg'（M-10 路径未归一）: {pf4.get('output')}"
+
+
+def test_m10_limitations_artifact_in_truth_source():
+    """M-10：t8_technical_final 必须声明 acknowledged_limitations_mode 产出 final/局限性.md。"""
+    t8 = _node("t8_technical_final")
+    oc = t8.get("output_conditional") or {}
+    assert oc.get("acknowledged_limitations_mode") == "final/局限性.md", \
+        f"t8_technical_final.output_conditional.acknowledged_limitations_mode 未声明 final/局限性.md（M-10）: {oc}"
+
+
+def test_m11_owner_figure_decision_in_status_template():
+    """M-11：status-template §三 人在环决策段必含 figures + figure_decision 字段。"""
+    text = (ROOT / "references/templates/status-template.md").read_text(encoding="utf-8")
+    assert "figures=" in text and "figure_decision=" in text, \
+        "status-template §三 人在环决策段缺 figures + figure_decision（M-11）"
+
+
+def test_m11_t4_does_not_decide_zero():
+    """M-11：04-分析 T4 仅出建议不出一决定（'拍板 0 张'需主人 Phase 2.5 显式拍板）。"""
+    text = (ROOT / "references/agents/04-分析-analyst.md").read_text(encoding="utf-8")
+    assert "T4 **仅出建议**" in text or "T4 不出一决定" in text, \
+        "04-分析-analyst 缺 M-11 T4 仅出建议声明"
+
+
+def test_m11_checkpoint_card_has_figure_decision():
+    """M-11：checkpoint-card-template 必含「图位决策必答」段。"""
+    text = (ROOT / "references/templates/checkpoint-card-template.md").read_text(encoding="utf-8")
+    assert "图位决策必答" in text, "checkpoint-card-template 缺 M-11 图位决策必答总注"
+
+
+def test_m10_m11_flow_check_dual_lock():
+    """M-10/M-11：flow-check 规则 20 须锁 phase4_4_figures.output 归一 + checkpoint-card 总注 + 04-分析声明。"""
+    import contextlib, io, os
+    src = YAML_PATH.read_text(encoding="utf-8")
+    # 反向注入：改 phase4_4_figures.output
+    bad = src.replace("output: final/图件/*.svg", "output: final/figures/", 1)
+    assert bad != src, "反向注入点未命中（phase4_4_figures.output 格式已变）"
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        YAML_PATH.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— M-10 路径锁退化"
+        assert "M-10" in out or "final/图件" in out, f"报错未指向 M-10 路径: {out}"
+    finally:
+        YAML_PATH.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

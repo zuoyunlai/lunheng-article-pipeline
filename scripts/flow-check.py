@@ -344,6 +344,23 @@ def main():
     if 'final/定稿.sha256' not in status_text:
         errs.append('status-template §四 缺 final/定稿.sha256 字段（v2.12.49 M-1 交付物指纹）')
 
+    # 20 M-10/M-11 图件路径与图位决策锁死（v2.12.49）：
+    #    M-10：phase4_4_figures.output 须为 final/图件/*.svg（唯一归一路径）
+    #    M-11：status-template §三 人在环决策段必含 figures + figure_decision 字段
+    #    M-11：checkpoint-card-template.md 必含「图位决策必答」总注与三选项
+    #    M-11：04-分析 T4 仅出建议不出一决定（建议 0 需主人拍板）
+    pf4 = byid.get('phase4_4_figures')
+    if pf4 is not None and pf4.get('output') != 'final/图件/*.svg':
+        errs.append(f"phase4_4_figures.output ≠ 'final/图件/*.svg'（M-10 路径未归一）")
+    if 'figures=' not in status_text or 'figure_decision=' not in status_text:
+        errs.append('status-template §三 人在环决策段缺 figures + figure_decision 字段（M-11）')
+    cpk_text = (pathlib.Path(__file__).resolve().parent.parent / 'references/templates/checkpoint-card-template.md').read_text(encoding='utf-8')
+    if '图位决策必答' not in cpk_text or 'figure_decision' not in cpk_text:
+        errs.append('checkpoint-card-template 缺 M-11 图位决策必答总注（Phase 2.5）')
+    t4_text = (pathlib.Path(__file__).resolve().parent.parent / 'references/agents/04-分析-analyst.md').read_text(encoding='utf-8')
+    if 'T4 不出一决定' not in t4_text and 'T4 **仅出建议**' not in t4_text:
+        errs.append('04-分析-analyst 缺 M-11 T4 不出一决定声明（建议 ≠ 拍板）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

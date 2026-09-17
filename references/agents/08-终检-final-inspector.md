@@ -155,6 +155,14 @@
 3. **`current_draft_sync` 是 sha256 锚点真源**：下游报告 sha256 必须等于 `current_draft_sync` 同步那一刻的 `final/定稿.md` sha256；等于更早或更晚版本 = 静默漂移。
 4. **T8 终检现场复算**：不信任任何已落盘 sha256，必须 `read` 后当场 `sha256sum` 重算；复算值与四处声明值集合相等 ⇒ 合格。
 
+### M-11：图位决策必答 + 图位↔终稿绑定（M-10 路径归一是真源锁）
+
+1. **`status.md` 必含 `figures` + `figure_decision`**（Phase 2.5 段）；任一缺失 = 不合格（t7_5_integrity / T8 均报）。
+2. **`final/图件/*.svg` 计数与拍板 N 严格相等**：拍板 N > 0 ⇒ 磁盘必恰好 N 张 SVG；拍板 0 张 ⇒ 磁盘必 0 张（少 1 张/多 1 张均不合格）。**注意：论衡 agent 仅写 SVG**（主控 `write` 手写、零 exec/零外发）；PNG 转换与图件去留由主人手动，与本铁律无关。
+3. **图位↔终稿绑定**：拍板 N > 0 ⇒ T5 必标 ≥N 个 `[图N：标题]` 图位；终稿（投稿版）不得因排版静默丢图位（`final/定稿.md` 含 `[图N]` 引用计数 = 拍板 N）。
+4. **T4 不得自行定 0**：T4 只出「建议」不出一决定；「拍板 0 张」须主人在 Phase 2.5 显式拍板（即使 T4 建议 = 0，仍须呈现「T4 建议 0 张，是否接受？」）。`figure_decision: 取消图表` 必须填写 reason。
+5. **图件交付时点**：phase4_4_figures 节点位于 final_assembly 之前（seq 17 → 18）；图件未产出 ⇒ final_assembly 不得推进（机械门，由 `phase-order.yaml` `next` 边隐式锁定）。
+
 ---
 
 ## 铁律
