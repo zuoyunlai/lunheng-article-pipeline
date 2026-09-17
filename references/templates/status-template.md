@@ -112,17 +112,27 @@
 
 ## 四、产物路径（key:value 替换）
 
-- **drafts/初稿**: drafts/初稿-v{N}.md
-- **analysis/分析大纲**: analysis/分析大纲.md
-- **analysis/批判报告**: analysis/批判报告-v{N}.md
-- **audits/审计报告**: audits/审计报告-v{N}.md
-- **audits/反哺报告**: audits/反哺报告-v{N}.md
-- **audits/审稿报告**: audits/审稿报告-v{N}.md
-- **audits/G14 检测报告**: audits/G14-检测报告-v{N}.md
-- **literature/回查报告**: literature/回查报告-v{N}.md
-- **final/定稿**: final/定稿.md
-- **final/交付说明**: final/交付说明.md
-- **final/M-Gate 报告**: final/M-Gate-Report-v2.2.12.json
+> **v2.12.49 M-7 状态对账机械真源**：本节每条产物路径**必含节点 id**（主控 spawn 后同步），与 §二 角色状态行**双向机械断言**由 T8 终检执行：
+> - **磁盘产物在 → 对应节点不得为 `Inbox`**（产物不存在时为 `Inbox`/In Progress 合法；产物存在时必须 Review/Done）
+> - **节点 `Done` → 对应产物必须存在**（含 `Done (时间)` 字段）
+> - **同一节点 / 角色只允许出现一次**（重跑加 `v(N+1)` 版本号）
+>
+> **异常注入示例**（反向用例，防漏检）：
+> - 磁盘 `final/定稿.md` 存在 但 `T8 技术终检: ⬜ Inbox` ⇒ T8 必须报「状态漂移」
+> - `T7 审计: ✅ Done` 但 `audits/审计报告-vN.md` 不存在 ⇒ T8 必须报「产物缺失」
+
+- **drafts/初稿** [节点: T5]: drafts/初稿-v{N}.md
+- **analysis/分析大纲** [节点: T4]: analysis/分析大纲.md
+- **analysis/批判报告** [节点: T6]: analysis/批判报告-v{N}.md
+- **audits/审计报告** [节点: T7]: audits/审计报告-v{N}.md
+- **audits/反哺报告** [节点: T7]: audits/反哺报告-v{N}.md
+- **audits/审稿报告** [节点: T9]: audits/审稿报告-v{N}.md
+- **audits/G14 检测报告** [节点: G14]: audits/G14-检测报告-v{N}.md
+- **literature/回查报告** [节点: T1b]: literature/回查报告-v{N}.md
+- **final/定稿** [节点: final_assembly + t8_technical_final]: final/定稿.md
+- **final/交付说明** [节点: t8_technical_final]: final/交付说明.md
+- **final/M-Gate 报告** [节点: t7_5_integrity]: final/M-Gate-Report-v2.2.12.json
+- **final/定稿指纹** [节点: t8_technical_final]: final/定稿.sha256   # v2.12.49 M-1：交付物指纹，主人 host shell 补算 sha256sum
 
 ---
 

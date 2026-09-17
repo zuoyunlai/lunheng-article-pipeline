@@ -658,6 +658,52 @@ def test_m4_m6_flow_check_dual_lock():
         os.chdir(cwd)
 
 
+# ===== v2.12.49 M-7 status 对账 + M-9 48 必查严重度列 =====
+
+def test_m9_48_items_have_severity_column():
+    """M-9：可发表性判定表 §二 A-E 5 组每行必含严重度列（P0/P1/P2/advisory）。"""
+    text = (ROOT / "references/_shared/可发表性判定表.md").read_text(encoding="utf-8")
+    sec2 = text[text.index("## 二、"):text.index("\n## 三、")]
+    # §二 A-E 必含 17 处严重度标记（4+5+4+2+2 = 17 行）
+    sev_count = sum(sec2.count(f"**{sev}**") for sev in ("P0", "P1", "P2", "advisory"))
+    assert sev_count >= 17, f"§二 A-E 严重度标记仅 {sev_count} 处 < 17（M-9）"
+    # M-9 总注必填：存在 §二段头
+    assert "M-9" in sec2 and "严重度" in sec2, "§二 缺 M-9 总注说明"
+
+
+def test_m7_status_template_has_node_binding():
+    """M-7：status-template §四产物路径必含节点 ID 标注（[节点: <id>]）与双向断言总注。"""
+    text = (ROOT / "references/templates/status-template.md").read_text(encoding="utf-8")
+    assert "M-7 状态对账机械真源" in text, "status-template 缺 M-7 总注"
+    assert "[节点:" in text, "status-template §四产物路径缺节点 ID 标注"
+    # final/定稿.sha256 是 M-1 配套字段
+    assert "final/定稿.sha256" in text, "status-template §四 缺 final/定稿.sha256（M-1 配套）"
+
+
+def test_m7_m9_flow_check_dual_lock():
+    """M-7/M-9：flow-check 规则 19 须锁 §二 A-E 严重度 + status-template 节点标注。"""
+    import contextlib, io, os
+    src = (ROOT / "references/_shared/可发表性判定表.md").read_text(encoding="utf-8")
+    # 反向注入：去掉 A3 行的 **P1**（让总标记数 -1）
+    import re as _re
+    bad = _re.sub(r"(\| A3 \| .+? \| A \| )\*\*P1\*\*", r"\1~~", src, count=1)
+    assert bad != src, "反向注入点未命中（A3 P1 标记格式已变）"
+    wz_path = ROOT / "references/_shared/可发表性判定表.md"
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        wz_path.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— M-9 严重度列锁退化"
+        assert "严重度" in out and "17" in out, f"报错未指向严重度阈值: {out}"
+    finally:
+        wz_path.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

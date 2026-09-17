@@ -329,6 +329,21 @@ def main():
     if 'max(类数档判定, 单类严重度档判定)' not in g14_text and 'max(类数档, 单类严重度档)' not in g14_text:
         errs.append('14-中文AI痕迹-gate.md 未声明 max(类数档, 单类严重度档) 双轨判定（M-4 机械锁丢失）')
 
+    # 19 M-9 48 必查严重度列 + M-7 status 对账锁死（v2.12.49）：
+    #    M-9：可发表性判定表 §二 A-E 各表每行必含「严重度」字段（| P0/P1/P2/advisory **|）
+    #    M-7：status-template §四产物路径每条必含节点 ID 标注（[节点: <id>]）
+    fabiao = pathlib.Path(__file__).resolve().parent.parent / 'references/_shared/可发表性判定表.md'
+    fabiao_text = fabiao.read_text(encoding='utf-8')
+    sev_in_section2 = sum(fabiao_text.count(f'**{sev}**') for sev in ('P0', 'P1', 'P2', 'advisory'))
+    if sev_in_section2 < 17:   # A-E 17 行 × 严重度列必填（17 项中至少 14 P1 + 2 P2 + 1 P0 + 1 advisory）
+        errs.append(f'可发表性判定表 §二 A-E 严重度列仅 {sev_in_section2} 处 < 17 行（v2.12.49 M-9 锁：每行必填严重度）')
+    status_path = pathlib.Path(__file__).resolve().parent.parent / 'references/templates/status-template.md'
+    status_text = status_path.read_text(encoding='utf-8')
+    if 'M-7 状态对账机械真源' not in status_text or '[节点:' not in status_text:
+        errs.append('status-template §四 缺 M-7 双向断言真源（产物 ↔ 节点机械门）')
+    if 'final/定稿.sha256' not in status_text:
+        errs.append('status-template §四 缺 final/定稿.sha256 字段（v2.12.49 M-1 交付物指纹）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 
