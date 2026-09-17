@@ -553,6 +553,52 @@ def test_m8_flow_check_detects_missing_audited_artifact_required():
         os.chdir(cwd)
 
 
+# ===== v2.12.49 M-3 / M-5 计数档位真源 + P2 量化锚点 =====
+
+def test_m3_counting_uses_band_not_exact():
+    """M-3：07-审计 G8 必须报「档位」不得报「精确数」；字数判定表 5% 粒度与档位表达一致。"""
+    auditor = (ROOT / "references/agents/07-审计-auditor.md").read_text(encoding="utf-8")
+    assert "T7 仅报档位" in auditor or "T7 **仅报档位**" in auditor, \
+        "07-审计 G8 未声明 T7 仅报档位（M-3）"
+    assert "T8 终检或主人在 host shell" in auditor, \
+        "07-审计 G8 未声明精确值唯一出口（M-3）"
+
+
+def test_m5_p2_quantitative_anchors_declared():
+    """M-5：字数判定表 §二 + M-Gate-Algorithm §🎯 必须同时声明 P2 量化锚点（3 倍 / 1.5 倍 / 累积升级）。"""
+    wz = (ROOT / "references/_shared/字数判定表.md").read_text(encoding="utf-8")
+    mgate = (ROOT / "references/_shared/M-Gate-Algorithm.md").read_text(encoding="utf-8")
+    assert "实测 > 3 倍" in wz and "1.5 倍" in wz, "字数判定表 §二 缺 M-5 P2 量化锚点"
+    assert "P2 ≥ 3 项" in mgate and "形态类瑕疵" in mgate, "M-Gate §🎯 缺 M-5 P2 量化锚点"
+
+
+def test_m3_m5_dual_source_lock_in_flow_check():
+    """M-3/M-5：flow-check 规则 16 必须同时锁两个文件存在新段（防单边丢掉）。"""
+    import contextlib, io, os
+    # 反向注入：把字数判定表里“实测 > 3 倍”彻底删掉，看 flow-check 是否报缺
+    wz_path = ROOT / "references/_shared/字数判定表.md"
+    src = wz_path.read_text(encoding="utf-8")
+    # 注入点：删掉该行包括分隔符（** 与 **）与上下文空格
+    import re as _re
+    bad = _re.sub(r"\|\s*\*\*实测 > 3 倍\*\*\s*\|", "| ~~删~~~~ |", src, count=1)
+    if bad == src:
+        bad = _re.sub(r"\*\*实测 > 3 倍\*\*", "~~删~~~~", src, count=1)
+    assert bad != src, "反向注入点未命中"
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        wz_path.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— M-3/M-5 双真源锁死规则退化"
+        assert "字数判定表" in out, f"报错未指向双真源: {out}"
+    finally:
+        wz_path.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

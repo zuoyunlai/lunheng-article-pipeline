@@ -289,6 +289,20 @@ def main():
     if missing:
         errs.append(f'以下节点必须声明 audited_artifact_required: true（M-8）：{missing}')
 
+    # 16 计数类档位真源 + P2 量化锚点（v2.12.49 M-3 + M-5）：
+    #    M-Gate-Algorithm.md 与 字数判定表.md 是计数档位 + P2 量化锚点定义的双真源。
+    #    机械门锁死两个文件必须同时声明 v2.12.49 新段（防其中一份走散文被另一个被丢）。
+    m3_m5_required = [
+        ('references/_shared/M-Gate-Algorithm.md',
+         '## 🎯 计数类档位真源 + P2 量化锚点'),
+        ('references/_shared/字数判定表.md',
+         '实测 > 3 倍'),
+    ]
+    for rel, marker in m3_m5_required:
+        text = (pathlib.Path(__file__).resolve().parent.parent / rel).read_text(encoding='utf-8') if (pathlib.Path(__file__).resolve().parent.parent / rel).exists() else ''
+        if marker not in text:
+            errs.append(f'{rel} 缺 v2.12.49 M-3/M-5 新段（“{marker[:30]}...”）——计数档位与 P2 量化锚点以两文件同时声明为锁死条件')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 
