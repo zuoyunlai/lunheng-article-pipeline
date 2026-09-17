@@ -303,6 +303,32 @@ def main():
         if marker not in text:
             errs.append(f'{rel} 缺 v2.12.49 M-3/M-5 新段（“{marker[:30]}...”）——计数档位与 P2 量化锚点以两文件同时声明为锁死条件')
 
+    # 17 M-6 轮次耗尽出口三选一真源（v2.12.49）：audit_revision 节点必须声明 rounds_exhausted_outlet
+    #    且必须含 A/B/C 三选项 + no_default_option: true（防「默认接受 / 按最保守项继续」的 fail-open）
+    ar = byid.get('audit_revision')
+    if ar is not None:
+        outlet = ar.get('rounds_exhausted_outlet')
+        if not outlet:
+            errs.append('audit_revision 缺 rounds_exhausted_outlet（M-6：轮次耗尽出口未锁死成机械门）')
+        else:
+            if outlet.get('no_default_option') is not True:
+                errs.append('audit_revision.rounds_exhausted_outlet.no_default_option ≠ true（M-6：不得默认接受）')
+            decisions = outlet.get('owner_decision') or []
+            labels = [d.get('id') for d in decisions]
+            for must in ('accept_with_limitations', 'extend_one_round', 'manual_polish'):
+                if must not in labels:
+                    errs.append(f'audit_revision.rounds_exhausted_outlet.owner_decision 缺「{must}」选项（M-6 三选一锁）')
+            if outlet.get('halt_pending_owner') is not True:
+                errs.append('audit_revision.rounds_exhausted_outlet.halt_pending_owner ≠ true（M-6：必须挂起不能自动 GO）')
+
+    # 18 M-4 G14 严重度报告头锁死（v2.12.49）：g14 gate 文件必须声明 severe_single_class 报告头字段
+    g14_path = pathlib.Path(__file__).resolve().parent.parent / 'references/gates/14-中文AI痕迹-gate.md'
+    g14_text = g14_path.read_text(encoding='utf-8')
+    if 'severe_single_class' not in g14_text:
+        errs.append('14-中文AI痕迹-gate.md 缺 severe_single_class 报告头字段（M-4 严重度报告真源缺失）')
+    if 'max(类数档判定, 单类严重度档判定)' not in g14_text and 'max(类数档, 单类严重度档)' not in g14_text:
+        errs.append('14-中文AI痕迹-gate.md 未声明 max(类数档, 单类严重度档) 双轨判定（M-4 机械锁丢失）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

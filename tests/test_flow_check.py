@@ -599,6 +599,65 @@ def test_m3_m5_dual_source_lock_in_flow_check():
         os.chdir(cwd)
 
 
+# ===== v2.12.49 M-4 G14 严重度 + M-6 轮次出口三选一 =====
+
+def test_m4_g14_severity_band_declared():
+    """M-4：G14 §三判定规则必须声明 max(类数档, 单类严重度档) + severe_single_class 报告字段。"""
+    g14 = (ROOT / "references/gates/14-中文AI痕迹-gate.md").read_text(encoding="utf-8")
+    assert "max(类数档判定, 单类严重度档判定)" in g14, \
+        "G14 §三 未声明 max(类数档, 单类严重度档) 双轨判定（M-4）"
+    assert "severe_single_class" in g14, \
+        "G14 §三 缺 severe_single_class 报告头字段（M-4）"
+    # 阈值表
+    assert "5 倍" in g14 and "3 倍" in g14, "G14 §三 缺 3x/5x 阈值档（M-4）"
+
+
+def test_m6_audit_revision_three_choice_outlet_declared():
+    """M-6：audit_revision 节点 rounds_exhausted_outlet 必须声明 A/B/C 三选项 + no_default_option + halt_pending_owner。"""
+    ar = _node("audit_revision")
+    outlet = ar.get("rounds_exhausted_outlet")
+    assert outlet, "audit_revision 缺 rounds_exhausted_outlet（M-6）"
+    assert outlet.get("no_default_option") is True, "no_default_option ≠ true（M-6）"
+    assert outlet.get("halt_pending_owner") is True, "halt_pending_owner ≠ true（M-6）"
+    labels = [d.get("id") for d in (outlet.get("owner_decision") or [])]
+    for must in ("accept_with_limitations", "extend_one_round", "manual_polish"):
+        assert must in labels, f"owner_decision 缺「{must}」选项（M-6 三选一）"
+
+
+def test_m4_m6_flow_check_dual_lock():
+    """M-4/M-6：flow-check 规则 17/18 必须锁 audit_revision 三选一 + G14 severe_single_class。
+
+    反向注入：去掉 owner_decision 三个选项之一（manual_polish）。YAML 仍合法但
+    rules 17 应检出三选一缺失。两个有效信号：(a) main() 返回码 != 0；(b) 输出含 manual_polish。
+    其中 (a) 为必要条件。
+    """
+    import contextlib, io, os
+    src = YAML_PATH.read_text(encoding="utf-8")
+    # 删除 manual_polish 选项整段（4 行：id/label/requires + 后行）
+    import re as _re
+    bad = _re.sub(
+        r"\n        - id: manual_polish\n          label:.*?\n          requires:.*?\n",
+        "\n        # manual_polish 被反向注入删去\n",
+        src, count=1, flags=_re.DOTALL,
+    )
+    assert bad != src, "反向注入点未命中（manual_polish 选项格式已变）"
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        YAML_PATH.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— M-6 轮次出口锁退化"
+        # 输出任一信号即可：manual_polish / owner_decision / rounds_exhausted_outlet
+        assert any(s in out for s in ("manual_polish", "owner_decision", "rounds_exhausted_outlet")), \
+            f"报错未指向 M-6 owner_decision 任意关键字符串: {out}"
+    finally:
+        YAML_PATH.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
