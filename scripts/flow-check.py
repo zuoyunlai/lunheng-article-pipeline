@@ -378,6 +378,41 @@ def main():
     if 'M-14' not in t8r_text or 'body_char_count' not in t8r_text:
         errs.append('08-终检-final-inspector 缺 M-14 段（body_char_count + body_limit）')
 
+    # 22 T 系列治本锁死（v2.12.49）：
+    #    T-1 上游落盘前置 + 派发禁摘要 + 差集断言字段
+    #    T-2 换族优先 + 族级独立性 + 断路器；T-3 Phase 0 顶配档探活门
+    #    T-4 审稿报告族级字段；T-5 修订净增上限；T-6 快照默认触发；T-8 引用体例单一化
+    _R = pathlib.Path(__file__).resolve().parent.parent
+    kp_text = (_R / 'references/_shared/关键协议.md').read_text(encoding='utf-8')
+    if '四·补' not in kp_text or '派发禁止摘要' not in kp_text:
+        errs.append('关键协议 缺 §四·补 只读档报告落盘前置 + 派发禁止摘要（T-1）')
+    jj_text = (_R / 'references/templates/交接报告-template.md').read_text(encoding='utf-8')
+    if 'upstream_read' not in jj_text or 'dispatched_ids' not in jj_text:
+        errs.append('交接报告模板 缺 upstream_read/dispatched_ids 差集断言字段（T-1）')
+    cand_text = (_R / 'references/_shared/模型候选池.md').read_text(encoding='utf-8')
+    if '优先换 provider 族' not in cand_text or '断路器' not in cand_text:
+        errs.append('模型候选池 缺 T-2 换族优先 + 断路器')
+    if '二·补' not in cand_text or '探活门' not in cand_text:
+        errs.append('模型候选池 缺 §二·补 顶配档探活门（T-3）')
+    n_ps = byid.get('pre_spawn_enforcement')
+    if n_ps is None or not n_ps.get('top_tier_liveness_gate'):
+        errs.append('pre_spawn_enforcement 缺 top_tier_liveness_gate（T-3 探活门未入真源）')
+    t9t_text = (_R / 'references/templates/审稿报告-template.md').read_text(encoding='utf-8')
+    for _k in ('executor_model', 'model_family', 'independent_from'):
+        if _k not in t9t_text:
+            errs.append(f'审稿报告模板 缺 {_k}（T-4 族级独立性）')
+    wc_text = (_R / 'references/_shared/字数判定表.md').read_text(encoding='utf-8')
+    if '修订净增上限' not in wc_text or 'net_delta_cjk' not in wc_text:
+        errs.append('字数判定表 缺 §八 修订净增上限 + net_delta_cjk（T-5）')
+    n_ms = byid.get('methodology_snapshot')
+    if n_ms is not None and (n_ms.get('default') != 'triggered' or not n_ms.get('opt_out')):
+        errs.append('methodology_snapshot 未改为「默认 triggered + opt_out」（T-6）')
+    if '引用体例单一化' not in deliv_text:
+        errs.append('deliverables.md 缺 T-8 引用体例单一化段')
+    m_exist_text = (_R / 'references/_shared/M-Gate-Algorithm.md').read_text(encoding='utf-8')
+    if '引用体例层' not in m_exist_text:
+        errs.append('M-Gate-Algorithm 缺 M-Exist-1 引用体例层校验（T-8）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

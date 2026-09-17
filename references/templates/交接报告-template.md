@@ -19,6 +19,13 @@
 - path: final/定稿.md
 - bytes: <主控 read 后填>
 - sha256: <主人在 host shell 跑 sha256sum 补算；补算命令模板见 host-verify-recipe.md>
+
+### upstream_read（v2.12.49 T-1 必填，仅**只读档报告类**角色：T6 / T7 / T9 / G14）
+- path: audits/审计报告-vN.md
+- bytes: <主控 read 后填>
+- upstream_ids: [P1-A, P1-B, P1-C]      # 上游报告列出的全部项 ID
+- dispatched_ids: [P1-A, P1-B]          # 本轮实际派发给下游的项 ID
+# 差集断言：dispatched_ids ⊖ upstream_ids ≠ ∅ ⇒ 派发阶段即拦截（漏项 = 打在过时清单；自造项 = 越权）
 ```
 
 ## 1. 做了什么

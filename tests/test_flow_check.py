@@ -173,12 +173,14 @@ def test_all_paths_reach_quality_gates_before_acceptance():
     assert not bad, "存在绕过质量门的路径: " + " -> ".join(bad[0])
 
 
-def test_methodology_snapshot_is_explicit_opt_in():
-    """审计 P0-2：快照只能由独立 opt-in 节点生成。"""
+def test_methodology_snapshot_default_triggered_with_opt_out():
+    """v2.12.49 T-6：快照改「默认触发（简版 ≤2 节）+ 主人 opt_out」—— 不再是纯 opt-in。"""
     n = _node("methodology_snapshot")
-    assert n.get("condition") == "methodology_snapshot_opt_in"
-    assert n.get("on_not_triggered") == "record_not_triggered_in_status"
+    assert n.get("default") == "triggered", "T-6：快照应默认触发"
+    assert n.get("opt_out") == "methodology_snapshot_opt_out", "T-6：opt-out 条件键缺失/改名"
+    assert n.get("on_opt_out") == "record_opt_out_in_status", "T-6：opt-out 必须留痕"
     assert n.get("output") == "run/<项目名>/audits/methodology-footprint-{项目名}.md"
+    assert not n.get("condition"), "T-6 后不得保留 opt-in condition（否则又变回纯 opt-in）"
 
 
 def test_phase_order_has_no_duplicate_keys():
@@ -808,6 +810,91 @@ def test_m13_m14_flow_check_dual_lock():
         assert "M-14" in out or "body_char_count" in out, f"报错未指向 M-14: {out}"
     finally:
         t8_path.write_text(src, encoding="utf-8")
+        os.chdir(cwd)
+
+
+# ===== v2.12.49 T 系列治本（T-1 / T-2 / T-3 / T-4 / T-5 / T-6 / T-8）=====
+
+def test_t1_upstream_read_contract():
+    """T-1：关键协议须含落盘前置 + 派发禁摘要；交接报告须含 upstream_read 差集字段。"""
+    kp = (ROOT / "references/_shared/关键协议.md").read_text(encoding="utf-8")
+    assert "四·补" in kp and "派发禁止摘要" in kp, "关键协议缺 §四·补（T-1）"
+    assert "前置断言" in kp, "关键协议缺 spawn 前置断言（T-1）"
+    jj = (ROOT / "references/templates/交接报告-template.md").read_text(encoding="utf-8")
+    for k in ("upstream_read", "upstream_ids", "dispatched_ids"):
+        assert k in jj, f"交接报告缺 {k}（T-1 差集断言）"
+
+
+def test_t2_t3_model_family_and_liveness_gate():
+    """T-2/T-3：候选池须含换族优先/断路器/族级独立性/探活门；探活门须入真源。"""
+    c = (ROOT / "references/_shared/模型候选池.md").read_text(encoding="utf-8")
+    assert "优先换 provider 族" in c, "候选池缺换族优先（T-2）"
+    assert "断路器" in c, "候选池缺断路器（T-2）"
+    assert "模型族" in c and "两两不同" in c, "候选池缺族级独立性判据（T-2）"
+    assert "二·补" in c and "探活门" in c, "候选池缺探活门节（T-3）"
+    n = _node("pre_spawn_enforcement")
+    gate = n.get("top_tier_liveness_gate")
+    assert isinstance(gate, dict), "T-3 探活门未入 phase-order 真源"
+    assert gate.get("attempts") == 3 and gate.get("min_interval_seconds") == 10
+    assert gate.get("staleness_minutes") == 60, "T-3 探活结果 1 小时过期未声明"
+
+
+def test_t4_peer_review_family_fields():
+    """T-4：审稿报告模板须含族级独立性三字段 + 同源措辞铁律 + 过程材料约束。"""
+    t = (ROOT / "references/templates/审稿报告-template.md").read_text(encoding="utf-8")
+    for k in ("executor_model", "model_family", "independent_from"):
+        assert k in t, f"审稿报告缺 {k}（T-4）"
+    assert "模型独立性不成立" in t, "T-4 缺同源措辞铁律（不得写「独立性达成」）"
+    assert "过程材料约束" in t, "T-4 缺过程材料约束（防自相矛盾）"
+
+
+def test_t5_net_delta_cap():
+    """T-5：字数判定表须含单轮净增 ≤2% + 等量置换；修订说明须含 net_delta_cjk。"""
+    w = (ROOT / "references/_shared/字数判定表.md").read_text(encoding="utf-8")
+    assert "修订净增上限" in w and "≤ 2%" in w, "字数判定表缺净增上限（T-5）"
+    assert "等量置换" in w, "字数判定表缺等量置换要求（T-5）"
+    assert "92%" in w, "字数判定表缺 Phase 0 92% 预留（T-5）"
+    m = (ROOT / "references/templates/修订说明-template-full.md").read_text(encoding="utf-8")
+    assert "net_delta_cjk" in m, "修订说明模板缺 net_delta_cjk（T-5）"
+
+
+def test_t6_methodology_snapshot_default_triggered():
+    """T-6：快照默认触发 + 主人 opt-out（不再是纯 opt-in）。"""
+    n = _node("methodology_snapshot")
+    assert n.get("default") == "triggered"
+    assert n.get("opt_out") == "methodology_snapshot_opt_out"
+    assert n.get("on_opt_out") == "record_opt_out_in_status"
+    assert not n.get("condition")
+
+
+def test_t8_citation_style_unified():
+    """T-8：deliverables 须声明引用体例单一化；M-Exist-1 须含引用体例层校验。"""
+    d = (ROOT / "references/deliverables.md").read_text(encoding="utf-8")
+    assert "引用体例单一化" in d, "deliverables 缺 T-8 段"
+    assert "两套体例并存" in d, "deliverables 缺「禁止两套体例并存」铁律"
+    g = (ROOT / "references/_shared/M-Gate-Algorithm.md").read_text(encoding="utf-8")
+    assert "引用体例层" in g, "M-Gate-Exist-1 缺引用体例层校验（T-8）"
+
+
+def test_t3_liveness_gate_reverse_injection():
+    """反向注入：删掉 phase-order 的 top_tier_liveness_gate ⇒ flow-check 必须报错。"""
+    import contextlib, io, os
+    y = ROOT / "references/_shared/phase-order.yaml"
+    src = y.read_text(encoding="utf-8")
+    bad = src.replace("top_tier_liveness_gate:", "~~removed~~:", 1)
+    assert bad != src, "反向注入点未命中（top_tier_liveness_gate 不在真源）"
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        y.write_text(bad, encoding="utf-8")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = FC.main()
+        out = buf.getvalue()
+        assert rc != 0, "反向注入未被检出 —— T-3 探活门锁退化"
+        assert "top_tier_liveness_gate" in out or "T-3" in out, f"报错未指向 T-3: {out}"
+    finally:
+        y.write_text(src, encoding="utf-8")
         os.chdir(cwd)
 
 
