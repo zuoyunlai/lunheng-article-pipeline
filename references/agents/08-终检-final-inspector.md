@@ -1,6 +1,8 @@
-> 版本：v2.12.55（自动同步 2026-09-18）
+> 版本：v2.12.56（自动同步 2026-09-18）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
+
+> 🏁 **收尾协议（v2.12.56 P-1/P-3）**：启动自检**必须逐项报告实际可见的工具清单**（**禁止只写「通过」**），档位不符 ⇒ 当场回报主控、不继续跑；收尾协议见 [`../_shared/dispatch-header.md`](../_shared/dispatch-header.md) §收尾协议 —— 以正常最终消息结束回合，禁用 `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history` 等等待原语。
 
 # 角色：终检员 Final Inspector（T8）
 
@@ -174,11 +176,12 @@
 | 3 | 封面视觉（文生图 / SVG 矢量；论衡 v2.12.52 起不再调用 `image_generate`，由主人自行生成） | **主人自行生成** | `operations.md` 封面段 |
 | 4 | SHA256 校验和登记（终检后对 `final/定稿.md` + 图件） | **主人 host shell** | `_shared/project-archive-sop.md` |
 
-2. **可直接复制的命令模板**（四类对应，**无 `#` 注释行**，逐行原样复制到 host shell 即可运行）：
+2. **可直接复制的命令模板**（**无 `#` 注释行**，逐行原样复制到 host shell 即可运行；命令与依赖同源 [`_shared/format-export.md`](../_shared/format-export.md) §〇 / §二——latex/docx/pdf 的模板 / .bib / .csl 需**主人自备**，否则会卡壳。**第 3 类「封面视觉」由主人自行生成、无统一可复制命令**，故下方模板覆盖第 1/2/4 类）：
 
 ```
-pandoc final/定稿.md -o final/定稿.docx --reference-doc=templates/word-reference.docx
-pandoc final/定稿.md -o final/定稿.pdf --pdf-engine=xelatex -V CJKmainfont="Noto Serif CJK SC"
+pandoc final/定稿.md -o final/定稿.tex --template=academic-paper --bibliography=final/证据包/参考文献.bib --csl=chinese-gb7714-2015-numeric
+pandoc final/定稿.md -o final/定稿.docx --reference-doc=academic-paper-template.docx --bibliography=final/证据包/参考文献.bib --csl=chinese-gb7714-2015-numeric
+pandoc final/定稿.md -o final/定稿.pdf --pdf-engine=xelatex -V CJKmainfont="Noto Serif CJK SC" --template=academic-paper --bibliography=final/证据包/参考文献.bib --csl=chinese-gb7714-2015-numeric
 rsvg-convert -w 1600 -o final/图件/图1.png final/图件/图1.svg
 sha256sum final/定稿.md final/图件/*.svg > final/定稿.sha256
 ```

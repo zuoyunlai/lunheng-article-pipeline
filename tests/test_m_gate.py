@@ -31,6 +31,52 @@ ALGORITHM_FILE = Path(__file__).parent.parent / "references" / "_shared" / "M-Ga
 with open(ALGORITHM_FILE) as f:
     M_GATE_DOC = f.read()
 
+# =============================================================================
+# M-Form-1 统一引用编号正则（v2.12.56 M-3）
+# 唯一真源 = M-Gate-Algorithm.md §统一抽取规则真源 B（CITATION_NUMBER_RE）。
+# 此处为**断言镜像**：本模块另有一条断言校验该常量名在文档中存在（防文档/测试两处各写一份）。
+# 覆盖三类格式：① 标准 [D01]/[C-主01] ② 基线 [D-基-R-01] ③ 表格 [1.1]
+# =============================================================================
+M_FORM_1_CITATION_RE = re.compile(
+    r'\[(?:(?:D|C|C-主|L|先)\d+|(?:D|C|L|先)-[\w\-]*?\d+|\d+\.\d+)\]'
+)
+
+
+def test_unified_extraction_and_verdict_tiers_in_doc():
+    """静态锁（v2.12.56）：M-2 / M-5 / M-6 / M-7 的落地点必须在算法文档内成文。
+
+    本测试不预判 LLM 行为，只防「同一抽取规则两处各写一份」与「四档出口缺失」回归。
+    """
+    for token in (
+        "统一抽取规则真源",            # M-2
+        "ENDNOTE_SECTIONS_REQUIRED",   # M-2 A：必需四节
+        "ENDNOTE_SECTIONS_ALL",        # M-2 A：白名单七节
+        "ENDNOTE_SECTIONS_NONSTANDARD",  # M-2 A：非标准节
+        "CITATION_NUMBER_RE",          # M-2 B / M-3：统一编号正则
+        "CITATION_BASE_RE",            # M-3：基线 [D-基-R-01]
+        "CITATION_TABLE_RE",           # M-3：表格 [1.1]
+        "verdict_pass",                # M-5：第 1 档出口
+        "verdict_fail",                # M-5：第 2 档出口
+        "verdict_undecidable",         # M-5：第 3 档出口
+        "verdict_path_error",          # M-5：第 4 档出口
+        "不得真空通过",                # M-6：claims 为空 fail-open 修复
+        "未定义 helper 清单与替代口径",  # M-7
+    ):
+        assert token in M_GATE_DOC, f"M-Gate 文档缺 v2.12.56 落地点：{token}"
+
+    # 旧的两档写法则必须已从伪代码中退出（引述性说明除外）：
+    # 伪代码块内不得再出现裸 `return {"通过": True}` 形式
+    code_blocks = re.findall(r'```python\n(.*?)```', M_GATE_DOC, re.S)
+    assert code_blocks, "M-Gate 文档缺 python 伪代码块"
+    legacy = [b for b in code_blocks if 'return {"通过": True}' in b or 'return {"通过": False}' in b]
+    assert not legacy, f"仍有伪代码块停留在两档写法（未接四档出口）：{len(legacy)} 块"
+
+    # 入口标题数不回退（与自审门 L 同口径）
+    assert len(re.findall(r'^### M-Form-\d+:', M_GATE_DOC, re.M)) == 8
+    assert len(re.findall(r'^### M-Exist-\d+:', M_GATE_DOC, re.M)) == 3
+    assert len(re.findall(r'^### M-Integrity-\d+:', M_GATE_DOC, re.M)) == 2
+    print("  ✓ v2.12.56 静态锁: 统一抽取规则 + 四档出口 + helper 登记表齐全（8+3+2 项不回退）")
+
 
 def load_fixture(name):
     """加载 fixture 文件"""
@@ -44,23 +90,44 @@ def load_fixture(name):
 # M-Form 1: 引用标注完整性
 # =============================================================================
 def test_M_Form_1_citation_complete():
-    """M-Form-1 验证：正文每条引用标 [Lxx] / [Dxx] / [Cxx] / [先xx] 编号"""
+    """M-Form-1 验证：正文每条引用标 [Lxx] / [Dxx] / [Cxx] / [先xx] 编号
+
+    v2.12.56 M-3：改用统一引用编号正则（镜像 §统一抽取规则真源 B）。
+    """
     fixture = load_fixture("valid_paper.md")
     # 应有 [L01]/[D01]/[C01]/[先01] 编号
     assert "[L01]" in fixture or "[D01]" in fixture, "Fixture 缺 [Lxx]/[Dxx] 编号"
     # 算法要求：每条引用必须标编号
-    pattern = r'\[\w+\d+\]'
-    citations = re.findall(pattern, fixture)
+    citations = M_FORM_1_CITATION_RE.findall(fixture)
     assert len(citations) > 0, "M-Form-1 FAIL: 无引用编号"
     print(f"  ✓ M-Form-1: {len(citations)} 条引用编号")
 
 
+def test_M_Form_1_covers_baseline_and_table_formats():
+    """M-Form-1 正则必须覆盖基线 [D-基-R-01] 与表格 [1.x]（v2.12.56 M-3）
+
+    正样本（必中）+ 负样本（防误报面扩大）双向断言；另断言文档内确有统一常量名。
+    """
+    for sample in ("[D01]", "[C01]", "[C-主01]", "[L12]", "[先03]",
+                   "[D-基-R-01]", "[C-基-A-02]", "[1.1]", "[2.3]"):
+        assert M_FORM_1_CITATION_RE.fullmatch(sample), f"统一正则未覆盖 {sample}"
+
+    for sample in ("[D-x]", "[图1]", "[注]", "[1.x]", "[D]", "[基01]"):
+        assert not M_FORM_1_CITATION_RE.fullmatch(sample), f"统一正则误报 {sample}"
+
+    assert "CITATION_NUMBER_RE" in M_GATE_DOC, "文档缺统一编号正则定义（M-2 回退）"
+    assert "CITATION_BASE_RE" in M_GATE_DOC, "文档缺基线格式正则定义（M-3 回退）"
+    print("  ✓ M-Form-1 正则: 覆盖 标准/基线/表格 三类，负样本零命中")
+
+
 def test_M_Form_1_missing_citation():
-    """M-Form-1 验证：缺引用应 FAIL（LLM 推理判定输入）"""
+    """M-Form-1 验证：缺引用应 FAIL（LLM 推理判定输入）
+
+    v2.12.56 M-3：计数改用统一引用编号正则（判定口径仍为「数量 > 0」，见文档 §判据强度复核）。
+    """
     fixture = load_fixture("missing_citation.md")
     # 该 fixture 故意缺引用编号
-    pattern = r'\[\w+\d+\]'
-    citations = re.findall(pattern, fixture)
+    citations = M_FORM_1_CITATION_RE.findall(fixture)
     # 此 fixture 应缺引用或引用不全
     print(f"  ✓ M-Form-1 missing citation fixture: {len(citations)} 引用（预期 < 5）")
     assert len(citations) < 5, "Fixture 缺引用数与预期不符"
@@ -254,7 +321,9 @@ if __name__ == "__main__":
     print()
     
     tests = [
+        test_unified_extraction_and_verdict_tiers_in_doc,
         test_M_Form_1_citation_complete,
+        test_M_Form_1_covers_baseline_and_table_formats,
         test_M_Form_1_missing_citation,
         test_M_Form_2_sections_complete,
         test_M_Form_3_no_temp_numbering,

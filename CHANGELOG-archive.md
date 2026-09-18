@@ -1,6 +1,6 @@
 # Changelog 归档（v2.12.50 及更早）
 
-> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入）。
+> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入，v2.12.51 于 v2.12.56 轮转迁入）。
 > 拆分口径（v2.12.47）：`CHANGELOG.md` 只保留**最近 5 期**，其余逐字迁入本文件。
 > **`scripts/changelog-check.py` 同时读取两份**，故「每个版本 tag 都有章节」的校验纪律不变。
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
@@ -11,6 +11,42 @@
 ---
 
 ---
+
+## [v2.12.51] — 2026-09-17
+
+> **主题：批次 B 一致性收口 —— 只读档写盘主体唯一化（D-3）+ 测试反向注入不再写真源（D-4）。**
+> **性质：真源口径统一 + 测试污染面消除。无新增能力、无破坏性变更、无安全语义变化。**
+
+### 一、D-3：只读档「报告写盘主体」唯一化（统一为「主控代写盘」）
+
+- **背景**：v2.12.50 一致性审计检出两套口径并存 —— 10 处角色卡 / dispatch 写「我无 `write` 工具，报告随交接回传、由主控 `write` 落盘」，而 `permissions.md:61`「两径定义」+ `phase-order.yaml` 四节点 `write_authority: executor` + `dispatch/T9-同行评审.md:40` 写「报告由 T9 写盘」。
+- **裁定**：统一为「**主控代写盘**」。三条理由：① 只读档确无 `write` 工具 = 更强的权限姿态；② 与 10 处角色卡 / dispatch 口径一致；③ 与 `verification_authority: 主控` 自洽（核验者不落盘则无从核验）。
+- `references/_shared/phase-order.yaml`：`t6_critique` / `t7_audit` / `g14_style_gate` / `t9_review` 四节点 `write_authority: executor` → **`owner`**（行尾注明 D-3）；T1/T2/T3/T4/T5 等自有产物节点保持 `executor` 不动。
+- `references/permissions.md`：删「只读档落盘例外（v2.12.32/33 两径定义）」，改为统一口径段（工具面 = `read`；报告正文随交接回传、主控 `write` 落盘；不得直写；上游产物一律只读）；五档表 `allow_audit` / `allow_review` 两行「工具集」列去掉「+ 自有报告可写」，第三列改为「不修改上游产物；报告由主控落盘」。
+- `references/dispatch/T9-同行评审.md`：「报告由 T9 写盘；主控收到后 `read` 核验并 `write` 落盘二次核验」→「报告正文随交接回传；主控收到后 `write` 落盘并 `read` 核验（**读盘确认铁律**）」；**T9 独立性硬定义（禁主控代笔、主控只做派发 / 收报告 / 落盘拼装）表述不变**。
+
+### 二、D-4：测试反向注入不再写真源（副本注入 + 硬断言）
+
+- **背景**：`tests/test_flow_check.py` ≥11 处反向注入直接 `write_text` **真源**（`phase-order.yaml` / `字数判定表.md` / `可发表性判定表.md` / `08-终检-final-inspector.md`），仅靠 `try/finally` 恢复 —— kill / 超时 / 并行即**永久污染真源**。
+- 新增 helper：`_sandbox()`（`copytree` 整仓 → `tmp_path/repo`，忽略 `.git` / `__pycache__` / `.pytest_cache` / `*.pyc`）+ `_flow_check_in()`（`subprocess.run([sys.executable, <副本>/scripts/flow-check.py], cwd=副本根)` —— 因 `main()` 读**相对路径** `references/_shared/phase-order.yaml`，cwd 必须 = 副本根）+ `_inject_and_expect()`（三断言：真源 sha256 前后不变 / 副本 RC≠0 / 报错指向预期节点或路径）。
+- 11 处反向注入全部改为副本注入；`tests/test_flow_check.py` 独立跑模式（`__main__`）支持 `tmp_path` 参数（临时目录注入）。
+
+### 三、新增机械门「只读档写权」（flow-check）+ 双向回归
+
+- `scripts/flow-check.py` 新增「只读档写权」检查：`role ∈ {T6, T7, T9, G14}` 且 `kind ∈ {agent, conditional_agent, advisory_agent}` 的节点，`write_authority` 必须为 `owner`，否则输出含该节点 id 的错误。（编号取 **23**：13–22 已被 v2.12.49 M/T 系列占用；清单见脚本头部 docstring）
+- `tests/test_flow_check.py`：`test_every_worker_node_declares_role_writability_and_takeover` 改为按档位区分（只读档 → `owner`；自有产物 → `executor`）；新增正向 `test_readonly_tier_reports_are_owner_written` + 反向注入 `test_flow_check_detects_readonly_tier_write_authority`（`t6_critique` 改回 `executor` ⇒ 必须红，教训 #399「机械门必须能红」）。
+
+### 四、验收（实测回填）
+
+> 本批次编辑与验收在**同一次会话补齐**：先由无 exec 的会话完成编辑（留下版本号半 bump 状态），再由具备 shell 的会话执行 `scripts/sync-version.sh`（90 文件）并回填下列实测值。
+
+- `python3 -m pytest tests/ -q` → **331 passed**（0 failed；含新增副本注入 helper 与规则 23 双向回归）
+- `bash scripts/self-audit-gate.sh` → **26 PASS / 0 FAIL**
+- `python3 scripts/flow-check.py` → **RC=0**
+- `python3 scripts/changelog-check.py --check` → **RC=0**（唯一输出为「CHANGELOG 有章节但本地无 tag: v2.12.51」提示，属未发版前的预期态，tag 随发版生成）
+- `bash scripts/check-version.sh` → **通过**（README install pin / 9 角色编号 / 版本号三者一致，v2.12.51）
+
+> ⚠️ **过程留痕（教训 #399 同族）**：本批首轮实测为 **4 failed + 自审门门 C FAIL**，根因非逻辑缺陷，而是「版本号只 bump 了 `SKILL.md`、未跑 `sync-version.sh`」⇒ 51 个文件仍带 v2.12.50 戳 ⇒ 门 C 红，并连带污染 `tests/test_gate_h_reverse_diff.py` 的 4 条断言（该测试解析自审门输出，遇门 C 失败即误判）。**改版本号必须原子完成「bump + sync + 门 C 绿」**，不能拆到两个会话。
 
 ## [v2.12.50] — 2026-09-17
 

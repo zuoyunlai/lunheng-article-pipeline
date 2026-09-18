@@ -2,6 +2,31 @@
 
 ---
 
+## [v2.12.56] — 2026-09-18
+
+- **批次 C · Layer 4 运行时收尾协议（P-1~P-5）**：把「子代理完成后主控不自动推进」的**无人值守环**（2026-09-18 实测：约 17 分钟零完成事件，只能事后读盘重建状态）从「靠运气」改为**可核查协议**：
+  - **P-1 收尾协议（硬约束）**：`_shared/dispatch-header.md` 新增 §收尾协议 —— worker 写完交接报告后**以正常最终消息结束回合**（该消息即 completion event）；**主动作废**自行 `sessions_yield` 的写法（worker 自 `sessions_yield` = 挂起 run 而非完成它 ⇒ 主控收不到完成事件）；交接摘要**不得**塞进 `acknowledgment` 字段（该字段不从子代理回合发出，实际不送达 ⇒ 完成事件 + 摘要双丢）。9 张角色卡 + 两份交接报告模板同步接线，禁用原语清单统一为 `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history`。
+  - **P-2 主控兜底唤醒**：`00-主控-扩展职责.md` 新增第 6 条（与既有第 1 条「spawn 后不轮询」**并存不冲突**）—— spawn 后**必须**安排一次定时自唤醒（= 该角色硬卡阈值 + 缓冲），到点**主动 `read` 核对磁盘产物**，**推进判据以磁盘产物为准**、completion event 仅作**加速信号**；宿主无可用定时面 ⇒ 退化为「下次进入本会话即复核」+ `status.md` 记 `watchdog_unavailable`（不得静默）。⚠️ 方案原文示例的 `automations` **在 `denied` 内**，本协议**不授权调用**（本版不改 `denied` / `coordinator_only`）。
+  - **P-3 能力自检真收口**：把「写 `能力自检：通过`」升级为**必须逐项列出本会话实际可见的工具清单**（禁止只写「通过」），档位不符 ⇒ 当场回报主控、不继续跑（实测事故：派发前未核实实际工具面 ⇒ 子代理无 `exec`/`grep`，无法自验）。
+  - **P-4/P-5 版本链完整性**：交接报告模板正文须随最终消息结束回合；`dispatch/T5-写手.md` + `dispatch/T7-审计.md` 新增 —— 每个 `drafts/初稿-vN.md` 须配同版本号 `交接报告-T5-vN.md`，或 `修订说明-vN.md` 记录完整版本链（版本号 + 日期 + 产物路径）；缺任一版本且无记录链 ⇒ 该版本**不可核验**（T7 判 **P1**；`status.md` 回环记录**不替代**版本链）。实测反例：仅产 `v{1,3,4}`，v2/v5 缺失。
+- **批次 C · Layer 5 删除清理（D-1~D-3）**：
+  - **D-1 多格式导出彻底移出 Phase 0（主人裁定 2026-09-18）**：删 Phase 5 的 A–F「多格式导出选择卡」（7 文件），改为**并入 M-13「主人自行操作建议清单」第 1 项**（执行者 = 主人 host shell，**agent 不执行**任何转换命令）；`SKILL.md` / `关键协议.md` / `external-services.md` / `设计文档-哲学.md` / `checkpoint-card-template.md` / `任务简报-template.md` / `00-主控-扩展职责.md` 六处「3 项 + 多格式 6 选项」口径统一收敛为「**2 项**（期刊匹配 / 中文数据源）」。
+  - **D-2 配图表述核实**：全清单仅 2 处涉及配图，均为合规表述（`image_generate` 已于 v2.12.52 移除 ⇒ 论衡不调用），**未为改而改**。
+  - **D-3 建议清单命令同源**：T8 命令模板改为与 `_shared/format-export.md` §〇/§二 **同源**，并显式标注 latex/docx/pdf 所需模板 / `.bib` / `.csl` **需主人自备**（否则会卡壳）；封面类**无统一可复制命令**故模板只覆盖第 1/2/4 类。
+- **M-Gate 规范补全（M-1~M-7）**：
+  - **M-2 抽取规则唯一真源**：`M-Gate-Algorithm.md` 新增 §统一抽取规则真源（**A 文末节集合**：REQUIRED 4 / OPTIONAL 3 / ALL 7 / NONSTANDARD；**B 引用编号正则**：标准 / 基线 / 表格三类），消除**三组**同源不一致（M-Form-2↔M-Form-7、M-Form-1↔M-Exist-3，外加 A.2 未列的 M-Form-3↔M-Form-7 marker 清单）；各门改为引用真源 + 派生展开视图（注明「非第二真源」）。
+  - **M-1 悬空指针**：§6 删「主人手工跑 `bash scripts/m-gate-check.sh`」实指写法（全仓无该文件），改为显式标注「未实现 / 未随仓保留」，**不凭空造脚本**。
+  - **M-3 弱门评估留痕**：M-Exist-3 等弱判据显式标注「属实弱门，**评估结论：弱，但有意保留**」+ 三条理由（强判据在中英混排/内联引用下必误报；正确性已由 M-Exist-1/M-Form-8/M-Form-3 承担；P0 阻断类塞易误报判据 = 用误报换假阴性）。
+  - **M-4 判据收窄**：① 「正文泄露术语」由裸 substring 改为词边界 + 结构位置约束（旧写法使正文合法的「T1 加权成像」「七段式论证」在 **P0** 误报，一次误报 = 白烧一轮修订）；② 证据-信任级别由「计数相等」改为**逐条/逐行配对**（`len(条目) == len(信任级别)` 不等价于每条都有信任级别）。
+  - **M-5 判定出口唯一真源**：13 项 M 门伪代码统一经 §统一抽取规则真源 C 的 `verdict_pass` / `verdict_fail` / `verdict_undecidable` / `verdict_path_error` 返回，`档位` 取值与附录 schema `判定记录_双字段` **逐字一致**。
+  - **M-6 依赖面补全**：`scripts/m_gate_dependencies.yaml` 补 M-Form-1 / M-Exist-3 的 `final/图件/*.svg` 依赖（对齐自审门 J）、M-Form-8 的 `01-任务简报.md` 依赖（伪代码从简报提取 `[论点N]`），并注明**本文件只影响「变更定位范围」、不产出 M 门结论**。
+  - **M-7 未定义 helper**：新增 §未定义 helper 清单与替代口径（`extract_intext_v2` / `extract_endnote_v2` → 按真源 A + B 切分提取）。
+- **残余 S-4 指针化收口**：`references/templates/任务简报-template.md` 最后一处轮次口径复述点（原「第 3 轮触发 → Acknowledged Limitations 模式」）改为指向 `_shared/pipeline-overview.md`『修订回环仲裁规则』。
+- **教训库同步**：`lessons-max.snapshot` 409 → **420**（主真源续录 #415-#420 六条论衡类教训）；`教训索引.md` 最大编号同步为 #420，并注明**编号撞号未清**（#415×2 / #416×2，撞号不推高本值语义）。
+- **验证**：构建期三件套全绿 —— `flow-check.py` rc=0、`self-audit-gate.sh` **PASS 26 / FAIL 0**、`pytest` **348 passed**；`link-check` 相对链接 485 条 + 入口裸引用 2 条全部可解析。
+
+---
+
 ## [v2.12.55] — 2026-09-18
 
 - **批次 B · Layer 2 真源修复（S-2~S-6）**：
@@ -93,39 +118,3 @@
 > ⚠️ **未做项（待主人批）**：本批次**仅本地提交** —— 未 push / 未打 tag / 未建 GitHub Release / 未构建净化包。发版前须先跑 `bash scripts/release-preflight.sh v2.12.52`；本轮已随提交把最旧章节 v2.12.47 迁入归档（主文件保持 5 期）。
 
 ---
-
-## [v2.12.51] — 2026-09-17
-
-> **主题：批次 B 一致性收口 —— 只读档写盘主体唯一化（D-3）+ 测试反向注入不再写真源（D-4）。**
-> **性质：真源口径统一 + 测试污染面消除。无新增能力、无破坏性变更、无安全语义变化。**
-
-### 一、D-3：只读档「报告写盘主体」唯一化（统一为「主控代写盘」）
-
-- **背景**：v2.12.50 一致性审计检出两套口径并存 —— 10 处角色卡 / dispatch 写「我无 `write` 工具，报告随交接回传、由主控 `write` 落盘」，而 `permissions.md:61`「两径定义」+ `phase-order.yaml` 四节点 `write_authority: executor` + `dispatch/T9-同行评审.md:40` 写「报告由 T9 写盘」。
-- **裁定**：统一为「**主控代写盘**」。三条理由：① 只读档确无 `write` 工具 = 更强的权限姿态；② 与 10 处角色卡 / dispatch 口径一致；③ 与 `verification_authority: 主控` 自洽（核验者不落盘则无从核验）。
-- `references/_shared/phase-order.yaml`：`t6_critique` / `t7_audit` / `g14_style_gate` / `t9_review` 四节点 `write_authority: executor` → **`owner`**（行尾注明 D-3）；T1/T2/T3/T4/T5 等自有产物节点保持 `executor` 不动。
-- `references/permissions.md`：删「只读档落盘例外（v2.12.32/33 两径定义）」，改为统一口径段（工具面 = `read`；报告正文随交接回传、主控 `write` 落盘；不得直写；上游产物一律只读）；五档表 `allow_audit` / `allow_review` 两行「工具集」列去掉「+ 自有报告可写」，第三列改为「不修改上游产物；报告由主控落盘」。
-- `references/dispatch/T9-同行评审.md`：「报告由 T9 写盘；主控收到后 `read` 核验并 `write` 落盘二次核验」→「报告正文随交接回传；主控收到后 `write` 落盘并 `read` 核验（**读盘确认铁律**）」；**T9 独立性硬定义（禁主控代笔、主控只做派发 / 收报告 / 落盘拼装）表述不变**。
-
-### 二、D-4：测试反向注入不再写真源（副本注入 + 硬断言）
-
-- **背景**：`tests/test_flow_check.py` ≥11 处反向注入直接 `write_text` **真源**（`phase-order.yaml` / `字数判定表.md` / `可发表性判定表.md` / `08-终检-final-inspector.md`），仅靠 `try/finally` 恢复 —— kill / 超时 / 并行即**永久污染真源**。
-- 新增 helper：`_sandbox()`（`copytree` 整仓 → `tmp_path/repo`，忽略 `.git` / `__pycache__` / `.pytest_cache` / `*.pyc`）+ `_flow_check_in()`（`subprocess.run([sys.executable, <副本>/scripts/flow-check.py], cwd=副本根)` —— 因 `main()` 读**相对路径** `references/_shared/phase-order.yaml`，cwd 必须 = 副本根）+ `_inject_and_expect()`（三断言：真源 sha256 前后不变 / 副本 RC≠0 / 报错指向预期节点或路径）。
-- 11 处反向注入全部改为副本注入；`tests/test_flow_check.py` 独立跑模式（`__main__`）支持 `tmp_path` 参数（临时目录注入）。
-
-### 三、新增机械门「只读档写权」（flow-check）+ 双向回归
-
-- `scripts/flow-check.py` 新增「只读档写权」检查：`role ∈ {T6, T7, T9, G14}` 且 `kind ∈ {agent, conditional_agent, advisory_agent}` 的节点，`write_authority` 必须为 `owner`，否则输出含该节点 id 的错误。（编号取 **23**：13–22 已被 v2.12.49 M/T 系列占用；清单见脚本头部 docstring）
-- `tests/test_flow_check.py`：`test_every_worker_node_declares_role_writability_and_takeover` 改为按档位区分（只读档 → `owner`；自有产物 → `executor`）；新增正向 `test_readonly_tier_reports_are_owner_written` + 反向注入 `test_flow_check_detects_readonly_tier_write_authority`（`t6_critique` 改回 `executor` ⇒ 必须红，教训 #399「机械门必须能红」）。
-
-### 四、验收（实测回填）
-
-> 本批次编辑与验收在**同一次会话补齐**：先由无 exec 的会话完成编辑（留下版本号半 bump 状态），再由具备 shell 的会话执行 `scripts/sync-version.sh`（90 文件）并回填下列实测值。
-
-- `python3 -m pytest tests/ -q` → **331 passed**（0 failed；含新增副本注入 helper 与规则 23 双向回归）
-- `bash scripts/self-audit-gate.sh` → **26 PASS / 0 FAIL**
-- `python3 scripts/flow-check.py` → **RC=0**
-- `python3 scripts/changelog-check.py --check` → **RC=0**（唯一输出为「CHANGELOG 有章节但本地无 tag: v2.12.51」提示，属未发版前的预期态，tag 随发版生成）
-- `bash scripts/check-version.sh` → **通过**（README install pin / 9 角色编号 / 版本号三者一致，v2.12.51）
-
-> ⚠️ **过程留痕（教训 #399 同族）**：本批首轮实测为 **4 failed + 自审门门 C FAIL**，根因非逻辑缺陷，而是「版本号只 bump 了 `SKILL.md`、未跑 `sync-version.sh`」⇒ 51 个文件仍带 v2.12.50 戳 ⇒ 门 C 红，并连带污染 `tests/test_gate_h_reverse_diff.py` 的 4 条断言（该测试解析自审门输出，遇门 C 失败即误判）。**改版本号必须原子完成「bump + sync + 门 C 绿」**，不能拆到两个会话。

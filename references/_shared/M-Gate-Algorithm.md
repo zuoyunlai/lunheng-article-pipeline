@@ -1,4 +1,4 @@
-> 版本：v2.12.55（自动同步 2026-09-18）
+> 版本：v2.12.56（自动同步 2026-09-18）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -63,7 +63,7 @@ M 门 13 项伪代码是「**主控 LLM 推理模拟执行**」，不是真 shel
 
 如主人需要真正机器强制校验，可选：
 - **OpenClaw runtime 加 M-Gate 工具**（类似 OpenAlex 路径 B：MCP server）
-- **主人手工跑 `bash scripts/m-gate-check.sh`**（从 M-Gate 伪代码派生 bash 脚本，但**不在论衡 agent 工具白名单内；发布版亦不含 `scripts/` 目录**）
+- **主人手工跑派生的 bash 校验脚本**（从 M-Gate 伪代码派生后，在 host shell 手动执行）：⚠️ **如实标注「未实现 / 未随仓保留」** —— 本节历史版本引用的 `scripts/m-gate-check.sh` **全仓不存在**（全仓仅此一处引用），属**悬空指针**；v2.12.56 据实标注，**不凭空补造脚本**。可行路线只有两条：① 主人按本规约伪代码**自行派生**；② 待待办裁定后再建。且该脚本即便写出，也**不在论衡 agent 工具白名单内；发布版亦不含 `scripts/` 目录**。
 
 ---
 
@@ -327,62 +327,189 @@ M 门 13 项伪代码是「**主控 LLM 推理模拟执行**」，不是真 shel
 
 ---
 
+## 🔧 统一抽取规则真源（v2.12.56 新增，修 M-2：消除两处同源不一致）
+
+> **背景**：13 项 M 门里有两组「同源却各写一份」的抽取规则 ——
+> ① **文末节集合**：M-Form-2 写「必需四节」、M-Form-7 写「白名单七节」，两处各自成文；
+> ② **引用编号正则**：M-Form-1 用「字母 + 数字」式、M-Exist-3 另写一套（另含表格体例）。
+> 机械化照做会把不一致**固化成互相矛盾的门**。**本节 = 这两类抽取规则的唯一真源**；
+> M-Form-1 / M-Form-2 / M-Form-3 / M-Form-7 / M-Form-8 / M-Exist-1 / M-Exist-3 一律**引用本节**，不再各写一份。
+> 本节仍是 **LLM 推理执行**的伪代码定义（**零 exec 口径不变**，见顶部诚实声明）。
+
+### A. 文末节集合（唯一真源）
+
+| 集合 | 内容 | 消费者 |
+|---|---|---|
+| `ENDNOTE_SECTIONS_REQUIRED`（必需子集，4 节） | 参考文献 / 数据来源 / 案例来源 / 先行者文献 | M-Form-2（缺任一 = 不通过） |
+| `ENDNOTE_SECTIONS_OPTIONAL`（白名单可选子集，3 节） | 致谢 / AI 使用声明 / 方法论附录 | M-Form-7（出现即合法；不出现不判失败） |
+| `ENDNOTE_SECTIONS_ALL`（= 必需 4 节 ∪ 可选 3 节） | 上文 4 节 + 可选 3 节 | M-Form-7 白名单判定 |
+| `ENDNOTE_SECTIONS_NONSTANDARD`（非标准节） | `## 附` 等历史变体 | M-Exist-1 / M-Form-3 的「文末」收录面 |
+
+**三条关系（一次写死，杜绝再分叉）**：
+
+1. `REQUIRED ⊂ ALL`：**必需四节**与**白名单七节**不是两个集合，**是同一节集合的两个口径**（「至少要有」vs「最多只能有」）。
+2. `NONSTANDARD ⊄ ALL`：`## 附` 等非标准节**收录进「文末」用于双向 diff**（教训 #291），但**不在白名单内** ⇒ M-Form-7 判违规。
+3. **标题匹配口径唯一**：`title == 节名` 或 `title.startswith(节名)`（前缀匹配，容忍「数据来源（可信度标注）」这类带括号变体）。
+
+### B. 引用编号正则（唯一真源）
+
+```python
+import re
+
+# 唯一真源常量（三类格式必须同时覆盖；①② 由 T5 铁律强制，③ 为表格体例）
+#   ① 标准编号：[D01] [C01] [C-主01] [L01] [先01]
+#   ② 基线编号：[D-基-R-01] 等「字母-分段-序号」写法
+#   ③ 表格编号：[1.1] [2.3] 等「章.序」写法
+CITATION_STD_RE = re.compile(r'\[(?:D|C|C-主|L|先)\d+\]')
+CITATION_BASE_RE = re.compile(r'\[(?:D|C|L|先)-[\w\-]*?\d+\]')
+CITATION_TABLE_RE = re.compile(r'\[\d+\.\d+\]')
+CITATION_NUMBER_RE = re.compile(
+    r'\[(?:(?:D|C|C-主|L|先)\d+|(?:D|C|L|先)-[\w\-]*?\d+|\d+\.\d+)\]'
+)
+```
+
+**② 基线格式的收窄约束（防误报面扩大）**：必须**以 `-` 开头**且**以数字结尾**，中间仅允许 `[\w\-]`；
+**不接受** `[D-x]` / `[图1]` / `[注]` 这类形态 —— 它们更可能是正文里的普通方括号标注，不是引用编号。
+
+**消费口径（三处必须同源）**：
+
+| 消费者 | 用哪个常量 | 用途 |
+|---|---|---|
+| M-Form-1 | `CITATION_NUMBER_RE` | 统计定稿（含 SVG 文本节点）的引用编号集合，判「有无引用」 |
+| M-Form-3 / M-Form-8 | `CITATION_NUMBER_RE`（分类型时用 `CITATION_STD_RE` / `CITATION_BASE_RE` / `CITATION_TABLE_RE`） | 正文 vs 文末提取、三角验证分类型覆盖 |
+| M-Exist-1 / M-Exist-3 | `CITATION_NUMBER_RE`（分类型同上） | 与数据卡 / 文末清单做双向 diff |
+
+### C. 判定出口（第 3/4 档，唯一真源；修 M-5）
+
+> **背景**：全部伪代码原先只有 `{"通过": True}` / `{"通过": False}` **两档**，而规约强制**四档**
+> （见 §判定结果分档）。照两档机械化的后果 = **「产物不存在」被判「不通过」** ⇒ 触发本不该发生的修订轮
+> （2026-09-14 实测同型事故：白烧一整轮）。故给出**四个出口**，全部伪代码统一调用。
+
+```python
+def verdict_pass(**fields):
+    """第 1 档：通过"""
+    return {"通过": True, "档位": "通过", **fields}
+
+def verdict_fail(reason, **fields):
+    """第 2 档：不通过（内容 / 证据缺陷，触发修订轮）"""
+    return {"通过": False, "档位": "不通过", "失败原因": reason, **fields}
+
+def verdict_undecidable(reason, **fields):
+    """第 3 档：无法判定（输入不可读 / 证据不足 / 上游自相矛盾；不触发修订轮）"""
+    return {"通过": False, "档位": "无法判定", "失败原因": reason, **fields}
+
+def verdict_path_error(reason, **fields):
+    """第 4 档：路径或参数错误（产物不存在 / 路径越界 / 参数非法；不触发修订轮）"""
+    return {"通过": False, "档位": "路径或参数错误", "失败原因": reason, **fields}
+```
+
+**统一第 0 步**：每个检查项先做 §闸门第 0 步 三项校验（存在 / 非空 / 新鲜）；
+不满足即 `verdict_path_error(...)` 并**立即返回**，不得继续走内容判定。
+
+**与附录 JSON 严格对齐**：`"档位"` 取值只能是
+`"通过" | "不通过" | "无法判定" | "路径或参数错误"`（见 M-Gate-Algorithm-appendix.md 的 `判定记录_双字段` 段）；
+`通过: True/False` 仅作兼容旧读法的布尔镜像，**档位以 `档位` 字段为准**。
+
+---
+
+## 🧩 未定义 helper 清单与替代口径（v2.12.56 新增，修 M-7）
+
+> **背景**：本规约伪代码引用了约 20 个**全仓无实现**的辅助函数。它们历史上被读作「可机械化的承诺」，
+> 实际既无实现、也不会有实现（**零 exec** + 净化包不携带脚本）。
+> **本节口径 = 优先标注**：这些 helper **不做机械实现 —— 由主控 LLM 推理替代**
+> （`read` 磁盘原件 + 按本节规则推理）。这与本规约首句一致：**本规约不是机器执行**。
+> **不得**把本节读成「待实现清单」，也**不得**以「helper 未实现」为由跳过对应检查项。
+> 新增 helper **必须同批登记本表**（防未定义函数再次静默累积）。
+
+| helper | 替代口径（LLM 推理执行） | 使用处 |
+|---|---|---|
+| `extract_text_nodes(glob)` | `read` 各 SVG 后提取 `<text>` / `<desc>` / `<title>` / `<tspan>` 节点文本 | M-Form-1 / M-Exist-3 |
+| `extract_intext_v2(draft)` / `extract_endnote_v2(...)` | 按 §统一抽取规则真源 A + B 切分与提取 | M-Exist-1 |
+| `can_trace_back(ref)` | 逐条判内联引用能否在文末节 + 证据包找到对应条目 | M-Exist-1（内联模式） |
+| `extract_body(text)` / `extract_endnote(text)` | 按 `ENDNOTE_SECTIONS_ALL` + `ENDNOTE_SECTIONS_NONSTANDARD` 的首次命中位置切分 | M-Form-3 |
+| `extract_trust_dict_standard(card)` / `extract_trust_dict_table(card)` | 逐条读数据卡，建立「编号 → 信任级别」映射 | M-Form-6 / M-Exist-3 |
+| `count_d_entries(card)` | 双格式并集去重后计数 | M-Integrity-1 |
+| `count_data_requirements_in_brief(brief)` | 读任务简报「研究问题」段，累加各子问题「需找数据点 ≥N」 | M-Integrity-1 |
+| `get_paragraph_containing(text, needle)` | 取 `needle` 所在段落（上下空行或标题界定） | M-Form-5 |
+| `check_header_vs_actual_count(card)` | 比对数据卡头部「共 N 条」与实际计数 | M-Integrity-1 |
+| `check_M_Form_6(card)` / `check_M_Exist_3(...)` | 复用本规约 M-Form-6 / M-Exist-3 判定 | M-Integrity-1 / M-Integrity-2 |
+| `get_latest_audit_report(dir)` | 列目录取 `vN` 最大者 | M-Integrity-2 |
+| `check_p0_p1_listed(report)` | 读审计报告，核对 P0/P1 段显式列出（可为零条但须显式写） | M-Integrity-2 |
+| `check_m_gate_all_pass_current_round()` | 读本轮章节级 M 门记录 + status.md 记录表 | M-Integrity-2 |
+| `check_evidence_sha256_placeholder(doc)` | 读交付说明「证据包指纹」段，认占位符即通过 | M-Integrity-2 |
+| `check_draft_vs_report_isolation(...)` | 分别 `read` 三份产物，判论文与报告内容互不混入 | M-Integrity-2 |
+| `check_revision_by_independent_writer(status)` | 读 status.md 修订回环记录，判是否由独立写手执行 | M-Integrity-2 |
+| `emit_placeholder_sha256(card)` | 发占位符文本（非哈希计算，**不**作闸门强制项） | M-Integrity-1 |
+
+**两条纪律**：
+
+1. **登记 ≠ 放行**：helper 未实现**不降低**检查强度 —— 判定照跑、四档照落、枚举证据照给（见 §通过档证据）。
+2. **替代口径不得漂移**：若某 helper 的替代口径与实际做法不同，**改口径而不是改门**；口径变更须同步本表。
+
+---
+
 ## M-Form 形式合规门（8 项）
 
 ### M-Form-1: 引用标注完整性
 
 **伪代码**（主控 LLM 推理执行）：
 ```python
+# 第 0 步：输入新鲜度（见 §闸门第 0 步；不满足即第 4 档，立即返回，不触发修订）
+if not exists("final/定稿.md"):
+    return verdict_path_error("final/定稿.md 不存在（路径或参数错误，不触发修订）")
+
 # 读取定稿全文 + final/图件/ 内 SVG
 draft_text = read("final/定稿.md")
 svg_texts = []
 for svg_file in glob("final/图件/*.svg"):
-    # 提取 SVG 文本节点：<text>…</text> / <desc>…</desc> / <title>…</title>
-    svg_texts.append(read(svg_file))
+    # 提取 SVG 文本节点：<text>…</text> / <desc>…</desc> / <title>…</title> / <tspan>
+    svg_texts.append(extract_text_nodes(svg_file))  # helper 无机械实现 → 由 LLM 推理替代（见 §未定义 helper 清单）
 
 # 提取所有引用标注（md 正文 + SVG 内嵌文本 视为事实层）
 all_text = draft_text + "\n".join(svg_texts)
-import re
-references = re.findall(r'\[(?:D|C|C-主|L|先)\d+\]', all_text)
+# 引用编号正则：唯一真源见 §统一抽取规则真源 B（覆盖 ①标准 ②基线 ③表格 三类格式）
+references = CITATION_NUMBER_RE.findall(all_text)
 references_unique = sorted(set(references))
 
-# 判定
+# 判定（四档出口见 §统一抽取规则真源 C）
 if len(references_unique) > 0:
-    return {"通过": True, "引用数": len(references_unique), "SVG 文本节点纳入": len(svg_texts)}
+    return verdict_pass(**{"引用数": len(references_unique), "SVG 文本节点纳入": len(svg_texts)})
 else:
-    return {"通过": False, "失败原因": "正文 + SVG 内嵌文本均无任何引用标注"}
+    return verdict_fail("正文 + SVG 内嵌文本均无任何引用标注", **{"引用数": 0})
 ```
 
 **关键扩展（教训 #184 实战）**：SVG 内的 `<text>` / `<desc>` / `<title>` / `<tspan>` 节点现视为事实层（M-Gate 核验覆盖），与正文 .md 同等待遇。这是为了防止「正文中正、SVG 中错」的双线不一致（SVG 残留 3 处」）。
 
+**判据强度复核（v2.12.56 M-3）**：本项判据仅为「引用编号集合非空（数量 > 0）」，**属实弱门** —— 只抓「全篇零引用」这类极端缺陷，抓不到「某章缺引用 / 密度不足」。**评估结论：弱，但有意保留**，理由三条：① 更严的判据（如「每章 ≥N 条」）在**中英混排 / 内联引用模式**下会误报（内联模式的「（机构，年份）」不产生编号，见 M-Exist-1 内联分支）；② 引用覆盖的**正确性**已由其他门承担 —— 编号对应由 M-Exist-1 双向 diff、论点级覆盖由 M-Form-8 三角验证、残留编号由 M-Form-3；③ 在 **P0 阻断类**门里塞入易误报的强判据 = 用误报换假阴性，代价是白烧修订轮（本仓已有同型事故）。⇒ **维持「数量 > 0」**；如需更严，应新增**独立**分档项并在非阻断档报告，而不是改写本门。
+
 **人类验证示例**（可选，主人手动复核用）：
 ```bash
 # 在 host shell 执行
-grep -oE '\[(D|C|L|先)\d+\]' final/定稿.md | sort -u | wc -l
-for f in final/图件/*.svg; do grep -oE '\[(D|C|L|先)\d+\]' "$f" | sort -u; done | sort -u | wc -l
+grep -oE '\[(D|C|C-主|L|先)[0-9]+\]|\[(D|C|L|先)-[A-Za-z0-9-]*[0-9]+\]|\[[0-9]+\.[0-9]+\]' final/定稿.md | sort -u | wc -l
+for f in final/图件/*.svg; do grep -oE '\[(D|C|C-主|L|先)[0-9]+\]|\[(D|C|L|先)-[A-Za-z0-9-]*[0-9]+\]|\[[0-9]+\.[0-9]+\]' "$f" | sort -u; done | sort -u | wc -l
 ```
 
 ### M-Form-2: 文末四节存在性
 
 **伪代码**（主控 LLM 推理执行）：
 ```python
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists("final/定稿.md"):
+    return verdict_path_error("final/定稿.md 不存在（路径或参数错误，不触发修订）")
+
 # 读取定稿全文
 draft_text = read("final/定稿.md")
 
-# 检查四节
-required_sections = [
-    "## 数据来源",
-    "## 案例来源", 
-    "## 参考文献",
-    "## 先行者文献"
-]
+# 必需四节：唯一真源见 §统一抽取规则真源 A（ENDNOTE_SECTIONS_REQUIRED）
+# 本项不再自写节名清单；标题匹配口径（前缀匹配 + 括号变体容忍）亦取自该节
+required_sections = [f"## {s}" for s in ENDNOTE_SECTIONS_REQUIRED]
 
 missing = [s for s in required_sections if s not in draft_text]
 
 if len(missing) == 0:
-    return {"通过": True}
+    return verdict_pass(**{"必需节已齐": len(required_sections)})
 else:
-    return {"通过": False, "缺失章节": missing}
+    return verdict_fail("缺必需文末节", **{"缺失章节": missing})
 ```
 
 ### M-Form-3: 临时编号残留（教训 #272）
@@ -393,41 +520,47 @@ else:
 
 **伪代码**（主控 LLM 推理执行）：
 ```python
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists("final/定稿.md"):
+    return verdict_path_error("final/定稿.md 不存在（路径或参数错误，不触发修订）")
+
 # 读取定稿
 draft_text = read("final/定稿.md")
 
-# 辅助函数：提取正文部分（排除文末四节）
+# 文末节集合：唯一真源见 §统一抽取规则真源 A
+#   收录面 = ENDNOTE_SECTIONS_ALL（白名单七节）+ ENDNOTE_SECTIONS_NONSTANDARD（## 附 等变体）
+#   本项不再自写 markers 清单 —— 历史上它与 M-Form-7 白名单分叉，即 M-2 要消除的不一致之一
+ENDNOTE_MARKERS = [f"## {s}" for s in list(ENDNOTE_SECTIONS_ALL) + list(ENDNOTE_SECTIONS_NONSTANDARD)]
+
+# 辅助函数：提取正文部分（排除文末节）
 def extract_body(text):
-    endnote_markers = ["## 数据来源", "## 案例来源", "## 参考文献", "## 先行者文献", "## 附"]
-    for marker in endnote_markers:
+    for marker in ENDNOTE_MARKERS:
         if marker in text:
             text = text.split(marker)[0]
     return text
 
 # 辅助函数：提取文末部分
 def extract_endnote(text):
-    endnote_markers = ["## 数据来源", "## 案例来源", "## 参考文献", "## 先行者文献", "## 附"]
     parts = []
-    for marker in endnote_markers:
+    for marker in ENDNOTE_MARKERS:
         if marker in text:
             parts.append(text.split(marker)[1] if len(text.split(marker)) > 1 else "")
     return "\n".join(parts)
 
-# 提取正文和文末的引用编号
-import re
+# 提取正文和文末的引用编号（正则唯一真源见 §统一抽取规则真源 B）
 body_text = extract_body(draft_text)
 endnote_text = extract_endnote(draft_text)
 
-intext = sorted(set(re.findall(r'\[(L|D|C)\d+\]', body_text)))
-endnote = sorted(set(re.findall(r'\[(L|D|C)\d+\]', endnote_text)))
+intext = sorted(set(CITATION_NUMBER_RE.findall(body_text)))
+endnote = sorted(set(CITATION_NUMBER_RE.findall(endnote_text)))
 
 # 计算真正残留（正文有但文末无）
 orphan = sorted(set(intext) - set(endnote))
 
 if len(orphan) == 0:
-    return {"通过": True}
+    return verdict_pass(**{"正文编号数": len(intext), "文末编号数": len(endnote)})
 else:
-    return {"通过": False, "残留编号": orphan}
+    return verdict_fail("正文引用编号在文末无对应（临时编号残留）", **{"残留编号": orphan})
 ```
 
 **人类验证示例**（可选）：
@@ -452,22 +585,70 @@ comm -23 /tmp/intext.txt /tmp/endnote.txt  # 正文有但文末无
 
 **伪代码**（主控 LLM 推理执行）：
 ```python
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists("final/定稿.md"):
+    return verdict_path_error("final/定稿.md 不存在（路径或参数错误，不触发修订）")
+
 # 读取定稿
 draft_text = read("final/定稿.md")
+lines = draft_text.split("\n")
 
-# 元数据泄露检查词
-metadata_leaks = [
-    "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8",
-    "交接报告", "七段", "论衡主控", "子代理", "反哺报告", "角色卡"
-]
+# ① ASCII 角色代号：词边界约束（不再裸 substring）
+#    前后不得为 [A-Za-z0-9]，避开 T1WI / T1DM / MT5 这类正文术语
+ROLE_TOKEN_RE = re.compile(r'(?<![A-Za-z0-9])T([1-8])(?![0-9A-Za-z])')
 
-found = [word for word in metadata_leaks if word in draft_text]
+# ② 中文内部术语：结构位置约束（仅位置命中算泄露）
+INTERNAL_TERMS = ["交接报告", "七段", "论衡主控", "子代理", "反哺报告", "角色卡"]
+COOCCUR_TERMS = ["主控", "角色卡", "交接报告", "子代理", "报告", "节点", "M 门"]
 
-if len(found) == 0:
-    return {"通过": True}
+def structural_position(line, term):
+    """结构位置四则：标题行 / 独立成段 / 括号注记 / 内部术语共现行"""
+    if re.match(r'^\s{0,3}#{1,6}\s+', line):                       # ① 标题行
+        return True
+    if re.fullmatch(r'[\s\W]*' + re.escape(term) + r'[\s\W]*', line):  # ② 独立成段
+        return True
+    if re.search(r'[（(][^）)]*' + re.escape(term) + r'[^）)]*[）)]', line):  # ③ 括号注记
+        return True
+    return sum(1 for t in COOCCUR_TERMS if t in line) >= 2          # ④ 内部术语共现行
+
+leaks_p0 = []    # 结构位置命中 → P0（阻断）
+suspected = []   # 仅裸出现 → 疑似（非阻断，供人工抽检）
+
+for idx, line in enumerate(lines, 1):
+    if ROLE_TOKEN_RE.search(line):
+        leaks_p0.append({"行号": idx, "类型": "角色代号", "原文": line.strip()[:80]})
+        continue
+    for term in INTERNAL_TERMS:
+        if term not in line:
+            continue
+        if structural_position(line, term):
+            leaks_p0.append({"行号": idx, "类型": term, "原文": line.strip()[:80]})
+        else:
+            suspected.append({"行号": idx, "类型": term, "原文": line.strip()[:80]})
+
+if len(leaks_p0) == 0:
+    return verdict_pass(**{"结构位置命中": 0, "疑似（非阻断）": len(suspected)})
 else:
-    return {"通过": False, "泄露词": found, "优先级": "P0"}
+    return verdict_fail("角色元数据在结构位置泄露", **{"优先级": "P0", "泄露清单": leaks_p0})
 ```
+
+**为何这样写不再误报（v2.12.56 M-4①）**：旧写法是 `word in draft_text`（裸 substring），而本项是 **P0**（命中即阻断交付）——于是正文里合法的「T1 加权成像」「七段式论证」都会误报，**一次误报 = 白烧一轮修订**。新写法收窄三层：
+
+1. **ASCII 代号走词边界**：必须前后非字母数字（避开同一文档里的合法临床/技术写法）。
+2. **中文术语走结构位置**：仅标题行 / 独立成段 / 括号注记 / 内部术语共现行四类位置命中算泄露。
+3. **仅裸出现降为「疑似」**：进抽检清单，**不阻断、不触发修订**。
+
+**不会退化为恒真（必中样本仍全数命中）**：
+
+| 样本 | 旧写法 | 新写法 |
+|---|---|---|
+| 标题行 `## 主控签字` | 命中 | **命中（P0：标题行）** |
+| 独立成段 `子代理` | 命中 | **命中（P0：独立成段）** |
+| 正文 `（T5）` | 命中 | **命中（P0：括号注记 / 词边界）** |
+| `交接报告 + 主控` 同行 | 命中 | **命中（P0：内部术语共现行）** |
+| `T1 加权成像显示白质病变` | 命中（误报） | 不命中 → 疑似（非阻断） |
+| `七段式论证贯穿全文` | 命中（误报） | 不命中 → 疑似（非阻断） |
+| `MT5 与基线模型对比` | 命中（误报） | 不命中（`T5` 前有字母，非独立代号） |
 
 **注意**：M-Form-4 是 P0 优先级，角色元数据泄露 = 读者看到论衡内部代码 = 失去学术严肃性。
 
@@ -475,6 +656,10 @@ else:
 
 **伪代码**（主控 LLM 推理执行）：
 ```python
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists("final/定稿.md"):
+    return verdict_path_error("final/定稿.md 不存在（路径或参数错误，不触发修订）")
+
 # 读取定稿
 draft_text = read("final/定稿.md")
 
@@ -500,14 +685,14 @@ for pattern in process_patterns:
 estimate_uses = re.findall(r'据行业经验估算', draft_text)
 for use in estimate_uses:
     # 检查上下文是否有 [行业估算] 标记
-    context = get_paragraph_containing(draft_text, use)
+    context = get_paragraph_containing(draft_text, use)  # helper 无机械实现 → 由 LLM 推理替代（取该串所在段落）
     if "[行业估算" not in context:
         found.append("据行业经验估算（未标记）")
 
 if len(found) == 0:
-    return {"通过": True}
+    return verdict_pass(**{"残留词数": 0})
 else:
-    return {"通过": False, "残留词": found}
+    return verdict_fail("正文含过程语言残留", **{"残留词": found})
 ```
 
 **注意**："据行业经验估算" 是 v2.1.1 引入的「合法估算标记」。段落开头标 `[行业估算，非数据卡]` → G6 论据类型自标（合法）；无标记直接用 → P1 残留。
@@ -524,33 +709,52 @@ evidence-pack-copy-note
 
 **伪代码**（主控 LLM 推理执行）：
 ```python
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists("data/数据卡.md"):
+    return verdict_path_error("data/数据卡.md 不存在（路径或参数错误，不触发修订）")
+
 # 读取数据卡
 data_card_text = read("data/数据卡.md")
 
-import re
+# ---- 标准格式：逐条配对（v2.12.56 M-4②：计数相等 ≠ 逐条配对）----
+# 按条目首行切块，再在**块内**找信任级别
+std_blocks = re.split(
+    r'(?=^\s*(?:\*\*|#{2,4}\s*)?\[D\d+\])', data_card_text, flags=re.MULTILINE
+)
+std_entries = [
+    b for b in std_blocks
+    if re.match(r'^\s*(?:\*\*|#{2,4}\s*)?\[D\d+\]', b)
+]
 
-# 标准格式检查（[Dxx] 编号；兼容随包模板三种写法：`**[D01]` / `### [D01]` / 行首 `[D01]`）
-d_entries_std = re.findall(r'^\s*(?:\*\*|#{2,4}\s*)?\[D\d+\]', data_card_text, re.MULTILINE)
-# 信任级别：容忍加粗与 emoji 修饰（模板有 `信任级别：` 与 `**信任级别**: 🟢 已发布` 两种写法）
-trust_std = re.findall(r'信任级别[^\n]{0,16}?(已发布|主人投喂|二手转引)', data_card_text)
+unpaired_std = []
+for block in std_entries:
+    did = re.match(r'^\s*(?:\*\*|#{2,4}\s*)?(\[D\d+\])', block).group(1)
+    # 信任级别必须出现在「该条目自己的块内」（容忍加粗与 emoji 修饰）
+    if not re.search(r'信任级别[^\n]{0,16}?(已发布|主人投喂|二手转引)', block):
+        unpaired_std.append(did)
 
-# 表格 fallback 检查（1.x 表格格式）
-d_entries_table = re.findall(r'^\| \d+\.\d+ \|', data_card_text, re.MULTILINE)
-trust_table = re.findall(r'\|\s*(已发布|主人投喂|二手转引)\s*\|', data_card_text)
+# ---- 表格格式：逐行配对（信任级别必须在本行内）----
+table_rows = re.findall(r'^\|\s*\d+\.\d+\s*\|.*$', data_card_text, re.MULTILINE)
+unpaired_table = []
+for row in table_rows:
+    if not re.search(r'\|\s*(已发布|主人投喂|二手转引)\s*\|', row):
+        unpaired_table.append(row.split('|')[1].strip())
 
-# 判定
-std_pass = (len(d_entries_std) == len(trust_std))
-table_pass = (len(d_entries_table) == len(trust_table))
+all_pass = (len(unpaired_std) == 0 and len(unpaired_table) == 0)
 
-if std_pass and table_pass:
-    return {
-        "通过": True,
-        "标准格式": {"条目": len(d_entries_std), "信任级别": len(trust_std)},
-        "表格格式": {"条目": len(d_entries_table), "信任级别": len(trust_table)}
-    }
+if all_pass:
+    return verdict_pass(**{"标准格式条目": len(std_entries), "表格格式行": len(table_rows)})
 else:
-    return {"通过": False, "详情": {"标准格式通过": std_pass, "表格格式通过": table_pass}}
+    return verdict_fail(
+        "存在未配对（缺信任级别）的数据条目",
+        **{"未配对_标准": unpaired_std, "未配对_表格": unpaired_table}
+    )
 ```
+
+**为何不再用「计数相等」（v2.12.56 M-4②）**：`len(条目) == len(信任级别)` **不等价于**「每条都有信任级别」——
+反例：**2 条缺标注 + 2 条重复标注** ⇒ 两边计数相等、等式成立，而整份数据卡实际有 2 条无信任级别，**照样通过**。
+现改为**逐条配对**：先切出「条目块 / 表格行」，再在**各自块内**匹配信任级别；
+未配对条目逐条列出（`未配对_标准` / `未配对_表格`），**任一条未配对即不通过**（不得用汇总计数代替逐条枚举，见 §可复核判定协议）。
 
 **人类验证示例**（可选）：
 ```bash
@@ -573,13 +777,21 @@ grep -cE '\|\s*(已发布|主人投喂|二手转引)\s*\|' data/数据卡.md  # 
 
 **伪代码**（主控 LLM 推理执行）：
 ```python
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists("final/定稿.md"):
+    return verdict_path_error("final/定稿.md 不存在（路径或参数错误，不触发修订）")
+
 # 读取定稿全文
 draft_text = read("final/定稿.md")
 
 import re
 
-# 白名单 7 节（deliverables.md「定稿文末白名单」）
+# 白名单（唯一真源见 §统一抽取规则真源 A：ENDNOTE_SECTIONS_ALL）
+# 本项不再自写节名清单 —— 下行数组是该真源的**展开视图**（派生展示，非第二真源）：
+#   必需 4 节（ENDNOTE_SECTIONS_REQUIRED）+ 可选 3 节（ENDNOTE_SECTIONS_OPTIONAL）
+#   改真源时必须同步展开本行（内容与项数须与 §统一抽取规则真源 A 逐字一致，防漂移）
 whitelist = ["参考文献", "数据来源", "案例来源", "先行者文献", "致谢", "AI 使用声明", "方法论附录"]  # v2.7.3 +方法论附录（可选，主人 Phase 5 勾选）；v2.12.32 +致谢（可发表性 F 选项启用时必含，否则与 F 判定表强制要求冲突）
+assert set(whitelist) == set(ENDNOTE_SECTIONS_ALL)  # 展开视图自检：不一致 = 已漂移，按真源修正
 
 def is_whitelisted(title):
     # 前缀匹配：容忍「数据来源（可信度标注）」这类带括号的变体
@@ -594,17 +806,26 @@ sections = [(i, m.group(1)) for i, l in enumerate(lines)
 start_idx = next((idx for idx, (i, t) in enumerate(sections) if is_whitelisted(t)), None)
 
 if start_idx is None:
-    return {"通过": False, "优先级": "P0", "失败原因": "文末无任何白名单节（参考文献/数据来源/案例来源/先行者文献/致谢/AI 使用声明）"}
+    return verdict_undecidable(
+        "文末无任何白名单节 → 无法界定「文末」起点，不足以判为通过或不通过",
+        **{"优先级": "P0"}
+    )
 
 # 起点之后的所有 ## 标题必须在白名单内
 violations = [t for (i, t) in sections[start_idx:] if not is_whitelisted(t)]
 
 if len(violations) == 0:
-    return {"通过": True}
+    return verdict_pass(**{"文末节数": len(sections) - start_idx})
 else:
-    return {"通过": False, "优先级": "P0", "违规节标题": violations,
-            "失败原因": "文末混入操作员报告节（图表清单/主控签字/引用规范等），需移入 final/交付说明.md 或删除"}
+    return verdict_fail(
+        "文末混入操作员报告节（图表清单/主控签字/引用规范等），需移入 final/交付说明.md 或删除",
+        **{"优先级": "P0", "违规节标题": violations}
+    )
 ```
+
+**档位说明（v2.12.56 M-5）**：「文末无任何白名单节」⇒ **无法判定**（该判定项的输入前提不成立），**不是**「不通过」——
+它**不触发修订轮**；内容缺陷由 M-Form-2（必需四节缺失）判「不通过」并触发修订，两项不重复计罚。
+「起点之后混入非白名单节」才是真正的内容缺陷 ⇒ **不通过**（P0，触发修订）。
 
 **人类验证示例**（可选）：
 ```bash
@@ -626,6 +847,10 @@ awk '/^## (参考文献|数据来源|案例来源|先行者文献|致谢|AI 使�
 ```python
 import re
 
+# 第 0 步：输入新鲜度（见 §闸门第 0 步；简报与初稿均须本轮已落盘）
+if not exists("01-任务简报.md") or not exists("drafts/初稿-v1.md"):
+    return verdict_path_error("任务简报或初稿-v1 不存在（路径或参数错误，不触发修订）")
+
 # 读取任务简报 + 初稿
 brief = read("01-任务简报.md")
 draft_text = read("drafts/初稿-v1.md")
@@ -635,10 +860,18 @@ draft_text = read("drafts/初稿-v1.md")
 claim_pattern = re.findall(r'\[论点\d+\]|第[一二三四五六七八九十]+章', brief)
 claims = [c.strip() for c in claim_pattern]
 
-# 从初稿提取所有引用编号（4 类）
-l_refs = re.findall(r'\[L\d+\]', draft_text)
-d_refs = re.findall(r'\[(?:D-?基?-?\w*-?\d+)\]', draft_text)
-c_refs = re.findall(r'\[C\d+\]', draft_text)
+# 【v2.12.56 M-6 修 fail-open】提不出论点 ⇒ claims 为空 ⇒ 不得真空通过
+if len(claims) == 0:
+    return verdict_undecidable(
+        "任务简报未提供可提取的论点（[论点N] / 章标题均无）⇒ 三角验证无判定对象，不得真空通过",
+        **{"论点数": 0}
+    )
+
+# 从初稿提取引用编号（正则唯一真源见 §统一抽取规则真源 B —— 不再自写 3 套）
+all_refs = CITATION_NUMBER_RE.findall(draft_text)
+l_refs = [x for x in all_refs if re.match(r'\[L', x)]
+d_refs = [x for x in all_refs if re.match(r'\[D', x)]
+c_refs = [x for x in all_refs if re.match(r'\[C', x)]
 
 # 对每个论点检查三角验证：拆初稿为按论点的段落（按章节切分）
 sections = re.split(r'^## ', draft_text, flags=re.MULTILINE)
@@ -647,10 +880,11 @@ violations = []
 for claim in claims:
     # 找包含该论点的章节
     section_for_claim = next((s for s in sections if claim in s), "")
-    # 检查三角验证覆盖率
-    has_l = bool(re.search(r'\[L\d+\]', section_for_claim))
-    has_d = bool(re.search(r'\[(?:D-?基?-?\w*-?\d+)\]', section_for_claim))
-    has_c = bool(re.search(r'\[C\d+\]', section_for_claim))
+    # 检查三角验证覆盖率（分类型均取自统一正则，见 §统一抽取规则真源 B）
+    sec_refs = CITATION_NUMBER_RE.findall(section_for_claim)
+    has_l = any(re.match(r'\[L', x) for x in sec_refs)
+    has_d = any(re.match(r'\[D', x) for x in sec_refs)
+    has_c = any(re.match(r'\[C', x) for x in sec_refs)
     # 三角验证：至少 2 项齐全（不必须 3 项）
     coverage = sum([has_l, has_d, has_c])
     if coverage < 2:
@@ -664,13 +898,17 @@ for claim in claims:
         })
 
 if len(violations) == 0:
-    return {"通过": True, "论点数": len(claims)}
+    return verdict_pass(**{"论点数": len(claims)})
 else:
-    return {"通过": False, "优先级": "P0",
-            "未复核论点数": len(violations),
-            "违规详情": violations,
-            "失败原因": "写手 v1 未补齐三角验证覆盖（<2 类引用），需补检索或降级为「观点」"}
+    return verdict_fail(
+        "写手 v1 未补齐三角验证覆盖（<2 类引用），需补检索或降级为「观点」",
+        **{"优先级": "P0", "未复核论点数": len(violations), "违规详情": violations}
+    )
 ```
+
+**为何「提不出论点」判无法判定（v2.12.56 M-6）**：原实现下 `claims` 为空 ⇒ `violations` 为空 ⇒ 直接落「通过」（**fail-open**）——
+写成「提不出论点反而全过」。现改为第 3 档：**不触发修订**，但**也不放行**（阻断），
+要求先补任务简报论点、或走人在环裁决后**重跑同一判定**。
 
 **触发时机**：
 1. **写手 v1 落地后**（v1 写手产物已落盘）→ T4 分析员或主控跑 M-Form-8 预检 → 不通过 → 打回 v2 重写（计入修订轮）
@@ -696,15 +934,19 @@ awk '/^## /{section=$0; next} /\[L[0-9]+\]/{l++} /\[D[0-9]+\]/{d++} /\[C[0-9]+\]
 
 ```
 算法步骤：
+0. 【第 0 步】输入新鲜度（见 §闸门第 0 步）：final/定稿.md 与 01-任务简报.md 须存在 / 非空 / 新鲜；
+   不满足 → **第 4 档「路径或参数错误」**（不触发修订，修路径后重跑同一判定）
 1. 判断引用格式：读 01-任务简报.md「引用格式」字段
    - 「内联（机构，年份）」或「公众号/商业评论/行业分析」 → 走内联模式分支
    - 「[Lxx]/[Dxx] 编号」或「期刊/学术」 → 走标准 diff
+   - **字段缺失 / 取值不在枚举内 → 第 3 档「无法判定」**（**不得默认走标准模式** ——
+     默认会让内联稿在标准 diff 下**空转后报通过**，即历史击穿路径）
 
 2A. 标准模式：
    ① 提取正文 [Dxx]/[Cxx]/[Lxx]/[先xx]（不在文末任意节内）→ set_intext
    ② 提取文末任意节（标准 ## 数据来源 + ## 案例来源 + ## 参考文献 + ## 先行者文献 + 非标准 ## 附 等 + 文末最后 1/3 段 fallback）的所有引用编号 → set_endnote
    ③ 计算双向 diff：comm -23 set_intext set_endnote = 漏引；comm -13 set_intext set_endnote = 孤儿
-   ④ 判定：漏引空 + 孤儿空 → 通过
+   ④ 判定（四档，v2.12.56 M-5 对齐）：漏引空 + 孤儿空 → 通过（第 1 档）；任一非空 → 不通过（第 2 档）；产物不存在 → 第 4 档（见步骤 0）；体例字段缺失 → 第 3 档（见步骤 1）
    ⑤ **引用体例层（v2.12.49 T-8）**：额外检查「正文标记体系 ↔ 文末编号体系」**是否为同一体系** —— 若正文用 `[Lxx]` 而文末用 `[1]…[N]`（或反之）⇒ **两套体例并存，判 P1**。步骤 ③ 的双向 diff 在**各自体系内**自洽，**覆盖不到跨体系**，故须独立此步。真源 = [`../deliverables.md`](../deliverables.md) §T-8 引用体例单一化
 
 2B. 内联模式：
@@ -714,14 +956,28 @@ awk '/^## /{section=$0; next} /\[L[0-9]+\]/{l++} /\[D[0-9]+\]/{d++} /\[C[0-9]+\]
       - G2 数据溯源：每个正文数字能否在数据卡/文献卡找到来源（防无主数据）
       - M-Exist-3：引用机构的信任级别在数据卡/案例卡有标注
       - G4-2 四节 diff：正文引用的机构/数据/案例在文末四节有对应
-   ③ 判定：全部内联引用可回溯 + 所有数字有源 + 信任级别齐全 → 通过；任一不可回溯 → P1
+   ③ 判定（四档，v2.12.56 M-5 对齐）：全部内联引用可回溯 + 所有数字有源 + 信任级别齐全 → 通过（第 1 档）；任一不可回溯 → 不通过（第 2 档，P1）；零内联引用 → 无法判定（第 3 档，见下方伪代码）
 
 伪代码（标准模式）：
-intext = extract_intext_v2(draft_text)
+intext = extract_intext_v2(draft_text)     # 文末节集合与编号正则唯一真源见 §统一抽取规则真源 A/B
 endnote = extract_endnote_v2(draft_text, standard=True, non_standard=True, last_third=True)
 leaked = sorted(set(intext) - set(endnote))
 orphan = sorted(set(endnote) - set(intext))
-return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
+
+# 四档出口（见 §统一抽取规则真源 C）
+if len(leaked) == 0 and len(orphan) == 0:
+    return verdict_pass(**{"漏引": leaked, "孤儿": orphan})
+else:
+    return verdict_fail("双向 diff 非空（漏引 / 孤儿）", **{"漏引": leaked, "孤儿": orphan})
+
+伪代码（内联模式）：
+unresolved = [ref for ref in inline_refs if not can_trace_back(ref)]   # helper 无机械实现 → LLM 推理替代
+if len(inline_refs) == 0:
+    return verdict_undecidable("内联模式但未提取到任何（机构，年份）式引用 —— 判定对象为空，不得真空通过")
+if len(unresolved) == 0:
+    return verdict_pass(**{"内联引用_条数": len(inline_refs)})
+else:
+    return verdict_fail("内联引用不可回溯（P1）", **{"不可回溯": unresolved})
 ```
 
 **补检索回填校验分支**（当流水线发生过补检索时触发）：
@@ -762,10 +1018,11 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
    - ✅ 文件时间戳：在实战项目时间窗内（本次项目启动后 ~结束前）
    - ✅ 章节结构：文件含「## 基本信息」「## 条目列表」或类似必备段
    - ✅ 数据卡格式：JSON/YAML 校验或文本格式规范（数据卡含「[Dxx]」编号 + 信任级别字段）
-3. **判定**：
-   - （a）5 项全过 → **P5 ✅ 通过**
-   - （b）部分项过但缺失具体证据 → **P5 ⚠️ 部分通过**（标黄提示主人补）
-   - （c）文件缺失或全空 → **P5 ❌ 失败**（主控未生成证据 = 真错误）
+3. **判定（四档，v2.12.56 M-5 对齐）**：
+   - （a）5 项全过 → **通过（第 1 档）**
+   - （b）部分项过但缺失具体证据 → **无法判定（第 3 档）**（标黄提示主人补；**不触发修订**）
+   - （c）**证据包目录 / 文件不存在** → **路径或参数错误（第 4 档）**（不触发修订；先修路径或让上游落盘）
+   - （d）文件存在但**全空 / 内容缺损**（主控未生成证据）→ **不通过（第 2 档）**（真错误，触发修订）
 4. **人类主人补填 sha256 可选**：
    - 主人如需更严验证，在 host shell 跑 `sha256sum final/证据包/*.md` 后追加到 final/交付说明.md
    - 实战中**几乎没人补**，但保留为「理论严格性」项
@@ -800,9 +1057,9 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
 
 ```
 算法步骤：
-1. 正文引用提取：
-   - 标准格式 [Dxx]：grep -oE '\[D[0-9]+\]' final/定稿.md → set_intext_d
-   - 表格格式 [1.x]：grep -oE '\[1\.[0-9]+|\[2\.[0-9]+' final/定稿.md → set_intext_table
+1. 正文引用提取（编号正则唯一真源见 §统一抽取规则真源 B）：
+   - 标准 + 基线 + 表格三类格式：用 CITATION_NUMBER_RE 提取 final/定稿.md → set_intext_d（D 类）
+   - 表格格式单列：用 CITATION_TABLE_RE 提取 → set_intext_table
    - **扩展**：SVG 内嵌文本纳入（final/图件/*.svg 的 text/desc/title/tspan 节点）→ set_svg_d
 
 2. 数据卡条目提取：
@@ -818,24 +1075,38 @@ return (len(leaked) == 0 and len(orphan) == 0, leaked, orphan)
    - 标准格式：每条 [Dxx] 对应数据卡信任级别非空
    - 表格格式：每行 [1.x] 表格的「信任级别」列非空
 
-5. 判定：所有 diff 空 + 信任级别全填 → 通过；任一非空 → 失败
+5. 判定（四档，v2.12.56 M-5 对齐）：所有 diff 空 + 信任级别全填 → 通过（第 1 档）；任一非空 → 不通过（第 2 档）；定稿或数据卡不存在 → 路径或参数错误（第 4 档）；信任级别映射不可读 → 无法判定（第 3 档）
 
 伪代码：
-# 扩展：SVG 内嵌文本节点视为事实层，纳入 [Dxx] / [Cxx] 提取与 diff
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists("final/定稿.md") or not exists("data/数据卡.md"):
+    return verdict_path_error("定稿或数据卡不存在（路径或参数错误，不触发修订）")
+
+# 扩展：SVG 内嵌文本节点视为事实层，纳入引用编号提取与 diff
 draft_text = read("final/定稿.md")
-svg_text = extract_text_nodes("final/图件/*.svg")  # text/desc/title/tspan 节点合并
+data_card_text = read("data/数据卡.md")
+svg_text = extract_text_nodes("final/图件/*.svg")  # text/desc/title/tspan 节点合并（LLM 推理替代）
 all_text = draft_text + "\n" + svg_text
-intext_d = sorted(set(re.findall(r'\[D\d+\]', all_text)))
-intext_table = sorted(set(re.findall(r'\[\d+\.\d+\]', draft_text)))  # 表格格式仅在正文，SVG 不支持
+# 引用编号正则：唯一真源见 §统一抽取规则真源 B —— 本项不再自写 D 类正则一套
+intext_d = sorted({x for x in CITATION_NUMBER_RE.findall(all_text) if re.match(r'\[D', x)})
+intext_table = sorted(set(CITATION_TABLE_RE.findall(draft_text)))  # 表格格式仅在正文，SVG 不支持
 card_d = sorted(set(re.findall(r'^\*\*\[D\d+\]', data_card_text, re.MULTILINE)))
 card_table = sorted(set(re.findall(r'^\| (\d+\.\d+) \|', data_card_text, re.MULTILINE)))
-trust_d = extract_trust_dict_standard(data_card_text)
+trust_d = extract_trust_dict_standard(data_card_text)   # helper 无机械实现 → LLM 推理替代
 trust_table = extract_trust_dict_table(data_card_text)
 leaked = sorted(set(intext_d) - set(card_d))
 orphan = sorted(set(card_d) - set(intext_d))
 missing_trust = [d for d in intext_d if d not in trust_d or trust_d[d] == '']
 all_pass = (len(leaked) == 0 and len(orphan) == 0 and len(missing_trust) == 0)
-return (all_pass, leaked, orphan, missing_trust)
+
+# 四档出口（见 §统一抽取规则真源 C）
+if all_pass:
+    return verdict_pass(**{"漏注": 0, "孤儿": 0, "信任级别空标": 0})
+else:
+    return verdict_fail(
+        "信任级别 diff 非空或存在空标",
+        **{"漏注": leaked, "孤儿": orphan, "信任级别空标": missing_trust}
+    )
 ```
 
 ---
@@ -870,21 +1141,40 @@ return (all_pass, leaked, orphan, missing_trust)
    头部声明：grep -oE '共 [0-9]+ 条' data/数据卡.md
    实际计数：步骤 2 的双格式并集 dedupe
    不一致 → 标 Failed（防 T2 未自检 + T4 人工 grep 才发现的延后问题）
-9. 判定：全部判定通过（项数以伪代码为准） → T2.5 ✅ 派发 T4；任一失败 → T2.5 ❌ 不派发 T4
+9. 判定（四档，v2.12.56 M-5 对齐）：全部判定通过（项数以伪代码为准） → T2.5 **通过（第 1 档）**派发 T4；任一失败 → **不通过（第 2 档）**不派发 T4；数据卡 / 任务简报不存在 → **路径或参数错误（第 4 档）**（不触发修订）；条目数或需求数不可读 → **无法判定（第 3 档）**（不触发修订，补证据后重跑同一判定）
    **删「主人签字 Phase 1」（教训 #136）**：T2.5 是**机械检查点**（LLM 结构化判定，非机器强制），主人签字/决策节点为 Phase 0 / Phase 2.5 / Phase 3.5 / Phase 5 四节点；检索完成→T4 之间**不应**打断主人
 
 伪代码：
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists('data/数据卡.md') or not exists('01-任务简报.md'):
+    return verdict_path_error("数据卡或任务简报不存在（路径或参数错误，不触发修订）")
+
 data_card = 'data/数据卡.md'
-data_count = count_d_entries(data_card)
+data_count = count_d_entries(data_card)          # helper 无机械实现 → LLM 推理替代（见 §未定义 helper 清单）
 outline_count = count_data_requirements_in_brief('01-任务简报.md')  # v2.2.17 显式标注：读任务简报，不读分析大纲
 data_ok = data_count >= outline_count
 trust_form_ok = check_M_Form_6(data_card)
 trust_exist_ok = check_M_Exist_3(data_card, 'final/定稿.md')
-sha256_pending = emit_placeholder_sha256(data_card)  # v2.2.17：发占位符 [SHA256-PENDING:HOST-VERIFY]，**不**作为闸门强制项
+sha256_pending = emit_placeholder_sha256(data_card)  # v2.2.17：发占位符，**不**作为闸门强制项
 header_consistent = check_header_vs_actual_count(data_card)  # v2.2.10 新增
+# 失败项逐条列出（不得只给「有失败」）
+fail_reasons = [
+    name for name, ok in [
+        ("数据条目数 >= 简报需求数", data_ok),
+        ("M-Form-6 信任级别完整性", trust_form_ok),
+        ("M-Exist-3 信任级别一致性", trust_exist_ok),
+        ("数据卡头部声明 vs 实际计数", header_consistent),
+    ] if not ok
+]
+
+# 四档出口（见 §统一抽取规则真源 C）
+if data_count is None or outline_count is None:
+    return verdict_undecidable("数据条目数或简报需求数不可读，不足以判定", **{"sha256_pending": sha256_pending})
 all_pass = data_ok and trust_form_ok and trust_exist_ok and header_consistent  # v2.3.2 删 owner_signed（主人签字不在 T2.5 闸门，教训 #136）
-# 修复 F03 + F05：sha256 不是“必填门”，是“可选验证”（主人手动跑）
-return (all_pass, fail_reasons, sha256_pending)
+if all_pass:
+    return verdict_pass(**{"数据条目数": data_count, "简报需求数": outline_count, "sha256_pending": sha256_pending})
+else:
+    return verdict_fail("T2.5 完整性门未全过", **{"失败项": fail_reasons, "sha256_pending": sha256_pending})
 ```
 
 **实战反例**（教训 #106）：T2 写数据卡时凭印象在头部写「共 29 条」，实际 grep 只有 26 条，T4 靠人工 grep 才发现。本次新增步骤 9 拦截。
@@ -898,7 +1188,7 @@ return (all_pass, fail_reasons, sha256_pending)
 2. P0/P1 清单已**显式列出**：读 audits/审计报告-vN.md → **P0/P1 条目数可为 0**（审计零缺陷是正常结果，不是失败）；**但必须显式写「本轮无 P0/P1」**，不得留空或以未列示代替；出现 P0/P1 条目时须逐条列明。
 3. M 门（M-Form 8 项 + M-Exist 3 项）**全部判定通过**：读**当前轮已产出**的章节级 M 门记录 + `status.md`「7.三.五 M 门执行记录表」→ 全部 true（**不得依赖 `final/M-Gate-Report-v2.2.12.json`**：该文件由 T8 终检产出，而 T7.5 在 T8 **之前**执行 —— 前后依赖倒置会使门必然判失败或被迫推断，2026-09-12 审计 P1-6）
 4. 证据包 sha256 指纹段存在：读 final/交付说明.md「证据包指纹」段 → 必须有 sha256 **占位符** `[SHA256-PENDING:HOST-VERIFY]`（人类可选在 host shell 手动计算后回填真实哈希，占位符即视为通过——agent 不执行 sha256，不把 sha256 作闸门强制项）
-5. 信任级别一致性：M-Exist-3 exit 0 → 通过
+5. 信任级别一致性：M-Exist-3 判定为「通过」（第 1 档）→ 通过；不通过 / 无法判定 / 路径或参数错误 → 按对应档处置（不将后者当作内容缺陷）
 6. 论文交付物 vs 操作员报告独立隔离：
    - final/定稿.md（论文）不含 audits/ / final/交付说明.md 内容
    - final/交付说明.md / audits/（报告）不混入 final/定稿.md
@@ -907,18 +1197,43 @@ return (all_pass, fail_reasons, sha256_pending)
    - 证据：status.md 修订回环记录写明「spawn 独立写手 vN 执行」
    - 若发现主控代执行 → 打回修订轮，强制 spawn 独立写手
    - 例外：主控直接 edit 定点修复（<5 处纯校对类）不视为违反
-9. 判定：1-6 + 8 项全通过（步骤 7 为「删主人签字」元说明，非检查项）→ T7.5 ✅ 派发 T8；任一失败 → T7.5 ❌ 不派发 T8
+9. 判定（四档，v2.12.56 M-5 对齐）：1-6 + 8 项全通过（步骤 7 为「删主人签字」元说明，非检查项）→ T7.5 **通过（第 1 档）**派发 T8；任一失败 → **不通过（第 2 档）**不派发 T8；审计报告 / 交付说明不存在 → **路径或参数错误（第 4 档）**（不触发修订）；审计报告 P0/P1 段不可读或本轮 M 门记录缺失 → **无法判定（第 3 档）**（不触发修订，补证据后重跑同一判定）
 
 伪代码：
-audit_latest = get_latest_audit_report('audits/')
+# 第 0 步：输入新鲜度（见 §闸门第 0 步）
+if not exists('final/交付说明.md'):
+    return verdict_path_error("final/交付说明.md 不存在（路径或参数错误，不触发修订）")
+
+audit_latest = get_latest_audit_report('audits/')   # helper 无机械实现 → LLM 推理替代（见 §未定义 helper 清单）
+if not audit_latest:
+    return verdict_path_error("audits/ 下无审计报告（路径或参数错误，不触发修订）")
 p0_p1_listed = check_p0_p1_listed(audit_latest)
 m_gate_ok = check_m_gate_all_pass_current_round()  # 读**本轮已产出**的章节级 M 门记录 + status.md「7.三.五 M 门执行记录表」；**不得读** final/M-Gate-Report-v2.2.12.json（T8 产物，T7.5 时尚未生成 —— 2026-09-12 审计 P1-6）
-sha256_ok = check_evidence_sha256_placeholder('final/交付说明.md')  # v2.2.17 改：占位符 [SHA256-PENDING:HOST-VERIFY] 即通过，人类可选回填
+sha256_ok = check_evidence_sha256_placeholder('final/交付说明.md')  # v2.2.17 改：占位符即通过，人类可选回填
 trust_ok = check_M_Exist_3(...)
 isolation_ok = check_draft_vs_report_isolation('final/定稿.md', 'final/交付说明.md', 'audits/')
 revision_independent = check_revision_by_independent_writer('status.md')
+# 失败项逐条列出（不得只给「有失败」）
+fail_reasons = [
+    name for name, ok in [
+        ("审计报告最新版", bool(audit_latest)),
+        ("P0/P1 清单已列", p0_p1_listed),
+        ("M 门全过（本轮记录）", m_gate_ok),
+        ("证据包指纹占位符", sha256_ok),
+        ("信任级别一致性", trust_ok),
+        ("论文 vs 报告隔离", isolation_ok),
+        ("修订轮独立写手", revision_independent),
+    ] if ok is not True
+]
+
+# 四档出口（见 §统一抽取规则真源 C）
+if p0_p1_listed is None or m_gate_ok is None:
+    return verdict_undecidable("审计报告 P0/P1 段不可读或本轮 M 门记录缺失，不足以判定")
 all_pass = audit_latest and p0_p1_listed and m_gate_ok and sha256_ok and trust_ok and isolation_ok and revision_independent  # v2.3.3 删 owner_signed（主人签字在 Phase 5，不在 T7.5 闸门，教训 #138）
-return (all_pass, fail_reasons)
+if all_pass:
+    return verdict_pass(**{"审计报告": str(audit_latest)})
+else:
+    return verdict_fail("T7.5 完整性门未全过", **{"失败项": fail_reasons})
 ```
 
 ---

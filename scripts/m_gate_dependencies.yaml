@@ -2,12 +2,17 @@
 # 版本: v2.10.0
 # 用途: 定义每个 M 门检查的依赖文件，用于增量验证
 # v2.10.0: 配合章节级变更检测（scripts/incremental_m_gate.py SectionChangeDetector）
+# v2.12.56: 补充 M 门算法文档 v2.12.56 改动的对应依赖面 ——
+#   · M-Form-1 / M-Exist-3 新增 SVG 图件依赖（M 门核验范围含 SVG 文本节点，对齐自审门 J）
+#   · M-Form-8 新增任务简报依赖（伪代码从 01-任务简报.md 提取 [论点N]，v2.12.56 M-6）
+#   注：本文件只影响「变更定位范围」，不产出 M 门结论（fail-closed 契约见 incremental_m_gate.py）
 
 M-Form-1:
   name: 引用完整性
   depends_on:
     - "drafts/*.md"
     - "literature/*.md"
+    - "final/图件/*.svg"
   scope: citations
 
 M-Form-2:
@@ -51,6 +56,7 @@ M-Form-8:
   name: 三角验证覆盖
   depends_on:
     - "drafts/*.md"
+    - "01-任务简报.md"
   scope: evidence
 
 M-Exist-1:
@@ -75,6 +81,7 @@ M-Exist-3:
   depends_on:
     - "data/*.md"
     - "drafts/*.md"
+    - "final/图件/*.svg"
   scope: data
 
 M-Integrity-1:
