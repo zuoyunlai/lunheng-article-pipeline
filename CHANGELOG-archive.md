@@ -1,6 +1,6 @@
-# Changelog 归档（v2.12.47 及更早）
+# Changelog 归档（v2.12.50 及更早）
 
-> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入）。
+> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入）。
 > 拆分口径（v2.12.47）：`CHANGELOG.md` 只保留**最近 5 期**，其余逐字迁入本文件。
 > **`scripts/changelog-check.py` 同时读取两份**，故「每个版本 tag 都有章节」的校验纪律不变。
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
@@ -9,6 +9,133 @@
 ---
 
 ---
+
+---
+
+## [v2.12.50] — 2026-09-17
+
+> **主题：v2.12.49 后续修订——机械门空转止血（D-1/D-2，P0×2）+ 一致性回归收口预告（D-3/D-4，P1×2）。**
+> **性质：纯缺陷修复（内部一致性 + 机械门能红）。无新增能力、无破坏性变更、无安全语义变化。**
+
+### 一、机械门空转止血（D-1：能力断言 selfcheck 假绿灯 → 五路可失败断言）
+
+- `scripts/capability-assert.py:127` 原写 `SKILL_DENIED & ALLOWED_CAPABILITIES`，而 `:88` `ALLOWED` 已减去 `FORBIDDEN（⊇ denied）` ⇒ 交集**数学上恒空** ⇒ 自检永不红（教训 #399「机械门必须能红」）。
+- 改为五路可失败断言：① 解析守卫（denied/allowed 任一空即报错）② 派生一致性（FORBIDDEN/ALLOWED 必须等于真源现算，防派生集被清空后真空通过）③ 声面真交集（**不做减法**直接取 `SKILL_DECLARED & SKILL_DENIED`，命中即冲突）④ 行为断言（denied 真源每一项都必须被 `validate_capabilities` 拒绝）⑤ 镜像断言（允许面抽一项必须真被接受，防「一律拒绝」反向假绿灯）。
+- **界定（不夸大）**：门 T 主体拦截仍有效（`self-audit-gate.sh:984` 逐项 T0 拒斥走 `:110/:117` 正常逻辑）。空转的只是 selfcheck 半句；本修**仅**让 selfcheck 真判红，不动主路径。
+
+### 二、机械门空转止血（D-2：增量 M 门验证假绿灯 → fail-closed）
+
+- `scripts/incremental_m_gate.py:354` 原写 `'passed': True, # 占位`，全文件**唯一** `passed` 赋值 ⇒ `main()` 的 `if failed:`（:407）不可达 ⇒ 任何输入都印「✓ 所有 M 门验证通过」。
+- 现改为 fail-closed：`_validate_single_gate` 返回 `passed=False` / `status=unverified`；`main()` 空结果分支也直接 RC=1。M 门真验证见 `references/_shared/M-Gate-Algorithm.md`，由 agent 按流程执行。
+- 同步说明：本工具**只做变更定位 + 依赖判定**，不产出「M 门通过」结论（任何 `passed:True` 都属于历史错误，**不得**回滚此约定）。
+
+### 三、回归测试反向注入（锁死能红）
+
+- `tests/test_capability_assert.py` 增至 10 项，含四类反向注入（denied 进允许档 / 禁用面派生集被清空 / denied 清单为空 / 验证器一律拒绝 → **全部必须让 `--selfcheck` 变红**）。
+- `tests/test_incremental_m_gate.py` 增至 21 项，新增 `TestFailClosedContract` 三项反向注入（单门验证必须 passed=False / 空项目 CLI 必须 RC=1 / 真实变更 CLI 必须 RC=1）。
+- 反向注入测试锁死契约：任何让假绿灯回潮的改动都会在 CI 阶段立刻被抓。
+
+### 四、一致性回归预告（暂不修，攒批）
+
+> 本版**仅**止血 P0（机械门空转）。下列两条 P1 一致性回归**已记录**于 `outputs/论衡-一致性审计-2026-09-17.md`，留待同批或下批处理：
+
+- **D-3**：只读档「写盘责任主体」两套口径并存（主控代写盘 10 处 vs 角色直写 3 处，`permissions.md:61`「两径定义」与 `phase-order.yaml` 的 `t6/t7/g14/t9` 全 `write_authority: executor` 互斥，属 v2.7.x 已修过一次又被 v2.12.32/33 例外重开的回归）。
+- **D-4**：`tests/test_flow_check.py` ≥10 处反向注入直接 `write_text` 真源 `references/_shared/phase-order.yaml` + 字数判定表 + 08-终检，仅靠 `try/finally` 恢复 → kill/超时/并行即污染真源。
+
+**建议**：D-3 + D-4 合并走 **v2.12.51**（不攒批拖延：D-3 是真源互斥、D-4 是测试污染真源，两者都属「不该有的松」）。
+
+### 五、验收
+
+- `pytest`：326 → **329 passed**（新增 3 项反向注入：capability ×4 / incremental ×3；0 项失败）
+- 自审门：**26 PASS / 0 FAIL**（与上版持平；门 H `#398 > 快照 #373` 为预存在 informational，已界定 #398 = 宿主类）
+- `flow-check`：RC=0（与上版持平）
+- `SKILL.md` 体量棘轮：仍在 ≤10000 字符内（与上版持平）
+- 平台侧扫描 verdict：本版**无改动真源行为**，ClawHub `Moderate` 仍 = `CLEAN`（与上版持平）
+
+## [v2.12.49] — 2026-09-17
+
+> **主题：v2.12.48 后续修订——人环闸门真源化 + 零 exec 边界澄清 + M/T 系列机制修复。**
+> **性质：架构行为修复 + 文档一致性治理 + 多处机械可验铁律落地。无新增能力（论衡 agent 零 exec 原则不变）。**
+
+### 一、人环闸门真源化（修 P2-1）
+
+- 4 个 owner_checkpoint（`phase0_definition` / `phase2_5_outline` / `phase3_5_insight` / `phase5_acceptance`）补 `blocking: true` + `owner_visible: true` + `timeout_fallback`；`phase-order.yaml` 头部结构约束补 ⑩
+- `scripts/flow-check.py` 新增规则 12：顶层 `owner_checkpoints` 与 `kind: owner_checkpoint` 节点集**双向一致**；每节点须有 blocking/owner_visible/decisions/timeout_fallback
+- `tests/test_flow_check.py` 增 3 项正向 + 1 项反向注入（去掉 phase5 的 blocking → 必须报错），防新规则退化成永真
+
+### 二、删除 Phase 5 fail-open 节点（修 P2-2）
+
+- 旧写法「Phase 5：不答 = 接受当前定稿」使 Phase 5 静默 60 分钟即等于主人拍板「接受」；且只活在散文，与「无明确决策 = 未通过」正面张力
+- 现四节点一律 fail-closed：无应答 = 写 status `pending_owner` + 告警挂起。静默、主控推断、子代理回执、「产物已存在」均不得记为 accepted
+- 旧口径在 `phase-order.yaml` 登记为「已删除的旧语义（防回潮）」，并有测试锁死
+
+### 三、无应答分钟数归一（修 P3-1）
+
+- 唯一真源 = `phase-order.yaml` 的 `owner_timeout_policy.no_answer_minutes: 60`
+- `glossary-full.md` / `phase-2-details.md` / `执行韧化协议-design.md` 三处字面重列改为引用（一条款一真源）
+
+### 四、`image_generate` 退出 opt-in 入 denied（M-12 反演）
+
+- 封面与图件去留由主人手动操作，论衡 agent 零 exec 原则不变
+- `denied` 从 40 项扩至 41 项（与 `video_generate` / `music_generate` / `tts` 同构）；工具级 opt-in 归零；服务级外发 4→3 类
+- 同步 SKILL.md / permissions.md / 00-主控-coordinator.md / 00-主控-扩展职责.md / glossary-full.md / pipeline-readme.md / test_external_audit_fixes.py
+
+### 五、M 系列机制修订（14 项）
+
+> 详见仓库根 `outputs/论衡-修订方案-2026-09-16.md`（方案已审定）；本节仅摘要标题
+
+- **M-1** 交付物指纹绑定（sha256 入 status.md `deliverables_fingerprint`）
+- **M-2** 终态后修改必重开流水线（fail-closed）
+- **M-3** 计数类断言真源（指向交付物文件，不重报数字）
+- **M-4** G14 严重度参与判定（warning 不再静默通过）
+- **M-5** P2 量化锚点 + 累积升级（5+ 同色 ⇒ 升档）
+- **M-6** 轮次耗尽出口改三选一（不静默接受）
+- **M-7** status.md 对账机械门（与 current_draft.md / final/ 双向断言）
+- **M-8** 审计对象一致性断言
+- **M-9** 48 必查清单加「严重度」列
+- **M-10** 图件路径归一 + 局限性入真源
+- **M-11** Phase 2.5 图位决策必答 + 机械门；**写 SVG 数据图表 = 论衡职责**（主控 `write` 手写，零 exec/零外发）
+- **M-13** T8 后「主人自行操作建议清单」（封面 / SVG→PNG / 格式转换）
+- **M-14** 字数口径单一化（真源 = 正文汉字数）
+
+### 六、T 系列治本调整（7 项；T-7 已撤回）
+
+> 架构层面修复，与本批次**同走 v2.12.49**（主人 2026-09-16 23:25 裁定 D-4 = 合并）；详修订方案 §三
+
+- **T-1 派发禁摘要 + 上游落盘前置 + 差集断言**：只读档报告（T6/T7/T9/G14）必须**先落盘且非空**才允许派发下游（spawn 前置断言）；派发话术**逐项完整列**（项 ID + 行号 + 阈值 + 实测值；「等」字句 = 不合格）；交接报告新增 `upstream_read`（`upstream_ids ⊖ dispatched_ids ≠ ∅` ⇒ 派发阶段拦截）
+- **T-2 降档换族 + 族级独立性 + 断路器**：降档**优先换 provider 族**；独立性判据改「**模型族不同**」（T6/T7/T9 族两两不同才算独立，否则只能写「信息独立达成 / 模型独立性不成立」）；**断路器**：顶配连续 2 次失败 ⇒ 不得自行全量降档，暂停呈报主人三选一
+- **T-3 Phase 0 顶配档探活门**（≤3 次、间隔 ≥10s；失败当场三选一；结果含时间戳入简报 §模型映射；超 1 小时重探）—— 顶配不可用在 **Phase 0 暴露**，**不消耗 worker spawn**（`pre_spawn_enforcement.top_tier_liveness_gate`）
+- **T-4 独立性声明族级字段**：审稿报告新增 `executor_model` / `model_family` / `independent_from`（**族级**判定）；同源时**不得**写「独立性达成」；该字段同时约束「是否读过过程材料」（防头部声明与正文自承**自相矛盾**）
+- **T-5 修订净增上限**：单轮 **≤ 2%**（按正文汉字）；超限须**等量置换**；修订说明必填 `net_delta_cjk: +<N> (<pct>%)`；Phase 0 目标字数取上限 **92%**（实测反例：v1→v4 **+31.5%**）
+- **T-6 `methodology_snapshot` 默认触发**：由 opt-in 改「**默认触发（简版 ≤2 节）+ 主人 opt_out**」（`on_opt_out: record_opt_out_in_status`，opt-out 与 not_triggered 语义分列）
+- **T-8 引用体例单一化**：正文引用标记 ↔ 文献表编号**一一映射**，禁「正文 `[Lxx]` + 文献表 `[1]…[N]`」两套并存；M-Exist-1 新增「**引用体例层**」校验
+- ~~**T-7 零 exec 边界澄清**~~ ❌ **已撤回**：核对设计真源后确认论衡不操作任何转换，**无需机制修订**（残留为运行侧措辞项，并入批次 1）
+
+### 六·补、机械门与测试
+
+- `scripts/flow-check.py` 新增规则 **13–22**：终态冻结 / 交付物指纹 / 审计对象一致 / 计数档位 / 轮次出口 / G14 严重度 / status 对账 / 图件路径 / 图位决策 / 主人操作清单 + 字数口径 / **T 系列全项**
+- `tests/test_flow_check.py` 由 **49 → 60** 项；关键新增均带**反向注入**（去掉真源标记 ⇒ 门必须报错），防新规则退化成永真
+- 本轮实测抓出并修复 2 处自身缺陷：① 反向注入仅替 1 处而同名字段在文件中有 2 处 ⇒ 注入被漏检（改全量替换）；② 候选池新措辞命中既有 stale-language 守卫（「派发…余额…预检」同句）⇒ 改写
+
+### 七、零 exec 边界澄清（主人 2026-09-16 23:12 / 23:31 裁定）
+
+- SVG 数据图表**生成** = 论衡职责（主控 `write` 纯文本，零 exec 零外发），不动
+- SVG→PNG / 文生图封面 / 文档格式转换（docx/pdf/latex）= 主人 host shell 手动执行，论衡 agent 不操作
+- 论衡 agent（含主控）零 shell 权限设计原则不变
+
+### 八、修复 P3-2 误报（不改文件，仅澄清）
+
+- 原判「3 处 `templates/...` 裸引用路径不可达」不成立——本仓库约定：references/ 下反引号裸路径以 **references/ 根**为基准；三条全部可达
+- 「6 张图去留」具体决定 ≠ 「图件生成」流水线职责（教训 #389）
+
+### 九、验收
+
+- pytest **324 passed**（test_flow_check 由 49 → 60 项，含反向注入）
+- 自审门 **26 PASS / 0 FAIL**
+- SKILL.md 体量棘轮 **9855 ≤ 10000** 字符
+- `flow-check.py` **RC=0**（规则 22 锁死 M/T 全项真源）
+- 版本号同步覆盖 **90+ 项文件**（`sync-version.sh` 自动化）
+- 提交链：`02db518 → dca71a7 → ac59099 → 41ff9eb → 2bee239 → 9a977bd → 388f01f → e361029 → 905d2ec → 8022aa4`（领先 origin **10** commits；**未打 tag / 未 push**，待主人批准）
 
 ## [v2.12.47] — 2026-09-16
 

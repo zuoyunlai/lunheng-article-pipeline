@@ -1,4 +1,4 @@
-> 版本：v2.12.54（自动同步 2026-09-18）
+> 版本：v2.12.55（自动同步 2026-09-18）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -37,7 +37,7 @@
 > 1. **模型 fallback**（= 兑底 / 静默无响应切下一档）—— worker 角色内部「同 T 角色换档」（如 T7 主模型 0 tokens 时切下一档并在报告头部标注「T7 由 XX 兑底」），**主控不接管，T 角色不变**；真源 = `references/_shared/模型候选池.md` §二
 > 2. **主控 fallback**（= worker 节点主控接管 / on_worker_failure）—— worker 失败/不可用时主控接管该节点（v2.12.46 多 Agent 唯一标准架构），**T 角色实际由主控代做**；报告头部标 `[主控 fallback 产物 / <实际模型> / <日期>]`
 >
-> **T6 / T7 / G14 允许主控 fallback**（披露后交付）；**T9 禁用主控 fallback**（违反独立性硬定义，仅走 `degraded_executor: T9` 披露 L1 独立性影响，**不补做**）。两者口径在 `references/dispatch/T*-*.md` 同步。
+> **T6 / T7 / G14 允许主控 fallback**（披露后交付）；**T9 禁用主控 fallback**（违反独立性硬定义）—— `independence: blind_review` 节点**不得**声明 `on_worker_failure`，失败只走 `independence_failure_policy`（只能重试 spawn → 仍失败记 `missing_blind_review` + 告知主人，**禁代笔/代产结论**；真源 = [`phase-order.yaml`](phase-order.yaml) `t9_review.independence_failure_policy`）。两者口径在 `references/dispatch/T*-*.md` 同步。
 
 > 🛡️ **路径访问自检（v2.12.27 修订）**：交接报告**脱敏自报**字段必须为 **`run/ 子树外路径 0 命中`** —— 子代理**只允许**提及 `run/<项目名>/` 子树下的路径；任何 `run/` 外路径（含 `~/`、绝对路径、父路径穿越 `..`、symlink 逃逸）= 违规。论衡「**纯 skill**」立场：不替宿主枚举敏感路径，**由路径边界兜底**（`run/` 外 = 业务无关 = 禁止提及）。这是子代理自检的根约束（防止子代理在否定式「不会读 `~/.ssh/`」之类中偷偷提及宿主路径）。
 

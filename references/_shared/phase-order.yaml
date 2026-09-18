@@ -31,7 +31,20 @@
 #   ⑪ **无应答处置的唯一真源 = 顶层 `owner_timeout_policy`**（v2.12.49 新增，修 P2-2）：
 #      人环节点无应答一律 `pending_owner_halt`（写 status `pending_owner` + 告警挂起，不静默推进）；
 #      静默**永不**等于有效决策。docs 层只引用本节，**不得重列分钟数**（一条款一真源）。
-version: 2.12.54
+#   ⑫ **盲审节点禁主控代笔**（v2.12.55 S-2 新增，修「同一节点两条互斥条款并存」）：
+#      凡 `independence: blind_review` 的节点，**禁止主控代笔** —— 主控已读遍全部内部材料，代笔即独立性归零，
+#      且**事后不可修复**（产物看起来完整）。故该节点**不得**声明通用 fallback `on_worker_failure.executor: 主控`；
+#      失败唯一合法恢复动作 = **重试 spawn 独立子代理**（`independence_failure_policy.retry_limit` 可调）；
+#      仍失败 ⇒ **记为缺失 + 显式告知主人**，**不得自行产出该节点的结论**。
+#      反面实况（v2.12.54 前）：`t9_review` **同时**声明通用 fallback（= 主控接管）与下方
+#      `independence_rules`「必须 spawn 为独立子代理（禁主控代笔）」→ 两条互斥条款并存，
+#      实测被读成「主控代写审稿报告并给出编造精度」。未接线 = 构建期 flow-check 失败（规则 30）。
+#   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3 新增，修「静默无升级规则」）：
+#      `top_tier_liveness_gate` 只做 spawn **前**探活，**管不到 accepted 之后不产出**。
+#      规则 = 同 provider 连续 ≥3 次静默 ⇒ **强制呈现主人三选**（换 provider 族 / 换能力档 / 接受同源并披露），
+#      **不再静默继续**；三项**无默认**且必须挂起。真源 = 顶层 `provider_silence_escalation`。
+#      未接线 = 构建期 flow-check 失败（规则 31）。
+version: 2.12.55
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。
@@ -101,6 +114,39 @@ owner_timeout_policy:
 #   2. `drafts/current_draft.md`（「当前权威稿」指针）
 #   未重跑就标 accepted = 假绿灯；flow-check 规则 15 在 `phase5_acceptance` 与 `g14_style_gate` 两处做双向校验。
 #   G14 「只审一次」语义**仅适用未越出终态的场景**；跨过终态后**必须重跑**（防止补图/补占位等未审计修改出厂）。
+
+# ⚠️ 同 provider 连续静默升级的**唯一真源**（v2.12.55 S-3 新增，修 P1「同 provider 连续 4 次静默无升级规则」）
+#   实测背景（2026-09-18 论文实跑）：T6 / T7 / G14 / T9 四个顶配档节点**全为同一 provider**，
+#     连续 4 次静默（spawn 返回成功、随后既无产物落盘也无交接回执），全程**无任何升级动作** ——
+#     因 `top_tier_liveness_gate` 只做 spawn **前**探活，**管不到 accepted 之后不产出**。
+#   规则：同一 provider 连续 ≥3 次静默 ⇒ **强制暂停 + 呈现主人三选**，**不再静默继续**。
+#     三项**无默认**（不得「按最保守项自动继续」）；静默**永不**等于有效决策（与 `owner_timeout_policy` 同侧）。
+#   计数口径：一次「静默」= 该次 spawn 既无产物落盘、又无交接回执
+#     （与「心跳缺失」区分：心跳仍在续 = 未静默，不计数）。
+#   归零：换族或换档并成功产出后计数归零（status.md 记 `resolved_by`）。
+provider_silence_escalation:
+  trigger: consecutive_silent_runs
+  scope: same_provider          # 仅统计同一 provider 内的连续静默；换 provider 即重新计数
+  threshold: 3
+  on_threshold: pause_owner_three_choice
+  owner_choices:                # 三选一（无默认；主人拍板）
+    - id: switch_provider_family
+      label: 换 provider 族
+      requires: "停下当前节点，改派不同 provider 族的模型（族级独立性真源 = 模型候选池.md §三）"
+    - id: switch_capability_tier
+      label: 换能力档
+      requires: "在候选池内换能力档（顶配档不可用 ⇒ 显式降档并披露审计/批判深度影响）"
+    - id: accept_same_source_with_disclosure
+      label: 接受同源并披露
+      requires: "主人接受同源继续 ⇒ final/交付说明.md 必须披露「审稿独立性与模型同源」局限"
+  no_default_option: true       # 不得「按最保守项自动继续」，也不得静默重派同 provider
+  halt_pending_owner: true      # 到阈值即挂起等主人，不自动继续
+  reset_condition: switch_then_successful_output   # 换族/换档且成功产出 ⇒ 计数归零
+  record: status.md 模型分配表（含「静默计数」列）
+  doctrine: >
+    同 provider 连续静默 ≥3 次 ⇒ 强制呈现主人三选，不再静默继续。本规则与 `top_tier_liveness_gate` 互补：
+    后者管 spawn **前**探活（attempts / min_interval / staleness），本规则管 **accepted 之后不产出**。
+    回传口径：主控在 status.md 记静默计数，并在 Phase 0 后置与每轮派发后更新；达阈即暂停。
 terminal_freeze:
   protected_paths:
     - final/
@@ -547,7 +593,10 @@ pipeline:
     role: T9
     write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
     verification_authority: 主控
-    on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
+    # ⚠️ v2.12.55 S-2：本节点**不写** `on_worker_failure`（通用 fallback = 主控接管）——
+    #   盲审在结构上不可能由主控接管：主控已读遍全部内部材料，代笔即独立性归零且**事后不可修复**。
+    #   旧实况（v2.12.54 前）：通用 fallback 与下方 `independence_rules`「禁主控代笔」**两条互斥条款并存**，
+    #   实测被读成「主控代写审稿报告并给出编造精度」。失败处置**唯一出口** = `independence_failure_policy`。
     # ↓ v2.12.40 业主定案 A2：T9 独立性**硬定义**（不是建议、不得自行放宽）——错一处即报告失效
     independence: blind_review
     independence_rules:
@@ -559,6 +608,15 @@ pipeline:
       - 评分与判定**不得引用任何内部报告**（引用即报告降为无效，必须重跑）
       - 不得以「参考 T7 的 G1 核验产物」为名回读内部报告（v2.12.40 删除了该旧口径）
     required_report_field: 独立性声明
+    # ⚠️ v2.12.55 S-2：盲审失败处置的**唯一出口** —— 只能重试 spawn，禁主控代笔（与上条互斥条款一并删除）。
+    independence_failure_policy:
+      on_spawn_failure: retry_spawn_only        # 唯一合法恢复动作 = 重新 spawn 独立子代理（可同时换 provider 族 / 能力档）
+      retry_limit: 2                            # 可调（主人可上调）；**不得**降为 0 后改由主控代笔
+      executor_takeover: forbidden              # 禁主控代笔：主控已读全部内部材料，代笔 = 盲审失效
+      forbidden_recovery: [owner_ghostwriting, owner_synthesized_report, digest_existing_internal_reports]
+      on_exhausted: record_missing_and_notify_owner   # 重试仍失败 ⇒ 记为缺失 + 显式告知主人
+      status_record: missing_blind_review       # status.md 记 missing_blind_review（**不得**记 Done / accepted）
+      downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
     output: audits/审稿报告-vN.md
     output_chars_max: 15000
     next: t8_technical_final

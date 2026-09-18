@@ -31,6 +31,13 @@
  24 **全景一致性**（v2.12.54 R-1）：全景**收敛为唯一一份派生视图**（`panorama_sources.canary`），
     须完整承载全部节点 id 且首现顺序 = `phase_seq`；`mirrors` 列出的文档**必须已删除全景段**
     （不含 `section_marker`）且**含指针串** —— 防「11 份文档各写一套全景、无一与真源一致」复发。
+ 30 **盲审禁主控代笔**（v2.12.55 S-2）：`independence: blind_review` 的节点**不得**声明通用 fallback
+    （`on_worker_failure.executor: 主控`），必须声明 `independence_failure_policy`
+    （`executor_takeover: forbidden` + `on_exhausted: record_missing_and_notify_owner` + 正整数 `retry_limit`）
+    —— 主控已读遍全部内部材料，代笔即独立性归零且事后不可修复。
+ 31 **同 provider 连续静默升级**（v2.12.55 S-3）：顶层 `provider_silence_escalation` 必须存在且为
+    「≥3 次 / `scope: same_provider` / 三选一无默认 / `halt_pending_owner: true`」，且主控角色卡
+    必须承载同一协议（真源 ↔ 角色卡双向接线）—— 防「静默继续」与「只写在散文」。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import pathlib, re, sys, yaml
@@ -547,6 +554,59 @@ def main():
     qs_text = (_root24 / 'QUICKSTART.md').read_text(encoding='utf-8')
     if 'pipeline-overview.md' not in qs_text:
         errs.append('QUICKSTART 缺修订回环仲裁表指针（T-3：原指针指向已外移的 SKILL.md 章节）')
+
+    # 30 盲审禁主控代笔（v2.12.55 S-2，修「同一节点两条互斥条款并存」）：
+    #    实况（v2.12.54 前）：t9_review **同时**声明通用 fallback（executor: 主控 = 主控接管）与
+    #    `independence_rules`「必须 spawn 为独立子代理（禁主控代笔）」—— 盲审在结构上不可能由主控接管
+    #    （主控已读遍全部内部材料），实测被读成「主控代写审稿报告并给出编造精度」。
+    #    现规则：盲审节点不得声明通用 fallback；失败唯一出口 = independence_failure_policy（只能重试 spawn →
+    #    仍失败则记为缺失 + 告知主人，不得产出该节点结论）。
+    for n in P:
+        if n.get('independence') != 'blind_review':
+            continue
+        _owf = n.get('on_worker_failure') or {}
+        if isinstance(_owf, dict) and _owf.get('executor') == '主控':
+            errs.append(f"{n['id']}（blind_review）仍声明 on_worker_failure.executor: 主控"
+                        f"（S-2：盲审不得由主控代笔，该通用 fallback 必须删除）")
+        _ifp = n.get('independence_failure_policy') or {}
+        if not isinstance(_ifp, dict) or _ifp.get('executor_takeover') != 'forbidden':
+            errs.append(f"{n['id']}.independence_failure_policy.executor_takeover->{_ifp.get('executor_takeover')}"
+                        f"（S-2：盲审必须显式禁止主控代笔，应为 forbidden）")
+        if _ifp.get('on_exhausted') != 'record_missing_and_notify_owner':
+            errs.append(f"{n['id']}.independence_failure_policy.on_exhausted->{_ifp.get('on_exhausted')}"
+                        f"（S-2：重试耗尽必须记为缺失 + 告知主人，不得自行产出结论）")
+        _rl = _ifp.get('retry_limit')
+        if not isinstance(_rl, int) or _rl < 1:
+            errs.append(f"{n['id']}.independence_failure_policy.retry_limit->{_rl}（S-2：必须为正整数 retry_limit）")
+        if not n.get('independence_rules'):
+            errs.append(f"{n['id']}（blind_review）缺 independence_rules（S-2：独立性硬定义不得只剩名号）")
+
+    # 31 同 provider 连续静默升级（v2.12.55 S-3，修 P1「连续 4 次静默无升级规则」）：
+    #    `top_tier_liveness_gate` 只做 spawn **前**探活，管不到 accepted 之后不产出 ——
+    #    真源必须承载「同 provider 连续 ≥3 次静默 ⇒ 强制主人三选」，且不得 fail-open（无默认 + 挂起）。
+    _pse = d.get('provider_silence_escalation') or {}
+    if not isinstance(_pse, dict) or not _pse:
+        errs.append('缺顶层 provider_silence_escalation（S-3：静默升级规则无机器可读真源，只能靠散文）')
+    else:
+        if _pse.get('threshold') != 3:
+            errs.append(f"provider_silence_escalation.threshold->{_pse.get('threshold')}"
+                        f"（S-3：同 provider 连续静默阈值应为 3）")
+        if _pse.get('scope') != 'same_provider':
+            errs.append(f"provider_silence_escalation.scope->{_pse.get('scope')}（S-3：应为 same_provider）")
+        if _pse.get('no_default_option') is not True:
+            errs.append('provider_silence_escalation.no_default_option ≠ true（S-3：三选一不得有默认项）')
+        if _pse.get('halt_pending_owner') is not True:
+            errs.append('provider_silence_escalation.halt_pending_owner ≠ true（S-3：到阈值必须挂起等主人）')
+        _choices = [c.get('id') for c in (_pse.get('owner_choices') or []) if isinstance(c, dict)]
+        for _must in ('switch_provider_family', 'switch_capability_tier', 'accept_same_source_with_disclosure'):
+            if _must not in _choices:
+                errs.append(f'provider_silence_escalation.owner_choices 缺「{_must}」选项（S-3 三选一锁）')
+    # 真源 ↔ 主控角色卡双向接线（防「只活在 yaml、主控卡不执行」）
+    _mc_text = (_root24 / 'references/agents/00-主控-coordinator.md').read_text(encoding='utf-8')
+    if '连续 ≥3 次静默' not in _mc_text:
+        errs.append('00-主控-coordinator.md 缺 S-3 静默升级协议（连续 ≥3 次静默 ⇒ 强制主人三选）')
+    if '禁主控代笔' not in _mc_text:
+        errs.append('00-主控-coordinator.md 缺 S-2 盲审禁代笔协议（independence: blind_review）')
 
     print(';'.join(errs))
     return 0 if not errs else 2

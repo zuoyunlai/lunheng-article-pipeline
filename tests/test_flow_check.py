@@ -196,6 +196,8 @@ def test_every_worker_node_declares_role_writability_and_takeover():
     v2.12.51 D-3：写入权按档位分两类 ——
       · 只读档（T6 / T7 / T9 / G14）= 报告由主控 write 落盘 ⇒ 必须 `owner`
       · 自有产物节点（T4 分析 / T5 写手 / 检索三卡）⇒ 必须 `executor`
+    v2.12.55 S-2：`independence: blind_review` 节点例外 —— **不得**走通用 fallback（主控接管），
+      改由 `independence_failure_policy` 承接（只重试 spawn → 仍失败记缺失 + 告知主人）。
     """
     READONLY_ROLES = {"T6", "T7", "T9", "G14"}
     missing = []
@@ -209,6 +211,11 @@ def test_every_worker_node_declares_role_writability_and_takeover():
                     f"{n['id']}.write_authority={n.get('write_authority')}（应为 {expected_wa}）")
             if n.get("verification_authority") != "主控":
                 missing.append(f"{n['id']}.verification_authority")
+            if n.get("independence") == "blind_review":
+                # S-2：盲审节点不得声明通用 fallback（= 主控代笔）
+                if (n.get("on_worker_failure") or {}).get("executor") == "主控":
+                    missing.append(f"{n['id']}.on_worker_failure（盲审禁主控代笔，S-2）")
+                continue
             takeover = n.get("on_worker_failure") or {}
             if takeover.get("executor") != "主控" or takeover.get("disclosure") != "degraded_executor":
                 missing.append(f"{n['id']}.on_worker_failure")
@@ -891,6 +898,95 @@ def test_r1_exempt_files_must_not_carry_panorama(tmp_path):
     def mutate(src):
         return "## 流水线全景\n" + src
     _inject_and_expect("references/templates/status-template.md", mutate, "R-1", tmp_path)
+
+
+# ===== v2.12.55 Batch B 泳道 1：S-2 盲审禁代笔 + S-3 静默升级 =====
+
+def test_s2_blind_review_forbids_owner_takeover():
+    """S-2 正向：`independence: blind_review` 节点禁主控代笔。
+
+    判据（一句话）：盲审节点不得声明通用 fallback（`on_worker_failure.executor: 主控`），
+    必须声明 `independence_failure_policy`（forbidden + 记缺失告知主人 + 正整数 retry_limit）。
+    """
+    found = 0
+    for n in _pipeline()["pipeline"]:
+        if n.get("independence") != "blind_review":
+            continue
+        found += 1
+        owf = n.get("on_worker_failure") or {}
+        assert not (isinstance(owf, dict) and owf.get("executor") == "主控"), \
+            f"{n['id']} 仍声明 on_worker_failure.executor: 主控（S-2：盲审不得由主控代笔）"
+        p = n.get("independence_failure_policy") or {}
+        assert p.get("executor_takeover") == "forbidden", \
+            f"{n['id']} 缺 independence_failure_policy.executor_takeover: forbidden（S-2）"
+        assert p.get("on_exhausted") == "record_missing_and_notify_owner", \
+            f"{n['id']} 缺 on_exhausted: record_missing_and_notify_owner（S-2：不得自行产出结论）"
+        assert isinstance(p.get("retry_limit"), int) and p["retry_limit"] >= 1, \
+            f"{n['id']}.independence_failure_policy.retry_limit 非正整数（S-2）"
+        assert n.get("independence_rules"), f"{n['id']} 缺 independence_rules（S-2）"
+    assert found, "全文真源中找不到任何 independence: blind_review 节点（S-2 规则退化成永真）"
+
+
+def test_s2_blind_review_node_set_anchored():
+    """S-2 锚点：blind_review 节点集当前 = {t9_review}（改名/新增必须显式回看本规则与角色卡）。"""
+    blind = {n["id"] for n in _pipeline()["pipeline"] if n.get("independence") == "blind_review"}
+    assert blind == {"t9_review"}, f"blind_review 节点集变化: {blind}（须同步主控卡与 S-2 门）"
+
+
+def test_s2_flow_check_detects_owner_ghostwriting_fallback(tmp_path):
+    """S-2 反向注入（D-4 副本注入）：把通用 fallback（executor: 主控）写回 t9_review ⇒ 规则 30 必须报红点名。"""
+    def mutate(src):
+        start, block = _node_block(src, "  - id: t9_review")
+        injected = ("    on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}\n"
+                    "    # ↓ v2.12.40 业主定案 A2：T9 独立性**硬定义**")
+        bad_block = block.replace("    # ↓ v2.12.40 业主定案 A2：T9 独立性**硬定义**", injected, 1)
+        return src[:start] + bad_block + src[start + len(block):]
+    out = _inject_and_expect(YAML_REL, mutate, "S-2", tmp_path)
+    assert "t9_review" in out, f"报错未点名 t9_review: {out}"
+
+
+def test_s2_flow_check_detects_takeover_allowed(tmp_path):
+    """S-2 反向注入：把 executor_takeover 改成 allowed ⇒ 规则 30 必须报红。"""
+    def mutate(src):
+        return src.replace("      executor_takeover: forbidden", "      executor_takeover: allowed", 1)
+    out = _inject_and_expect(YAML_REL, mutate, "S-2", tmp_path)
+    assert "t9_review" in out, f"报错未点名 t9_review: {out}"
+
+
+def test_s3_provider_silence_escalation_declared():
+    """S-3 正向：顶层 provider_silence_escalation = ≥3 次 / same_provider / 三选一无默认 / 挂起。"""
+    pse = _pipeline().get("provider_silence_escalation") or {}
+    assert pse, "缺顶层 provider_silence_escalation（S-3：静默升级规则无机器可读真源）"
+    assert pse.get("threshold") == 3, f"threshold ≠ 3: {pse.get('threshold')}"
+    assert pse.get("scope") == "same_provider"
+    assert pse.get("no_default_option") is True, "S-3 三选一不得有默认项"
+    assert pse.get("halt_pending_owner") is True, "S-3 到阈值必须挂起等主人"
+    ids = [c.get("id") for c in (pse.get("owner_choices") or [])]
+    for must in ("switch_provider_family", "switch_capability_tier", "accept_same_source_with_disclosure"):
+        assert must in ids, f"provider_silence_escalation.owner_choices 缺「{must}」（S-3 三选一）"
+
+
+def test_s3_controller_card_carries_protocol():
+    """S-3 接线：主控角色卡必须承载同一协议（真源 ↔ 角色卡双向；防「只活在 yaml」）。"""
+    mc = (ROOT / "references/agents/00-主控-coordinator.md").read_text(encoding="utf-8")
+    assert "连续 ≥3 次静默" in mc, "主控卡缺 S-3 静默升级协议"
+    assert "禁主控代笔" in mc, "主控卡缺 S-2 盲审禁代笔协议"
+
+
+def test_s3_flow_check_detects_threshold_drift(tmp_path):
+    """S-3 反向注入（D-4 副本注入）：把静默阈值改成 9 ⇒ 规则 31 必须报红点名。"""
+    def mutate(src):
+        return src.replace("  threshold: 3", "  threshold: 9", 1)
+    out = _inject_and_expect(YAML_REL, mutate, "S-3", tmp_path)
+    assert "provider_silence_escalation" in out, f"报错未点名 provider_silence_escalation: {out}"
+
+
+def test_s3_flow_check_detects_missing_rule(tmp_path):
+    """S-3 反向注入（D-4 副本注入）：顶层键被改名（= 整块失效）⇒ 规则 31 必须报红。"""
+    def mutate(src):
+        return src.replace("\nprovider_silence_escalation:", "\nprovider_silence_escalation_x:", 1)
+    out = _inject_and_expect(YAML_REL, mutate, "S-3", tmp_path)
+    assert "provider_silence_escalation" in out, f"报错未点名 provider_silence_escalation: {out}"
 
 
 if __name__ == "__main__":
