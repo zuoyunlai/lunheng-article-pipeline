@@ -1,6 +1,6 @@
 # 论衡开发工具 Makefile（P1-5 修订 2026-09-08）
 
-.PHONY: help test lint format audit changelog-check clean install
+.PHONY: help test lint format audit changelog-check scripts-index clean install
 
 help:
 	@echo "论衡开发工具"
@@ -12,6 +12,7 @@ help:
 	@echo "  make format     - 格式化 Python 代码（black + isort）"
 	@echo "  make audit      - 运行自审门"
 	@echo "  make changelog-check - 校验 changelog 完整性（每个版本 tag 都有章节）"
+	@echo "  make scripts-index - 刷新 scripts/README.md 脚本索引（从脚本头部生成；漂移由 pytest 锁死）"
 	@echo "  make preflight  - 发版前置闸（两查一停：在飞链 / 编号占用 / 工作区干净）"
 	@echo "  make clean      - 清理临时文件"
 	@echo "  make all        - 运行全部检查（lint + test + audit + changelog-check）"
@@ -56,6 +57,11 @@ changelog-check:
 	@echo "校验 changelog 完整性..."
 	python3 scripts/changelog-check.py --check
 	@echo "✓ changelog 完整性校验完成（--online 可追加校验 GitHub Release 覆盖）"
+
+# 脚本索引（派生视图，真源 = 各脚本头部注释）：改了脚本头就重跑本目标
+# 判据与 tests/test_scripts_index.py 同源（同一个 --check），索引落在 scripts/README.md
+scripts-index:
+	@python3 scripts/gen-scripts-index.py
 
 # 发版前置闸（教训 #332，两查一停）——任何对外发版动作（push / tag / Release / 净化包）之前必跑
 # 本链自身会话 key 用 LUNHENG_PREFLIGHT_SELF_SESSION 传入，否则本链会被闸算作在飞链（失败关闭）。
