@@ -4,7 +4,7 @@ description: "学术论文/深度长文/行业分析流水线：含同行评审�
 metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName；其下未知子键加载器忽略（无官方依据）。读版本脚本已支持缩进写法。
-    version: 2.12.52
+    version: 2.12.53
     requires:
       bins: []
   tools:
@@ -24,7 +24,7 @@ metadata:
     # T8 = [] 主控亲完成，不 spawn
   # 不设 cwd_default：设了会被解析到 skill 目录内（项目跑进技能文件夹）；spawn 的 cwd 必须绝对路径
 ---
-> 版本：v2.12.52（自动同步 2026-09-17）
+> 版本：v2.12.53（自动同步 2026-09-18）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
@@ -48,7 +48,7 @@ metadata:
 
 - **主控工具面**：清单真源 = frontmatter `metadata.tools`（base 3 + coordinator_only 8 + research_extra 4），**正文不重列**。
 - **子代理 5 档白名单**（声明/部署建议，非 spawn 传参）：真源 = frontmatter `metadata.subagent_tiers`（research 含 T1/T2/T3 · analysis T4 · writing T5 · audit T6+T7 · review T9+G14；T8 空）。工具面**四层模型**见 [`permissions.md`](references/permissions.md)。
-- **禁用（`denied`）— 41 项**（真源 = frontmatter `metadata.tools.denied`，**自定义声明，描述本 skill 的调用边界，加载器不执行**）。论衡不要求任何宿主配置；OpenClaw 的多 Agent 能力与实际工具策略由平台负责。可选的宿主侧机械收紧建议仅见维护者附录 [`host-hardening-recipe.md`](references/_shared/host-hardening-recipe.md)，不属于本 skill 的运行前提。
+- **禁用（`denied`）— 41 项**（真源 = frontmatter `metadata.tools.denied`，**自定义声明，描述本 skill 的调用边界，加载器不执行**）。论衡不要求任何宿主配置；OpenClaw 的多 Agent 能力与实际工具策略由平台负责。本 skill 不附带、不推荐任何宿主侧机械收紧配置。
 - **两个层级别混（本修订起显式区分）**：
   - **工具级 opt-in 已归零**：论衡不调用 `image_generate`；封面改为 T8 终检后的主人自行操作建议。**服务级外发类别唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律引用不重列。
   - **服务级外发同意（3 类，逐项知情同意）**：唯一真源见上；本文件不重列类别，防止口径漂移。

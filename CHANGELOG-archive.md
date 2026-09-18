@@ -5879,3 +5879,29 @@ MEDIUM (05-审计-auditor.md L57-70): 反哺自动 commit 角色卡
 Co-Authored-By: OpenClaw <noreply@openclaw.ai>
 
 ---
+
+## [v2.12.48] — 2026-09-16
+
+> **主题：纯 skill 定位收口——明确 OpenClaw 多 Agent 为平台能力，宿主配置不再是论衡运行前提。**
+> **性质：C1 口径修订 + 权限边界收敛 + 状态模板与回归测试同步。**
+
+### 一、纯 skill 与平台责任边界
+
+- 明确论衡不要求、不读取、不修改宿主配置；OpenClaw 原生提供多 Agent、会话与工具策略能力
+- 宿主 deny、sandbox、spawn 深度等机械限制降为维护者可选附录，不再作为启动、质量或交付条件
+- worker 失败仍按单节点故障由主控接管并披露，不把宿主工具面差异写成论衡失败
+
+### 二、C1 口径一致性修订
+
+- 启动自检只核对本角色声明与当前会话可见工具面，不产生“未加固”项目状态
+- 工具面出现未声明工具 = 观测提示；实际调用未声明工具才阻断并转主控接管
+- 同步 SKILL.md、permissions、dispatch-header、主控职责、pipeline-readme、status-template、交接模板与宿主附录
+
+### 三、验收
+
+- pytest **285 passed**
+- 自审门 **26 PASS / 0 FAIL**
+- SKILL.md **9958 ≤ 10000** 字符
+- 版本号同步覆盖 90 项文件
+
+---

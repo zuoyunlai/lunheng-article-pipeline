@@ -36,7 +36,6 @@ SKILL_APPENDIX = ROOT / "references" / "_shared" / "skill-entry-appendix.md"
 DH = ROOT / "references/_shared/dispatch-header.md"
 PERM = ROOT / "references/permissions.md"
 MGATE = ROOT / "references/_shared/M-Gate-Algorithm.md"
-HARDENING = ROOT / "references/_shared/host-hardening-recipe.md"
 COORD = ROOT / "references/agents/00-主控-扩展职责.md"
 
 
@@ -186,11 +185,13 @@ def test_f6_readonly_tier_consistent_across_docs():
     assert "无 write 工具" in audit_card or "只读档" in audit_card
 
 
-def test_f6_hardening_mentions_not_a_licence():
-    """加固配方须与铁律一致（防四处漂移）"""
-    h = read(HARDENING)
-    assert "超限 ≠ 调用许可" in h, "加固配方缺「超限 ≠ 调用许可」"
-    assert "两级判据" in h and "警告级" in h and "阻断级" in h
+def test_f6_iron_rule_consistency_across_runtime_docs():
+    """铁律须在 permissions 与主控卡同源（v2.12.53 配方文件删除后，锚点收敛到运行真源）"""
+    perm = read(PERM)
+    coord = read(COORD)
+    assert "超限 ≠ 调用许可" in perm, "permissions 缺「超限 ≠ 调用许可」"
+    assert "两级判据" in perm and "警告级" in perm and "阻断级" in perm
+    assert "工具面超限 ≠ 调用许可" in coord
 
 
 def test_f6_coord_card_mentions_iron_rule():

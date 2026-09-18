@@ -164,7 +164,6 @@ SYNCS=(
   "_shared/phase-3-details.md|header"
   "_shared/dispatch-header.md|header"
   "_shared/skill-entry-appendix.md|header"
-  "_shared/host-hardening-recipe.md|header"
   "templates/README-模板拆分方案.md|header"
   "templates/checkpoint-card-template.md|header"
   "templates/status-template-lite.md|header"

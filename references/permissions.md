@@ -1,4 +1,4 @@
-> 版本：v2.12.52（自动同步 2026-09-17）
+> 版本：v2.12.53（自动同步 2026-09-18）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -95,7 +95,7 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 41 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**，要真正禁用须由**宿主配置**绑定（配方见 [`host-hardening-recipe.md`](_shared/host-hardening-recipe.md)）。
+**禁用（`metadata.tools.denied`）— 41 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**；是否在宿主侧额外收紧由宿主自行决定，**不属本 skill 的运行前提**。
 
 **Workspace 路径收口**：
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树

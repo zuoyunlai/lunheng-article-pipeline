@@ -139,7 +139,6 @@ CHECKS=(
   "_shared/phase-3-details.md|v$EXPECTED|1"
   "_shared/dispatch-header.md|v$EXPECTED|1"
   "_shared/skill-entry-appendix.md|v$EXPECTED|1"
-  "_shared/host-hardening-recipe.md|v$EXPECTED|1"
   "templates/README-模板拆分方案.md|v$EXPECTED|1"
   "templates/checkpoint-card-template.md|v$EXPECTED|1"
   "templates/status-template-lite.md|v$EXPECTED|1"

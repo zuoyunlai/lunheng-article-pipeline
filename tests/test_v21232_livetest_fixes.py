@@ -34,7 +34,6 @@ PHASE_ORDER = ROOT / "references/_shared/phase-order.yaml"
 DELIVERABLES = ROOT / "references/deliverables.md"
 MGATE = ROOT / "references/_shared/M-Gate-Algorithm.md"
 T5 = ROOT / "references/dispatch/T5-写手.md"
-HARDENING = ROOT / "references/_shared/host-hardening-recipe.md"
 
 
 def read(p):
@@ -235,11 +234,11 @@ def test_docs_readonly_tier_report_written_by_owner():
     assert "报告由主控落盘" in perm, "须写清报告落盘主体（D-3）"
 
 
-def test_docs_hardening_mentions_two_level():
-    """加固配方须与两级判据一致（防三处漂移）"""
-    h = read(HARDENING)
-    assert "两级判据" in h
-    assert "警告级" in h and "阻断级" in h
+def test_docs_tool_surface_two_level_consistency():
+    """两级判据须在 permissions 与主控卡同源（v2.12.53 配方文件删除后，锚点收敛到运行真源）"""
+    for doc in (read(PERM), read(COORD)):
+        assert "两级判据" in doc
+        assert "警告级" in doc and "阻断级" in doc
 
 
 if __name__ == "__main__":

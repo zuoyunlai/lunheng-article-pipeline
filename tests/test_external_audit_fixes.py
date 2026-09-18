@@ -8,7 +8,7 @@
   P0-2  「19 项特权工具禁用」被写成既成事实 —— 而官方 SKILL.md frontmatter
         **无任何工具策略键**，沙箱默认 off、未设 tools.* 时平台默认即全权访问
         （docs/gateway/sandboxing.md、docs/gateway/permission-modes.md）。
-        修法：措辞改为**声明式** + 指向 host-hardening-recipe.md。
+        修法：措辞改为**声明式**（声明调用边界，不承诺平台强制）。
   P0-3  记忆读工具「无 LLM vendor 外发」误述 —— memory.search.provider 未显式设置时
         默认走 OpenAI embeddings（docs/concepts/active-memory.md）。
         后续口径重构：该类工具已从论衡工具面整体移除，本项回归门改写为移除门。

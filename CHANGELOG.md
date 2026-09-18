@@ -1,5 +1,14 @@
 # Changelog
 
+---
+
+## [v2.12.53] — 2026-09-18
+
+- **能力边界收口**：移除 `host-hardening-recipe.md` 维护者附录；运行文档与测试锚点统一回到 skill 自身声明与权限真源，不把宿主侧配置作为本 skill 前提。
+- **批次 C1（P0）**：删除 single-controller / 紧急模式绕过 Phase 2.5 / 第 3 轮自动降级 / G14 超时自动选择 A 等 fail-open 残留，统一改为显式主人裁决与 `pending_owner` 挂起。
+
+---
+
 > ⚠️ **范围说明（v2.12.47 起）**：本文件只保留**最近 5 期**；**v2.12.44 及更早**的全部章节逐字迁入 [`CHANGELOG-archive.md`](CHANGELOG-archive.md)。部分历史条目链接指向 `docs/` 或 `../outputs/` 中的**当时产物**（发布说明 / 审计报告 / 设计方案），这些文件**已随清理移除或归档**，链接可能失效——**属史料，不影响当前使用**。当前版本行为以 [`SKILL.md`](SKILL.md) 与 `references/` 为准。
 
 论衡（`lunheng-article-pipeline`）版本变更记录。**本文件 + [`CHANGELOG-archive.md`](CHANGELOG-archive.md) 共同构成仓库内 changelog 的单一真源**（`scripts/changelog-check.py` 同时读取两份，「每个版本 tag 都有章节」的校验不受拆分影响）；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 是同一内容的发布视图。
@@ -216,29 +225,3 @@
 - `flow-check.py` **RC=0**（规则 22 锁死 M/T 全项真源）
 - 版本号同步覆盖 **90+ 项文件**（`sync-version.sh` 自动化）
 - 提交链：`02db518 → dca71a7 → ac59099 → 41ff9eb → 2bee239 → 9a977bd → 388f01f → e361029 → 905d2ec → 8022aa4`（领先 origin **10** commits；**未打 tag / 未 push**，待主人批准）
-
----
-
-## [v2.12.48] — 2026-09-16
-
-> **主题：纯 skill 定位收口——明确 OpenClaw 多 Agent 为平台能力，宿主配置不再是论衡运行前提。**
-> **性质：C1 口径修订 + 权限边界收敛 + 状态模板与回归测试同步。**
-
-### 一、纯 skill 与平台责任边界
-
-- 明确论衡不要求、不读取、不修改宿主配置；OpenClaw 原生提供多 Agent、会话与工具策略能力
-- 宿主 deny、sandbox、spawn 深度等机械限制降为维护者可选附录，不再作为启动、质量或交付条件
-- worker 失败仍按单节点故障由主控接管并披露，不把宿主工具面差异写成论衡失败
-
-### 二、C1 口径一致性修订
-
-- 启动自检只核对本角色声明与当前会话可见工具面，不产生“未加固”项目状态
-- 工具面出现未声明工具 = 观测提示；实际调用未声明工具才阻断并转主控接管
-- 同步 SKILL.md、permissions、dispatch-header、主控职责、pipeline-readme、status-template、交接模板与宿主附录
-
-### 三、验收
-
-- pytest **285 passed**
-- 自审门 **26 PASS / 0 FAIL**
-- SKILL.md **9958 ≤ 10000** 字符
-- 版本号同步覆盖 90 项文件
