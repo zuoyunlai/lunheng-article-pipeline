@@ -79,7 +79,7 @@
 - **Phase 1.5 定向回查**: ⬜ not_triggered（必须写未触发依据）→ 🔄 triggered → ✅ Done（YYYY-MM-DD HH:MM, T1b 回查报告 + T2.5 重跑）
 - **G14 中文 AI 痕迹闸**（Phase 4.4 前置，定稿前唯一一次）: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 8 类检测, Pass/Warning/Fail；纯外语 → n/a）  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
 - **T7 审计**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 审计报告-vN.md + 反哺报告-vN.md）
-- **修订回环**（≤2 轮）: ⬜ Inbox → 🔄 第 1 轮 → ✅ Done / 🔄 第 2 轮 → ✅ Done / 🔒 Acknowledged Limitations 模式
+- **修订回环**（≤2 轮）: ⬜ Inbox → 🔄 第 1 轮 → ✅ Done / 🔄 第 2 轮 → ✅ Done / 🔒 Acknowledged Limitations 模式  <!-- 本行仅为 status 状态取值；轮次映射与各通道判定的真源 = _shared/pipeline-overview.md『修订回环仲裁规则』（本行不复述轮次定义） -->
 - **T7.5 完整性门**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 主控 checkpoint）
 - **T8 技术终检**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, final/定稿.md 技术检查）
 - **Phase 5 主人验收**: ⬜ 未决策 → 🔄 In Progress → ✅ accepted / 🔁 revision_requested / ↩ restart_phase / ⏸ deferred

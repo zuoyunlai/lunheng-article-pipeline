@@ -215,7 +215,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.55  # 建议 pi
 - 搬入 `final/局限性.md`
 - 论文正常交付（不假装完美）
 
-> ⚠️ **修订回环口径**（v2.12.54 主人裁定，2026-09-18）：**不计轮** = v1→v2 主人洞察修订（Phase 3.5；主人选 `no_insight` 则**不产 v2**）；**轮 1** = Phase 3.6 T6 批判报告 → Phase 3.7 T5 批判修订；**轮 2** = Phase 4.2 审计打回 → T5 审计修订；minor cosmetic（≤5% 字 / 引用格式 / 拼写）由 T8 inline 亲修、**独立登记不计轮**；耗尽 2 轮仍有 P0 / 结构性 P1 → **Acknowledged Limitations**（须主人拍板）——无静默无限修订。完整仲裁表见 `references/_shared/pipeline-overview.md`「修订回环仲裁规则」。
+> ⚠️ **修订回环口径**（v2.12.54 主人裁定）：**常规修订 ≤2 轮硬约束**；耗尽仍有 P0 / 结构性 P1 → **Acknowledged Limitations**（未关闭项搬入 `final/局限性.md`，论文正常交付，须主人拍板）——无静默无限修订。**轮次映射与各通道判定 → 见 [`references/_shared/pipeline-overview.md`](references/_shared/pipeline-overview.md)『修订回环仲裁规则』（单一真源；本文件不复述轮次数字）**。
 
 ---
 
