@@ -244,7 +244,7 @@ fi
 #   `PASS: 25 / FAIL: 0` exit 0 ⇒ CI 的「门 H 通过」只覆盖半条判据（仅反向差集）。
 # =============================================================================
 LESSONS_SRC="${LESSONS_SRC:-$HOME/.openclaw/workspace/memory/lessons.md}"
-LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341 355 374 375 376}"
+LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341 355 374 375 376 380 382 383 385 392 393 394 395 396 397 398 402 403 404 405 410 411 412 413 414}"
 IDX_DECL_MAX=$(grep -oE '当前最大编号 \*\*#[0-9]+\*\*' "references/_shared/教训索引.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
 SNAPSHOT_FILE="${LESSONS_SNAPSHOT:-references/_shared/lessons-max.snapshot}"
 SNAP_MAX=$(grep -oE '[0-9]+' "$SNAPSHOT_FILE" 2>/dev/null | head -1)

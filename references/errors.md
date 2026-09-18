@@ -209,7 +209,7 @@ M-Form-3 failed: temp_id pattern detected in output
 |------|------|
 | `_shared/glossary-full.md § 五 工具能力边界` | 工具能做/不能做 |
 | `failure-modes.md` | 失败模式定义（F1-F9） |
-| `本文` | 错误信息友好化（12 类） |
+| `本文` | 错误信息友好化（13 类） |
 
 **主控实战时**：
 - 看到错误 → 查 `failure-modes.md` 找定义

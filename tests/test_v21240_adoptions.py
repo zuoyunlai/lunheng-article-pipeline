@@ -214,6 +214,6 @@ def test_mechanism_protection_wired_into_cards_and_quickref():
     # 旧「exit 0」权威表述必须已退出终检卡（“不再用 exit 0 表述”的说明句允许保留）
     fin = _read(FINAL_INSPECTOR)
     assert "路径或参数错误" in fin and "四档判定" in fin
-    assert "M 门 exit ≠ 0" not in fin and "M 门 exit 0" not in fin
+    assert "M 门 exit ≠ 0" not in fin and "M 门结论为通过" not in fin
     qk = _read(QUICKREF)
     assert "判定结果分档" in qk and "报告后激活" in qk and "可复核判定协议" in qk

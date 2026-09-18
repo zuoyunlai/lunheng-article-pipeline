@@ -6,6 +6,10 @@
 
 - **能力边界收口**：移除 `host-hardening-recipe.md` 维护者附录；运行文档与测试锚点统一回到 skill 自身声明与权限真源，不把宿主侧配置作为本 skill 前提。
 - **批次 C1（P0）**：删除 single-controller / 紧急模式绕过 Phase 2.5 / 第 3 轮自动降级 / G14 超时自动选择 A 等 fail-open 残留，统一改为显式主人裁决与 `pending_owner` 挂起。
+- **批次 C2（P1）**：清除 image_generate 授权残留、200 字/exit 0 旧判据、G14/T6 相位与图位数量分叉、轻量档与硬卡区间漂移；补齐 G14 checker 单类严重度档和 T5 六条铁律口径。
+- **批次 C3（P2）**：统一 G 清单 17 项、denied 41 项、24 中文期刊、角色/信任级别/心跳命名/ACK 分档/人环四节点等计数与文档引用，修复失效路径及重复表述。
+- **批次 D**：教训索引、`lessons-max.snapshot` 与 `LUNHENG_LESSON_EXCLUDE` 同批刷新；论衡类最大编号由 #373 更新为 **#409**。
+
 
 ---
 

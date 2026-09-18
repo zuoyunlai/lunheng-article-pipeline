@@ -176,18 +176,31 @@ def detect_g14(article_text):
     
     # 类别 C-H: 类似实现...
     
-    # 整体判定
+    # 整体判定：类数档与单类严重度档取严（与 gates/14 §三一致）
     hit_count = sum(1 for r in results.values() if r['hit'])
-    
+    severe_single_class = []
+    for name, result in results.items():
+        if result.get('measured') is not None and result.get('threshold'):
+            ratio = result['measured'] / result['threshold']
+            if ratio >= 3:
+                severe_single_class.append({'name': name, 'measured': result['measured'],
+                                            'threshold': result['threshold'], 'ratio': ratio})
     if hit_count <= 2:
         verdict = '✅ Pass'
     elif hit_count <= 4:
         verdict = '⚠️ Warning'
     else:
         verdict = '❌ Fail'
+    if any(x['ratio'] > 5 for x in severe_single_class):
+        verdict = '❌ Fail'
+    elif severe_single_class and verdict == '✅ Pass':
+        verdict = '⚠️ Warning'
     
     return {
         'hit_count': hit_count,
+        'hit_class_names': [name for name, result in results.items() if result['hit']],
+        'severe_single_class': severe_single_class,
+        'max_band_basis': 'single_severity' if severe_single_class else 'class_count',
         'verdict': verdict,
         'details': results,
         'recommendations': generate_recommendations(results)

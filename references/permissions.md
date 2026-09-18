@@ -36,7 +36,7 @@
 
 **论衡技能的工具边界**：
 
-**主控 documented（`base` + `coordinator_only` + `research_extra` 三档）**：**清单与计数的唯一真源 = `SKILL.md` frontmatter `metadata.tools`**（本文只作可读展开、**不写死数字** —— 两处计数各自演进必漂移；旧文写死「15 项」而枚举只有 13 项，即此病）：
+**主控 documented（`base` + `coordinator_only` + `research_extra` 三档）**：**清单与计数的唯一真源 = `SKILL.md` frontmatter `metadata.tools`**（本文只作可读展开、**不写死数字** —— 两处计数各自演进必漂移；旧文曾把枚举误写成「13 项」；现以 frontmatter 真源为准，不在此重复计数）：
 - read / write / edit（`base`，项目文件 I/O）
 - sessions_spawn / sessions_yield / sessions_history / sessions_list（`coordinator_only`，子代理编排 + 会话枚举）
 - subagents（`coordinator_only`；仅看本技能 spawn 的子代理，不枚举宿主可见会话）
@@ -101,11 +101,11 @@
 - 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树
 - **拒绝**：绝对路径（含任何指向宿主敏感位置的路径：系统账号/密码存储文件、SSH 密钥目录、云凭据文件等）、父路径穿越（`..`）、symlink 逃逸、主控工作区根目录外的访问
 - 默认 cwd = workspace 根（**不设 `cwd_default`**，否则 run/ 被解析到 skill 目录内，教训 #255）——主控在 spawn 时**必须显式传绝对路径 `cwd: <workspace>/run/<项目名>/`**；**相对路径会被解析到 skill 目录**（v2.12.28 实测，教训 #255），故一律用绝对路径。子代理任务首句必读 `references/_shared/关键协议.md` §workspace 路径收口（read/write/edit 边界）
-> ⚠️ **用户警示（本文件可见）**：本技能运行期间会创建 / 修改以下路径的文件，**需先经 Phase 0 显式同意**：`run/<项目名>/status.md`（主控独占写）、`run/<项目名>/.tmp/<角色>-heartbeat.md`（**默认不写**——仅 Phase 0 勾选「Operational Telemetry」才写）、`run/<项目名>/drafts/<角色>-status.json`、`run/<项目名>/analysis/`、`run/<项目名>/audits/`、`run/<项目名>/final/`（交付说明 / 定稿 / 图件 / 证据包）。**全部限当前 workspace 的 `run/<项目名>/` 子树**——不写项目外、不写宿主配置。**标准架构 = 多 Agent 九角色**；worker 不可用时按节点主控接管并披露。
+> ⚠️ **用户警示（本文件可见）**：本技能运行期间会创建 / 修改以下路径的文件，**需先经 Phase 0 显式同意**：`run/<项目名>/status.md`（主控独占写）、`run/<项目名>/.tmp/<两位角色号>-<角色名>-heartbeat.md`（**默认不写**——仅 Phase 0 勾选「Operational Telemetry」才写）、`run/<项目名>/drafts/<角色>-status.json`、`run/<项目名>/analysis/`、`run/<项目名>/audits/`、`run/<项目名>/final/`（交付说明 / 定稿 / 图件 / 证据包）。**全部限当前 workspace 的 `run/<项目名>/` 子树**——不写项目外、不写宿主配置。**标准架构 = 多 Agent 九角色**；worker 不可用时按节点主控接管并披露。
 
 - ⚠️ **两个 `cwd` 不是一回事，切勿混**：① **spawn 的平台参数 `cwd`** —— **必须绝对路径**（上条）；② **论衡自身的 read/write/edit 边界规则** —— 工具只接受 `run/<项目名>/` 子树内的**相对路径**，**拒绝绝对路径**。二者方向相反但互补：spawn 用绝对路径定位项目根，文件工具再用相对路径收口到子树内。
 - 实操：主控 spawn 时传绝对路径 `cwd: <workspace>/run/<项目名>/`；子代理拒绝改 cwd；产出写盘必须落在 `run/<项目名>/<子目录>/` 内
-- **完整写入清单（含周期性写入）**：本技能运行期间会创建/修改的路径只有三类——① `run/<项目名>/` 项目文件树（任务简报 / 文献卡 / 数据卡 / 案例卡 / 大纲 / 草稿 / 审计报告 / 定稿 / 图件 / 证据包 / 交付说明，约 15-25 个文件）；② `run/<项目名>/status.md`（主控独占写）；③ `run/<项目名>/.tmp/<角色>-heartbeat.md`（子代理心跳，启动时写 + 运行中每约 5 分钟追加一行）。**全部限当前 workspace 的 `run/<项目名>/` 内**：不写项目外、不写其他项目、不写宿主配置（`openclaw.json` 等由主人自行维护，本技能只读不写）。已向主人披露于 SKILL.md「执行前安全须知」+ QUICKSTART.md「重要警告」。
+- **完整写入清单（含周期性写入）**：本技能运行期间会创建/修改的路径只有三类——① `run/<项目名>/` 项目文件树（任务简报 / 文献卡 / 数据卡 / 案例卡 / 大纲 / 草稿 / 审计报告 / 定稿 / 图件 / 证据包 / 交付说明，约 15-25 个文件）；② `run/<项目名>/status.md`（主控独占写）；③ `run/<项目名>/.tmp/<两位角色号>-<角色名>-heartbeat.md`（子代理心跳，启动时写 + 运行中每约 5 分钟追加一行）。**全部限当前 workspace 的 `run/<项目名>/` 内**：不写项目外、不写其他项目、不写宿主配置（`openclaw.json` 等由主人自行维护，本技能只读不写）。已向主人披露于 SKILL.md「执行前安全须知」+ QUICKSTART.md「重要警告」。
 
 **其他约束**：
 - 🔒 **子代理真实权限边界 = 宿主 config，不是 spawn 参数**：OpenClaw 2026.9.x 的 `sessions_spawn` **已无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证）。子代理工具面由**四层**决定：① 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`progress_card`/`cron`/`message`/`sessions_send`/`conversations_*`；每组 turn 从持久化的子代理 session envelope 重新推导，`allow`/`alsoAllow` 无法绕过）② **depth 层追剥**（子代理到达平台的委派深度上限即叶子，追加剥 `sessions_spawn`/`subagents`/`sessions_list`/`sessions_history`；depth 策略运行时权威）③ **捕获主控有效工具策略快照**（主控未被剥的工具，子代理同样继承）④ 宿主 config `tools.subagents.tools.allow/deny`（全局，不能按 spawn 逐档）。**论衡是纯 skill，任意 OpenClaw 配置开箱可用（启动不被拒）**：**唯一标准架构 = 多 Agent 九角色流水线**（不设总开关）。worker 不可用/失败 ⇒ 主控接管该节点 + 披露。不要求、也不附带任何宿主配置项。子代理工具面由**宿主 OpenClaw** 决定；论衡不读取、不修改宿主配置，也不对宿主的权限设定作任何前提假设——需要收紧子代理权限时，参见 OpenClaw 官方文档的 subagents 配置说明（宿主职责）。5 档分档（`metadata.subagent_tiers`）是技能声明的各角色最小工具集与**部署建议**，不声称可作 spawn 传参。

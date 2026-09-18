@@ -11,7 +11,7 @@
 >
 > **重写**（教训 #166，主控实测反馈）：原 markdown 表格 7 列 + 主控 edit 频繁失败（空格漂移 / old_string 不匹配 / 重复行 bug）。**改为「4 段结构化纯文本」+ key:value 字段**，主控用 `**当前**: X` → `**当前**: Y` 替换策略，零空格漂移、零编辑摩擦。
 >
-> 主控维护（**独占写**），读 `run/<项目名>/.tmp/<角色>-heartbeat.md` 后更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
+> 主控维护（**独占写**），读 `run/<项目名>/.tmp/<两位角色号>-<角色名>-heartbeat.md` 后更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
 > 失败必须留原因；任一行停留超阈值无进展 → 主控介入（按主控卡 §二十二 硬卡阈值表，角色分级：T1-T3 10 / T4 12 / T5 15 / T6 15 / T7 12 / T9 10 / G14 8 分钟）。
 > **T3 案例检索**：Phase 0 确认需要案例时即 spawn（cases=0 走空卡协议）；T3 worker 不可用 ⇒ 主控接管该节点并记录；T2 不再兼带案例，状态独立行。
 

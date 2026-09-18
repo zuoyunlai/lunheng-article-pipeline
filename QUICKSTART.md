@@ -173,7 +173,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.53  # 建议 pi
 |---|---|---|
 | **M 门**（形式合规） | LLM 结构化自评（规则硬性、非机器强制） | 检查引用/数据/案例的形式完整性 |
 | **F 模式**（失败模式） | 面向用户的叙事 | 解释"为什么要这么做" |
-| **G 清单**（质量审计） | 面向审计员 | G0-G14 共 15 项检查 |
+| **G 清单**（质量审计） | 面向审计员 | G0-G14 共 17 项检查（含 G0.5 / G2.5） |
 
 完整定义：详见 [`glossary-full.md § 二 三层防御体系`](references/_shared/glossary-full.md)
 

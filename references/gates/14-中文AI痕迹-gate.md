@@ -156,4 +156,4 @@ G14 检测报告路径：`run/<项目名>/audits/G14-检测报告-vN.md`
   - 借鉴 humanizer-zh / chinese-writing / 论衡实战经验
   - 检测算法 = LLM 推理（不引入 exec 工具）
   - 触发阶段 Phase 3.6 + 与 T6 批判伙伴同批并行调用
-- v2.12.40（业主定案 A1/A2）：G14 由「Phase 3.6 与 T6 同批、每轮修订后复检」迁至 **Phase 4.4 前置**（`g14_style_gate`），语义 = **定稿前唯一一次、不再复检**（`rerun_after_report: false`；`rerun_g14_if_enabled` 已删）；**取消可选**（删「Phase 0 勾选启用」与 `g14_opt_in`，改 `condition: target_language_includes_zh` 客观适用）；新增 `precondition: 已可定稿`；Fail 出口 = `t5_style_revision`（仅风格层）；原 `t6_g14` 更名 `t6_critique`；「复检收敛判据」（v2.12.32）整体作废
+- v2.12.40（业主定案 A1/A2）：G14 由旧版「Phase 3.6 与 T6 同批、每轮修订后复检」迁至 **Phase 4.4 前置**（`g14_style_gate`），语义 = **定稿前唯一一次、不再复检**（`rerun_after_report: false`；`rerun_g14_if_enabled` 已删）；**取消可选**（删「Phase 0 勾选启用」与 `g14_opt_in`，改 `condition: target_language_includes_zh` 客观适用）；新增 `precondition: 已可定稿`；Fail 出口 = `t5_style_revision`（仅风格层）；原 `t6_g14` 更名 `t6_critique`；「复检收敛判据」（v2.12.32）整体作废

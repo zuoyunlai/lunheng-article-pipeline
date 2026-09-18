@@ -51,7 +51,7 @@ metadata:
 - **禁用（`denied`）— 41 项**（真源 = frontmatter `metadata.tools.denied`，**自定义声明，描述本 skill 的调用边界，加载器不执行**）。论衡不要求任何宿主配置；OpenClaw 的多 Agent 能力与实际工具策略由平台负责。本 skill 不附带、不推荐任何宿主侧机械收紧配置。
 - **两个层级别混（本修订起显式区分）**：
   - **工具级 opt-in 已归零**：论衡不调用 `image_generate`；封面改为 T8 终检后的主人自行操作建议。**服务级外发类别唯一真源 = [`external-services.md` 逐类表](references/_shared/external-services.md)**；本文件/模板/权限文档一律引用不重列。
-  - **服务级外发同意（3 类，逐项知情同意）**：唯一真源见上；本文件不重列类别，防止口径漂移。
+  - **服务级外发同意（类别见唯一真源，逐项知情同意）**：唯一真源见上；本文件不重列类别，防止口径漂移。
   - **行为预授权**：配额耗尽 / G14 Warning 预授权未给 = 暂停等主人拍板（fail-closed）；永不覆盖 `denied`。
 - 🧭 **四级边界（详版 → [`permissions.md`](references/permissions.md) §边界速查）**：① **「零 exec」只指执行类工具**（`exec`/`process`/`code_execution`）——`denied` 另含 `browser`/`terminal`/`computer`/`nodes` 等**非执行类**工具，且 **≠「不外发数据」**；**主控另持编排与状态面**（`coordinator_only` 8 项 = 派发/收报告的**设计内必需**能力）。② **会话可见性收口（v2.12.48）**：会话类原语（`sessions_history`/`sessions_list`/`sessions_yield`/`subagents`）**硬限定为主控自己 spawn 的子代理树**——只读/等/取消**自己**派发的会话；**严禁**枚举、读取或取消**其它会话**。越权调用 = 与白名单外调用**同等处理**。③ **display-cap 截断** 与 ④ **投稿域 vs 工程域**：见 §边界速查 ③④。检索类工具**默认启用**（仅发「关键词 + 目标 URL」），须经 Phase 0 同意后才执行。
 - 🔒 **权限边界**：论衡是纯 skill，**不要求、不读取、不修改宿主配置**；OpenClaw 原生提供多 Agent 与会话工具，论衡按既定角色流程调用这些平台能力。运行时只核对自身声明的调用边界、处理 worker 成功/失败并披露接管。宿主若需要额外机械限制，由宿主自行按 OpenClaw 官方文档维护；论衡不把它作为启动、质量或交付条件。
@@ -78,7 +78,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 3. **spawn 前必读对应派发话术**（`references/dispatch/` 10 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
 4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）
 5. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
-6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1-T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 12-15 分钟/**900s** · T7 12-15 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
+6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1-T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 15 分钟/**900s** · T7 12 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
 
 **spawn 参数约定**（平台参数，非 frontmatter 键）：完整表见 [`skill-entry-appendix.md`](references/_shared/skill-entry-appendix.md) §一（`cwd` **必须绝对路径** / `runTimeoutSeconds` 同源 / `visible` 策略）。
 
@@ -93,7 +93,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 ## ⚠️ 执行前安全须知 + 外部服务声明（精简）
 
-**文件写入警告**：运行时创建/修改 `run/<项目名>/` 下 `status.md` + 项目文件树（约 15-25 个文件）+ 心跳 `.tmp/<角色>-heartbeat.md`（启动 + 每约 5 分钟一行）。**仅写 workspace 根内**，Phase 0 必须先列全部将创建文件让主人确认后才进 Phase 1。**<项目名> 由主人显式确认**（不接受 LLM 自动命名）。
+**文件写入警告**：运行时创建/修改 `run/<项目名>/` 下 `status.md` + 项目文件树（约 15-25 个文件）+ 心跳 `.tmp/<两位角色号>-<角色名>-heartbeat.md`（启动 + 每约 5 分钟一行）。**仅写 workspace 根内**，Phase 0 必须先列全部将创建文件让主人确认后才进 Phase 1。**<项目名> 由主人显式确认**（不接受 LLM 自动命名）。
 
 **主控 Phase 0 4 选 1 明示同意**（fail-closed，无记录 = 不得进 Phase 1；真源 = [`关键协议.md`](references/_shared/关键协议.md)），写入 `01-任务简报.md`「外部服务同意记录」段。  <!-- 外发同意 4 选 1 真源 = references/_shared/关键协议.md（本节不重列选项全文） -->
 
