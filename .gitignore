@@ -10,3 +10,11 @@ scripts/__pycache__/
 .pytest_cache/
 __pycache__/
 run/
+# OpenClaw 工作区种子文件：若有会话把本仓目录当作「全新工作区」初始化，运行时会播种这 5 个文件。
+# 它们不属于本仓（本仓给的是技能，不是工作区），已在 2026-09-18 被误播种一次，故在此硬拦。
+# 注意：若将来确实需要仓库级 AGENTS.md，用 `git add -f AGENTS.md` 显式放行。
+AGENTS.md
+BOOTSTRAP.md
+IDENTITY.md
+SOUL.md
+USER.md
