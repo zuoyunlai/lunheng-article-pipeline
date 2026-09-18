@@ -61,14 +61,26 @@ case "$VERSION" in
 esac
 
 # ---- 提取本版 changelog 文本（教训 #354）----
-# 真源 = CHANGELOG.md 的 `## [vX.Y.Z]` 章节；压缩规则 = 主题行（`> **主题：…**`）+ 各 `###` 小节标题。
+# 真源 = CHANGELOG.md 的 `## [vX.Y.Z]` 章节；压缩规则（主口径）= 主题行（`> **主题：…**`）
+#   + 各 `###` 小节标题；**兜底口径** = 顶层要点标题（`- **要点**：…`）。
+#
+# 为什么必须有兜底（实测 v2.12.56，2026-09-18 发布被拦）：章节写作风格已从
+#   「`> **主题：…**` + `### 小节标题`」迁移为「顶层 `- **要点**：详解`」（v2.12.54~v2.12.56
+#   三章 `###` 计数均为 0），而压缩器只认前一种写法 ⇒ 提取恒空 ⇒ 走到下面的
+#   fail-closed 分支 `exit 3` **发布直接中止**。历史遗留：v2.12.53 之所以没被拦，仅因该章
+#   残留 1 行 `> **主题：…**`（提取出 1 行即算「非空」）—— 门一直在几乎空转。
+#   兜底只取**顶层**要点标题、不取缩进子项（页面正文仍是「压缩摘要」而非全文）。
 extract_changelog() {
-  awk -v ver="$1" '
+  local section primary fallback
+
+  section="$(awk -v ver="$1" '
     $0 ~ "^## \\[v" ver "\\]" { insec = 1; next }
     insec && /^## \[/ { exit }
     insec { print }
-  ' "$SKILL_ROOT/CHANGELOG.md" \
-  | awk '
+  ' "$SKILL_ROOT/CHANGELOG.md")"
+
+  # 主口径：主题行 + `###` 小节标题
+  primary="$(printf '%s\n' "$section" | awk '
     /^###[[:space:]]/ {
       line = $0; sub(/^###[[:space:]]+/, "", line); print "- " line; next
     }
@@ -77,7 +89,22 @@ extract_changelog() {
       if (line ~ /^\*\*主题/) { sub(/^\*\*主题：/, "", line); print line }
       next
     }
-  ' \
+  ')"
+
+  # 兜底口径：顶层要点标题（`- **…**：…` → `- …`）；缩进子项与纯文本条目不入正文
+  fallback="$(printf '%s\n' "$section" | awk '
+    /^- \*\*/ {
+      line = $0; sub(/^- \*\*/, "", line); sub(/\*\*.*$/, "", line)
+      print "- " line; next
+    }
+  ')"
+
+  # 主口径有内容就用主口径（对旧章保持既有行为），否则用兜底
+  if [[ -n "${primary//[[:space:]]/}" ]]; then
+    printf '%s\n' "$primary"
+  else
+    printf '%s\n' "$fallback"
+  fi \
   | sed -e 's/\*\*//g' -e 's/`//g' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
   | grep -v '^$' || true
 }
