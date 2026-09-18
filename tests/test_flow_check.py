@@ -826,6 +826,73 @@ def test_flow_check_detects_readonly_tier_write_authority(tmp_path):
     _inject_and_expect(YAML_REL, mutate, "t6_critique", tmp_path)
 
 
+# ===== v2.12.54 Batch A：R-2 / R-3 / R-4 / R-5 / R-6 =====
+
+def test_r4_condition_fields_have_declared_producers():
+    """R-4：每条 condition_definitions 必登记 producer + producer_marker，且 marker 真的在生产方文件里。"""
+    defs = _pipeline().get("condition_definitions") or {}
+    assert defs, "phase-order.yaml 缺 condition_definitions"
+    for name, d in defs.items():
+        assert d.get("producer"), f"{name} 缺 producer（R-4：条件字段无生产方）"
+        assert d.get("producer_marker"), f"{name} 缺 producer_marker（R-4）"
+        f = ROOT / d["producer"]
+        assert f.exists(), f"{name}.producer 文件不存在：{d['producer']}"
+        assert d["producer_marker"] in f.read_text(encoding="utf-8"), \
+            f"{name}.producer_marker 不在 {d['producer']} 中（R-4）"
+
+
+def test_r4_reverse_injection(tmp_path):
+    """R-4 反向注入：抹掉全部 producer_marker ⇒ flow-check 必须报红。"""
+    def mutate(src):
+        return src.replace("producer_marker:", "producer_marker_x:")
+    _inject_and_expect(YAML_REL, mutate, "R-4", tmp_path)
+
+
+def test_r6_condition_undecidable_declared():
+    """R-6：声明 condition 或 opt_out 的节点必须显式声明 condition_undecidable。"""
+    for n in _pipeline()["pipeline"]:
+        if n.get("condition") or n.get("opt_out"):
+            assert n.get("condition_undecidable") in ("report_to_owner", "halt_pending_owner"), \
+                f"{n['id']} 缺/非法 condition_undecidable（R-6）"
+
+
+def test_r6_reverse_injection(tmp_path):
+    """R-6 反向注入：抹掉全部 condition_undecidable ⇒ flow-check 必须报红。"""
+    def mutate(src):
+        return src.replace("condition_undecidable:", "condition_undecidable_x:")
+    _inject_and_expect(YAML_REL, mutate, "R-6", tmp_path)
+
+
+def test_r2_r3_status_template_locks(tmp_path):
+    """R-2/R-3：status 模板必含节点 id 合法性 + Done 记账一致性两把锁。"""
+    text = (ROOT / "references/templates/status-template.md").read_text(encoding="utf-8")
+    for k in ("R-2 节点 id 合法性", "禁止自创", "R-3 Done 记账一致性", "不得计 Done"):
+        assert k in text, f"status-template 缺「{k}」（R-2/R-3）"
+
+    def mutate(src):
+        return src.replace("R-2 节点 id 合法性", "~~删~~")
+    _inject_and_expect("references/templates/status-template.md", mutate, "R-2", tmp_path)
+
+
+def test_r5_t8_owner_action_list_four_classes(tmp_path):
+    """R-5：T8 建议清单四类（格式转换 / SVG→PNG / 封面视觉 / SHA256）缺一即红。"""
+    for rel in ("references/dispatch/T8-终检.md", "references/agents/08-终检-final-inspector.md"):
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        for act in ("文档格式转换", "SVG", "PNG", "封面视觉", "SHA256", "T8 不合格"):
+            assert act in text, f"{rel} 缺「{act}」（R-5）"
+
+    def mutate(src):
+        return src.replace("SHA256", "sha")
+    _inject_and_expect("references/dispatch/T8-终检.md", mutate, "R-5", tmp_path)
+
+
+def test_r1_exempt_files_must_not_carry_panorama(tmp_path):
+    """R-1：pointer_exempt 文件也禁止承载全景段标记（否则等于第二份全景）。"""
+    def mutate(src):
+        return "## 流水线全景\n" + src
+    _inject_and_expect("references/templates/status-template.md", mutate, "R-1", tmp_path)
+
+
 if __name__ == "__main__":
     import inspect
     import tempfile

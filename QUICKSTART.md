@@ -1,6 +1,8 @@
-> 版本：v2.12.53（自动同步 2026-09-18）
+> 版本：v2.12.54（自动同步 2026-09-18）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
+
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 # 论衡快速开始指南
 
@@ -14,7 +16,7 @@
 论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.53  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.54  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -39,7 +41,6 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.53  # 建议 pi
 - **⚠️ 文件写入**（**须先经 Phase 0 显式同意**，未确认前不写任何文件）：确认文件清单后，主控与各子代理会在 workspace 创建/修改约 15-25 个文件——`status.md` 状态机、`run/<项目名>/`（任务简报/文献卡/数据卡/案例卡/草稿/审计报告/定稿）、各子代理心跳文件；**仅写 workspace 内**，不写 workspace 外
 - **Web 检索外发**：检索关键词 + 目标 URL 会发送到外部服务（web_search / tavily_search / web_fetch / tavily_extract）
 - **可选手动 sha256 验证**：主控会发占位符 `[SHA256-PENDING:HOST-VERIFY]`，如需真实 hash 需主人在 host shell 手动计算后回填
-- **可选封面外发**（**默认关闭**）：如启用，会向 OpenAI / Google / minimax 发送 prompt
 
 以上副作用会在 Phase 0 同意关卡（4 选 1）中由你主动选择。如不愿接受任何外发，选 ④全部拒绝（改纯本地 Ollama 推理）。
 
@@ -214,7 +215,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.53  # 建议 pi
 - 搬入 `final/局限性.md`
 - 论文正常交付（不假装完美）
 
-> ⚠️ **修订回环口径**：「轮」= **0 轮** T5 出 v1 → **1 轮** v1→v2（融入主人洞察 Phase 3.5 + T6/G14 反馈）→ **2 轮** v2→v3（T7 打回或 T8 亲修）。常规批判修订上限 2 轮；v3 后 minor 修补由 T8 inline 处置（独立登记，不占用 2 轮预算），结构性 P1/P0 须主人拍板启例外通道（Acknowledged Limitations）——无静默无限修订。完整仲裁表见 SKILL.md「修订回环仲裁规则」。
+> ⚠️ **修订回环口径**（v2.12.54 主人裁定，2026-09-18）：**不计轮** = v1→v2 主人洞察修订（Phase 3.5；主人选 `no_insight` 则**不产 v2**）；**轮 1** = Phase 3.6 T6 批判报告 → Phase 3.7 T5 批判修订；**轮 2** = Phase 4.2 审计打回 → T5 审计修订；minor cosmetic（≤5% 字 / 引用格式 / 拼写）由 T8 inline 亲修、**独立登记不计轮**；耗尽 2 轮仍有 P0 / 结构性 P1 → **Acknowledged Limitations**（须主人拍板）——无静默无限修订。完整仲裁表见 `references/_shared/pipeline-overview.md`「修订回环仲裁规则」。
 
 ---
 

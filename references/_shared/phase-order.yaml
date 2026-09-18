@@ -31,7 +31,7 @@
 #   ⑪ **无应答处置的唯一真源 = 顶层 `owner_timeout_policy`**（v2.12.49 新增，修 P2-2）：
 #      人环节点无应答一律 `pending_owner_halt`（写 status `pending_owner` + 告警挂起，不静默推进）；
 #      静默**永不**等于有效决策。docs 层只引用本节，**不得重列分钟数**（一条款一真源）。
-version: 2.12.53
+version: 2.12.54
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。
@@ -155,22 +155,43 @@ architecture:
   worker_failure_policy: owner_takeover_with_disclosure
   fallback_is_not_equivalent: true
 condition_definitions:
-  owner_peer_review_enabled:
-    requires: [owner_peer_review_consent]
+# ⚠️ v2.12.54 R-4（Batch A）：每条条件定义**必须登记生产方**（`producer` + `producer_marker`）——
+#   即 `requires` 的字段必须在 ≥1 个模板/角色卡里**真的被记录**，否则构建期红（flow-check 规则 25）。
+#   实测背景（2026-09-18 论文实跑）：`t9_review` 依赖 `owner_peer_review_consent`，而**全仓无任何生产方** ⇒
+#   节点静默不触发、主控代做其产出并给出编造精度；同型断链另有 `owner_methodology_snapshot_opt_out`。
+#   规则：字段名无生产方 ≠ 保守失败，而是**断链**——条件永远取假，节点在认知层与执行层同时消失。
+  owner_peer_review_opt_out:         # v2.12.54 S-1：由 opt-in（owner_peer_review_consent）改为「**默认启用 + 主人 opt-out**」（写法同 methodology_snapshot_opt_out）；本键语义 = 主人已显式 opt-out 同行评审
+    requires: [owner_peer_review_opt_out]
+    producer: references/templates/任务简报-template.md
+    producer_marker: "同行评审"
   methodology_snapshot_opt_out:      # v2.12.49 T-6：由 opt-in 改为「默认触发 + 主人 opt-out」；本键语义 = 主人已显式 opt-out
     requires: [owner_methodology_snapshot_opt_out]
+    producer: references/templates/任务简报-template.md
+    producer_marker: "方法论留档"
   phase1_5_targeted_review_any_trigger_hit:    # v2.12.49 改名（原 any_listed_trigger_condition_met，名字太空，平台审核判 SQP-1 通用名）：Phase 1.5 复核窗口「列表任一命中」即触发；含义 = trigger_conditions 中 ① 简报标注 [Dxx 待复核] 或 ② t2_5 红数据未回溯 任一为真
     requires: [phase0_review_flags]
+    producer: references/templates/任务简报-template.md
+    producer_marker: "待复核关键 Dxx"
   T6_requires_revision:
     requires: [t6_report_p0_or_p1]
+    producer: references/agents/06-批判-critical-companion.md
+    producer_marker: "P0"
   T7_P0_or_P1:
     requires: [t7_report_p0_or_p1]
+    producer: references/dispatch/T7-审计.md
+    producer_marker: "P0"
   target_language_includes_zh:
     requires: [owner_target_language]
+    producer: references/templates/任务简报-template.md
+    producer_marker: "目标语言"
   G14_requires_style_revision:
     requires: [g14_report_style_fail]
+    producer: references/gates/14-中文AI痕迹-gate.md
+    producer_marker: "Fail"
   figures_approved_by_owner:
     requires: [owner_figure_decision]
+    producer: references/templates/任务简报-template.md
+    producer_marker: "figure_decision"
 
 owner_checkpoints:
   - phase0_definition
@@ -229,6 +250,7 @@ pipeline:
     verdict_scale: four_tier   # v2.12.40：结论落四档（通过/不通过/无法判定/路径或参数错误），不用退出码
     rerun_after_report: true   # v2.12.40「报告后激活」：依赖 t2_5_integrity 闸门结果 → 必须在该判定重跑后取数
     input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
+    condition_undecidable: report_to_owner   # v2.12.54 R-6：条件证据不可判定 ⇒ 呈主人 + 按安全侧（触发）继续，禁止静默按 on_not_triggered 吞掉
     condition: phase1_5_targeted_review_any_trigger_hit   # 激活逻辑：下方 trigger_conditions 列表中「任一」命中即触发本复核窗口；全部未命中 → 走 on_not_triggered（v2.12.28 对齐；v2.12.49 改名自 any_listed_trigger_condition_met，平台审核判 SQP-1 通用名）
     on_not_triggered: record_not_triggered_in_status
     owner_visible: true
@@ -336,6 +358,7 @@ pipeline:
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
+    condition_undecidable: report_to_owner   # v2.12.54 R-6：T6 报告不可读/缺失 ⇒ 呈主人（不得静默按未触发跳过）
     condition: T6_requires_revision   # 命中定义：T6 批判报告含任何 P0/P1 否决项（无 = 不命中）
                                       # v2.12.40：G14 已迁出本节点（迁至 Phase 4.4 前置，且只审一次）
     on_not_triggered: record_not_triggered_in_status   # v2.12.28：未触发也必须在 status.md 留痕（防「未触发」与「漏跑」不可分）
@@ -386,6 +409,7 @@ pipeline:
       halt_pending_owner: true
     input: audits/审计报告-vN.md + drafts/current_draft.md
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
+    condition_undecidable: report_to_owner   # v2.12.54 R-6：T7 报告不可读/缺失 ⇒ 呈主人（不得静默按未触发跳过）
     condition: T7_P0_or_P1   # 命中定义：T7 审计报告存在 P0 或 P1 级发现（全 P2/无发现 = 不命中）
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 门：有 condition 必须声明未触发处置（防「未触发」与「漏跑」不可分）
     # after_each：`current_draft_sync` 是**真节点 id**（每轮修订后必须重写 current_draft.md，否则 T7/T9 读旧稿 —— 2026-09-12 审计 P0-3）；
@@ -424,6 +448,7 @@ pipeline:
     precondition: 已可定稿（前置修订已收敛：audit_revision 已退出且无未决 P0/P1 修订项）
     # 不再是可选项（业主定案「G14 不为可选功能」，替代原 `condition: g14_opt_in` 显式勾选）：
     #   适用性由 Phase 0「目标语言」字段**客观决定** —— 含中文 → 必跑；纯外语 → n/a（客观不适用，非「关闭」）。
+    condition_undecidable: report_to_owner   # v2.12.54 R-6：目标语言字段缺失 ⇒ 呈主人（不得静默跳过 G14）
     condition: target_language_includes_zh   # 命中定义：任务简报「目标语言」字段含中文（纯外语 = 不命中）
     on_not_triggered: record_not_triggered_in_status   # 纯外语 → n/a；未触发亦须入 status
     degrade: selfcheck_in_lite_tier   # 轻量档（2000-3000 字，口径真源 = 字数判定表.md）→ 内置自检，不 spawn
@@ -446,6 +471,7 @@ pipeline:
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     input: drafts/current_draft.md + audits/G14-检测报告-vN.md
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
+    condition_undecidable: report_to_owner   # v2.12.54 R-6：G14 报告不可读/缺失 ⇒ 呈主人（不得静默按未触发跳过）
     condition: G14_requires_style_revision   # 命中定义：G14 判定 5+ 类 Fail（其余档位 = 不命中）
     on_not_triggered: record_not_triggered_in_status
     boundary: 仅风格层改动（10 类 AI 痕迹清单）；不得改动论证结构、数据、引用、结论
@@ -460,6 +486,7 @@ pipeline:
     agent: T0
     write_authority: owner
     output: final/图件/*.svg   # v2.12.49 M-10：路径归一「final/图件/*.svg」为唯一真源（全库 5 处引用一致：T6/T7/T8 dispatch / deliverables.md / 06-批判 / 05-写作 / 08-终检 / 任务简报）
+    condition_undecidable: report_to_owner   # v2.12.54 R-6：图位拍板记录缺失 ⇒ 呈主人（不得静默按无图位跳过）
     condition: figures_approved_by_owner   # 命中定义：Phase 2.5 大纲拍板记录的图位数 > 0（拍板 0 张 = 不命中）
     on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：图位=0 时必须留痕，防「未触发」与「漏跑」不可分
     note: |
@@ -496,6 +523,7 @@ pipeline:
     default: triggered                      # v2.12.49 T-6：默认触发（输出简版 ≤2 节），不再要求 Phase 0 opt-in
     opt_out: methodology_snapshot_opt_out   # 主人显式 opt-out 的条件键（真源 = condition_definitions）
     on_opt_out: record_opt_out_in_status
+    condition_undecidable: report_to_owner   # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认触发继续 + 呈主人
     note: "v2.12.49 T-6：**默认触发**（简版 ≤2 节）—— 采纳项目自身建议，由 opt-in 改为 opt-out；主人在 Phase 0 显式 opt-out ⇒ 不创建且记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）。"
     next: phase5_acceptance
   - id: t9_review   # 别名：文档层「Phase 4.5」
@@ -508,10 +536,11 @@ pipeline:
     # v2.12.40 业主定案 A2：输入由 `drafts/current_draft.md`（未定稿稿件）改为 **`final/定稿.md`（终稿）**——
     #   T9 定位为「**终稿落成后模拟投递刊物编辑审稿**」。节点位于 final_assembly 之后，故「终稿落成后」已满足。
     input: final/定稿.md
-    condition: owner_peer_review_enabled   # 命中定义：主人已启用同行评审（仅靠 consent 判定；体裁仅供主人参考、非门控）。
-                                # v2.12.46 口径修正：体裁不再机械门控，公众号亦可由主人显式开启。
-                                # condition_definitions.owner_peer_review_enabled = requires owner_peer_review_consent。
-    on_not_triggered: record_not_triggered_in_status   # v2.12.37 审计 P1-3：T9 关闭时必须留痕
+    default: triggered                      # v2.12.54 S-1（Batch A 夹带的最小真源修复）：由 opt-in（owner_peer_review_consent，**全仓无生产方**）改为**默认启用**，写法同 methodology_snapshot
+    opt_out: owner_peer_review_opt_out      # 主人显式 opt-out 的条件键（真源 = condition_definitions）
+    on_opt_out: record_opt_out_in_status    # 主人显式退出 ⇒ 记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）
+    condition_undecidable: report_to_owner  # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认启用继续 + 呈主人，不静默跳过整节点
+    # v2.12.46 口径修正：体裁不再机械门控，公众号亦可由主人显式开启（体裁仅供主人参考、非门控）。
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
     # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。
     blocking: false
@@ -563,3 +592,35 @@ pipeline:
     decisions: [accepted, revision_requested, restart_phase, deferred]
     timeout_fallback: pending_owner_halt
     terminal: accepted   # v2.12.49 M-2：终态标记真源；详见顶层 terminal_freeze 段
+
+# ⚠️ v2.12.54 R-1：**全景载体收敛登记**（修 P0「派生全景与真源漂移」）
+#   历史实况（2026-09-18 论文实测）：11 份文档各自维护全景，**无一与真源一致** ——
+#     · pipeline-overview 缺 4 节点（pre_spawn_enforcement / g14_style_gate / t5_style_revision /
+#       methodology_snapshot），且 T7.5 门被排在「定稿组装」之后（真源 seq 14 应在前）
+#     · README 缺 7 节点 · pipeline-readme 缺 4 节点 · 设计文档-架构「共 6 个阶段」漏全部子阶段
+#     · QUICKSTART 修订回环口径错 + 指针指向已外移章节
+#   后果：**全景是主控与主人的默认认知** —— 缺节点等于该节点在认知层不存在（T9 被静默降级、
+#     G14 风格修订被漏看，均发生在此认知环境下）。
+#   现口径：**全景只保留一份派生视图**（canary），其余文档**必须删除全景段、只留指针**；
+#     由 flow-check 规则 24 机械校验（缺节点 / 顺序倒置 / 镜像仍重列 = 构建期红）。
+panorama_sources:
+  canary: references/_shared/pipeline-overview.md   # 唯一派生视图：必须完整承载全部节点且首现顺序 = phase_seq
+  section_marker: "## 流水线全景"                      # canary 必含；mirrors 必不含（= 全景段已删除）
+  pointer_target: _shared/pipeline-overview.md       # mirrors 必含的指针串
+  mirrors:                                            # 已删除全景段的文档（只留指针）
+    - README.md
+    - QUICKSTART.md
+    - references/pipeline-readme.md
+    - references/设计文档-架构.md
+    - references/设计文档-哲学.md
+    - references/_shared/glossary-full.md
+    - SKILL.md
+    - references/_shared/dispatch-header.md
+  pointer_exempt:                                     # 不承载全景、但允许出现阶段枚举/步骤映射取值清单（免指针串 + id 计数上限，仍禁全景段）
+    - references/templates/status-template.md
+    # v2.12.54 T-5：人环卡 = 「13 步 ↔ 23 节点」映射表（非全景）→ 归 exempt；
+    #   其 id 合法性由 R-2（status 节点 id 取自 yaml / 禁自创）运行期目视守，卡内已声明「id 唯一真源 = phase-order.yaml」。
+    - references/templates/checkpoint-card-template.md
+    - references/_shared/phase-1-details.md
+    - references/_shared/phase-2-details.md
+    - references/_shared/phase-3-details.md

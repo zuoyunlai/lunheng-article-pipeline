@@ -1,6 +1,8 @@
-> 版本：v2.12.53（自动同步 2026-09-18）
+> 版本：v2.12.54（自动同步 2026-09-18）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
+
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](../_shared/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 # 人在环节点呈现卡模板
 
@@ -164,6 +166,29 @@ progress_card 的 **plan** 字段承载流水线阶段清单——比在 markdow
 
 - **T9 未启用**（mode 非 default 且主人未勾选）：该步从 plan 移除（或标 `completed` 跳过），不占 `in_progress`。
 - **状态翻转纪律**：一个节点真正完成（status.md 该节点 ✅ Done）→ plan 该步 `completed` + 下一节点 `in_progress` + 其余 `pending`。**禁止一次翻转多步**。
+
+#### 13 步 ↔ 23 节点映射说明（v2.12.54 R-1）
+
+> ① **本卡 plan 清单按 Phase 列 13 步，是「人环可见节点」的简化呈现**，与真源 **23 节点不等价**：13 步 ≠ 流程只有 13 个节点。机械闸门、条件节点与主控亲为节点**不单独占 plan 步**，被折叠进相邻步的实施明细（它们仍为必经节点，「不在 plan 清单」不等于「不执行」）。
+>
+> ② **节点 id 与全量节点集的唯一真源 = [`phase-order.yaml`](../_shared/phase-order.yaml)**（`phase_order` 表，seq 0–22）；**全景 = [`pipeline-overview.md`](../_shared/pipeline-overview.md)**（全仓唯一派生视图）。本卡**不承载全景**，只做映射；两处冲突时以 `phase-order.yaml` 为准。
+>
+> ③ **逐条映射（13 步 → 节点 id）**：
+>    1. Phase 0 定题 → `phase0_definition`
+>    2. Phase 1 检索（T1∥T2∥T3） → `retrieval`
+>    3. T2.5 完整性闸门 → `t2_5_integrity`
+>    4. Phase 2 分析（T4） → `t4_analysis`
+>    5. Phase 2.5 大纲确认 → `phase2_5_outline`
+>    6. Phase 3 初稿（T5 v1） → `t5_draft_v1`
+>    7. Phase 3.5 洞察补充 → `phase3_5_insight`
+>    8. Phase 3.6 批判+检测（T6+G14+修订） → `t6_critique`（Phase 3.6）+ `t5_feedback_revision`（Phase 3.7）。⚠️ 步骤名中的「**G14**」已不在本步：v2.12.40 起迁至 Phase 4.4 前置（含中文必跑、全流程只审一次），不在本三步内
+>    9. Phase 4 审计（T7） → `t7_audit`（Phase 4）+ `audit_revision`（Phase 4.2 审计修订回环；卡内未单列，折叠在本步实施明细）
+>    10. T7.5 完整性闸门 → `t7_5_integrity`
+>    11. T9 同行评审（条件启用） → `t9_review`
+>    12. T8 终检 → `t8_technical_final`
+>    13. Phase 5 终稿验收 → `phase5_acceptance`
+>
+> ④ **自检**：plan 步骤数（13）≠ 真源节点数（23）是设计使然；若发现某节点既不属于上述映射、也不属第 ① 条「折叠」类，即为漂移，须按 `phase-order.yaml` 校正、不得在卡内自行增删步骤。
 
 ### 双向同步
 

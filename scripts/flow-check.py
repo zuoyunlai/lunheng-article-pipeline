@@ -28,6 +28,9 @@
     agent 类（`agent` / `conditional_agent` / `advisory_agent`）的节点，`write_authority`
     必须为 `owner` —— 只读档工具面仅 `read`，报告正文随交接回传（final message）、
     由主控 `write` 落盘，本节点不授写权（v2.12.32/v2.12.33「两径定义」= 已废止口径）。
+ 24 **全景一致性**（v2.12.54 R-1）：全景**收敛为唯一一份派生视图**（`panorama_sources.canary`），
+    须完整承载全部节点 id 且首现顺序 = `phase_seq`；`mirrors` 列出的文档**必须已删除全景段**
+    （不含 `section_marker`）且**含指针串** —— 防「11 份文档各写一套全景、无一与真源一致」复发。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import pathlib, re, sys, yaml
@@ -432,6 +435,118 @@ def main():
             if n.get('write_authority') != 'owner':
                 errs.append(f"{n['id']}.write_authority->{n.get('write_authority')}"
                             f"（只读档 {_role} 报告由主控 write 落盘，不得授写权，应为 owner）")
+
+    # 24 全景一致性（v2.12.54 R-1）：全仓只留一份派生全景，其余只留指针
+    #    实测背景（2026-09-18）：11 份含 Phase 序列的文档无一与真源一致 —— pipeline-overview 缺 4 节点
+    #    且 T7.5 门位置倒置、README 缺 7、pipeline-readme 缺 4、QUICKSTART 口径错 + 指针失效。
+    #    全景是主控与主人的默认认知，缺节点 = 该节点在认知层不存在，故必须机械守。
+    _root24 = pathlib.Path(__file__).resolve().parent.parent
+    ps = d.get('panorama_sources') or {}
+    canary_rel = ps.get('canary')
+    marker = ps.get('section_marker')
+    ptr = ps.get('pointer_target')
+    exempt = set(ps.get('pointer_exempt') or [])
+    if not canary_rel:
+        errs.append('panorama_sources.canary 未声明（R-1：全景唯一派生视图缺失）')
+    else:
+        _cf = _root24 / canary_rel
+        if not _cf.exists():
+            errs.append(f'panorama_sources.canary 文件不存在: {canary_rel}')
+        else:
+            _ct = _cf.read_text(encoding='utf-8')
+            if marker and marker not in _ct:
+                errs.append(f'{canary_rel} 缺全景段标记“{marker}”（R-1）')
+            _seq = {n['id']: n['phase_seq'] for n in P}
+            _hits = {i: _ct.find(i) for i in ids}
+            _miss = sorted(i for i, p in _hits.items() if p < 0)
+            if _miss:
+                errs.append(f'全景唯一派生视图 {canary_rel} 缺节点: {",".join(_miss)}（R-1）')
+            else:
+                _order = [s for _, s in sorted(((p, _seq[i]) for i, p in _hits.items()))]
+                if _order != sorted(_order):
+                    errs.append(f'全景唯一派生视图 {canary_rel} 节点首现顺序与 phase_seq 不一致（R-1）')
+    for rel in (ps.get('mirrors') or []):
+        _mf = _root24 / rel
+        if not _mf.exists():
+            errs.append(f'panorama_sources.mirrors 列出的文件不存在: {rel}')
+            continue
+        _mt = _mf.read_text(encoding='utf-8')
+        if ptr and ptr not in _mt:
+            errs.append(f'{rel} 缺全景指针串“{ptr}”（R-1：镜像文档只留指针）')
+        if marker and marker in _mt:
+            errs.append(f'{rel} 仍含全景段“{marker}”—— 应删除并改指针（R-1）')
+    for rel in sorted(exempt):
+        _ef = _root24 / rel
+        if not _ef.exists():
+            errs.append(f'panorama_sources.pointer_exempt 列出的文件不存在: {rel}')
+            continue
+        # exempt = 不承载全景、但允许出现节点级清单（如 status 阶段枚举 / 人环卡步骤映射）
+        #    —— 免「必含指针串」与「id 计数上限」两项，但**仍禁全景段标记**（否则又是一份全景）。
+        if marker and marker in _ef.read_text(encoding='utf-8'):
+            errs.append(f'{rel} 含全景段“{marker}”（R-1：exempt 文件也不得承载全景段）')
+    # 「重列」判据：节点 id 出现数 **> 12**（≥ 全集 23 的过半）才算重列 ——
+    #   个别节点 id 的正当交叉引用（如 checkpoint-card 清单 / dispatch 指定节点）不计。
+    for rel in (ps.get('mirrors') or []):
+        _pf = _root24 / rel
+        if not _pf.exists():
+            continue
+        _hit = [i for i in ids if i in _pf.read_text(encoding='utf-8')]
+        if len(_hit) > 12:
+            errs.append(f'{rel} 重列 {len(_hit)} 个节点 id（>12）—— 应改为指针（R-1）')
+
+    # 25 条件字段生产方（v2.12.54 R-4）：condition_definitions 每条必须登记 `producer` + `producer_marker`，
+    #    且 producer 文件存在、marker 确实出现在该文件中 —— 封掉「条件字段全仓无生产方 ⇒ 节点静默不触发」。
+    #    实测背景（2026-09-18）：t9_review 依赖 owner_peer_review_consent，而全仓无任何生产方 ⇒ T9 整节点消失。
+    for cname, cdef in (condition_defs or {}).items():
+        if not isinstance(cdef, dict):
+            errs.append(f'condition_definitions.{cname} 不是映射（R-4）')
+            continue
+        _p = cdef.get('producer')
+        _m = cdef.get('producer_marker')
+        if not _p or not _m:
+            errs.append(f'condition_definitions.{cname} 缺 producer/producer_marker（R-4 生产方登记）')
+            continue
+        _pf = _root24 / str(_p)
+        if not _pf.exists():
+            errs.append(f'condition_definitions.{cname}.producer 文件不存在: {_p}（R-4）')
+        elif str(_m) not in _pf.read_text(encoding='utf-8'):
+            errs.append(f'condition_definitions.{cname}.producer_marker “{_m}” 不在 {_p}（R-4：字段无生产方）')
+
+    # 26 条件不可判定处置（v2.12.54 R-6）：声明 condition 或 opt_out 的节点必须显式声明 condition_undecidable，
+    #    禁止用 on_not_triggered 静默吞掉「条件证据读不到/缺失」——「未触发」与「漏跑」必须可分。
+    UNDECIDABLE_OK = {'report_to_owner', 'halt_pending_owner'}
+    for n in P:
+        if n.get('condition') or n.get('opt_out'):
+            if n.get('condition_undecidable') not in UNDECIDABLE_OK:
+                errs.append(f"{n['id']} 缺/非法 condition_undecidable"
+                            f"（R-6：应为 report_to_owner 或 halt_pending_owner）")
+
+    # 27 status 记账两锁（v2.12.54 R-2 / R-3）：节点 id 合法性（禁自创）+ Done 记账一致性
+    #    构建期锁模板承载规则，运行期由主控 read 目视执行（agent 无 exec，实例层不可机械校验）。
+    st_text = (_root24 / 'references/templates/status-template.md').read_text(encoding='utf-8')
+    if 'R-2 节点 id 合法性' not in st_text or '禁止自创' not in st_text:
+        errs.append('status-template 缺 R-2 节点 id 合法性锁（禁自创节点 id）')
+    if 'R-3 Done 记账一致性' not in st_text or '不得计 Done' not in st_text:
+        errs.append('status-template 缺 R-3 Done 记账一致性锁（缺失/pending_owner/Not Triggered 不得计 Done）')
+
+    # 28 T8 主人自行操作建议清单四类锁（v2.12.54 R-5）：格式转换 / SVG→PNG / 封面视觉 / SHA256
+    #    实测事故（2026-09-18）：交付说明只给两类，全场「封面」0 命中 —— 建议清单是主人唯一的后续动作入口。
+    for _rel28, _label28 in (('references/dispatch/T8-终检.md', 'T8 dispatch'),
+                             ('references/agents/08-终检-final-inspector.md', '08-终检')):
+        _t28 = (_root24 / _rel28).read_text(encoding='utf-8')
+        for _act in ('文档格式转换', 'SVG', 'PNG', '封面视觉', 'SHA256'):
+            if _act not in _t28:
+                errs.append(f'{_label28} 缺「{_act}」（R-5：主人建议清单四类）')
+        if 'T8 不合格' not in _t28:
+            errs.append(f'{_label28} 缺「缺项 ⇒ T8 不合格」硬约束（R-5）')
+
+    # 29 进度卡映射 + 失效指针锁（v2.12.54 T-5 / T-3）
+    cpk_text = (_root24 / 'references/templates/checkpoint-card-template.md').read_text(encoding='utf-8')
+    if '13 步' not in cpk_text or 'phase-order.yaml' not in cpk_text or 'pipeline-overview.md' not in cpk_text:
+        errs.append('checkpoint-card 缺「13 步 ↔ 23 节点」映射说明（T-5）')
+    qs_text = (_root24 / 'QUICKSTART.md').read_text(encoding='utf-8')
+    if 'pipeline-overview.md' not in qs_text:
+        errs.append('QUICKSTART 缺修订回环仲裁表指针（T-3：原指针指向已外移的 SKILL.md 章节）')
 
     print(';'.join(errs))
     return 0 if not errs else 2
