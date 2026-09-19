@@ -1059,14 +1059,18 @@ else
 fi
 
 # =============================================================================
-# 门 X：M 门围栏相位 + 正文 H1（v2.12.58 新增，教训 #424 沉淀）
+# 门 X：Markdown 围栏相位 + 声明式锚点 + 伪 H1（v2.12.58 新增，教训 #424/#426）
 #   历史教训：references/_shared/M-Gate-Algorithm.md 曾有 2 个 M 门标题
 #   (M-Exist-3 / M-Integrity-1) 被裹进代码围栏，7 行伪代码注释落到块外被
-#   渲染为文档 H1；根因是围栏配对错位。本门两道断言：
+#   渲染为文档 H1；根因是围栏配对错位。
+#   判据扩围（教训 #427）：原 X.1/X.2 只锚 M-Gate 单文件 ⇒ 同类缺陷在其余文档
+#   长期漏检；改为「全仓 X.4 + 声明式锚点表 X.2」后立即抓到第二例同类缺陷
+#   （references/pipeline-readme.md 7 个围栏 = 未闭合 ⇒ 尾部 57 行被吞）。
 #     X.1  M-Gate-Algorithm.md 围栏总数为偶数（错位会变奇数）
-#     X.2  13 个 M 门标题（8 Form + 3 Exist + 2 Integrity）全部在围栏外
-#     X.3  全仓 .md 正文中，非首位 # 标题（# 开头且不跟 #）只允许 L5 的
-#          主标题；其余疑似伪 H1 必须落在代码围栏内
+#     X.2  **声明式锚点表**：每项「文件 → 锚点正则」的锚点必须全部在围栏外
+#          （新增锚点 = 加一行；锚点改名须同批改本表）
+#     X.3  全仓：围栏外「紧跟围栏且首字符为 #」的伪 H1 = 0
+#     X.4  全仓 .md 围栏总数均为偶数（未闭合围栏 = 尾部整块被吞）
 # =============================================================================
 MGATE=references/_shared/M-Gate-Algorithm.md
 if [ -f "$MGATE" ]; then
@@ -1078,21 +1082,53 @@ if [ -f "$MGATE" ]; then
     fail "门 X.1: M-Gate-Algorithm.md 围栏总数为奇数" "$FENCE_COUNT 个，疑似配对错位"
   fi
 
-  # X.2：13 个 M 门标题全部在围栏外
-  # 实现：扫到围栏就翻转 infence 状态；扫到 M-XXX-N 标题时若 infence=true 记违规
-  GATE_INSIDE=$(awk '
-    /^[[:space:]]*(`{3,}|~{3,})/{ infence = !infence; next }
-    /^#{2,4}[[:space:]]+M-(Form|Exist|Integrity)-[0-9]+:/ {
-      if (infence) print FILENAME ":" NR ":" $0
-    }
-  ' "$MGATE")
-  if [ -z "$GATE_INSIDE" ]; then
-    pass "门 X.2: M-Gate-Algorithm.md 13 个 M 门标题全部在围栏外（8 Form + 3 Exist + 2 Integrity）"
-  else
-    fail "门 X.2: M-Gate-Algorithm.md 存在 M 门标题落在围栏内" "$(echo "$GATE_INSIDE" | head -5 | tr '\n' '|')"
-  fi
 else
-  warn "门 X.2: M-Gate-Algorithm.md 不存在，跳过 X.1/X.2"
+  warn "门 X.1: M-Gate-Algorithm.md 不存在，跳过 X.1"
+fi
+
+# X.2：声明式语义锚点表（v2.12.58 起；教训 #427）
+#   判据：锚点行**落在围栏内** = 该小节渲染后不可见/被吞（围栏错位的最坏后果）。
+#   只登记「定义型 / 高可见度」文档的锚点；模板/样例文件里围栏内的标题是**内容**，
+#   不得登记（否则每份模板都会误红）。
+#   条目格式：<文件>@@<锚点正则（awk ERE）>@@<说明>
+#   ⚠️ 分隔符必须是 `@@` —— 锚点正则内含 `|` 交替，用 `|` 分隔会被 `${x%%|*}` 截断
+#   （v2.12.58 实测：截断后正则失效 ⇒ 本门变空转绿灯；变异单测把它抓了出来）。
+#   配套「正向样本」自检：每个锚点正则必须至少命中 1 行，否则判失效（同族教训 #334/#421）。
+ANCHOR_TABLE=(
+  "references/_shared/M-Gate-Algorithm.md@@^#{2,4}[[:space:]]+M-(Form|Exist|Integrity)-[0-9]+:@@13 个 M 门标题（8 Form + 3 Exist + 2 Integrity）"
+  "references/pipeline-readme.md@@^##[[:space:]]+(全景与阶段顺序|status\.md 状态机|模板加载策略|设计文档加载策略)@@4 个章节锚点"
+)
+ANCHOR_INSIDE=""
+ANCHOR_N=0
+for _entry in "${ANCHOR_TABLE[@]}"; do
+  _af="${_entry%%@@*}"; _rest="${_entry#*@@}"; _apat="${_rest%%@@*}"
+  ANCHOR_N=$((ANCHOR_N + 1))
+  if [ ! -f "$_af" ]; then
+    ANCHOR_INSIDE="$ANCHOR_INSIDE [missing:$_af]"
+    continue
+  fi
+  if [ -z "$_apat" ] || [ "$_rest" = "$_entry" ]; then
+    ANCHOR_INSIDE="$ANCHOR_INSIDE [malformed-entry:$_af（缺 @@ 分隔或锚点正则）]"
+    continue
+  fi
+  # 正向样本：锚点正则必须命中文档（换名/写错即判失效，不让门静默空转）
+  _total=$(grep -cE "$_apat" "$_af" 2>/dev/null || true)
+  if [ "${_total:-0}" -eq 0 ]; then
+    ANCHOR_INSIDE="$ANCHOR_INSIDE [pattern-hits-nothing:$_af（锚点正则已失效）]"
+    continue
+  fi
+  _hit=$(awk -v pat="$_apat" '
+    /^[[:space:]]*(`{3,}|~{3,})/{ infence = !infence; next }
+    infence && $0 ~ pat { print FILENAME ":" NR ":" $0 }
+  ' "$_af")
+  if [ -n "$_hit" ]; then
+    ANCHOR_INSIDE="$ANCHOR_INSIDE [$(echo "$_hit" | head -3 | tr '\n' '|')]"
+  fi
+done
+if [ -z "$ANCHOR_INSIDE" ]; then
+  pass "门 X.2: 声明式锚点表 $ANCHOR_N 项全部在围栏外（M 门 13 标题 + pipeline-readme 4 章节）"
+else
+  fail "门 X.2: 声明式锚点落在围栏内（渲染后不可见）" "$ANCHOR_INSIDE"
 fi
 
 # X.3：围栏外「伪 H1」—— 仅扫「紧跟围栏行且首字符为 # 的标题行」
@@ -1123,6 +1159,20 @@ if [ -z "$FAKE_H1" ]; then
   pass "门 X.3: 围栏外无紧跟围栏的 # 伪 H1（围栏错位零）"
 else
   fail "门 X.3: 围栏外存在紧跟围栏的 # 伪 H1" "$(echo "$FAKE_H1" | head -5 | tr '\n' '|')"
+fi
+
+# X.4：全仓「围栏总数偶数」——未闭合围栏 = 文件尾部被整块吞进代码块。
+#   实测（教训 #427）：references/pipeline-readme.md 7 个围栏 ⇒ 尾部 57 行被吞，
+#   由 v2.12.54 全景收敛的删除残留引入（删了开围栏、留下闭围栏）。
+#   排除产物/归档目录；备份文件名形如 *.md.bak.*，不匹配 '*.md' 故无需额外排除。
+ODD_FENCES=$(find . -type f -name '*.md' \
+  -not -path './outputs/*' -not -path './reports/*' -not -path './memory/*' \
+  -not -path './node_modules/*' -not -path './.git/*' \
+  -exec awk '/^[[:space:]]*(`{3,}|~{3,})/{n++} END{ if (n % 2) print FILENAME "(" n " 个围栏)" }' {} \; 2>/dev/null)
+if [ -z "$ODD_FENCES" ]; then
+  pass "门 X.4: 全仓 .md 围栏总数均为偶数（无未闭合围栏）"
+else
+  fail "门 X.4: 存在未闭合围栏（其尾部内容会被吞进代码块）" "$(echo "$ODD_FENCES" | head -5 | tr '\n' '|')"
 fi
 
 # =============================================================================
