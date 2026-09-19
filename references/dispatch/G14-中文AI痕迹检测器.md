@@ -2,10 +2,10 @@
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
-> 权威源：references/gates/14-中文AI痕迹-gate.md（本文件为派生视图，冲突以角色卡为准；G14 是闸门，无独立角色卡）
+> 权威源：references/gates/14-中文AI痕迹-gate.md（本文件为派生视图，冲突以 gate 文件为准；G14 是闸门，其执行者卡在 `references/checkers/`，**不属** `agents/` 九角色卡集）
 
 
-> 从 pipeline-readme.md 派发话术段拆出。主控 spawn G14 中文 AI 痕迹检测器 时按需读本文件，避免一次加载全部派发话术。完整角色卡见 references/agents/。
+> 从 pipeline-readme.md 派发话术段拆出。主控 spawn G14 中文 AI 痕迹检测器 时按需读本文件，避免一次加载全部派发话术。完整执行者卡见 [`../checkers/中文AI痕迹-checker.md`](../checkers/中文AI痕迹-checker.md)（G14 无 `agents/` 角色卡，见上方权威源注解）。
 
 > 公共工具白名单 / 零 exec / 叶子纪律 / 降级自报 / token 统计：见 [`_shared/dispatch-header.md`](../_shared/dispatch-header.md)
 
