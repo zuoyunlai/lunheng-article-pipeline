@@ -2,6 +2,23 @@
 
 ---
 
+## [v2.12.60] — 2026-09-19
+
+- **图件必须机械嵌入定稿（主人 2026-09-19 裁定「图件如果存在要机械嵌入」）**：修正 v2.12.59 刚写下的「定稿为纯文本占位版、嵌入由主人手动」口径 —— 裁定改为**嵌入是论衡职责**。`final/定稿.md` 的图位必须是可渲染的 `![图N：标题](图件/图N_标题.svg)`（定稿与 `图件/` 同目录相对路径；文件名规范 = `图表-SVG-template.md` §六 的 `图N_标题.svg`）。
+- **M-11 双计数锁**：拍板 N > 0 时须**同时**满足 ① `[图N：` 占位计数 = N 与 ② 嵌入行计数 = N。嵌入式 `![图N：标题](…)` **本身包含** `[图N：标题]` ⇒ 两条计数互为交叉校验（避免了「改嵌入后旧占位规则计数归零」的副作用）。例外窄口：主人 Phase 5 **显式**选择纯占位版（须写 `status.md` 决策记录 + 交付说明披露）才只校 ①，否则双校（fail-closed）。
+- **执行点归位**：`phase4_4_figures`（产 N 张 SVG）→ `final_assembly`（主控 `write` 完成嵌入；该节点 `input` 新增 `final/图件/*.svg`，`kind` 保持 `mechanical_checkpoint`）；`00-主控-coordinator.md` 图件闭环段同步（「有图但文里只有一行字」与「图件目录空」同属不合格）；T8 dispatch 第 2 类**瘦回**「SVG → PNG 转换」（嵌入不再是主人步骤）——M-13 四类基数不变、既有 R-5 单测不受影响。
+- **flow-check 规则 20b（新）**：三处载体（`deliverables.md` / `08-终检-final-inspector.md` / `dispatch/T8-终检.md`）必须**同时**含嵌入式图位规范与「嵌入计数」口径 —— 否则这类口径会静默漂回纯占位版（改 A 漏 B 同型）。
+- **flow-check 规则 32（新｜本批实测发现的门缺口）**：`kind` 是规则 4/5（入参/产出声明）与顶层 `owner_nodes` 归属的**分派键**。本批实测：改 `final_assembly` 节点时误删 `kind: mechanical_checkpoint` 行，**全仓 flow-check RC=0 零报错** ⇒ 「kind 缺失 = 该节点对所有按 kind 分派的检查静默隐身」（与教训 #427 同族：判据所依赖的字段本身没人守）。新增规则：23 个节点必须声明 `kind` 且取值在已知集合内。
+- **配套 4 条单测**：三载体正向（嵌入规范 + 口径词）+ 嵌入锁反向注入（删规范 ⇒ 必红）+ `kind` 正向全量 + `kind` 反向注入（删 kind 行 ⇒ 必红并点名节点）。全部在**临时整仓副本**注入、真源 sha256 前后一致（教训 #333）。
+- **补打 4 个缺失 tag**：`v2.12.51` / `v2.12.52` / `v2.12.54` / `v2.12.55` —— 对应 release 提交均核实为 **HEAD 祖先**，且 `git show <tag>:SKILL.md` 的 frontmatter 版本号与 tag 名**逐一比对一致**（非仅凭提交信息判定）。tag 说明中注明「v2.12.60 批次补打，恢复版本可追溯性，不改动任何文件内容」。补打后 `changelog-check` 的无 tag 告警只剩当前未发版版本。**v2.12.59 未补 tag** —— 它是本仓当前未发版版本，tag 属发布动作，待主人发版时打。
+- **验收（实测回填 · 最终态）**：自审门 **PASS 30 / FAIL 0**；`python3 -m pytest tests/ -q` → **386 passed**（新增 4 条）；`python3 scripts/link-check.py` RC=0（相对链接 502 条 / 入口裸引用 2 条 / 活文档内联引用 267 条）；`python3 scripts/flow-check.py` RC=0；`bash scripts/check-version.sh` 通过（v2.12.60）；`bash scripts/inject-lang-policy.py --check` 通过（82 交付文件）；本地 tag 总数 180 → **184**（其中版本 tag 178 → **182**）。
+- **changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.55** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.55 及更早」。
+- **本批范围**：图件嵌入裁定 + 两条 flow-check 规则 + 4 条单测 + 补打 4 个 tag + 记账。**未发布、未 push**（外部动作等主人点头）。
+
+---
+
+---
+
 ## [v2.12.59] — 2026-09-19
 
 - **补上悬空文档指针（2026-09-19 全面审计 P1-1）**：`references/_shared/host-verify-recipe.md` 被 2 处**活文档**引用（`agents/08-终检-final-inspector.md` M-1 第 1 条、`templates/交接报告-template.md` 的 `audited_artifact.sha256` 字段），而 `git log --all -- '*host-verify-recipe*'` 与全盘查找均证实该文件**从未存在过**；两处引用点都在**净化包可见面**，且指向的正是 v2.12.54 刚把「写指纹」移交给主人 host shell 的那个动作 —— 最需要命令模板的环节指向了不存在的模板。修复：新建该文件作为「主人 host shell 补算与登记」的**唯一命令模板真源**（§二 补算命令 / §三 自验 / §四 四处回填登记 / §五 与既有文档的关系），两处引用改为可解析的仓库相对链接；并登记进 `sync-version.sh` / `check-version.sh` / 自审门 C 三处版本戳载体清单（防「新文件漏出三处清单」的 #118.1 同型）。
@@ -71,20 +88,6 @@
 - **残余 S-4 指针化收口**：`references/templates/任务简报-template.md` 最后一处轮次口径复述点（原「第 3 轮触发 → Acknowledged Limitations 模式」）改为指向 `_shared/pipeline-overview.md`『修订回环仲裁规则』。
 - **教训库同步**：`lessons-max.snapshot` 409 → **420**（主真源续录 #415-#420 六条论衡类教训）；`教训索引.md` 最大编号同步为 #420，并注明**编号撞号未清**（#415×2 / #416×2，撞号不推高本值语义）。
 - **验证**：构建期三件套全绿 —— `flow-check.py` rc=0、`self-audit-gate.sh` **PASS 26 / FAIL 0**、`pytest` **348 passed**；`link-check` 相对链接 485 条 + 入口裸引用 2 条全部可解析。
-
----
-
----
-
-## [v2.12.55] — 2026-09-18
-
-- **批次 B · Layer 2 真源修复（S-2~S-6）**：
-  - **S-2 盲审禁代笔**：`t9_review` **删除**通用 fallback `on_worker_failure.executor: 主控`，改为 `independence_failure_policy`（`retry_spawn_only` / `retry_limit` / `executor_takeover: forbidden` / 重试耗尽 ⇒ `record_missing_and_notify_owner`）；封掉「盲审节点由主控接管」的结构性冲突——主控已读遍全部内部材料，代笔即独立性归零且**事后不可修复**。构建期门 = `flow-check.py` 规则 30。
-  - **S-3 同 provider 连续静默升级**：顶层新增 `provider_silence_escalation`（同 provider 连续 **≥3** 次静默 ⇒ **强制暂停 + 呈现主人三选**：换 provider 族 / 换能力档 / 接受同源并披露；**无默认项、必须挂起**），补齐「spawn 前探活门管不到 accepted 之后不产出」的缺口（实测背景：批判审计档 4 连静默无任何升级规则）。构建期门 = `flow-check.py` 规则 31。
-  - **S-6 Phase 1.5 触发条件**：删首轮不可达的占位项「T9 证据强度评分低」，改为明示「**上一轮 T9 审稿报告**指出证据强度不足（仅续跑可达）」。
-  - **S-4 修订回环口径归一**：轮次口径**唯一真源 = `_shared/pipeline-overview.md`『修订回环仲裁规则』**；全仓副本（README / QUICKSTART / 架构篇 / 哲学篇 / 关键协议 / glossary-core·full / deliverables / errors / dispatch T5·T7 / audit-checklist-quickref / writer·auditor 卡 / 主控扩展职责）改为**指针**，不再复述轮次数字。
-  - **S-5 字数上限口径归一**：`字数判定表.md` 不再复述绝对上限，四档一律按任务简报 **`body_limit`（M-14）比例换算**，消除历史上与 `body_limit` 的互斥。
-- **新增/加强测试**：`tests/test_flow_check.py` 新增 8 个用例（S-2 正向/锚点 + 2 条反向注入；S-3 正向/主控卡双向接线 + 2 条反向注入）。反向注入实测：恢复通用 fallback ⇒ `rc=2` 并点名 `t9_review（blind_review）仍声明 on_worker_failure.executor: 主控`；阈值改 `9` ⇒ `rc=2` 并点名 `provider_silence_escalation.threshold->9`；副本还原 ⇒ `rc=0`，真源 sha256 前后一致。
 
 ---
 

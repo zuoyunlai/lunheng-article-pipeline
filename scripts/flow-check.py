@@ -378,6 +378,21 @@ def main():
     if 'T4 不出一决定' not in t4_text and 'T4 **仅出建议**' not in t4_text:
         errs.append('04-分析-analyst 缺 M-11 T4 不出一决定声明（建议 ≠ 拍板）')
 
+    # 20b M-11 图件**嵌入**锁（v2.12.60，主人 2026-09-19 裁定「图件如果存在要机械嵌入」）
+    #    背景：M-11 原只锁「纯文本占位计数 = 拍板 N」，不锁嵌入 —— 实测 run 的定稿里
+    #    `.svg`/`![` 引用数 = 0，3 张 SVG 躺在 final/图件/ 里「有图但文里看不到」。
+    #    判据 = 三处载体（口径 / T8 卡 / T8 dispatch）必须同时含「嵌入式图位规范」与
+    #    「嵌入计数」两件，否则这类口径会静默漂回纯占位版（改 A 漏 B 同型）。
+    _root20 = pathlib.Path(__file__).resolve().parent.parent
+    for _rel20, _lb20 in (('references/deliverables.md', 'deliverables'),
+                          ('references/agents/08-终检-final-inspector.md', '08-终检'),
+                          ('references/dispatch/T8-终检.md', 'T8 dispatch')):
+        _t20 = (_root20 / _rel20).read_text(encoding='utf-8')
+        if '![图N：标题](图件/图N_标题.svg)' not in _t20:
+            errs.append(f'{_lb20} 缺嵌入式图位规范（M-11 图件嵌入锁 v2.12.60）')
+        if '嵌入计数' not in _t20:
+            errs.append(f'{_lb20} 缺「嵌入计数」口径（M-11 图件嵌入锁 v2.12.60）')
+
     # 21 M-13/M-14 主人操作清单 + 字数口径锁死（v2.12.49）：
     #    M-13：T8 dispatch 必含「主人自行操作建议清单」（三类动作 + 命令来源）
     #    M-14：任务简报模板必含 body_limit 字段（正文汉字数上限整数）；deliverables.md 必含「字数口径单一化」段
@@ -607,6 +622,21 @@ def main():
         errs.append('00-主控-coordinator.md 缺 S-3 静默升级协议（连续 ≥3 次静默 ⇒ 强制主人三选）')
     if '禁主控代笔' not in _mc_text:
         errs.append('00-主控-coordinator.md 缺 S-2 盲审禁代笔协议（independence: blind_review）')
+
+    # 32 节点 kind 必填（v2.12.60）
+    #    kind 是规则 4/5（入参 / 产出声明）与 owner_nodes 归属的**分派键**。
+    #    实测（v2.12.60 本仓）：改 final_assembly 节点时误删 `kind: mechanical_checkpoint` 行，
+    #    本次全仓 flow-check **RC=0 零报错** —— 即「kind 缺失 = 该节点对所有按 kind 分派的检查
+    #    静默隐身」（与教训 #427 同族：判据依赖的字段本身没人守）。
+    _KNOWN_KINDS = {'owner_checkpoint', 'mode_declaration', 'parallel_agents',
+                    'conditional_review_window', 'mechanical_checkpoint', 'agent',
+                    'conditional_agent', 'bounded_loop', 'owner_agent', 'advisory_agent'}
+    for _n32 in P:
+        _k32 = _n32.get('kind')
+        if not _k32:
+            errs.append(f"节点 {_n32.get('id')} 缺 kind（kind=分派键，缺失使该节点对一切 kind 类检查隐身）")
+        elif _k32 not in _KNOWN_KINDS:
+            errs.append(f"节点 {_n32.get('id')} kind='{_k32}' 不在已知集合内")
 
     print(';'.join(errs))
     return 0 if not errs else 2

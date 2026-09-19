@@ -1001,3 +1001,58 @@ if __name__ == "__main__":
                 fn()
             print(f"  ✓ {name}")
     print("flow-check 测试全过")
+
+
+# ===== v2.12.60 M-11 图件「嵌入」锁 + 节点 kind 必填 =====
+
+EMBED_SPEC = "![图N：标题](图件/图N_标题.svg)"
+
+
+def test_m11_figure_embed_lock_in_three_carriers():
+    """M-11 图件嵌入锁（v2.12.60，主人裁定「图件如果存在要机械嵌入」）。
+
+    背景：M-11 原只锁「纯文本占位计数 = 拍板 N」，不锁嵌入 —— 实测 run 的 final/定稿.md
+    里 .svg / ![ 引用数 = 0，3 张 SVG 躺在 final/图件/ 里「有图但文里看不到」。
+    三处载体必须同时含「嵌入式图位规范」与「嵌入计数」口径，否则口径会静默漂回纯占位版。
+    """
+    for rel in ("references/deliverables.md",
+                "references/agents/08-终检-final-inspector.md",
+                "references/dispatch/T8-终检.md"):
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        assert EMBED_SPEC in text, f"{rel} 缺嵌入式图位规范（M-11 图件嵌入锁）"
+        assert "嵌入计数" in text, f"{rel} 缺「嵌入计数」口径（M-11 图件嵌入锁）"
+
+
+def test_m11_figure_embed_lock_reverse_injection(tmp_path):
+    """D-4 副本注入：删掉 deliverables 的嵌入式图位规范 ⇒ flow-check 必须红且点名。"""
+    def mutate(src):
+        assert EMBED_SPEC in src, "反向注入点未命中（嵌入式图位规范写法已变）"
+        return src.replace(EMBED_SPEC, "~~已删除~~")
+
+    _inject_and_expect("references/deliverables.md", mutate, "图件嵌入锁", tmp_path)
+
+
+def test_pipeline_nodes_must_declare_kind():
+    """kind 必填（v2.12.60）：kind 是规则 4/5 与 owner_nodes 归属的分派键。
+
+    实测：改 final_assembly 时误删 `kind: mechanical_checkpoint`，全仓 flow-check RC=0 零报错
+    ⇒ 「kind 缺失 = 该节点对所有按 kind 分派的检查静默隐身」（与教训 #427 同族）。
+    """
+    known = {"owner_checkpoint", "mode_declaration", "parallel_agents",
+             "conditional_review_window", "mechanical_checkpoint", "agent",
+             "conditional_agent", "bounded_loop", "owner_agent", "advisory_agent"}
+    for n in _pipeline()["pipeline"]:
+        assert n.get("kind"), f"{n.get('id')} 缺 kind（仅对 kind 类检查隐身）"
+        assert n["kind"] in known, f"{n.get('id')} kind 非法：{n['kind']}"
+
+
+def test_missing_node_kind_reverse_injection(tmp_path):
+    """D-4 副本注入：删掉某节点的 kind 行 ⇒ flow-check 必须红并点名该节点。"""
+    def mutate(src):
+        start, block = _node_block(src, "  - id: final_assembly")
+        assert "    kind: mechanical_checkpoint\n" in block, \
+            "反向注入点未命中（final_assembly.kind 写法已变）"
+        bad_block = block.replace("    kind: mechanical_checkpoint\n", "", 1)
+        return src[:start] + bad_block + src[start + len(block):]
+
+    _inject_and_expect(YAML_REL, mutate, "缺 kind", tmp_path)

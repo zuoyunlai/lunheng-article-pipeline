@@ -1,6 +1,6 @@
-# Changelog 归档（v2.12.54 及更早）
+# Changelog 归档（v2.12.55 及更早）
 
-> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入，v2.12.51 于 v2.12.56 轮转迁入，v2.12.52 于 v2.12.57 轮转迁入，v2.12.53 于 v2.12.58 轮转迁入，v2.12.54 于 v2.12.59 轮转迁入）。
+> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入，v2.12.51 于 v2.12.56 轮转迁入，v2.12.52 于 v2.12.57 轮转迁入，v2.12.53 于 v2.12.58 轮转迁入，v2.12.54 于 v2.12.59 轮转迁入，v2.12.55 于 v2.12.60 轮转迁入）。
 > 拆分口径（v2.12.47）：`CHANGELOG.md` 只保留**最近 5 期**，其余逐字迁入本文件。
 > **`scripts/changelog-check.py` 同时读取两份**，故「每个版本 tag 都有章节」的校验纪律不变。
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
@@ -9,6 +9,20 @@
 ---
 
 ---
+
+---
+
+---
+
+## [v2.12.55] — 2026-09-18
+
+- **批次 B · Layer 2 真源修复（S-2~S-6）**：
+  - **S-2 盲审禁代笔**：`t9_review` **删除**通用 fallback `on_worker_failure.executor: 主控`，改为 `independence_failure_policy`（`retry_spawn_only` / `retry_limit` / `executor_takeover: forbidden` / 重试耗尽 ⇒ `record_missing_and_notify_owner`）；封掉「盲审节点由主控接管」的结构性冲突——主控已读遍全部内部材料，代笔即独立性归零且**事后不可修复**。构建期门 = `flow-check.py` 规则 30。
+  - **S-3 同 provider 连续静默升级**：顶层新增 `provider_silence_escalation`（同 provider 连续 **≥3** 次静默 ⇒ **强制暂停 + 呈现主人三选**：换 provider 族 / 换能力档 / 接受同源并披露；**无默认项、必须挂起**），补齐「spawn 前探活门管不到 accepted 之后不产出」的缺口（实测背景：批判审计档 4 连静默无任何升级规则）。构建期门 = `flow-check.py` 规则 31。
+  - **S-6 Phase 1.5 触发条件**：删首轮不可达的占位项「T9 证据强度评分低」，改为明示「**上一轮 T9 审稿报告**指出证据强度不足（仅续跑可达）」。
+  - **S-4 修订回环口径归一**：轮次口径**唯一真源 = `_shared/pipeline-overview.md`『修订回环仲裁规则』**；全仓副本（README / QUICKSTART / 架构篇 / 哲学篇 / 关键协议 / glossary-core·full / deliverables / errors / dispatch T5·T7 / audit-checklist-quickref / writer·auditor 卡 / 主控扩展职责）改为**指针**，不再复述轮次数字。
+  - **S-5 字数上限口径归一**：`字数判定表.md` 不再复述绝对上限，四档一律按任务简报 **`body_limit`（M-14）比例换算**，消除历史上与 `body_limit` 的互斥。
+- **新增/加强测试**：`tests/test_flow_check.py` 新增 8 个用例（S-2 正向/锚点 + 2 条反向注入；S-3 正向/主控卡双向接线 + 2 条反向注入）。反向注入实测：恢复通用 fallback ⇒ `rc=2` 并点名 `t9_review（blind_review）仍声明 on_worker_failure.executor: 主控`；阈值改 `9` ⇒ `rc=2` 并点名 `provider_silence_escalation.threshold->9`；副本还原 ⇒ `rc=0`，真源 sha256 前后一致。
 
 ---
 
