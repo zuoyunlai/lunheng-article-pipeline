@@ -18,3 +18,9 @@ BOOTSTRAP.md
 IDENTITY.md
 SOUL.md
 USER.md
+# 子会话在仓库内写的验证/审计报告：属「工程过程产物」，不进版本库（主人 2026-09-19 裁定）。
+# 注：若某一份报告要正式归档，用 `git add -f reports/<file>` 显式放行。
+reports/
+# 同上：工作区式会话会把「agent 记忆」写进仓库根 memory/（2026-09-18 实际发生，内为真实工作日志，
+# 已另行搬运到 ~/.openclaw/workspace/memory/，仓库内副本删除）。同样用 `git add -f` 可显式放行。
+memory/
