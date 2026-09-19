@@ -150,6 +150,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude '*.pyc' \
     --exclude 'RELEASE-*.md' \
     --exclude 'memory' \
+    --exclude 'reports' \
     --exclude 'AGENTS.md' \
     --exclude 'SOUL.md' \
     --exclude 'USER.md' \
@@ -161,7 +162,7 @@ else
   rm -rf "$OUT_DIR/.git" "$OUT_DIR/outputs" "$OUT_DIR/audits" "$OUT_DIR/scripts" \
     "$OUT_DIR/.github" "$OUT_DIR/tests" "$OUT_DIR/references/_shared/archive" "$OUT_DIR/references/design" \
     "$OUT_DIR/docs" "$OUT_DIR/.bak-20260823-2024-v2.4.0-migrate" \
-    "$OUT_DIR/.pytest_cache"
+    "$OUT_DIR/.pytest_cache" "$OUT_DIR/memory" "$OUT_DIR/reports"
   find "$OUT_DIR" -name '*.bak.*' -delete
   find "$OUT_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
   find "$OUT_DIR" -name '*.pyc' -delete

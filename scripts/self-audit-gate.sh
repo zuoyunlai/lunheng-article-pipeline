@@ -847,10 +847,12 @@ Q_FILES=()
 while IFS= read -r -d '' f; do
   case "${f#"$SKILL_ROOT"/}" in
     references/_shared/教训索引.md|references/设计文档*.md|references/design/*|references/_shared/archive/*) continue ;;
+    reports/*|memory/*) continue ;;   # v2.12.57：主人 2026-09-19 裁定「工程过程产物不进版本库」（.gitignore 已拦）⇒ 同 build 可见面，不纳入本门扫描
   esac
   Q_FILES+=("$f")
 done < <(find "$SKILL_ROOT" -name '*.md' -not -path '*/.git/*' -not -path '*/outputs/*' \
   -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
+  -not -path '*/reports/*' -not -path '*/memory/*' \
   -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' -not -name 'README.md' -print0)
 Q_PATTERNS=(
   'ClawHub A\.I\.G'

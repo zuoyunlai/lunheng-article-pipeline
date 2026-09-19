@@ -2,6 +2,23 @@
 
 ---
 
+## [v2.12.57] — 2026-09-18
+
+- **教训 #421 入库（唯一真源 = 主工作区 `memory/lessons.md`，新编号 #421）**：`scripts/publish-clawhub.sh` 的 `extract_changelog()` 压缩器只认「`> **主题：…**` 主题行 + `### 小节标题`」两种**旧**写法，而 CHANGELOG 写作风格早已迁移为顶层 `- **要点**：详解`（v2.12.54/55/56 三章的 `###` 计数均为 0）⇒ 提取恒空 ⇒ 走 fail-closed 分支 `exit 3`，ClawHub 发布被中止。历史遗留：v2.12.53 仅因该章残留 1 行主题行才「非空」通过 —— 这道门长期近乎空转。可复用结论：**压缩/提取类门必须对真源的实际书写格式有正向样本，否则门会静默空转**（判据是「解析结果」而非「真源内容」，故「解析为空」不能直接推断「真源缺失」）。
+  - 报错位置（「CHANGELOG 找不到该版本」）与真实缺陷位置（提取口径认不出格式）**完全不同**：门把「读取侧缺陷」误诊为「写入侧缺陷」。
+- **索引与快照同批刷新（三者同批，不提交中间态）**：`references/_shared/教训索引.md` 声明的最大编号 #420 → **#421**（§一 分类行 / §二 定位行 / §三 完整教训库 三处副本同批），`references/_shared/lessons-max.snapshot` **421**（载明 420→421 的更新记录）；排除表 `LUNHENG_LESSON_EXCLUDE` **未变** —— #421 属论衡类，按设计不入排除表（新增宿主/通用类才入表，且不得靠放宽门判据代替）。
+- **提取器兜底口径（提交 d51c03c，本版一并记录）**：主口径（主题行 + `###` 小节标题）**保留不变**（旧章行为不变），新增**顶层要点标题**兜底（`- **…**：…` → `- …`）；缩进子项与纯文本条目**不入正文**，平台页面仍是压缩摘要而非全文。e2e 实绩：v2.12.56 提取 6 行 → dry-run `would-publish` → 正式发布已提交。
+- **新增正向单测 `tests/test_publish_changelog_extraction.py`（6 条）**：给这道门补「应当放行」的样本（教训 #334 同族）。实现口径 = 从真脚本抽出 `extract_changelog()` **函数真身**执行（不复制一份实现，避免第二真源漂移），在临时 `SKILL_ROOT` 下放构造章节。覆盖 —— ① 新格式章节提取非空且只留顶层要点标题；② 缩进子项 / 纯文本条目不入正文、无残留强调符；③ 旧格式（主题行 + `###`）行为不变；④ 两种写法并存时主口径优先；⑤ 章节确实缺失时仍为空（fail-closed 分支可达、语义未被兜底冲掉）；⑥ **真源防线**：本仓 CHANGELOG 的**当前 SKILL.md 版本**章节必须提取非空（不往仓库根写临时文件，避免弄脏「工作区干净」发版前置闸）。
+- **随批并入的其他链已收口内容（如实登记，避免「谁改的」不可考）**：本版提交同时收进本仓三条并行链已收口但未提交的改动 —— ①「P1 软边界收口」内容（`agents/00-主控-扩展职责.md` 的「处置优先级规则（v2.12.57 单一权威口径）」与「两层别混」精确口径、`08-终检-final-inspector.md` 的职责/边界澄清、`任务简报-template.md` 的「换档重派」措辞、`执行韧化协议-design.md` 的适用边界、`errors.md` 零产物处置指针、`_shared/external-services.md` 与 `permissions.md` 的消歧义）；② `设计文档-架构.md` 补 `scripts/README.md` 索引视图指针（索引本体已于 `9f6f095` 提交）；③ 开发者侧探针 `scripts/runtime-capability-probe.py` 入库（纯标准库、不需新增依赖；`scripts/` 不入净化包）。
+- **门 Q 与 build 的「可见面」口径对齐（主人 2026-09-19 裁定：`reports/` / `memory/` 属工程过程产物、不进版本库）**：二者已由 `.gitignore` 拦，但 `build-clawhub-release.sh` 只排除 `memory`、门 Q 两者都不排除 ⇒ 前者会把未跟踪报告扫进净化包（触发 #333 跟踪性断言），后者会因报告内的扫描器编号**误红**。本版补齐：build 增 `--exclude 'reports'`（含 `cp -a` 回退路径的清理），门 Q 扫描范围增 `reports/*` / `memory/*` —— 与 build 可见面一致，正是该门注释自己声明的口径。
+- **验收（实测回填 · 最终态）**：自审门 **PASS 26 / FAIL 0**（门 C 53 文件版本号 v2.12.57 一致 / 门 H 双向差集：引用 164 个编号全有定义、索引 #421 ≥ 快照 #421 / 门 Q 可见面口径补齐后恢复绿 / 门 V SKILL.md 9827 ≤ 10000 字符）；`python3 -m pytest tests/ -q` → **369 passed**（含本批新增 `tests/test_publish_changelog_extraction.py` 6 条）；`scripts/README.md` 随探针入库重生成（28 条，双向漂移锁转绿）；版本戳同步 **89 文件**；`python3 scripts/changelog-check.py --check` **RC=0**。
+
+> 📌 **发版背景（如实记录）**：本版在**三条并行链同仓改动**的窗口内收口 —— ① 首轮发版前置闸 `EXIT=10`（在飞链 + 工作区 91 条不净），按「两查一停」**停在本地**；② 三条链全部收口（在飞链=0）后，经主人裁定把「P1 软边界收口」等**已收口但未提交**的内容一并收进本版（见上条登记）；③ 未跟踪的 `reports/` / `memory/` 按主人 2026-09-19 裁定走 `.gitignore`（不进版本库），本版仅把 build 与门 Q 的可见面口径对齐。本轮同时把最旧章节 v2.12.52 迁入 `CHANGELOG-archive.md`（主文件保持 5 期）。
+
+---
+
+---
+
 ## [v2.12.56] — 2026-09-18
 
 - **批次 C · Layer 4 运行时收尾协议（P-1~P-5）**：把「子代理完成后主控不自动推进」的**无人值守环**（2026-09-18 实测：约 17 分钟零完成事件，只能事后读盘重建状态）从「靠运气」改为**可核查协议**：
@@ -27,6 +44,8 @@
 
 ---
 
+---
+
 ## [v2.12.55] — 2026-09-18
 
 - **批次 B · Layer 2 真源修复（S-2~S-6）**：
@@ -36,6 +55,8 @@
   - **S-4 修订回环口径归一**：轮次口径**唯一真源 = `_shared/pipeline-overview.md`『修订回环仲裁规则』**；全仓副本（README / QUICKSTART / 架构篇 / 哲学篇 / 关键协议 / glossary-core·full / deliverables / errors / dispatch T5·T7 / audit-checklist-quickref / writer·auditor 卡 / 主控扩展职责）改为**指针**，不再复述轮次数字。
   - **S-5 字数上限口径归一**：`字数判定表.md` 不再复述绝对上限，四档一律按任务简报 **`body_limit`（M-14）比例换算**，消除历史上与 `body_limit` 的互斥。
 - **新增/加强测试**：`tests/test_flow_check.py` 新增 8 个用例（S-2 正向/锚点 + 2 条反向注入；S-3 正向/主控卡双向接线 + 2 条反向注入）。反向注入实测：恢复通用 fallback ⇒ `rc=2` 并点名 `t9_review（blind_review）仍声明 on_worker_failure.executor: 主控`；阈值改 `9` ⇒ `rc=2` 并点名 `provider_silence_escalation.threshold->9`；副本还原 ⇒ `rc=0`，真源 sha256 前后一致。
+
+---
 
 ---
 
@@ -51,6 +72,8 @@
 - **夹带的最小真源修复（S-1）**：`t9_review` 由 opt-in（`owner_peer_review_consent`，**全仓无生产方**）改为「**默认启用 + 主人 opt-out**」（写法同 `methodology_snapshot`）；`任务简报-template.md` 新增 `owner_peer_review_opt_out` 与 `owner_methodology_snapshot_opt_out` 两个生产方字段（后者原为同型断链）。
 - **批次 A · Layer 3 表述收敛（T-1~T-5）**：修订回环口径按主人 2026-09-18 裁定归一（**不计轮** = Phase 3.5 主人洞察轮；**轮 1** = Phase 3.6/3.7 批判修订；**轮 2** = Phase 4.2 审计修订；超限 → Acknowledged Limitations 须主人拍板），失效副本（QUICKSTART / degraded-scenarios 等）改为指向 `_shared/pipeline-overview.md`；修复 QUICKSTART 指向已外移 SKILL.md 章节的失效指针；**Phase 0 不再询问输出格式、不再询问是否配图**（格式转换/封面/SHA256 一律下行到 T8 终检后的「主人自行操作建议清单」）；人环卡新增「13 步 ↔ 23 节点映射说明」；`pipeline-readme` 删残留「4 选 1」孤行并明确「Phase 0 呈现时必须实际列出四个模式」。
 - **新增/加强测试**：`tests/test_flow_check.py` 补 R-4 / R-6 / R-2+R-3 / R-5 / R-1(exempt) 正向断言 + 反向注入用例（真源 sha256 前后不变、副本必红）。
+
+---
 
 ---
 
@@ -76,45 +99,5 @@
 - **非版本 tag**（`full-repo-consistency-audit-2026-09-06`、`before-batch1-optimization`）不进入本表。
 
 ---
-
-## [v2.12.52] — 2026-09-17
-
-> **主题：能力移除登记收口 —— 封面（`image_generate`）与格式转换彻底退出流水线，全仓去「宿主加固」语言。**
-> **性质：文档口径收口 + 能力移除登记 + 平台责任边界中立化。无新增能力、无破坏性行为变更、无安全语义变化。**
-
-### 一、封面与格式转换退出流水线（接续 v2.12.49「`image_generate` 入 denied」，本轮清文档侧残留）
-
-- **外发服务类别 4 → 3 类**：删「③ 封面（opt-in）」行；同意轴 A「外发数据形态」**3 → 2 项**（检索关键词 / 大模型推理全文）
-- `references/_shared/关键协议.md`：4 选 1 选项 ①/③ 去「图像 prompt」；同意门逐类表删「封面（`image_generate`）」行；**新增「v2.12.52 能力移除登记（非口径削弱）」**段 —— 明示条目消失源自能力删除（该外发路径客观不存在），且「未恢复调用能力前，任何后续版本不得重新出现封面同意项」
-- 统一表述为「**封面与格式转换不在流水线内**」→ T8 终检后写入「主人自行操作建议清单」（命令模板 + 执行者 = 主人 host shell）：`operations.md` / `图表-SVG-template.md` / `glossary-full.md` / `phase-1-details.md` / `pipeline-overview.md` / `external-services.md` / `dispatch-header.md` / `任务简报-template.md` / `checkpoint-card-template.md` / `投稿就绪检查表-template.md` / `SKILL.md` / `QUICKSTART.md`
-- 删除残留授权面：`README.md` 外发服务表行、`pipeline-readme.md` 逐类表行、`_shared/工具能力边界.md`「可视化：image_generate」行、`glossary-full.md` 服务清单第 4 条与备选方案「封面生成」三条
-- `图表-SVG-template.md`：数据图表 vs 封面视觉对比表收敛为单列（数据图表）；转换表删「主控调 `image_generate` 转 PNG」行与 Phase 0「PNG 转换需求」触发门
-- `任务简报-template.md`：`consent` 结构体删「图像 prompt」/「封面」两键（轴 A 2 项 / 轴 B 3 类）
-
-### 二、去「宿主加固」语言（平台责任边界中立化）
-
-- 全仓措辞：「宿主未加固 / 加固缺口 / 加固配方 / 加固状态」→ 平台中立表述（「平台给的工具面比本档声明宽」「平台工具策略由平台与宿主负责」），涉及 `SKILL.md` / `permissions.md` / `dispatch-header.md` / `agents/00-主控-扩展职责.md` / `external-services.md` / `关键协议.md` / `glossary-full.md` / `README.md` / `QUICKSTART.md` / `status-template.md`
-- `references/permissions.md`：四层表 ②/③ 行「**可选**（见 `host-hardening-recipe.md`）」→「**平台职责**（论衡不配置、不校验）」；「加固状态判据与默认口径」→「工具面判据与默认口径」；「为何不采纳 A 档（宿主未加固即拒跑）」→「为何不采纳『平台未收紧即拒跑』」
-- `status-template.md`：删「不记录『加固状态』」记录位表述 → 只留「不记录宿主配置明细、不记 deny 原文」
-- `README.md`「权限设计取舍（对审计方/扫描器明示）」段重写：子代理角色白名单改述为**声明式调用边界**（描述本 skill 自身不越权；加载器不执行），删除指向 `host-hardening-recipe.md` 的部署建议
-- `图表-SVG-template.md` 等处的「真实隔离由宿主 config 机械层生效」句保留原文（属能力边界说明，非加固承诺）
-- **保留**：`references/_shared/host-hardening-recipe.md` 本体仍在仓库（维护者附录，`sync-version.sh` / `check-version.sh` 版本戳依赖），只是不再充当运行时文档的授权来源
-
-### 三、附带一致性（审计 P1/P2 文档卫生）
-
-- 删「single-controller 不 spawn」残留（`asset-index.md` / `字数判定表.md` / `agents/03-案例检索` / `设计文档-架构.md` / `任务简报-template.md`）—— 与 v2.12.46「多 Agent 九角色为唯一标准架构」对齐
-- `字数判定表.md`：`<2000 字` 行「流水线偏重，建议简化（主控+写手两角色直写更快）」→「**论衡不适用**（流水线偏重；主控+写手直写、不 spawn 多角色）」
-- `deliverables.md`：教训 #270 行去第三方署名
-- `scripts/self-audit-gate.sh`：注释「md5 仅作可选加固」→「md5 仅作可选校验」
-
-### 四、验收（实测回填）
-
-- `python3 -m pytest tests/ -q` → **331 passed**（0 failed）
-- `bash scripts/self-audit-gate.sh` → **26 PASS / 0 FAIL**
-- `python3 scripts/flow-check.py` → **RC=0**
-- `python3 scripts/changelog-check.py --check` → **RC=0**
-- `bash scripts/check-version.sh` → **通过**（版本号 v2.12.52）
-
-> ⚠️ **未做项（待主人批）**：本批次**仅本地提交** —— 未 push / 未打 tag / 未建 GitHub Release / 未构建净化包。发版前须先跑 `bash scripts/release-preflight.sh v2.12.52`；本轮已随提交把最旧章节 v2.12.47 迁入归档（主文件保持 5 期）。
 
 ---

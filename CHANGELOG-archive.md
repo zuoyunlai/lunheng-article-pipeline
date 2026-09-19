@@ -12,6 +12,52 @@
 
 ---
 
+---
+
+## [v2.12.52] — 2026-09-17
+
+> **主题：能力移除登记收口 —— 封面（`image_generate`）与格式转换彻底退出流水线，全仓去「宿主加固」语言。**
+> **性质：文档口径收口 + 能力移除登记 + 平台责任边界中立化。无新增能力、无破坏性行为变更、无安全语义变化。**
+
+### 一、封面与格式转换退出流水线（接续 v2.12.49「`image_generate` 入 denied」，本轮清文档侧残留）
+
+- **外发服务类别 4 → 3 类**：删「③ 封面（opt-in）」行；同意轴 A「外发数据形态」**3 → 2 项**（检索关键词 / 大模型推理全文）
+- `references/_shared/关键协议.md`：4 选 1 选项 ①/③ 去「图像 prompt」；同意门逐类表删「封面（`image_generate`）」行；**新增「v2.12.52 能力移除登记（非口径削弱）」**段 —— 明示条目消失源自能力删除（该外发路径客观不存在），且「未恢复调用能力前，任何后续版本不得重新出现封面同意项」
+- 统一表述为「**封面与格式转换不在流水线内**」→ T8 终检后写入「主人自行操作建议清单」（命令模板 + 执行者 = 主人 host shell）：`operations.md` / `图表-SVG-template.md` / `glossary-full.md` / `phase-1-details.md` / `pipeline-overview.md` / `external-services.md` / `dispatch-header.md` / `任务简报-template.md` / `checkpoint-card-template.md` / `投稿就绪检查表-template.md` / `SKILL.md` / `QUICKSTART.md`
+- 删除残留授权面：`README.md` 外发服务表行、`pipeline-readme.md` 逐类表行、`_shared/工具能力边界.md`「可视化：image_generate」行、`glossary-full.md` 服务清单第 4 条与备选方案「封面生成」三条
+- `图表-SVG-template.md`：数据图表 vs 封面视觉对比表收敛为单列（数据图表）；转换表删「主控调 `image_generate` 转 PNG」行与 Phase 0「PNG 转换需求」触发门
+- `任务简报-template.md`：`consent` 结构体删「图像 prompt」/「封面」两键（轴 A 2 项 / 轴 B 3 类）
+
+### 二、去「宿主加固」语言（平台责任边界中立化）
+
+- 全仓措辞：「宿主未加固 / 加固缺口 / 加固配方 / 加固状态」→ 平台中立表述（「平台给的工具面比本档声明宽」「平台工具策略由平台与宿主负责」），涉及 `SKILL.md` / `permissions.md` / `dispatch-header.md` / `agents/00-主控-扩展职责.md` / `external-services.md` / `关键协议.md` / `glossary-full.md` / `README.md` / `QUICKSTART.md` / `status-template.md`
+- `references/permissions.md`：四层表 ②/③ 行「**可选**（见 `host-hardening-recipe.md`）」→「**平台职责**（论衡不配置、不校验）」；「加固状态判据与默认口径」→「工具面判据与默认口径」；「为何不采纳 A 档（宿主未加固即拒跑）」→「为何不采纳『平台未收紧即拒跑』」
+- `status-template.md`：删「不记录『加固状态』」记录位表述 → 只留「不记录宿主配置明细、不记 deny 原文」
+- `README.md`「权限设计取舍（对审计方/扫描器明示）」段重写：子代理角色白名单改述为**声明式调用边界**（描述本 skill 自身不越权；加载器不执行），删除指向 `host-hardening-recipe.md` 的部署建议
+- `图表-SVG-template.md` 等处的「真实隔离由宿主 config 机械层生效」句保留原文（属能力边界说明，非加固承诺）
+- **保留**：`references/_shared/host-hardening-recipe.md` 本体仍在仓库（维护者附录，`sync-version.sh` / `check-version.sh` 版本戳依赖），只是不再充当运行时文档的授权来源
+
+### 三、附带一致性（审计 P1/P2 文档卫生）
+
+- 删「single-controller 不 spawn」残留（`asset-index.md` / `字数判定表.md` / `agents/03-案例检索` / `设计文档-架构.md` / `任务简报-template.md`）—— 与 v2.12.46「多 Agent 九角色为唯一标准架构」对齐
+- `字数判定表.md`：`<2000 字` 行「流水线偏重，建议简化（主控+写手两角色直写更快）」→「**论衡不适用**（流水线偏重；主控+写手直写、不 spawn 多角色）」
+- `deliverables.md`：教训 #270 行去第三方署名
+- `scripts/self-audit-gate.sh`：注释「md5 仅作可选加固」→「md5 仅作可选校验」
+
+### 四、验收（实测回填）
+
+- `python3 -m pytest tests/ -q` → **331 passed**（0 failed）
+- `bash scripts/self-audit-gate.sh` → **26 PASS / 0 FAIL**
+- `python3 scripts/flow-check.py` → **RC=0**
+- `python3 scripts/changelog-check.py --check` → **RC=0**
+- `bash scripts/check-version.sh` → **通过**（版本号 v2.12.52）
+
+> ⚠️ **未做项（待主人批）**：本批次**仅本地提交** —— 未 push / 未打 tag / 未建 GitHub Release / 未构建净化包。发版前须先跑 `bash scripts/release-preflight.sh v2.12.52`；本轮已随提交把最旧章节 v2.12.47 迁入归档（主文件保持 5 期）。
+
+---
+
+---
+
 ## [v2.12.51] — 2026-09-17
 
 > **主题：批次 B 一致性收口 —— 只读档写盘主体唯一化（D-3）+ 测试反向注入不再写真源（D-4）。**
