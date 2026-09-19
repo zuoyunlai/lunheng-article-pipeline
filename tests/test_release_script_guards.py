@@ -141,3 +141,141 @@ def test_cleanup_bundle_backup_precedes_destruction():
     assert "git bundle create" in src
     assert src.index("git bundle create") < src.rindex("git reflog expire")
     assert "拒绝继续销毁历史" in src
+
+
+# ---------------- v2.12.63：`_shared/` 白名单准入门 + 规则 3h-5 行级断言 ----------------
+# 背景（2026-09-19 第三批四线审计，主控实跑实证）：
+#   C-1（P0）：`references/_shared/论衡仓库内教训.md`（维护者工程内档，`#R001` 编号空间）
+#      自 v2.12.42 引入后**一直随发布包出厂**，同时绕过三道门（不在排除清单 / 不匹配
+#      `教训 #N` 模式 / 是 git 跟踪文件故反向断言也不拦）。
+#   C-2（P1）：规则 3h-5 的整行正则把 `00-主控-扩展职责.md` §〇 主控必读清单的**层 1 整行**删掉。
+# 本组测试锁三件事：准入清单与真源一致（源侧不变量）/ 准入门在产品侧真的拦得住 /
+# 规则 3h-5 的行级断言存在且真的会炸。
+
+def _shared_admitted():
+    """从 build 脚本读出 SHARED_ADMITTED 清单（唯一真源，不在此处重抄）。"""
+    src = BUILD.read_text(encoding="utf-8")
+    m = re.search(r"SHARED_ADMITTED=\((.*?)\n\)", src, re.S)
+    assert m, "build-clawhub-release.sh 未找到 SHARED_ADMITTED 清单（准入门被移除？）"
+    return re.findall(r"'([^']+)'", m.group(1))
+
+
+def _shared_excluded_patterns():
+    """从 build 脚本的 --exclude 行读出 `references/_shared/` 下的排除项（唯一真源）。"""
+    src = BUILD.read_text(encoding="utf-8")
+    pats = re.findall(r"--exclude 'references/_shared/([^']+)'", src)
+    return [p.rstrip('/') for p in pats]
+
+
+def test_shared_admitted_list_is_sorted():
+    """准入清单必须按 LC_ALL=C sort 排序（脚本内也有同款自检）——保证 diff 可审。"""
+    admitted = _shared_admitted()
+    assert admitted == sorted(admitted), f"SHARED_ADMITTED 未排序：{admitted}"
+
+
+def test_shared_admitted_matches_source_tree():
+    """**源侧不变量**：真源 `_shared/` 的每个文件，要么在准入清单内，要么被显式排除。
+
+    这条正是「黑名单式排除」缺的那道门——v2.12.42 新增内档时，
+    既没进清单也没进排除，于是默认入包。现在两侧必须闭合。
+    """
+    import fnmatch
+    admitted = set(_shared_admitted())
+    excluded = _shared_excluded_patterns()
+    src_dir = ROOT / "references" / "_shared"
+    actual = {p.name for p in src_dir.iterdir() if p.is_file()}
+    unexplained = []
+    for name in sorted(actual):
+        if name in admitted:
+            continue
+        if any(name == e or fnmatch.fnmatch(name, e) for e in excluded):
+            continue
+        unexplained.append(name)
+    assert not unexplained, (
+        "真源 references/_shared/ 存在**既未登记入包、也未显式排除**的文件 —— "
+        "这正是 C-1 泄漏的成因（新文件默认入包）：" + ", ".join(unexplained)
+    )
+    # 反向：清单里的每一项都必须真实存在（防清单腐烂成空指针）
+    missing = sorted(a for a in admitted if not (src_dir / a).is_file())
+    assert not missing, f"准入清单登记了真源不存在的文件（清单腐烂）：{missing}"
+
+
+def test_build_has_shared_admission_gate():
+    """准入门必须存在、且必须在复制步骤之后（否则无包可比）。"""
+    src = BUILD.read_text(encoding="utf-8")
+    assert "SHARED_ADMITTED" in src
+    assert "净化包 references/_shared/ 与准入清单不一致" in src
+    assert "包内有但清单未登记" in src and "清单已登记但包内缺失" in src
+    # 门必须在 rsync/cp 复制之后（2b' 位于 2b 与 2c 之间）
+    assert src.index("SHARED_ADMITTED=(") > src.index("FORBIDDEN_IN_PACKAGE=(")
+
+
+def test_purify_3h5_is_mention_only_and_asserted():
+    """规则 3h-5 不得再整行删除；且必须带行级反向断言（7c）。"""
+    src = BUILD.read_text(encoding="utf-8")
+    # 旧实现的整行正则必须**不再是活代码**（注释里留作历史说明是允许的）
+    assert not re.search(r"^s = re\.sub\(r'\[\^\\n\]\*设计文档", src, re.M), \
+        "规则 3h-5 的整行删除正则仍是活代码 —— 会再删掉主控必读清单的层 1 行"
+    # 新实现：精确 mention 替换 + 行级断言
+    assert "`glossary-full.md`（**发布版无 `设计文档.md`**" in src
+    assert "_src_had_layer1" in src
+    assert "规则 3h-5 行级反向断言失败" in src
+
+
+def test_build_admission_gate_blocks_unregistered_file(tmp_path):
+    """功能验证：未登记文件进包 ⇒ 构建必须失败并点名（模拟 C-1 的成因）。"""
+    import shutil
+    dst = tmp_path / "copy"
+    shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns(".git", "outputs", "__pycache__"))
+    env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+    for cmd in (["git", "init", "-q"], ["git", "add", "-A"],
+                ["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "t"]):
+        subprocess.run(cmd, cwd=str(dst), env=env, capture_output=True, text=True)
+    intruder = dst / "references" / "_shared" / "zz-未登记内档.md"
+    intruder.write_text("# 未登记\n\n> 版本：v9.9.9\n", encoding="utf-8")
+    subprocess.run(["git", "add", "references/_shared/zz-未登记内档.md"],
+                   cwd=str(dst), env=env, capture_output=True, text=True)
+    out_root = tmp_path / "outputs"
+    r = subprocess.run(["bash", str(dst / "scripts" / "build-clawhub-release.sh"), "9.9.9"],
+                       capture_output=True, text=True, cwd=str(dst),
+                       env={**os.environ, "OUTPUTS_ROOT": str(out_root)})
+    blob = r.stderr + r.stdout
+    assert r.returncode != 0, "未登记文件入包竟构建成功 —— 准入门失效"
+    assert "准入清单不一致" in blob, f"未命中准入门（可能是别的门先炸）：\n{blob[-1500:]}"
+    assert "zz-未登记内档.md" in blob, "准入门未点名未登记文件"
+
+
+def test_build_package_excludes_maintainer_internal_and_keeps_layer1(tmp_path):
+    """端到端：真实构建一次，锁两条审计结论的修复。
+
+    ① C-1：包内不得出现维护者内档，且全包不得残留 `#R\\d{3}` 编号空间；
+    ② C-2：`00-主控-扩展职责.md` 的「层 1 入口必读」整行必须在净化后**存活**。
+    """
+    out_root = tmp_path / "outputs"
+    r = subprocess.run(["bash", str(BUILD), "2.12.63"],
+                       capture_output=True, text=True, cwd=str(ROOT),
+                       env={**os.environ, "OUTPUTS_ROOT": str(out_root)})
+    assert r.returncode == 0, f"构建失败：\n{(r.stderr + r.stdout)[-2000:]}"
+    pkg = out_root / "clawhub-release" / "2.12.63"
+
+    # ① C-1 泄漏
+    assert not (pkg / "references" / "_shared" / "论衡仓库内教训.md").exists(), \
+        "维护者内档仍在发布包内"
+    shared = {p.name for p in (pkg / "references" / "_shared").iterdir()}
+    assert shared == set(_shared_admitted()), "包内 _shared 文件集与准入清单不符"
+    leaked = []
+    for p in pkg.rglob("*"):
+        if p.is_file() and p.suffix in (".md", ".yaml", ".yml", ".json", ".txt"):
+            try:
+                if re.search(r"#R\d{3}|论衡仓库内教训|repo-internal", p.read_text(encoding="utf-8")):
+                    leaked.append(str(p.relative_to(pkg)))
+            except UnicodeDecodeError:
+                pass
+    assert not leaked, f"包内仍有 #R 编号空间 / 内档引用：{leaked}"
+
+    # ② C-2 层 1 行存活
+    duty = (pkg / "references" / "agents" / "00-主控-扩展职责.md").read_text(encoding="utf-8")
+    assert "入口必读（启动清单 1-2 步）" in duty, \
+        "主控必读清单的「层 1 入口必读」整行又被净化规则删掉了"
+    assert "设计文档" not in duty, "`设计文档.md` mention 未被剥离（死引用残留）"
