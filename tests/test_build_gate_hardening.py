@@ -257,3 +257,55 @@ def test_build_fails_on_nonmd_asset_collapse(tmp_path):
     assert r.returncode != 0, "非 md 资产被塌陷竟构建成功 —— 非 md 正向门失效"
     assert "非 md 正向完整性未通过" in blob, f"未命中非 md 正向门：\n{blob[-2000:]}"
     assert "phase-order.yaml" in blob and "字符保留率" in blob, "非 md 门未点名塌陷文件/保留率"
+
+
+# ---------------- v2.12.64：工具残留排除（CI 实测回归，2026-09-19）----------------
+# 背景：CI 的 Code Quality 以 `pytest --cov=scripts` 跑全量 ⇒ coverage 并行模式在**仓库根**
+#   落 `.coverage.<host>.<pid>.<随机>` ⇒ rsync 全量复制把它们带进包 ⇒ §2b″ 全包清单门拦下，
+#   Code Quality 变红。**门拦得没错**（那确实是包内不该有的文件），但根因是排除清单漏了这一类。
+#   本地不跑 `--cov` ⇒ 从未复现 ⇒「本地绿 / CI 红」（#430 同族）。本组用例把两类都锁死。
+
+_TOOL_RESIDUE_AT_ROOT = (
+    ".coverage",                          # 非并行模式的单一数据文件
+    ".coverage.runnervmlun5p.pid86983.XlcXavZx",  # 并行模式：CI 实测的形态
+    ".DS_Store",
+    "scratch.swp",
+)
+
+def test_tool_residue_is_excluded_in_both_copy_branches():
+    """源侧不变量：排除清单是**黑名单**（新类型默认入包）⇒ rsync 与 cp 两侧必须对称。
+
+    单侧补漏 = 另一条分支仍会把残留打进包（rsync 缺失时才走 cp，属罕见路径 ⇒ 更难发现）。
+    """
+    src = _src()
+    for token in (".coverage", "htmlcov", ".DS_Store", "*.swp"):
+        assert f"--exclude '{token}'" in src, f"rsync 侧缺 {token} 排除（{token} 会随包出厂）"
+    assert '.coverage.*' in src, "rsync 侧缺 .coverage.* 排除（并行模式主形态）"
+    cp_branch = src.split("cp -a \"$SKILL_ROOT/.\"")[1]
+    for token in (".coverage", "htmlcov", ".DS_Store", "swp"):
+        assert token in cp_branch, f"cp 分支缺 {token} 清理（两侧不对称）"
+
+
+def test_build_survives_and_drops_tool_residue(tmp_path):
+    """故障注入：仓库根铺满工具残留 ⇒ 构建**必须成功**且包内**不得**含这些文件。
+
+    这条正是 CI 回归的复现：修复前 ② 因 §2b″ 清单门而红；修复后应绿，且残留确实被剥离。
+    """
+    dst = _copy_repo(tmp_path)
+    for name in _TOOL_RESIDUE_AT_ROOT:
+        (dst / name).write_text("residue\n", encoding="utf-8")
+    (dst / "htmlcov").mkdir()
+    (dst / "htmlcov" / "index.html").write_text("<html>cov</html>\n", encoding="utf-8")
+
+    out_root = tmp_path / "out"
+    r = _build(dst, out_root)
+    blob = r.stderr + r.stdout
+    assert r.returncode == 0, (
+        f"仓库根有工具残留时构建失败 —— 排除清单漏了该类型（CI 回归）：\n{blob[-2000:]}")
+    pkg = out_root / "clawhub-release" / "9.9.9"
+    leaked = sorted(str(p.relative_to(pkg)) for p in pkg.rglob("*")
+                    if p.is_file() and (p.name.startswith(".coverage")
+                                        or p.name in (".DS_Store", "scratch.swp")
+                                        or p.suffix == ".swp"))
+    assert not leaked, f"工具残留随包出厂：{leaked}"
+    assert not (pkg / "htmlcov").exists(), "htmlcov/ 随包出厂"

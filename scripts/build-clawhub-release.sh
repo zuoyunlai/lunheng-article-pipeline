@@ -87,6 +87,14 @@ echo "   输出：$OUT_DIR"
 # 背景（教训 #333 / 第三方审计 P1-3）：原实现「非 git 环境 → 整段跳过」= **静默放弃**唯一
 #   能发现「未跟踪残留入包」的机械门（教训 #333 正是这类事故）。改 fail-closed：
 #   非 git 环境直接停构建；确需豁免者须显式设 LUNHENG_ALLOW_NO_GIT=1（并打印告警）。
+#
+# ⚠️ 工具残留排除（v2.12.64 补，2026-09-19 CI 实测根因）：
+#   `.coverage*` 一度不在排除清单里。CI 的 Code Quality 以 `pytest --cov=scripts` 跑全量，
+#   coverage 并行模式在**仓库根**落 `.coverage.<host>.<pid>.<随机>`；rsync 全量复制把它带进包，
+#   再由 §2b″ 全包清单门拦下（门没错 —— 拦的是**真**工具残留，coverage 数据含维护者脚本路径）。
+#   本地不跑 `--cov` 故从未复现 ⇒「本地绿 / CI 红」。#430 同族：判据两边必须同口径。
+#   教训：排除清单是**黑名单**（新类型默认入包）—— 故新增工具类产物时两侧（rsync --exclude 与
+#   cp 分支）必须同时补，且以 §2b″ 清单门作最终兜底。
 # 2026-09-16 前置（原位置：复制步骤**之后**的 2a' 段）：判定在 rm -rf/mkdir/rsync 之后才执行时，
 #   失败构建仍会在共享输出根留下半成品包（实测 `build 9.9.9` → rc=1 但已落盘 84 文件）。
 #   本门只依赖 SKILL_ROOT 是否为 git 仓库，不依赖包内容 ⇒ 前置到任何写盘动作之前，失败零输出。
@@ -149,6 +157,14 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude '.pytest_cache' \
     --exclude '__pycache__' \
     --exclude '*.pyc' \
+    --exclude '.coverage' \
+    --exclude '.coverage.*' \
+    --exclude 'htmlcov' \
+    --exclude '.mypy_cache' \
+    --exclude '.ruff_cache' \
+    --exclude '.DS_Store' \
+    --exclude '*.swp' \
+    --exclude '*.swo' \
     --exclude 'RELEASE-*.md' \
     --exclude 'memory' \
     --exclude 'reports' \
@@ -167,6 +183,11 @@ else
   find "$OUT_DIR" -name '*.bak.*' -delete
   find "$OUT_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
   find "$OUT_DIR" -name '*.pyc' -delete
+  # v2.12.64：工具残留（coverage / 缓存 / 编辑器）——同 rsync 侧排除清单，两侧必须对称
+  rm -f "$OUT_DIR"/.coverage "$OUT_DIR"/.coverage.*
+  rm -rf "$OUT_DIR/htmlcov" "$OUT_DIR/.mypy_cache" "$OUT_DIR/.ruff_cache"
+  find "$OUT_DIR" -name '.DS_Store' -delete
+  find "$OUT_DIR" \( -name '*.swp' -o -name '*.swo' \) -delete
   rm -f "$OUT_DIR/PERFORMANCE-PROFILE.md"
   rm -f "$OUT_DIR/references/_shared/教训索引.md"
   # v2.12.63：维护者工程内档（#R 编号空间），实测自 v2.12.42 起长期随包出厂 —— 见 2b' 段根因说明
