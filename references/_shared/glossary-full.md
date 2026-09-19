@@ -4,8 +4,6 @@
 
 > 📎 **流水线全景与阶段顺序** → [唯一派生视图](pipeline-overview.md)（`references/_shared/pipeline-overview.md`）（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
-> # 论衡核心概念词汇表（完整设计者文档）
-
 # 论衡核心概念词汇表
 
 > 用途：单一真源，集中定义核心概念，减少文档冗余
