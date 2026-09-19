@@ -1056,3 +1056,59 @@ def test_missing_node_kind_reverse_injection(tmp_path):
         return src[:start] + bad_block + src[start + len(block):]
 
     _inject_and_expect(YAML_REL, mutate, "缺 kind", tmp_path)
+
+
+# ===== v2.12.61 人环决策词表三处同源（status ↔ yaml ↔ card 真源指针） =====
+
+_OWNER_DECISION_SOURCES = (
+    ("Phase 0 定题", "phase0_definition"),
+    ("Phase 2.5 大纲", "phase2_5_outline"),
+    ("Phase 3.5 洞察", "phase3_5_insight"),
+    ("Phase 5 验收", "phase5_acceptance"),
+)
+
+
+def test_status_decision_literals_subset_of_yaml():
+    """status-template 四行 decision=<...> 字面值必须 ⊆ 对应节点 yaml decisions。
+
+    实况（2026-09-19 主人问「checkpoint-card 有没有实质作用」时查出）：Phase 0 行写
+    `start|补充信息|暂停|拒绝`，yaml 是 `approved|revision_requested|restart_phase` —— 交集为空；
+    `start`/`暂停`/`拒绝` 在全仓真源零命中，主控据此写下的字面值在真源里根本不存在，
+    人在环硬门必然判「未记录」。
+    """
+    status = (ROOT / "references/templates/status-template.md").read_text(encoding="utf-8")
+    nodes = {n["id"]: n for n in _pipeline()["pipeline"]}
+    for label, nid in _OWNER_DECISION_SOURCES:
+        m = re.search(r"^- \*\*" + re.escape(label) + r"\*\*:.*?decision=<([^>]*)>", status, re.M)
+        assert m, f"status-template 缺「{label}」decision=<...> 行"
+        vals = {v.strip() for v in m.group(1).split("|") if v.strip()}
+        declared = set(nodes[nid].get("decisions") or [])
+        assert vals <= declared, f"「{label}」{sorted(vals)} ⊄ {nid}.decisions {sorted(declared)}"
+
+
+def test_card_declares_enum_source_for_all_four_nodes():
+    """卡片四段各须带枚举真源指针 —— 「选项固定，不可自由发挥」不能只是自我声明。"""
+    card = (ROOT / "references/templates/checkpoint-card-template.md").read_text(encoding="utf-8")
+    for label, nid in _OWNER_DECISION_SOURCES:
+        assert f"{nid}.decisions" in card, f"checkpoint-card 缺「{label}」枚举真源指针（{nid}.decisions）"
+    assert "pre_pipeline_exit" in card, "checkpoint-card 缺 pre_pipeline_exit（Phase 0 未进线出口口径）"
+
+
+def test_selfinvented_decision_value_reverse_injection(tmp_path):
+    """D-4 副本注入：给 Phase 0 行塞一个真源没有的字面值 ⇒ flow-check 必须红且点名。"""
+    def mutate(src):
+        old = "decision=<approved|revision_requested>"
+        assert old in src, "反向注入点未命中（Phase 0 decision 写法已变）"
+        return src.replace(old, "decision=<approved|revision_requested|paused>", 1)
+
+    _inject_and_expect("references/templates/status-template.md", mutate, "自创词表", tmp_path)
+
+
+def test_missing_enum_source_pointer_reverse_injection(tmp_path):
+    """D-4 副本注入：删掉卡片 Phase 0 段的真源指针 ⇒ flow-check 必须红且点名。"""
+    def mutate(src):
+        old = "（**仅进线决策**；枚举真源：`phase-order.yaml` `phase0_definition.decisions`）"
+        assert old in src, "反向注入点未命中（card Phase 0 指针写法已变）"
+        return src.replace(old, "（**仅进线决策**）：", 1)
+
+    _inject_and_expect("references/templates/checkpoint-card-template.md", mutate, "枚举真源指针", tmp_path)

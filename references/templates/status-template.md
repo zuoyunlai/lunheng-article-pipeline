@@ -1,4 +1,4 @@
-> 版本：v2.12.60（自动同步 2026-09-19）
+> 版本：v2.12.61（自动同步 2026-09-19）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -42,12 +42,14 @@
 
 ## 人在环决策记录（四节点，缺一不可）
 
-- **Phase 0 定题**: decision=<start|补充信息|暂停|拒绝> / owner_confirmed_at=<时间> / evidence=01-任务简报.md
+- **Phase 0 定题**: decision=<approved|revision_requested> / owner_confirmed_at=<时间> / evidence=01-任务简报.md / **未启动时**：decision=n/a + `pre_pipeline_exit=<pause|reject>`（v2.12.61：「是否启动」是流水线**外**前置门，其字面值**不进** `decision`；真源 = `phase-order.yaml` `phase0_definition.decisions`）
 - **Phase 2.5 大纲**: decision=<approved|revision_requested|restart_phase> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md / **v2.12.49 M-11**：figures=<N> / figure_decision=<采用 T4 建议|调整图位数|取消图表> —— **任一字段缺失 = 不合格**（t7_5_integrity / T8 机械门均报）
 - **Phase 3.5 洞察**: decision=<insight|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md
 - **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md
 
 > 仅有材料、主控代判、子代理声称已确认，均不构成决策；`no_insight` 是明确决策，不是跳过。
+>
+> **决策字面值禁自创（v2.12.61）**：四行 `decision=<...>` 的取值必须**逐字取自**对应节点的 `phase-order.yaml` `decisions`—— Phase 0 → `phase0_definition` / Phase 2.5 → `phase2_5_outline` / Phase 3.5 → `phase3_5_insight` / Phase 5 → `phase5_acceptance`。机械校验 = flow-check 规则 33（status ↔ yaml 双向点名；自创字面值 = 构建期红）。
 
 ## 能力自检（Phase 0 首次 spawn 前填；越权回报即时追加）
 

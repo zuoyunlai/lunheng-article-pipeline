@@ -2,6 +2,23 @@
 
 ---
 
+## [v2.12.61] — 2026-09-19
+
+- **人环决策词表三处同源（主人 2026-09-19 问「`checkpoint-card-template.md` 有没有起到实质性作用」引出）**：查证结论是**有**——它是 `progress_card 联动规范` + `plan 标签真源纪律` 的单一真源（`00-主控-扩展职责.md` 明写），被 6 处文档硬指向，且被 flow-check 规则 20/29、4 条单测、3 处版本登记**真吃**；但顺手查出它**真的漏了一处口径**。
+- **Phase 0 决策词表冲突（真缺陷）**：`status-template.md` 写 `decision=<start|补充信息|暂停|拒绝>`，而 `phase-order.yaml` `phase0_definition.decisions` = `approved`/`revision_requested`/`restart_phase` —— **交集为空**；`start`/`暂停`/`拒绝` 在全仓真源**零命中**。⇒ 主人选「暂停」时，主控要写进 `status.md` 的字面值在真源里**根本不存在**，人在环硬门必然判「未记录」。**根因**：Phase 0 把「**是否启动**」（流水线**外**前置门）与「进线后对简报的决策」混编进同一张选项表，`status-template` 照抄。
+- **修复口径（拆开）**：进线二态 `decision=<approved|revision_requested>`（A 开始 / B 补充信息）；未进线两出口**不写** `decision`，记独立字段 `pre_pipeline_exit=<pause|reject>`（暂停 / 拒绝），未启动时 `decision=n/a` + `pre_pipeline_exit` 必填。
+- **真源同步（本批唯一语义判断项，可一键回退）**：`phase0_definition.decisions` 移除 `restart_phase` —— 该值系 v2.12.28「与其余人工节点结构对齐」**复制**而来（行内注释自曝），且在本节点**自指不可达**（Phase 0 即定题，无更早节点可回退；语义上等同「补充信息后重出简报」）。四节点其余三处 `decisions` 未动。
+- **flow-check 规则 33（新）**：① `status-template` 四行 `decision=<...>` 字面值必须 **⊆** 对应节点 yaml `decisions`（Phase 0→`phase0_definition` / 2.5→`phase2_5_outline` / 3.5→`phase3_5_insight` / 5→`phase5_acceptance`，逐一点名）；② 卡片四段**各须带「枚举真源」指针**（`<节点 id>.decisions`）—— 卡片自称「选项固定，不可自由发挥」，原先却只有 Phase 2.5 段有指针，其余三段无真源可对，等于**不可验证的自我声明**。已补齐 3.5 / 5 两段指针，并给四段选项加 `→ <value>` 映射标注。
+- **卡片效力边界显式声明（观测项，非缺陷）**：全仓 `scripts/` + `tests/` 对其呈现行为**零校验**（`grep '🔵 Checkpoint'` 零命中）——机械门只守**内容完整性**（缺关键段 = 红），**不守运行期是否真的按它呈现过**。后者属**行为层**，与 B12（spawn accepted 但子会话不存在）同类，靠主控纪律 + 主人目视。已写入卡片顶部，避免「模板里有这一段」被误读为「门会拦住不呈现」。
+- **配套 4 条单测**：status⊆yaml 正向（四节点） + 卡片四指针正向 + 自创词表反向注入（塞 `paused` ⇒ 必红并点名） + 缺指针反向注入；全部在**临时整仓副本**注入、真源 sha256 前后一致（教训 #333）。
+- **验收（实测回填 · 最终态）**：自审门 **PASS 30 / FAIL 0**；`python3 -m pytest tests/ -q` → **390 passed**（新增 4 条）；`python3 scripts/flow-check.py` RC=0（含新规则 33）；`python3 scripts/link-check.py` RC=0；`bash scripts/check-version.sh` 通过（v2.12.61）；`bash scripts/inject-lang-policy.py --check` 通过；`python3 scripts/changelog-check.py --check` RC=0。
+- **changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.56** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.56 及更早」。
+- **本批范围**：词表同源修复 + 一条 flow-check 规则 + 4 条单测 + 卡片效力边界声明 + 记账。**未发布、未 push**（外部动作等主人点头）。
+
+---
+
+---
+
 ## [v2.12.60] — 2026-09-19
 
 - **图件必须机械嵌入定稿（主人 2026-09-19 裁定「图件如果存在要机械嵌入」）**：修正 v2.12.59 刚写下的「定稿为纯文本占位版、嵌入由主人手动」口径 —— 裁定改为**嵌入是论衡职责**。`final/定稿.md` 的图位必须是可渲染的 `![图N：标题](图件/图N_标题.svg)`（定稿与 `图件/` 同目录相对路径；文件名规范 = `图表-SVG-template.md` §六 的 `图N_标题.svg`）。
@@ -61,33 +78,6 @@
 - **验收（实测回填 · 最终态）**：自审门 **PASS 26 / FAIL 0**（门 C 53 文件版本号 v2.12.57 一致 / 门 H 双向差集：引用 164 个编号全有定义、索引 #421 ≥ 快照 #421 / 门 Q 可见面口径补齐后恢复绿 / 门 V SKILL.md 9827 ≤ 10000 字符）；`python3 -m pytest tests/ -q` → **369 passed**（含本批新增 `tests/test_publish_changelog_extraction.py` 6 条）；`scripts/README.md` 随探针入库重生成（28 条，双向漂移锁转绿）；版本戳同步 **89 文件**；`python3 scripts/changelog-check.py --check` **RC=0**。
 
 > 📌 **发版背景（如实记录）**：本版在**三条并行链同仓改动**的窗口内收口 —— ① 首轮发版前置闸 `EXIT=10`（在飞链 + 工作区 91 条不净），按「两查一停」**停在本地**；② 三条链全部收口（在飞链=0）后，经主人裁定把「P1 软边界收口」等**已收口但未提交**的内容一并收进本版（见上条登记）；③ 未跟踪的 `reports/` / `memory/` 按主人 2026-09-19 裁定走 `.gitignore`（不进版本库），本版仅把 build 与门 Q 的可见面口径对齐。本轮同时把最旧章节 v2.12.52 迁入 `CHANGELOG-archive.md`（主文件保持 5 期）。
-
----
-
----
-
-## [v2.12.56] — 2026-09-18
-
-- **批次 C · Layer 4 运行时收尾协议（P-1~P-5）**：把「子代理完成后主控不自动推进」的**无人值守环**（2026-09-18 实测：约 17 分钟零完成事件，只能事后读盘重建状态）从「靠运气」改为**可核查协议**：
-  - **P-1 收尾协议（硬约束）**：`_shared/dispatch-header.md` 新增 §收尾协议 —— worker 写完交接报告后**以正常最终消息结束回合**（该消息即 completion event）；**主动作废**自行 `sessions_yield` 的写法（worker 自 `sessions_yield` = 挂起 run 而非完成它 ⇒ 主控收不到完成事件）；交接摘要**不得**塞进 `acknowledgment` 字段（该字段不从子代理回合发出，实际不送达 ⇒ 完成事件 + 摘要双丢）。9 张角色卡 + 两份交接报告模板同步接线，禁用原语清单统一为 `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history`。
-  - **P-2 主控兜底唤醒**：`00-主控-扩展职责.md` 新增第 6 条（与既有第 1 条「spawn 后不轮询」**并存不冲突**）—— spawn 后**必须**安排一次定时自唤醒（= 该角色硬卡阈值 + 缓冲），到点**主动 `read` 核对磁盘产物**，**推进判据以磁盘产物为准**、completion event 仅作**加速信号**；宿主无可用定时面 ⇒ 退化为「下次进入本会话即复核」+ `status.md` 记 `watchdog_unavailable`（不得静默）。⚠️ 方案原文示例的 `automations` **在 `denied` 内**，本协议**不授权调用**（本版不改 `denied` / `coordinator_only`）。
-  - **P-3 能力自检真收口**：把「写 `能力自检：通过`」升级为**必须逐项列出本会话实际可见的工具清单**（禁止只写「通过」），档位不符 ⇒ 当场回报主控、不继续跑（实测事故：派发前未核实实际工具面 ⇒ 子代理无 `exec`/`grep`，无法自验）。
-  - **P-4/P-5 版本链完整性**：交接报告模板正文须随最终消息结束回合；`dispatch/T5-写手.md` + `dispatch/T7-审计.md` 新增 —— 每个 `drafts/初稿-vN.md` 须配同版本号 `交接报告-T5-vN.md`，或 `修订说明-vN.md` 记录完整版本链（版本号 + 日期 + 产物路径）；缺任一版本且无记录链 ⇒ 该版本**不可核验**（T7 判 **P1**；`status.md` 回环记录**不替代**版本链）。实测反例：仅产 `v{1,3,4}`，v2/v5 缺失。
-- **批次 C · Layer 5 删除清理（D-1~D-3）**：
-  - **D-1 多格式导出彻底移出 Phase 0（主人裁定 2026-09-18）**：删 Phase 5 的 A–F「多格式导出选择卡」（7 文件），改为**并入 M-13「主人自行操作建议清单」第 1 项**（执行者 = 主人 host shell，**agent 不执行**任何转换命令）；`SKILL.md` / `关键协议.md` / `external-services.md` / `设计文档-哲学.md` / `checkpoint-card-template.md` / `任务简报-template.md` / `00-主控-扩展职责.md` 六处「3 项 + 多格式 6 选项」口径统一收敛为「**2 项**（期刊匹配 / 中文数据源）」。
-  - **D-2 配图表述核实**：全清单仅 2 处涉及配图，均为合规表述（`image_generate` 已于 v2.12.52 移除 ⇒ 论衡不调用），**未为改而改**。
-  - **D-3 建议清单命令同源**：T8 命令模板改为与 `_shared/format-export.md` §〇/§二 **同源**，并显式标注 latex/docx/pdf 所需模板 / `.bib` / `.csl` **需主人自备**（否则会卡壳）；封面类**无统一可复制命令**故模板只覆盖第 1/2/4 类。
-- **M-Gate 规范补全（M-1~M-7）**：
-  - **M-2 抽取规则唯一真源**：`M-Gate-Algorithm.md` 新增 §统一抽取规则真源（**A 文末节集合**：REQUIRED 4 / OPTIONAL 3 / ALL 7 / NONSTANDARD；**B 引用编号正则**：标准 / 基线 / 表格三类），消除**三组**同源不一致（M-Form-2↔M-Form-7、M-Form-1↔M-Exist-3，外加 A.2 未列的 M-Form-3↔M-Form-7 marker 清单）；各门改为引用真源 + 派生展开视图（注明「非第二真源」）。
-  - **M-1 悬空指针**：§6 删「主人手工跑 `bash scripts/m-gate-check.sh`」实指写法（全仓无该文件），改为显式标注「未实现 / 未随仓保留」，**不凭空造脚本**。
-  - **M-3 弱门评估留痕**：M-Exist-3 等弱判据显式标注「属实弱门，**评估结论：弱，但有意保留**」+ 三条理由（强判据在中英混排/内联引用下必误报；正确性已由 M-Exist-1/M-Form-8/M-Form-3 承担；P0 阻断类塞易误报判据 = 用误报换假阴性）。
-  - **M-4 判据收窄**：① 「正文泄露术语」由裸 substring 改为词边界 + 结构位置约束（旧写法使正文合法的「T1 加权成像」「七段式论证」在 **P0** 误报，一次误报 = 白烧一轮修订）；② 证据-信任级别由「计数相等」改为**逐条/逐行配对**（`len(条目) == len(信任级别)` 不等价于每条都有信任级别）。
-  - **M-5 判定出口唯一真源**：13 项 M 门伪代码统一经 §统一抽取规则真源 C 的 `verdict_pass` / `verdict_fail` / `verdict_undecidable` / `verdict_path_error` 返回，`档位` 取值与附录 schema `判定记录_双字段` **逐字一致**。
-  - **M-6 依赖面补全**：`scripts/m_gate_dependencies.yaml` 补 M-Form-1 / M-Exist-3 的 `final/图件/*.svg` 依赖（对齐自审门 J）、M-Form-8 的 `01-任务简报.md` 依赖（伪代码从简报提取 `[论点N]`），并注明**本文件只影响「变更定位范围」、不产出 M 门结论**。
-  - **M-7 未定义 helper**：新增 §未定义 helper 清单与替代口径（`extract_intext_v2` / `extract_endnote_v2` → 按真源 A + B 切分提取）。
-- **残余 S-4 指针化收口**：`references/templates/任务简报-template.md` 最后一处轮次口径复述点（原「第 3 轮触发 → Acknowledged Limitations 模式」）改为指向 `_shared/pipeline-overview.md`『修订回环仲裁规则』。
-- **教训库同步**：`lessons-max.snapshot` 409 → **420**（主真源续录 #415-#420 六条论衡类教训）；`教训索引.md` 最大编号同步为 #420，并注明**编号撞号未清**（#415×2 / #416×2，撞号不推高本值语义）。
-- **验证**：构建期三件套全绿 —— `flow-check.py` rc=0、`self-audit-gate.sh` **PASS 26 / FAIL 0**、`pytest` **348 passed**；`link-check` 相对链接 485 条 + 入口裸引用 2 条全部可解析。
 
 ---
 

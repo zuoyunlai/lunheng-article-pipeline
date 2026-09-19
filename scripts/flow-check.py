@@ -638,6 +638,34 @@ def main():
         elif _k32 not in _KNOWN_KINDS:
             errs.append(f"节点 {_n32.get('id')} kind='{_k32}' 不在已知集合内")
 
+    # 33 人环决策词表三处同源（v2.12.61，修 Phase 0「status 字面值与 yaml decisions 交集为空」）：
+    #    实况（主人 2026-09-19 问「checkpoint-card 有没有实质作用」时查出）：status-template 写
+    #      `decision=<start|补充信息|暂停|拒绝>`，而 yaml `phase0_definition.decisions` =
+    #      [approved, revision_requested, restart_phase] —— **交集为空**；`start`/`暂停`/`拒绝` 在全仓
+    #      真源里零命中 ⇒ 主人选「暂停」时主控要写的字面值无对应枚举，人在环硬门必然判「未记录」。
+    #    根因：Phase 0 把「是否启动」（流水线**外**前置门）与「进线后决策」混成一张选项表，status 照抄。
+    #    锁：① status-template 四行 `decision=<...>` 字面值必须 ⊆ 对应节点 yaml `decisions`；
+    #        ② 卡片四段各须带「枚举真源」指针（`<节点 id>.decisions`）—— 卡片自称「固定，不可自由发挥」，
+    #           但原先只有 Phase 2.5 段有指针，其余三段无真源可对 ⇒ 「不可自创」只是自我声明。
+    _st33 = (_root24 / 'references/templates/status-template.md').read_text(encoding='utf-8')
+    _ck33 = (_root24 / 'references/templates/checkpoint-card-template.md').read_text(encoding='utf-8')
+    for _lbl33, _nid33 in (('Phase 0 定题', 'phase0_definition'),
+                           ('Phase 2.5 大纲', 'phase2_5_outline'),
+                           ('Phase 3.5 洞察', 'phase3_5_insight'),
+                           ('Phase 5 验收', 'phase5_acceptance')):
+        _decl33 = set((byid.get(_nid33) or {}).get('decisions') or [])
+        _m33 = re.search(r'^- \*\*' + re.escape(_lbl33) + r'\*\*:.*?decision=<([^>]*)>', _st33, re.M)
+        if not _m33:
+            errs.append(f'status-template 缺「{_lbl33}」decision=<...> 行（词表无真源可比）')
+        else:
+            _vals33 = {_v.strip() for _v in _m33.group(1).split('|') if _v.strip()}
+            _extra33 = sorted(_vals33 - _decl33)
+            if _extra33:
+                errs.append(f'status-template「{_lbl33}」decision 字面值 {_extra33} 不在 '
+                            f'{_nid33}.decisions {sorted(_decl33)} 内（自创词表，人在环硬门会判未记录）')
+        if f'{_nid33}.decisions' not in _ck33:
+            errs.append(f'checkpoint-card 缺「{_lbl33}」枚举真源指针（{_nid33}.decisions）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 
