@@ -1112,3 +1112,40 @@ def test_missing_enum_source_pointer_reverse_injection(tmp_path):
         return src.replace(old, "（**仅进线决策**）：", 1)
 
     _inject_and_expect("references/templates/checkpoint-card-template.md", mutate, "枚举真源指针", tmp_path)
+
+
+# ===== v2.12.62 B12：spawn 落地验证「三点接线」+ 诚实边界 =====
+
+def test_b12_spawn_landing_three_point_wiring():
+    """B12 可机械部分：真源协议 + 主控卡接线 + status 留痕字段 + 诚实边界声明，四点齐备。
+
+    故障面 = spawn 返回 accepted 但子会话不存在 ⇒ 主控无限等待。**运行期行为不可构建期校验**
+    （agent 零 exec），故只锁「协议不许从载体里静默消失」+「留痕字段必须在位」+「必须写明
+    构建期无机械兜底」（防后人误以为有门）。
+    """
+    hp = (ROOT / "references/_shared/执行韧化协议-exec.md").read_text(encoding="utf-8")
+    for tok in ("spawn 后", "active runs", "重试 ≤2 次", "机械兜底边界"):
+        assert tok in hp, f"执行韧化协议-exec.md 缺「{tok}」（B12）"
+    mc = (ROOT / "references/agents/00-主控-coordinator.md").read_text(encoding="utf-8")
+    assert "执行韧化协议-exec.md" in mc, "主控卡未指向执行韧化协议真源（B12：协议只活在 _shared）"
+    st = (ROOT / "references/templates/status-template.md").read_text(encoding="utf-8")
+    assert "spawn_landing" in st, "status-template 缺 spawn_landing 留痕字段（B12）"
+    assert "机械兜底边界" in st, "status-template 缺「机械兜底边界」诚实声明（B12）"
+
+
+def test_b12_status_field_reverse_injection(tmp_path):
+    """D-4 副本注入：删掉 status-template 的 spawn_landing 字段 ⇒ flow-check 必须红且点名。"""
+    def mutate(src):
+        assert "spawn_landing" in src, "反向注入点未命中（spawn_landing 写法已变）"
+        return src.replace("spawn_landing", "spawnlanding", 1)
+
+    _inject_and_expect("references/templates/status-template.md", mutate, "spawn_landing", tmp_path)
+
+
+def test_b12_honest_boundary_reverse_injection(tmp_path):
+    """D-4 副本注入：删掉诚实边界声明 ⇒ flow-check 必须红（防「假装有机械门」）。"""
+    def mutate(src):
+        assert "机械兜底边界" in src, "反向注入点未命中（诚实边界声明写法已变）"
+        return src.replace("机械兜底边界", "兜底边界（已删）", 1)
+
+    _inject_and_expect("references/_shared/执行韧化协议-exec.md", mutate, "机械兜底边界", tmp_path)

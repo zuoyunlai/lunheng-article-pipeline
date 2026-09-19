@@ -149,6 +149,7 @@ VERSION_FILES=(
   "references/_shared/external-services.md"
   # v2.12.59：补上审计发现的悬空指针目标文件（原被 2 处活文档引用却从未存在）
   "references/_shared/host-verify-recipe.md"
+  "references/_shared/反哺报告处理.md"
 )
 VERSION_MISSING=""
 for f in "${VERSION_FILES[@]}"; do
@@ -247,7 +248,12 @@ fi
 # =============================================================================
 LESSONS_SRC="${LESSONS_SRC:-$HOME/.openclaw/workspace/memory/lessons.md}"
 LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341 355 374 375 376 380 382 383 385 392 393 394 395 396 397 398 402 403 404 405 410 411 412 413 414}"
-IDX_DECL_MAX=$(grep -oE '当前最大编号 \*\*#[0-9]+\*\*' "references/_shared/教训索引.md" 2>/dev/null | grep -oE '[0-9]+' | head -1)
+# v2.12.62（审计 P2-7）：**编号只在快照写一次**。索引三处旧副本已于本版改为派生指针；
+#   本门改为「索引**不得**出现硬编码最大编号」——把「5 处联动必然 off-by-one」的漂移面
+#   从「人工记得改 5 处」压成「机器拒绝第 2 处副本」。LUNHENG_LESSON_INDEX 供测试注入副本。
+LESSON_INDEX_FILE="${LUNHENG_LESSON_INDEX:-references/_shared/教训索引.md}"
+IDX_HARDCODED_COUNT=$(grep -cE '最大编号 \*\*#[0-9]+\*\*' "$LESSON_INDEX_FILE" 2>/dev/null | tr -d '[:space:]')
+IDX_HARDCODED_COUNT=${IDX_HARDCODED_COUNT:-0}
 SNAPSHOT_FILE="${LESSONS_SNAPSHOT:-references/_shared/lessons-max.snapshot}"
 SNAP_MAX=$(grep -oE '[0-9]+' "$SNAPSHOT_FILE" 2>/dev/null | head -1)
 SRC_MAX=""
@@ -261,7 +267,7 @@ if [ -f "$LESSONS_SRC" ]; then
          | grep -oE '[0-9]+')
   # v2.11.1 修复（教训 #249）：教训索引表格用裸「| #N |」格式（无「教训」前缀），
   #   门 H 旧正则扫不到 → #245 在主真源缺失仍 PASS。补采集索引表格裸编号列。
-  INDEX_REFS=$(grep -oE '^\| #[0-9]+ ' "references/_shared/教训索引.md" 2>/dev/null | grep -oE '[0-9]+')
+  INDEX_REFS=$(grep -oE '^\| #[0-9]+ ' "$LESSON_INDEX_FILE" 2>/dev/null | grep -oE '[0-9]+')
   REFS=$( { echo "$REFS"; echo "$INDEX_REFS"; } | grep -oE '[0-9]+' | sort -un)
 
   # 采集主真源实有编号（任意标题层级，兼容「## #N」与「## 教训 #N」两种书写）
@@ -328,15 +334,21 @@ fi
 #   三者同批改（本值 + 索引声明 + 排除表，教训 #352）；快照只升不降。完整条文见 snapshot 文件头。
 #   提醒器 = 本门参照告警「外部真源 #N > 快照 #M」——它响就是快照该更新了。
 # -----------------------------------------------------------------------------
-# 快照路径由顶部定义（LESSONS_SNAPSHOT 可覆盖，供测试构造「索引落后→必红」正向样本）
-if [ -n "$IDX_DECL_MAX" ] && [ -n "$SNAP_MAX" ]; then
-  if [ "$IDX_DECL_MAX" -lt "$SNAP_MAX" ]; then
-    fail "门 H: 教训索引最大编号落后仓库快照" "索引声明 #$IDX_DECL_MAX < 快照 #$SNAP_MAX —— 请更新 references/_shared/教训索引.md"
-  else
-    pass "门 H: 索引最大编号未落后仓库快照（索引 #$IDX_DECL_MAX ≥ 快照 #$SNAP_MAX）"
-  fi
+# 双判据（v2.12.62 改，审计 P2-7「5 处联动 → 压到 2 处」）：
+#   ① 单点真源在位：快照必须可解析 —— 编号唯一载体消失了就没有任何真源；
+#   ② 派生面无副本：索引不得出现硬编码最大编号 —— 出现即 FAIL（防 5 处联动回归）。
+#   （旧判据「索引声明 ≥ 快照」比的是两处**人工维护**的数字，正是 off-by-one 的来源；
+#     现判据把这个类别**从结构上移除**：没有第二处数字，就没有第二处可漂移。）
+if [ -n "$SNAP_MAX" ]; then
+  pass "门 H: 快照单一真源可解析（lessons-max.snapshot = #$SNAP_MAX）"
 else
-  warn "门 H: 索引声明（$IDX_DECL_MAX）或快照（$SNAP_MAX）不可解析，跳过反向差集"
+  fail "门 H: 教训快照不可解析" "$SNAPSHOT_FILE 无数字头 —— 编号唯一真源缺失（门 H 失去判据基）"
+fi
+if [ "$IDX_HARDCODED_COUNT" -eq 0 ]; then
+  pass "门 H: 教训索引无硬编码最大编号（编号已压到 2 处：快照 + 派生）"
+else
+  fail "门 H: 教训索引又出现硬编码最大编号（$IDX_HARDCODED_COUNT 处）" \
+       "$LESSON_INDEX_FILE —— 编号只在 lessons-max.snapshot 写一次；索引三处旧副本已于 v2.12.62 改为指针，请勿回退（审计 P2-7）"
 fi
 
 # =============================================================================
@@ -1035,6 +1047,52 @@ if [ -f SKILL.md ]; then
     pass "门 V: SKILL.md 体量棘轮（${SKILL_CHARS} ≤ ${SKILL_CHARS_CEIL} 字符；官方上限 10000，只许降）"
   else
     fail "门 V: SKILL.md 体量回涨" "${SKILL_CHARS} > ${SKILL_CHARS_CEIL} 上限（官方上限 10000）—— 请外移长内容而非放宽本上限"
+  fi
+fi
+
+# =============================================================================
+# 门 Y：必读文件体量软棘轮 + SKILL.md 余量告警（v2.12.62 新增，回应审计 P1-3）
+#   背景（2026-09-19 全面审计 P1-3）：门 V 只锁 SKILL.md 那 ~9.8K 字符 —— 占仓库 1.72M 字符
+#   的 0.57%。仓库里**唯一**有硬棘轮的，恰恰是余量最紧的那一个：三个「每次必读」的大文件
+#   合计 ~213KB 无任何约束。审计建议「不要动门 V 的 10000 上限（那是官方约束），而是加
+#   第二层棘轮」——给这三个文件设**软阈值**。
+#   语义：**⚠️ 提示级，不计入 exit code**（warn 不改 FAILED）。目的是逼「加内容前先分层/
+#   外移」，而不是把大文件变成第二个 SKILL.md。上限 = 最近一次分层后的**实测值，只许降**：
+#   瘦身成功后必须同步下调本表（记录在案，防回涨）。
+#   另加 SKILL.md「余量告警」：余量 < 阈值即告警 —— 余量枯竭会诱发论衡自认的头号死敌
+#   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
+#   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
+# =============================================================================
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|73690,references/_shared/M-Gate-Algorithm.md|84570,references/_shared/phase-order.yaml|54701"
+BULK_RATCHET_CEIL="${LUNHENG_BULK_RATCHET:-$BULK_RATCHET_CEIL_DEFAULT}"
+SKILL_MARGIN_WARN="${LUNHENG_SKILL_MARGIN_WARN:-300}"
+BULK_RATCHET_OK=1
+while IFS='|' read -r _bf _bceil; do
+  [ -z "${_bf:-}" ] && continue
+  if [ ! -f "$_bf" ]; then
+    warn "门 Y: 体量棘轮目标文件缺失（$_bf）—— 本门清单须与实际文件同步（缺失即清单失效）"
+    BULK_RATCHET_OK=0
+    continue
+  fi
+  _bnow=$(wc -c < "$_bf" | tr -d '[:space:]')
+  if [ "$_bnow" -le "$_bceil" ]; then
+    pass "门 Y: 体量棘轮 $(basename "$_bf") ${_bnow} ≤ ${_bceil} B（只许降）"
+  else
+    warn "门 Y: $(basename "$_bf") 体量 ${_bnow} B > 上限 ${_bceil} B —— 请分层/外移内容，**不要**放宽本上限"
+    BULK_RATCHET_OK=0
+  fi
+done <<EOF
+$(echo "$BULK_RATCHET_CEIL" | tr ',' '\n')
+EOF
+if [ "$BULK_RATCHET_OK" = "1" ]; then
+  pass "门 Y: 必读文件体量棘轮清单全部在位且未回涨"
+fi
+if [ -n "${SKILL_CHARS:-}" ]; then
+  SKILL_MARGIN=$((SKILL_CHARS_CEIL - SKILL_CHARS))
+  if [ "$SKILL_MARGIN" -lt "$SKILL_MARGIN_WARN" ]; then
+    warn "门 Y: SKILL.md 字符余量仅 ${SKILL_MARGIN}（< ${SKILL_MARGIN_WARN}）—— 余量枯竭易诱发「改 A 漏 B」，请先外移长内容而非边删边加"
+  else
+    pass "门 Y: SKILL.md 字符余量 ${SKILL_MARGIN} ≥ ${SKILL_MARGIN_WARN}"
   fi
 fi
 

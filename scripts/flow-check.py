@@ -666,6 +666,28 @@ def main():
         if f'{_nid33}.decisions' not in _ck33:
             errs.append(f'checkpoint-card 缺「{_lbl33}」枚举真源指针（{_nid33}.decisions）')
 
+    # 34 B12 spawn 落地验证「三点接线」（v2.12.62，修审计 B12「仅纪律层，无机械兜底」）：
+    #    故障面 = `sessions_spawn` 返回 accepted 但子会话不存在 ⇒ 主控无限等待。
+    #    诚实边界：论衡 agent 零 exec，**运行期**行为无法在构建期机械校验 —— 本规则**不假装**能拦
+    #    故障本身，只锁「协议不许从载体里静默消失」这一可机械部分（三点接线）：
+    #      ① 真源：执行韧化协议-exec.md 含落地验证本体（spawn 后 / active runs / 重试 ≤2 次）
+    #         + **诚实边界声明**（显式写「构建期无法机械校验」，防后人误以为有门）
+    #      ② 主控卡：必须指向该真源（防「只活在 _shared、主控不执行」）
+    #      ③ 运行期留痕：status-template 必须有 `spawn_landing` 记账字段（主人可事后核验，
+    #         失败不再无声）—— 这是把「纪律」变成「可核验痕迹」的唯一机械化路径。
+    _hp34 = (_root24 / 'references/_shared/执行韧化协议-exec.md').read_text(encoding='utf-8')
+    for _tok34 in ('spawn 后', 'active runs', '重试 ≤2 次', '机械兜底边界'):
+        if _tok34 not in _hp34:
+            errs.append(f'执行韧化协议-exec.md 缺「{_tok34}」（B12：落地验证协议或诚实边界声明缺失）')
+    _mc34 = (_root24 / 'references/agents/00-主控-coordinator.md').read_text(encoding='utf-8')
+    if '执行韧化协议-exec.md' not in _mc34:
+        errs.append('00-主控-coordinator.md 未指向执行韧化协议真源（B12：协议只活在 _shared，主控不执行）')
+    _st34 = (_root24 / 'references/templates/status-template.md').read_text(encoding='utf-8')
+    if 'spawn_landing' not in _st34:
+        errs.append('status-template 缺 spawn_landing 留痕字段（B12：落地验证无运行期痕迹，主人无法核验）')
+    if '机械兜底边界' not in _st34:
+        errs.append('status-template 缺「机械兜底边界」诚实声明（B12：防把纪律层误读为机械门）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

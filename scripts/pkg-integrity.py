@@ -15,7 +15,7 @@ verify 的判定（任一不过即 exit 1）：
   1. 快照非空（防「空快照 = 全部通过」的空转门）
   2. 快照内每个文件仍存在
   3. 每个 md 文件非退化（≥ MIN_CHARS 字符，且仍含标题）
-  4. 字符保留率 ≥ MIN_RETENTION（防整段塌陷）
+  4. 字符保留率 ≥ MIN_RETENTION（防整段塌陷；文件级覆盖见 RETENTION_FLOOR_OVERRIDE，必写理由）
   5. 必需结构锚点仍在（REQUIRED_ANCHORS，防关键段落被剥走）
   6. SKILL.md frontmatter 仍可解析且含 metadata.openclaw.version（防 frontmatter 被毁）
 """
@@ -28,6 +28,17 @@ MIN_CHARS = 200           # 单个 md 退化下限
 DEFAULT_RETENTION = 0.35  # 字符保留率下限（净化会刻意删内容，不能定 1.0）
 #   实测依据（v2.12.30 首跑，80 个 md）：最低 49%（可发表性判定表，含大量被剥 shell 段）
 #   / 次低 77% / 80% → 取 35% 留足余量，只捕获「整段塌陷」级别的误删。
+
+# 文件级保留率下限覆盖（v2.12.62）——「显式债务清单」模式：**每项必须写明理由**（同族原则见
+#   link-check.py 的 INLINE_ALLOW）。用途：构建期**有意**把某文件整篇换成发布版正文时，
+#   全局 35% 会把「故意的删除」误报为「误删」。
+#   ⚠️ 只降下限、**不取消检查**：仍受 MIN_CHARS + 标题 + frontmatter 三重约束 ⇒
+#   被覆盖的文件也不可能「消失或塌陷而不被发现」。
+RETENTION_FLOOR_OVERRIDE = {
+    "references/_shared/反哺报告处理.md":
+        "构建期规则 3f 有意整篇换为发布版正文（剥离教训编号双轨体系 / 跨项目同步表述）",
+}
+RETENTION_FLOOR_OVERRIDE_VALUE = 0.15
 
 # 必需结构锚点：(包内相对路径, 必须出现的字面) —— 这些段落被剥走即代表「误删」
 REQUIRED_ANCHORS = [
@@ -127,10 +138,14 @@ def verify(pkg_dir: str, snap_path: str) -> int:
         b = meta.get("chars") or 0
         if b > 0:
             r = chars / b
+            floor = retention_floor
+            if rel in RETENTION_FLOOR_OVERRIDE:
+                floor = RETENTION_FLOOR_OVERRIDE_VALUE
+                print(f"  低保留率豁免（已声明理由）：{rel} —— {RETENTION_FLOOR_OVERRIDE[rel]}")
             ratios.append((r, rel))
-            if r < retention_floor:
+            if r < floor:
                 errs.append(
-                    f"{rel} 字符保留率 {r:.0%} < {retention_floor:.0%}"
+                    f"{rel} 字符保留率 {r:.0%} < {floor:.0%}"
                     f"（{b} → {chars}）")
 
     for rel, marker in REQUIRED_ANCHORS:

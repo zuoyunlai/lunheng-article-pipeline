@@ -10,7 +10,15 @@
   这类**标题不含「论衡」的论衡类教训对反向差集完全不可见**：真源已到 #352、索引仍声明 #351
   时，门 H 照样 PASS（漏报）；直到 #353 标题恰好带「论衡」才暴露落后。
 
-官方审计整改（F1/F3，2026-09-13）后的新口径：
+v2.12.62 改判据（审计 P2-7：教训编号「5 处联动副本」必然 off-by-one）：
+  原判据「索引声明 #N ≥ 快照 #M」比的是**两处人工维护的数字** —— 实测已出过一次
+  off-by-one（v2.12.58：快照 425→426 修正）。现把该类别**从结构上移除**：
+  ① 编号只在 `lessons-max.snapshot` 写一次（唯一数值真源，hermetic）；
+  ② 索引三处旧副本改为派生指针，门 H **反向校验「索引不得出现硬编码最大编号」**；
+  ③ 快照必须可解析（单点真源在位）——否则门 H 失去判据基。
+  于是「同批改」从 5 处压到 2 处（快照值 + 排除表），且第 2 处副本由机器拒绝。
+
+官方审计整改（F1/F3，2026-09-13）后的口径（v2.12.62 起在下列基础上收敛）：
   ① 反向差集判据改为 **仓库内快照** `references/_shared/lessons-max.snapshot`（hermetic）——
     不再受仓库外 `memory/lessons.md` 的「已发布的绿可被墙外追加追溯性推翻」影响
   ② 外部真源仅作 **参照告警**（warn），不参与 exit code
@@ -40,16 +48,19 @@ HOME = pathlib.Path.home()
 REAL_SRC = pathlib.Path(os.environ.get(
     "LESSONS_SRC", HOME / ".openclaw" / "workspace" / "memory" / "lessons.md"))
 
-REVERSE_DIFF = "索引最大编号"  # pass 与 fail 两条消息共有子串（旧值「门 H: 索引最大编号」匹配不到 fail 行）
+REVERSE_DIFF_MARKS = (              # 门 H 反向判据的全部行（pass + fail）
+    "快照单一真源可解析",            # 判据① pass
+    "教训快照不可解析",              # 判据① fail
+    "教训索引无硬编码最大编号",      # 判据② pass
+    "又出现硬编码最大编号",          # 判据② fail
+)
 ADVISORY = "门 H: 外部真源"
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 
-def _idx_decl():
-    """索引声明的「当前最大编号 #N」"""
-    m = re.search(r"当前最大编号 \*\*#(\d+)\*\*", INDEX.read_text(encoding="utf-8"))
-    assert m, "教训索引缺「当前最大编号 **#N**」声明"
-    return int(m.group(1))
+def _idx_hardcoded_count():
+    """索引内**硬编码最大编号**的处数（v2.12.62 起必须为 0）"""
+    return len(re.findall(r"最大编号 \*\*#\d+\*\*", INDEX.read_text(encoding="utf-8")))
 
 
 def _snap_max():
@@ -72,7 +83,7 @@ def _run_gate(lessons_src, extra_env=None):
 
 
 def _reverse_diff_lines(out):
-    return [l for l in out.splitlines() if REVERSE_DIFF in l]
+    return [l for l in out.splitlines() if any(m in l for m in REVERSE_DIFF_MARKS)]
 
 
 def _advisory_lines(out):
@@ -87,21 +98,32 @@ requires_real_src = pytest.mark.skipif(
     not REAL_SRC.is_file(), reason=f"主真源不可达：{REAL_SRC}（门 H 为软门，跳过）")
 
 
-# ---------------- ①ᐟ 正向红样本：索引落后快照 → 门 H 必须红 -------------
+# ---------------- ①ᐟ 红样本（v2.12.62 两条）：判据失效必须红 -------------
 
-@requires_real_src
-def test_index_lagging_snapshot_must_fail(tmp_path):
-    """正向红样本（独立复查指出：重写后无一条断言门会 FAIL，防 fail 分支被删仍全绿）。
-    构造一个「更高」的临时快照 → 索引（声明的 #N）必然落后 → 门 H 必须红。"""
-    snap = _snap_max()
-    assert snap is not None, "快照文件缺失"
-    higher = tmp_path / "snapshot-high"
-    higher.write_text(f"{snap + 100}\n", encoding="utf-8")
-    r, out = _run_gate(REAL_SRC, {"LESSONS_SNAPSHOT": str(higher)})
-    assert r.returncode != 0, f"索引落后快照却放行（门 H 退化为永绿）：\n{out}"
+def test_hardcoded_index_number_must_fail(tmp_path):
+    """红样本①：索引里塞回硬编码最大编号 ⇒ 门 H 必须红并点名。
+
+    这是本版的核心防御——「压到 2 处」不是删副本了事，而是**机器拒绝第 2 处副本**。
+    """
+    probe = tmp_path / "index.md"
+    probe.write_text(INDEX.read_text(encoding="utf-8")
+                     + "\n> 当前最大编号 **#999**（回归样本）\n", encoding="utf-8")
+    r, out = _run_gate(REAL_SRC, {"LUNHENG_LESSON_INDEX": str(probe)})
+    assert r.returncode != 0, f"索引硬编码编号却放行（判据②退化为永真）：\n{out}"
     lines = _reverse_diff_lines(out)
-    assert any(l.lstrip().startswith("✗") for l in lines), \
-        f"索引落后快照未报红（✗ 行缺失）：{lines}"
+    assert any(l.lstrip().startswith("✗") and "硬编码最大编号" in l for l in lines), \
+        f"硬编码编号未报红：{lines}"
+
+
+def test_missing_snapshot_must_fail(tmp_path):
+    """红样本②：快照不可解析 ⇒ 门 H 必须红（唯一数值真源缺失 = 判据基缺失）。"""
+    gone = tmp_path / "snapshot-empty"
+    gone.write_text("（无数字头）\n", encoding="utf-8")
+    r, out = _run_gate(REAL_SRC, {"LESSONS_SNAPSHOT": str(gone)})
+    assert r.returncode != 0, f"快照不可解析却放行（判据①退化为永真）：\n{out}"
+    lines = _reverse_diff_lines(out)
+    assert any(l.lstrip().startswith("✗") and "快照不可解析" in l for l in lines), \
+        f"快照缺失未报红：{lines}"
 
 
 # ---------------- ① 正向：真源超过快照且不在排除表 → 参照告警但不 fail ----------------
@@ -109,7 +131,6 @@ def test_index_lagging_snapshot_must_fail(tmp_path):
 @requires_real_src
 def test_snapshot_advisory_when_source_exceeds_snapshot(tmp_path):
     """新口径：真源新增一个**未列入排除表**的编号 → 快照告警，但门仍 pass（hermetic 判据）"""
-    idx = _idx_decl()
     snap = _snap_max()
     assert snap is not None, "快照文件缺失"
     # 选未列入排除表（340/341/355/374/375/376）的编号
@@ -134,16 +155,19 @@ def test_snapshot_advisory_when_source_exceeds_snapshot(tmp_path):
 # ---------------- ② 负向：索引 ≥ 快照 → 不得误报 ----------------
 
 @requires_real_src
-def test_no_false_positive_when_index_matches_snapshot(tmp_path):
-    """当主真源不可达时，仍执行 hermetic 判据（索引 ≥ 快照）。"""
+def test_no_false_positive_on_clean_tree(tmp_path):
+    """干净树：单点真源在位 + 索引无副本 ⇒ 两条判据都必须 pass，且编号一致。"""
     snap = _snap_max()
     assert snap is not None, "快照文件缺失"
+    assert _idx_hardcoded_count() == 0, \
+        f"索引仍有 {_idx_hardcoded_count()} 处硬编码最大编号（v2.12.62 起应为 0）"
     r, out = _run_gate(REAL_SRC)
-    assert r.returncode == 0, f"索引与快照一致却报红：\n{out}"
+    assert r.returncode == 0, f"干净树却报红：\n{out}"
     assert "FAIL: 0" in out, f"存在误报门：\n{out}"
-    line = _reverse_diff_lines(out)[-1]
-    assert f"索引 #{_idx_decl()} ≥ 快照 #{snap}" in line, \
-        f"反向差集行格式异常（应使用快照判据）：{line}"
+    lines = _reverse_diff_lines(out)
+    assert any("快照单一真源可解析" in l and f"#{snap}" in l for l in lines), \
+        f"判据①未 pass 或未点名快照值：{lines}"
+    assert any("无硬编码最大编号" in l for l in lines), f"判据②未 pass：{lines}"
 
 
 # ---------------- ③ 负向：排除表覆盖真源 → 不得误报（合法领先） ----------------
@@ -151,15 +175,14 @@ def test_no_false_positive_when_index_matches_snapshot(tmp_path):
 @requires_real_src
 def test_no_false_positive_when_exclude_table_leads_source(tmp_path):
     """合法领先样本：把所有真源编号列入排除表 → SRC_MAX=0 ≤ 快照，判据必放行。"""
-    idx = _idx_decl()
     nums = sorted(set(_src_numbers(REAL_SRC.read_text(encoding="utf-8"))))
     exclude = " ".join(str(n) for n in nums) or "0"
     r, out = _run_gate(REAL_SRC, {"LUNHENG_LESSON_EXCLUDE": exclude})
     assert r.returncode == 0, f"排除表合法领先却报红：\n{out}"
-    line = _reverse_diff_lines(out)[-1]
-    assert line.lstrip().startswith("✓") and "未落后仓库快照" in line, \
-        f"合法领先被判为落后：{line}"
-    assert "≥ 快照 #" in line, f"反向差集行格式异常：{line}"
+    lines = _reverse_diff_lines(out)
+    assert all(l.lstrip().startswith("✓") for l in lines), \
+        f"合法领先被判为红：{lines}"
+    assert any("快照单一真源可解析" in l for l in lines), f"判据①缺失：{lines}"
 
 
 # ---------------- ④ 排除表：宿主/通用类编号不计入最大告警编号 ----------------

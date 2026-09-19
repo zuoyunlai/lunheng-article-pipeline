@@ -293,18 +293,21 @@ PYEOF
   sed -i -E 's/_shared\/版本一致性检查-v2\.3\.0\.md/论衡内部的版本一致性检查（脚本已剥离，使用者无需关心）/g' "$f"
   sed -i -E 's/M-Gate-渐进式验证-v2\.2\.15\.md/M-Gate-Algorithm.md/g' "$f"
 
-  # 3f. 主控卡「反哺报告处理」整段替换为净化版（彻底消除跨项目共享状态写入表述，回应 Finding 3）
-  if [[ "$(basename "$f")" == "00-主控-扩展职责.md" ]]; then
-  # 修复（v2.6.0）：旧版匹配 00-主控-coordinator.md，但「反哺报告处理」段在
-  # 扩展职责卡 §二十（教训 #192 同型：改 A 漏 A 漏——重命名文件后 sed 目标未跟）
+  # 3f. 反哺报告处理「发布版简化」（彻底消除跨项目共享状态写入表述，回应 Finding 3）
+  #   v2.12.61：该正文已由 00-主控-扩展职责.md §二十 外移到 references/_shared/反哺报告处理.md
+  #   （审计 P2-6 二次分层）——**规则目标必须随内容同步迁移**：旧版按「## 二十、…(?=## 二十一、)」
+  #   在扩展职责卡内做段替换；内容外移后该模式永不匹配，会复现「规则静默空转」
+  #   （v2.12.11 已有先例）。现改为**按文件整篇换正文（保留版本头 + 语言政策行）**，
+  #   并**硬断言替换必须发生**（count≠1 ⇒ 构建失败，不允许静默通过）。
+  if [[ "$(basename "$f")" == "反哺报告处理.md" ]]; then
     python3 - "$f" <<'PYEOF'
 import sys, re
 path = sys.argv[1]
 s = open(path, encoding='utf-8').read()
-# 定位「## 二十、反哺报告处理」到「## 二十一、」之间的整段，替换为净化版
-# （v2.6.0 修正：旧模式 ## 反哺报告处理→## 边界 是 coordinator 老卡格式，永不匹配）
-pattern = re.compile(r'## 二十、反哺报告处理.*?(?=\n## 二十一、)', re.DOTALL)
-replacement = '''## 二十、反哺报告处理（发布版简化，v2.6.0）
+# 保留头部三行（版本戳 + 空行 + 语言政策行），其余正文整篇替换为净化版
+m = re.match(r'(\A> 版本：[^\n]*\n\n> 🌐 \*\*语言政策\*\*：[^\n]*\n\n)', s)
+assert m, '反哺报告处理.md 头部（版本戳 + 语言政策行）缺失 —— 净化中止'
+body = """# 反哺报告处理（发布版简化）
 
 主控会话结束时（Phase 5 终检后）执行：
 
@@ -314,10 +317,11 @@ replacement = '''## 二十、反哺报告处理（发布版简化，v2.6.0）
 4. **项目内教训记录**：本次实战发现写入 `run/<项目>/audit-lessons.md`（**项目内文件**，非跨项目共享状态）；跨项目教训沉淀仅存在于论衡开发版（含跨项目 lessons 同步机制），见 GitHub 仓库：https://github.com/zuoyunlai/lunheng-article-pipeline
 
 如反哺报告为空（无新增问题），主控写「本轮反哺报告：T7 未发现可沉淀新增问题」，避免机制被跳过。
-'''
-s, n = pattern.subn(replacement, s)
-open(path, 'w', encoding='utf-8').write(s)
-print(f'✅ 主控卡反哺段净化完成（替换 {n} 处）')
+"""
+out = m.group(1) + body
+assert out != s, '反哺报告处理.md 未发生变化（净化规则目标错位）'
+open(path, 'w', encoding='utf-8').write(out)
+print('✅ 反哺报告处理.md 净化完成（整篇换正文，版本头保留）')
 PYEOF
   fi
 
