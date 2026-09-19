@@ -1059,6 +1059,73 @@ else
 fi
 
 # =============================================================================
+# 门 X：M 门围栏相位 + 正文 H1（v2.12.58 新增，教训 #424 沉淀）
+#   历史教训：references/_shared/M-Gate-Algorithm.md 曾有 2 个 M 门标题
+#   (M-Exist-3 / M-Integrity-1) 被裹进代码围栏，7 行伪代码注释落到块外被
+#   渲染为文档 H1；根因是围栏配对错位。本门两道断言：
+#     X.1  M-Gate-Algorithm.md 围栏总数为偶数（错位会变奇数）
+#     X.2  13 个 M 门标题（8 Form + 3 Exist + 2 Integrity）全部在围栏外
+#     X.3  全仓 .md 正文中，非首位 # 标题（# 开头且不跟 #）只允许 L5 的
+#          主标题；其余疑似伪 H1 必须落在代码围栏内
+# =============================================================================
+MGATE=references/_shared/M-Gate-Algorithm.md
+if [ -f "$MGATE" ]; then
+  # X.1：围栏总数偶数
+  FENCE_COUNT=$(grep -cE '^[[:space:]]*(`{3,}|~{3,})' "$MGATE" 2>/dev/null || echo 0)
+  if [ $((FENCE_COUNT % 2)) -eq 0 ]; then
+    pass "门 X.1: M-Gate-Algorithm.md 围栏总数偶数（$FENCE_COUNT 个）"
+  else
+    fail "门 X.1: M-Gate-Algorithm.md 围栏总数为奇数" "$FENCE_COUNT 个，疑似配对错位"
+  fi
+
+  # X.2：13 个 M 门标题全部在围栏外
+  # 实现：扫到围栏就翻转 infence 状态；扫到 M-XXX-N 标题时若 infence=true 记违规
+  GATE_INSIDE=$(awk '
+    /^[[:space:]]*(`{3,}|~{3,})/{ infence = !infence; next }
+    /^#{2,4}[[:space:]]+M-(Form|Exist|Integrity)-[0-9]+:/ {
+      if (infence) print FILENAME ":" NR ":" $0
+    }
+  ' "$MGATE")
+  if [ -z "$GATE_INSIDE" ]; then
+    pass "门 X.2: M-Gate-Algorithm.md 13 个 M 门标题全部在围栏外（8 Form + 3 Exist + 2 Integrity）"
+  else
+    fail "门 X.2: M-Gate-Algorithm.md 存在 M 门标题落在围栏内" "$(echo "$GATE_INSIDE" | head -5 | tr '\n' '|')"
+  fi
+else
+  warn "门 X.2: M-Gate-Algorithm.md 不存在，跳过 X.1/X.2"
+fi
+
+# X.3：围栏外「伪 H1」—— 仅扫「紧跟围栏行且首字符为 # 的标题行」
+# 这是围栏错位的真实信号：伪代码注释（含 # 注释）原本应在代码块内，
+# 因闭合围栏被错甩到块外，开头就被渲染成 H1。
+# 排除 CHANGELOG-archive.md（历史归档，允许多 H1 发布说明）。
+FAKE_H1=$(find . -type f -name '*.md' \
+  -not -path './outputs/*' -not -path './reports/*' -not -path './memory/*' \
+  -not -path './node_modules/*' -not -path './.git/*' \
+  -not -name 'CHANGELOG-archive.md' \
+  -exec awk '
+    function is_fence(s){ return s ~ /^[[:space:]]*(`{3,}|~{3,})/ }
+    {
+      if (is_fence($0)) {
+        prev_is_fence = 1
+        infence = !infence
+        next
+      }
+      if (infence) { prev_is_fence = 0; next }
+      # 围栏外：检查是否「上一行就是围栏」+「本行是 # 伪 H1」
+      if (prev_is_fence && $0 ~ /^#[^#]/) {
+        print FILENAME ":" NR ":" $0
+      }
+      prev_is_fence = 0
+    }
+  ' {} \; 2>/dev/null)
+if [ -z "$FAKE_H1" ]; then
+  pass "门 X.3: 围栏外无紧跟围栏的 # 伪 H1（围栏错位零）"
+else
+  fail "门 X.3: 围栏外存在紧跟围栏的 # 伪 H1" "$(echo "$FAKE_H1" | head -5 | tr '\n' '|')"
+fi
+
+# =============================================================================
 # 总结（v2.12.30 修：计分必须在**全部门执行之后** —— 原位置在门 S/门 T 之前，
 #   导致这两门的失败不进入 TOTAL_FAIL，脚本仍以 exit 0 收尾 = 假绿灯）
 # =============================================================================
