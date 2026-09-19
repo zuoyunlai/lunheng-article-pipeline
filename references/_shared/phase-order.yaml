@@ -44,7 +44,7 @@
 #      规则 = 同 provider 连续 ≥3 次静默 ⇒ **强制呈现主人三选**（换 provider 族 / 换能力档 / 接受同源并披露），
 #      **不再静默继续**；三项**无默认**且必须挂起。真源 = 顶层 `provider_silence_escalation`。
 #      未接线 = 构建期 flow-check 失败（规则 31）。
-version: 2.12.63
+version: 2.12.64
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/M-Gate-Algorithm.md §判定结果分档）。
