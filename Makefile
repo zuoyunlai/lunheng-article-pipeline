@@ -13,7 +13,7 @@ help:
 	@echo "  make audit      - 运行自审门"
 	@echo "  make changelog-check - 校验 changelog 完整性（每个版本 tag 都有章节）"
 	@echo "  make scripts-index - 刷新 scripts/README.md 脚本索引（从脚本头部生成；漂移由 pytest 锁死）"
-	@echo "  make preflight  - 发版前置闸（两查一停：在飞链 / 编号占用 / 工作区干净）"
+	@echo "  make preflight  - 发版前置闸（四查一停：在飞链 / 编号占用 / 工作区干净 / CI 不红）"
 	@echo "  make clean      - 清理临时文件"
 	@echo "  make all        - 运行全部检查（lint + test + audit + changelog-check）"
 
@@ -63,7 +63,7 @@ changelog-check:
 scripts-index:
 	@python3 scripts/gen-scripts-index.py
 
-# 发版前置闸（教训 #332，两查一停）——任何对外发版动作（push / tag / Release / 净化包）之前必跑
+# 发版前置闸（教训 #332，四查一停）——任何对外发版动作（push / tag / Release / 净化包）之前必跑
 # 本链自身会话 key 用 LUNHENG_PREFLIGHT_SELF_SESSION 传入，否则本链会被闸算作在飞链（失败关闭）。
 # 指定目标编号：make preflight PREFLIGHT_TAG=v2.12.21（默认取 SKILL.md frontmatter 版本）
 preflight:

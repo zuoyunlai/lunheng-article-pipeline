@@ -1,3 +1,10 @@
 # 论衡测试依赖（版本锁定，P0-1 修订 2026-09-08）
 pytest==7.4.4
 pytest-cov==4.1.0
+
+# YAML 解析 —— **测试自己就要用**（test_flow_check.py / test_capability_assert.py 等
+#   在 collection 阶段 import yaml）。v2.12.62 发版后修（教训 #430）：此前只在
+#   requirements.txt 声明，而 ci-test.yml 的安装步骤**只装本文件** ⇒
+#   「跑权限口径 + 流程图真源测试」步骤连续 30 次 collection error（ModuleNotFoundError:
+#   No module named 'yaml'）。测试依赖必须**自己声明齐**，不靠另一份文件兜底。
+pyyaml==6.0.1

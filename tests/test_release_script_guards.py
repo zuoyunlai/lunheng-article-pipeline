@@ -279,3 +279,167 @@ def test_build_package_excludes_maintainer_internal_and_keeps_layer1(tmp_path):
     assert "入口必读（启动清单 1-2 步）" in duty, \
         "主控必读清单的「层 1 入口必读」整行又被净化规则删掉了"
     assert "设计文档" not in duty, "`设计文档.md` mention 未被剥离（死引用残留）"
+
+    # ③ C-1 推广（第二批次）：包内文件集必须**精确等于**随包清单
+    pkg_files = sorted(str(p.relative_to(pkg)) for p in pkg.rglob("*") if p.is_file())
+    assert pkg_files == _pkg_manifest(), (
+        "包内文件集与 scripts/.pkg-manifest.txt 不精确相等 —— 全包白名单准入门失效或清单过期")
+
+    # ④ C-4：包内不得再出现指向**被排除文档**的引用（死链中和的产物侧断言）
+    dead = []
+    for p in sorted(pkg.rglob("*.md")):
+        text = p.read_text(encoding="utf-8")
+        for pat in _excluded_doc_paths():
+            if "*" in pat:
+                continue  # glob 形态不做字面匹配（清单里仅有 2 条）
+            if pat in text:
+                dead.append(f"{p.relative_to(pkg)} → {pat}")
+    assert not dead, f"包内仍引用被排除文档（死链未被中和）：{dead}"
+
+
+# ---------------- 2026-09-19 第五批：新门逐条负向注入（主控实跑复核）----------------
+# 背景：C-1 推广 / C-3 / C-4 / C-5 / C-6 / C-7 六项改造由子会话静态落盘后，主控实跑复核时
+#   抓出两个真问题：① C-7 的 `_RR_YES_NAMES` 未初始化，`set -u` 下构建**直接崩**；
+#   ② C-3 新条目当场抓出真源残留（`执行韧化协议-design.md` 的 `1-token ping` 维护者叙事）。
+#   ⇒「门写了没人跑」= 门等于没写。本组测试把每条新门**各配一次真实负向注入**，
+#     断言构建**必须失败**且失败原因**正是该门**（而非别的门先炸）。
+
+def _mkcopy(tmp_path, name="copy"):
+    """复制仓库到临时目录并建 git 仓库（构建的 0/2a′ 前置门要求 git 跟踪）。"""
+    import shutil
+    dst = tmp_path / name
+    shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns(".git", "outputs", "__pycache__"))
+    env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+    for cmd in (["git", "init", "-q"], ["git", "add", "-A"],
+                ["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "t"]):
+        subprocess.run(cmd, cwd=str(dst), env=env, capture_output=True, text=True)
+    return dst
+
+
+def _build(dst, tmp_path, version="9.9.9", env_extra=None, tag="out"):
+    env = {**os.environ, "OUTPUTS_ROOT": str(tmp_path / tag)}
+    if env_extra:
+        env.update(env_extra)
+    return subprocess.run(["bash", str(dst / "scripts" / "build-clawhub-release.sh"), version],
+                          capture_output=True, text=True, cwd=str(dst), env=env)
+
+
+def _pkg_manifest():
+    """读出随包清单（唯一真源，不在测试里重抄）。"""
+    mf = ROOT / "scripts" / ".pkg-manifest.txt"
+    assert mf.is_file(), "scripts/.pkg-manifest.txt 缺失 —— 全包准入门空转"
+    return [ln for ln in mf.read_text(encoding="utf-8").splitlines() if ln.strip()]
+
+
+def _excluded_doc_paths():
+    """从 build 脚本读出 PKG_EXCLUDED_DOC_PATHS（死链中和的声明式真源）。"""
+    src = BUILD.read_text(encoding="utf-8")
+    m = re.search(r"PKG_EXCLUDED_DOC_PATHS=\((.*?)\n\)", src, re.S)
+    assert m, "build-clawhub-release.sh 未找到 PKG_EXCLUDED_DOC_PATHS（死链中和门被移除？）"
+    return re.findall(r"'([^']+)'", m.group(1))
+
+
+def test_pkg_manifest_is_sorted_and_public_safe():
+    """清单必须排序（可审 diff）且**不含维护者资产**（清单本身即准入真源，腐烂无二道防线）。"""
+    mf = _pkg_manifest()
+    assert mf == sorted(mf), "随包清单未按 LC_ALL=C sort 排序"
+    bad = [e for e in mf if e.startswith("scripts/") or "论衡仓库内教训" in e
+           or "设计文档" in e or "教训索引" in e or "lessons-max" in e]
+    assert not bad, f"随包清单登记了维护者内部资产（会被分发）：{bad}"
+
+
+def test_pkg_manifest_covers_every_built_file(tmp_path):
+    """源侧闭合：真源里每个**会进包**的文件都必须在清单内（清单过期即构建红）。
+
+    这是「新文件默认入包」→「新文件默认被拦」反转的源侧半条；产物侧半条在 e2e 测试 ③。
+    """
+    mf = set(_pkg_manifest())
+    # 清单里每一项都必须真实存在（防清单腐烂成空指针）
+    missing = sorted(e for e in mf if not (ROOT / e).is_file())
+    assert not missing, f"随包清单登记了真源不存在的文件（清单腐烂）：{missing}"
+
+
+def test_pkg_manifest_gate_blocks_unregistered_file_outside_shared(tmp_path):
+    """**负向注入**：`_shared/` 之外的目录（C-1 推广的作用面）新增未登记文件 ⇒ 构建必须失败。
+
+    C-1 成因正是「`_shared/` 之外仍是黑名单式」：这里模拟在 `references/agents/` 塞一个内档。
+    """
+    dst = _mkcopy(tmp_path)
+    intruder = dst / "references" / "agents" / "zz-未登记-全包门.md"
+    intruder.write_text("# 全包范围未登记新文件\n\n> 版本：v9.9.9\n\n维护者内档测试。\n",
+                        encoding="utf-8")
+    env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+    subprocess.run(["git", "add", "-A"], cwd=str(dst), env=env, capture_output=True, text=True)
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "i"],
+                   cwd=str(dst), env=env, capture_output=True, text=True)
+    r = _build(dst, tmp_path)
+    blob = r.stderr + r.stdout
+    assert r.returncode != 0, "未登记文件入包竟构建成功 —— 全包清单门失效"
+    assert "随包清单不一致" in blob or "净化包文件集与随包清单不一致" in blob, \
+        f"未命中全包清单门（可能是别的门先炸）：\n{blob[-1500:]}"
+    assert "zz-未登记-全包门.md" in blob, "全包清单门未点名未登记文件"
+
+
+def test_baseline_floor_guard_blocks_degenerate_ratio(tmp_path):
+    """**负向注入**（C-6）：把基线下限抬到不可能达到的高度 ⇒ 构建必须在 §2c 立即失败。
+
+    该门治的是「保留率分母异常小 ⇒ 比率恒过」。用环境变量注入等价于真源出现极小文件。
+    """
+    dst = _mkcopy(tmp_path)
+    r = _build(dst, tmp_path, env_extra={"PKG_MIN_BASELINE_CHARS": "100000"})
+    blob = r.stderr + r.stdout
+    assert r.returncode != 0, "基线极小（分母退化）竟构建成功 —— 基线下限守卫失效"
+    assert "基线下限守卫未通过" in blob, f"未命中 C-6 基线下限门：\n{blob[-1500:]}"
+
+
+def test_nonmd_positive_gate_detects_emptied_yaml(tmp_path):
+    """**负向注入**（C-5）：清空包内非 md 文本资产 ⇒ 非 md 正向完整性门必须拦住。
+
+    旧版正向门只覆盖 `*.md`，`phase-order.yaml` 被整篇删空也全绿（审计 C-5）。
+    """
+    dst = _mkcopy(tmp_path)
+    yml = dst / "references" / "_shared" / "phase-order.yaml"
+    assert yml.is_file(), "fixture 前提失败：phase-order.yaml 不存在"
+    yml.write_text("", encoding="utf-8")
+    env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+    subprocess.run(["git", "add", "-A"], cwd=str(dst), env=env, capture_output=True, text=True)
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "e"],
+                   cwd=str(dst), env=env, capture_output=True, text=True)
+    r = _build(dst, tmp_path)
+    blob = r.stderr + r.stdout
+    assert r.returncode != 0, "非 md 资产被清空竟构建成功 —— 非 md 正向门失效"
+    assert "非 md" in blob, f"未命中非 md 正向门：\n{blob[-1500:]}"
+
+
+def test_rule_empty_reasons_bidirectional_closure():
+    """**源侧不变量**（C-7）：`allow_empty=yes` ⇔ `RULE_EMPTY_REASONS` 双向闭合、理由 ≥12 字符。
+
+    这是「空理由即豁免」的静态半边；功能半边是脚本内同款校验（负向注入见下表）。
+    """
+    src = BUILD.read_text(encoding="utf-8")
+    checks = re.findall(r"\n  '([^'|]+)\|([^'|]*)\|(?:warn|critical)\|(yes|no)'", src)
+    yes = {n for n, _, a in checks if a == "yes"}
+    reasons = dict(re.findall(r"\n  '([^'|]+)\|([^']+)'",
+                              src.split("RULE_EMPTY_REASONS=(")[1].split("\n)")[0]))
+    assert yes, "未解析到任何 allow_empty=yes 条目（格式漂移？）"
+    assert yes == set(reasons), (
+        f"豁免理由表未双向闭合 —— 缺理由：{sorted(yes - set(reasons))}；"
+        f"孤儿：{sorted(set(reasons) - yes)}")
+    short = sorted(n for n in reasons if len(reasons[n]) < 12)
+    assert not short, f"豁免理由过短（< 12 字符 = 占位式豁免）：{short}"
+    assert "RULE_REASON_MIN_CHARS=12" in src, "最小理由长度未声明"
+
+
+def test_deadlink_neutralizer_is_programmatic_and_fail_closed():
+    """（C-4）死链中和必须**从排除清单推导**（而非手写 sed 路径），且残留即 fail-closed。"""
+    src = BUILD.read_text(encoding="utf-8")
+    assert _excluded_doc_paths(), "PKG_EXCLUDED_DOC_PATHS 为空 —— 死链中和门空转"
+    assert "若新增一个被排除文件就漏一次" not in src, "仍是手写路径的旧注释残留"
+    # 反向断言：残留必须 exit 1 并点名
+    assert "死链中和失败：包内仍存在指向被排除文档的引用" in src, "缺少 fail-closed 反向断言"
+    # 且 python 侧必须接受清单作为参数（声明式真源，不是硬编码）
+    assert 'python3 - "$OUT_DIR" "${PKG_EXCLUDED_DOC_PATHS[@]}"' in src, \
+        "中和规则未从 PKG_EXCLUDED_DOC_PATHS 取参数（可能又硬编码了路径）"

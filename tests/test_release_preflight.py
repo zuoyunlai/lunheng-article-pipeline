@@ -7,7 +7,7 @@ test_release_preflight.py — 发版前置闸离线回归测试（v2.12.21，教
   多条会话链并行修订同一仓库时，发版动作（升版号 / tag / push / GitHub Release /
   净化包）被当成「本链的下一步」，没检查全局状态 → 版本谱系被劈成两半
   （远端 master=v2.12.18 / 本地 HEAD=v2.12.20，中间两版无 tag）。
-  `scripts/release-preflight.sh` 是事后加上的「两查一停」拒绝器。
+  `scripts/release-preflight.sh` 是事后加上的「四查一停」拒绝器。
 
 本测试**零网络、零 gh**：远端由 `--remote-file` 注入（= fake ls-remote），
 在飞链由 `--sessions-file` 注入（= fake 在飞链清单），每个用例都在 `tmp_path`
@@ -34,6 +34,7 @@ VERSION = "2.12.21"
 TAG = f"v{VERSION}"
 
 RC_PASS, RC_INFLIGHT, RC_TAG_TAKEN, RC_DIRTY, RC_USAGE = 0, 10, 11, 12, 2
+RC_CI_RED = 13  # v2.12.62 后补：待发布提交 CI 为红（教训 #430）
 
 
 def _git(repo, *args):
@@ -380,3 +381,71 @@ def test_remote_unreachable_still_fails_closed(repo, tmp_path):
                  extra=("--allow-existing-tag",))
     assert r.returncode == RC_USAGE, r.stdout + r.stderr
     assert "无法查询远端 tag" in r.stderr
+
+
+# ===== v2.12.62 后补：查 ④ 待发布提交 CI 不红（教训 #430）=====
+
+def _ci_file(tmp_path, runs):
+    """构造 --ci-file 输入（gh run list 的 JSON 形态）"""
+    import json as _json
+    f = tmp_path / "ci.json"
+    f.write_text(_json.dumps(runs, ensure_ascii=False), encoding="utf-8")
+    return str(f)
+
+
+def test_ci_red_blocks_release(repo, tmp_path):
+    """红 CI ⇒ 拒绝发版（退出码 13），并点名是哪个 workflow 红。
+
+    事故形态（教训 #430）：ci-test.yml 连续 30 次失败、跨 3 天、覆盖 10+ 个版本，
+    而本地门全绿、发版照走 —— 因为「另一个 workflow 是绿的」制造了绿灯幻觉。
+
+    注：本用例必须**同时**注入 sessions / remote（与本文件其余用例同口径）。否则闸在
+    ② 编号占用检查就因夹具无 origin 而 fail-closed（退出 2），根本走不到 ④ —— 
+    这正是本组用例首版全红的原因（闸对了，是测试没驱动到位）。
+    """
+    clean = dict(sessions=fake_sessions(), remote=ls_remote([("a" * 40, "refs/heads/master")]))
+    r = run_gate(repo, tmp_path, **clean, extra=("--ci-file", _ci_file(tmp_path, [
+        {"workflowName": "Code Quality", "status": "completed", "conclusion": "success"},
+        {"workflowName": "论衡算法测试 CI", "status": "completed", "conclusion": "failure"},
+    ])))
+    assert r.returncode == RC_CI_RED, r.stdout + r.stderr
+    assert "CI 是红的" in r.stdout
+    assert "论衡算法测试 CI" in r.stdout, "报错未点名红的 workflow"
+
+
+def test_ci_red_can_be_allowed_with_flag(repo, tmp_path):
+    """--allow-red-ci 放行红 CI（补救场景），但必须打印醒目提示、不静默。"""
+    clean = dict(sessions=fake_sessions(), remote=ls_remote([("a" * 40, "refs/heads/master")]))
+    r = run_gate(repo, tmp_path, **clean, extra=(
+        "--ci-file", _ci_file(tmp_path, [
+            {"workflowName": "论衡算法测试 CI", "status": "completed", "conclusion": "failure"}]),
+        "--allow-red-ci"))
+    assert r.returncode == RC_PASS, r.stdout + r.stderr
+    assert "--allow-red-ci 已放行" in r.stdout
+
+
+def test_ci_pending_does_not_block(repo, tmp_path):
+    """未跑完 ⇒ 不拦（发版流程不应被「CI 还在跑」卡死），但要提示。"""
+    clean = dict(sessions=fake_sessions(), remote=ls_remote([("a" * 40, "refs/heads/master")]))
+    r = run_gate(repo, tmp_path, **clean, extra=("--ci-file", _ci_file(tmp_path, [
+        {"workflowName": "Code Quality", "status": "in_progress", "conclusion": ""}])))
+    assert r.returncode == RC_PASS, r.stdout + r.stderr
+    assert "CI 尚未跑完" in r.stdout
+
+
+def test_ci_unknown_does_not_block(repo, tmp_path):
+    """不可判定（无记录 / 输出不可解析 / gh 不可用）⇒ 仅警告，**不阻塞**。
+
+    这是刻意的边界：本查只在**确知有红**时阻塞，避免把发版闸变成环境依赖炸弹
+    （无 gh、离线、浅克隆、新仓库无 CI 都是合法场景）。
+    """
+    clean = dict(sessions=fake_sessions(), remote=ls_remote([("a" * 40, "refs/heads/master")]))
+    r = run_gate(repo, tmp_path, **clean, extra=("--ci-file", _ci_file(tmp_path, [])))
+    assert r.returncode == RC_PASS, r.stdout + r.stderr
+    assert "查不到该提交的 CI 记录" in r.stdout
+
+    bad = tmp_path / "bad.json"
+    bad.write_text("not-json", encoding="utf-8")
+    r2 = run_gate(repo, tmp_path, **clean, extra=("--ci-file", str(bad)))
+    assert r2.returncode == RC_PASS, r2.stdout + r2.stderr
+    assert "不可判定" in r2.stdout

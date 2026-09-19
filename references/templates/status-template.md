@@ -138,7 +138,10 @@
 - **final/定稿** [节点: final_assembly + t8_technical_final]: final/定稿.md
 - **final/交付说明** [节点: t8_technical_final]: final/交付说明.md
 - **final/M-Gate 报告** [节点: t7_5_integrity]: final/M-Gate-Report-v2.2.12.json
-- **final/定稿指纹** [节点: t8_technical_final]: final/定稿.sha256   # v2.12.49 M-1：交付物指纹，主人 host shell 补算 sha256sum
+- **final/定稿指纹** [节点: t8_technical_final]: final/定稿.sha256
+  - sha256: unavailable            # v2.12.64：**主人侧量值**，host shell 补算后回填；未回填保持 unavailable，判定档 = pending_owner_verification（**禁止判通过**）
+  - bytes: unavailable             # 同上（`wc -c` 可得；零 exec 下 agent 不可得）
+  - 文本度量: <行数 / 字符数 / 首末行摘要>   # agent 侧可确知，`read` 后填
 
 ---
 

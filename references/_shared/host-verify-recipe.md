@@ -42,7 +42,9 @@ sha256sum -c final/定稿.sha256
 | 四份只读档报告头部 | `audited_artifact.{path, bytes, sha256}` | T7 / G14 / T9 / T8 各一份，值必须两两相等（M-8） |
 | 归档清单 | 校验和登记行 | 见 [`project-archive-sop.md`](project-archive-sop.md) §二 |
 
-`bytes` = 主控 `read` 后填入的字节数；`sha256` = 本文件 §二 命令输出值。二者必须来自**同一次** `read` 与同一次补算——对象名与指纹同源是 M-1 的核心要求。
+`bytes` = **精确字节数属主人侧量值**（`wc -c` 可得；零 exec 下 agent 不可得）；`sha256` = 本文件 §二 命令输出值。二者均由**主人**在 host shell 补算后回填，未回填记 `unavailable`。
+
+> **零 exec 边界（v2.12.64 定案，回应审计 S-1 / S-4）—— 本条即该口径的唯一真源，角色卡只留短指针**：agent 侧可确知的只有 `path` 与**文本度量**（`read` 可得：行数 / 字符数 / 首末行）。`sha256` / `bytes` 未经主人回填 ⇒ 判定档 = `pending_owner_verification`（**无法判定**）——**明文禁止判「通过」**（空值/占位符即通过 = fail-open），也不判不合格。
 
 ## 五、与既有文档的关系（一条款一真源）
 

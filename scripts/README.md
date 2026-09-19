@@ -29,7 +29,7 @@
 | [`pkg-integrity.py`](pkg-integrity.py) | pkg-integrity.py — 净化包**正向**完整性校验 | python3 scripts/pkg-integrity.py snapshot <pkg_dir> <snapshot.json> | — | — |
 | [`project_lock.py`](project_lock.py) | 论衡项目锁管理器 | — | — | — |
 | [`publish-clawhub.sh`](publish-clawhub.sh) | publish-clawhub.sh — 论衡 ClawHub 一键发布封装 | bash scripts/publish-clawhub.sh [VERSION] [--yes] | — | — |
-| [`release-preflight.sh`](release-preflight.sh) | release-preflight.sh — 发版前置闸「两查一停」 | bash scripts/release-preflight.sh [<tag>] [选项] | — | `make preflight` |
+| [`release-preflight.sh`](release-preflight.sh) | release-preflight.sh — 发版前置闸「四查一停」 | bash scripts/release-preflight.sh [<tag>] [选项] | — | `make preflight` |
 | [`runtime-capability-probe.py`](runtime-capability-probe.py) | runtime-capability-probe.py — 论衡能力边界「声明 vs 实际」runtime 探针工具 | — | — | — |
 | [`self-audit-gate.sh`](self-audit-gate.sh) | self-audit-gate.sh — 论衡自审门自动化执行脚本 | — | commit 前由 sync-version.sh 末尾自动调用；或主控 LLM 主动跑 | `make audit` |
 | [`strip-anchor-residue.py`](strip-anchor-residue.py) | 净化包「编号锚点」残留清理 | python3 scripts/strip-anchor-residue.py <净化包目录> | — | — |

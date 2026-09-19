@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # =============================================================================
-# release-preflight.sh — 发版前置闸「两查一停」（教训 #332；v2.12.22 加 --allow-existing-tag，教训 #334）
+# release-preflight.sh — 发版前置闸「四查一停」
+#   （教训 #332 两查一停 → #430 扩为四查：在飞链 / 编号占用 / 工作区干净 / **CI 不红**；
+#     v2.12.22 加 --allow-existing-tag，教训 #334）
 # =============================================================================
 # 背景（教训 #332，2026-09-11 实测错乱）：多条会话链并行修订同一仓库时，发版动作
 #   （升版号 / tag / push / GitHub Release / 净化包）被当成「本链的下一步」，没检查
@@ -8,7 +10,7 @@
 #   (v2.12.20)，v2.12.19 / v2.12.20 的 tag 本地远端都没有，净化包只到 2.12.18。
 #   根因：版本号 / tag / 远端 master / 净化包目录都是**单点共享资源**，却按单链上下文推断。
 #
-# 两查一停（任一不过 → 退出码非 0，绝不静默通过）：
+# 四查一停（任一不过 → 退出码非 0，绝不静默通过）：
 #   ① 在飞链：同项目（spawnedCwd 在本仓内，或 label / cwd 命中项目关键词）status=running
 #      的会话与子会话 → 有则拒绝发版，打印清单 + 「如何等」
 #   ② 编号占用：目标 tag 在本地（git tag -l）与远端（git ls-remote --tags）双向查
@@ -17,6 +19,16 @@
 #       仅补发 Release」的写路径，tag 必然已存在 → 正常发版被自己的闸拦死。故新增
 #       --allow-existing-tag，把 ② 细化为「编号是否被**本链之外的**人占用」，写法路径专用。）
 #   ③ 工作区干净：git status --porcelain 非空即拒绝（未跟踪文件也算，见 --allow-untracked）
+#   ④ CI 不红（v2.12.62 后补，教训 #430）：待发布提交（HEAD）的 workflow run 里若有
+#      failure / cancelled / timed_out / startup_failure ⇒ 拒绝（退出码 13）。
+#      背景：v2.12.62 发版后发现 ci-test.yml **连续 30 次失败**、跨 3 天、覆盖 10+ 个版本，
+#      而本地门全绿、发版照走 —— 根因是「同一份代码在另一个 workflow 下是绿的」造成
+#      **绿灯幻觉**，红的那条没人点开。本查把「脚下的提交 CI 是否红」搬进发版闸。
+#      边界（刻意保守，避免把闸变成环境依赖炸弹）：
+#        · 有 in_progress / queued ⇒ 仅**警告**（未收口，不拦）
+#        · 查不到记录 / gh 不可用 / 输出不可解析 ⇒ 仅**警告**（不拦）
+#        即在「不可判定」时本查**不会**阻塞；只在**确知有红**时阻塞。
+#      --allow-red-ci：确知红的是历史遗留且已单独修复时显式放行（打印醒目提示）
 #
 # 本脚本**只读**：不 push、不打 tag、不建 GitHub Release、不改任何 ref，可反复安全运行。
 # 它是「拒绝器」不是「执行器」——通过后由维护者按 SOP 手工发版。
@@ -41,14 +53,18 @@
 #   --expect-commit <rev>
 #                        放松模式下「待发布提交」的基准（默认 HEAD）。补发旧版 Release 时
 #                        显式指向该版本提交，避免与 HEAD 比对误拒。
+#   --ci-file <f>        从文件读 CI 结论 JSON（workflow run 列表，离线 / 测试用）；
+#                        默认 = `gh run list --commit <HEAD> --json workflowName,status,conclusion`
+#   --allow-red-ci       ④ 放宽：CI 红也放行（打印醒目提示）。默认关闭（失败关闭）
 #   --sessions-file <f>  从文件读在飞链清单 JSON（离线 / 测试用 = fake 在飞链清单）
 #   --sessions-cmd <c>   覆盖在飞链采集命令（默认 openclaw sessions list --json ...）
 #   --remote-file <f>    从文件读 ls-remote 输出（离线 / 测试用 = fake ls-remote）
 #   --remote-cmd <c>     覆盖远端查询命令（默认 git ls-remote --heads --tags origin）
 #   -h | --help
 #
-# 退出码：0=通过 / 10=在飞链未收口 / 11=目标编号已占用 / 12=工作区不净 / 2=用法或环境错误
-# 依赖：bash + git + python3（JSON 解析）
+# 退出码：0=通过 / 10=在飞链未收口 / 11=目标编号已占用 / 12=工作区不净
+#         / 13=待发布提交 CI 为红 / 2=用法或环境错误
+# 依赖：bash + git + python3（JSON 解析）；查 ④ 另需 gh（缺失时降级为警告，不阻塞）
 # =============================================================================
 
 set -euo pipefail
@@ -60,6 +76,7 @@ EXIT_PASS=0
 EXIT_INFLIGHT=10
 EXIT_TAG_TAKEN=11
 EXIT_DIRTY=12
+EXIT_CI_RED=13
 EXIT_USAGE=2
 
 INFLIGHT_STATUSES="${LUNHENG_PREFLIGHT_INFLIGHT_STATUS:-running}"
@@ -72,6 +89,8 @@ SESSIONS_FILE=""
 REMOTE_FILE=""
 ALLOW_UNTRACKED=false
 ALLOW_EXISTING_TAG=false
+ALLOW_RED_CI=false
+CI_FILE=""
 EXPECT_COMMIT=""
 TAG=""
 EXCLUDES=()
@@ -88,6 +107,9 @@ while [ $# -gt 0 ]; do
     --exclude)         [ -n "${2:-}" ] || { echo "❌ --exclude 需带会话 key" >&2; exit "$EXIT_USAGE"; }
                        EXCLUDES+=("$2"); shift ;;
     --allow-untracked) ALLOW_UNTRACKED=true ;;
+    --allow-red-ci)    ALLOW_RED_CI=true ;;
+    --ci-file)         [ -n "${2:-}" ] || { echo "❌ --ci-file 需带文件路径" >&2; exit "$EXIT_USAGE"; }
+                       CI_FILE="$2"; shift ;;
     --allow-existing-tag) ALLOW_EXISTING_TAG=true ;;
     --expect-commit)   [ -n "${2:-}" ] || { echo "❌ --expect-commit 需带 revision" >&2; exit "$EXIT_USAGE"; }
                        EXPECT_COMMIT="$2"; shift ;;
@@ -201,7 +223,7 @@ then
 fi
 
 INFLIGHT_COUNT="$(wc -l < "$TMP_PF/inflight.tsv" | tr -d ' ')"
-echo "[1/3] 在飞链检查（同项目 status=${INFLIGHT_STATUSES}）"
+echo "[1/4] 在飞链检查（同项目 status=${INFLIGHT_STATUSES}）"
 if [ "$INFLIGHT_COUNT" -eq 0 ]; then
   echo "      ✅ 0 条"
   [ -n "$SELF_SESSION" ] && echo "      （本链自身已排除：$SELF_SESSION）"
@@ -254,7 +276,7 @@ git tag -l | sort > "$TMP_PF/local_tags.txt"
 LOCAL_HIT="$(grep -Fx -- "$TAG" "$TMP_PF/local_tags.txt" || true)"
 REMOTE_HIT="$(grep -Fx -- "$TAG" "$TMP_PF/remote_tags.txt" || true)"
 
-echo "[2/3] 编号占用检查（目标 $TAG）"
+echo "[2/4] 编号占用检查（目标 $TAG）"
 if [ "$ALLOW_EXISTING_TAG" = true ]; then
   echo "      ⚠️  --allow-existing-tag 已生效（教训 #334）：② 口径 = 「编号是否被本链之外的人占用」"
   echo "         放行条件（须同时满足）：(a) 该 tag 指向的 commit 属本链历史（待发布提交或其祖先）"
@@ -328,7 +350,7 @@ if [ "$ALLOW_UNTRACKED" = true ]; then
 fi
 DIRTY_COUNT="$(printf '%s\n' "$PORCELAIN" | grep -c . || true)"
 
-echo "[3/3] 工作区干净检查（$STATUS_SCOPE）"
+echo "[3/4] 工作区干净检查（$STATUS_SCOPE）"
 if [ "$DIRTY_COUNT" -eq 0 ]; then
   echo "      ✅ git status --porcelain 为空"
 else
@@ -344,14 +366,85 @@ FAIL_DIRTY=1
 [ "$DIRTY_COUNT" -eq 0 ] && FAIL_DIRTY=0
 
 # =============================================================================
-# 判定：任一不过即拒绝（优先级：在飞链 > 编号 > 工作区）
+# 查 ④ 待发布提交的 CI 不红（v2.12.62 后补，教训 #430）
 # =============================================================================
-if [ "$FAIL_INFLIGHT" -ne 0 ] || [ "$FAIL_TAG" -ne 0 ] || [ "$FAIL_DIRTY" -ne 0 ]; then
-  echo "⛔ 发版前置闸未通过（在飞链=$FAIL_INFLIGHT / 编号占用=$FAIL_TAG / 工作区不净=$FAIL_DIRTY，1=未过）"
+HEAD_FULL="$(git rev-parse HEAD)"
+CI_JSON=""
+CI_SOURCE=""
+if [ -n "$CI_FILE" ]; then
+  if [ -f "$CI_FILE" ]; then
+    CI_JSON="$(cat "$CI_FILE")"
+    CI_SOURCE="--ci-file"
+  else
+    CI_SOURCE="--ci-file 不存在：$CI_FILE"
+  fi
+elif command -v gh >/dev/null 2>&1; then
+  CI_JSON="$(timeout 25 gh run list --commit "$HEAD_FULL" --limit 100 \
+              --json workflowName,status,conclusion 2>/dev/null || true)"
+  CI_SOURCE="gh run list"
+fi
+
+CI_VERDICT="unknown"
+CI_DETAIL="gh 不可用 / 未提供 --ci-file"
+if [ -n "$CI_JSON" ]; then
+  # 注（v2.12.64 修复）：**数据必须走 argv，不能走管道**。原写法 `printf ... | python3 - <<'PYEOF'`
+  #   是「管道 + heredoc 同用」—— heredoc 抢占 stdin 供 python 读**程序**，`sys.stdin.read()`
+  #   恒为空 ⇒ json.loads("") 抛异常 ⇒ 恒返回 unparsable ⇒ **本查永不拦红**（门是死的）。
+  #   即仓库自己的 #320 / #421 同型：「门写了却不生效」比没门更危险。同型全仓仅此一处（已核）。
+  CI_OUT="$(python3 - "$CI_JSON" <<'PYEOF'
+import json, sys
+try:
+    runs = json.loads(sys.argv[1])
+    assert isinstance(runs, list)
+except Exception:
+    print("unparsable\t查询输出不是 JSON 数组"); raise SystemExit(0)
+BAD = ("failure", "cancelled", "timed_out", "startup_failure", "action_required")
+PENDING = ("in_progress", "queued", "pending", "requested", "waiting")
+red = sorted({f"{r.get('workflowName')}({r.get('conclusion')})" for r in runs
+              if r.get("conclusion") in BAD})
+pending = sorted({str(r.get("workflowName")) for r in runs if r.get("status") in PENDING})
+if red:
+    print("red\t" + " / ".join(red))
+elif pending:
+    print("pending\t" + " / ".join(pending))
+elif runs:
+    print(f"green\t{len(runs)} 个 run 全无红灯")
+else:
+    print("none\t该提交无 workflow run 记录（未推 / 无 CI）")
+PYEOF
+)"
+  CI_VERDICT="$(printf '%s' "$CI_OUT" | head -1 | cut -f1)"
+  CI_DETAIL="$(printf '%s' "$CI_OUT" | head -1 | cut -f2)"
+fi
+
+echo "[4/4] CI 结论检查（待发布提交 ${HEAD_FULL:0:7}；来源 $CI_SOURCE）"
+FAIL_CI=0
+case "$CI_VERDICT" in
+  red)
+    if [ "$ALLOW_RED_CI" = true ]; then
+      echo "      ⚠️  CI 为红，但 --allow-red-ci 已放行：$CI_DETAIL"
+    else
+      echo "      ❌ 待发布提交的 CI 是红的：$CI_DETAIL"
+      echo "         · 别在红上发版：先修 CI；确认红的是历史遗留且已单独修复，才用 --allow-red-ci"
+      FAIL_CI=1
+    fi ;;
+  pending) echo "      ⏳ CI 尚未跑完：$CI_DETAIL（不拦；发版前请回来看结果）" ;;
+  green)   echo "      ✅ 该提交 CI 无红灯（$CI_DETAIL）" ;;
+  none)    echo "      ⚠️  查不到该提交的 CI 记录：$CI_DETAIL —— 不拦" ;;
+  *)       echo "      ⚠️  CI 结论不可判定（$CI_DETAIL）—— 不拦（不可判定时不阻塞，只在确知有红时阻塞）" ;;
+esac
+echo ""
+
+# =============================================================================
+# 判定：任一不过即拒绝（优先级：在飞链 > 编号 > 工作区 > CI）
+# =============================================================================
+if [ "$FAIL_INFLIGHT" -ne 0 ] || [ "$FAIL_TAG" -ne 0 ] || [ "$FAIL_DIRTY" -ne 0 ] || [ "$FAIL_CI" -ne 0 ]; then
+  echo "⛔ 发版前置闸未通过（在飞链=$FAIL_INFLIGHT / 编号占用=$FAIL_TAG / 工作区不净=$FAIL_DIRTY / CI 红=$FAIL_CI，1=未过）"
   echo "   不进入 tag / push / GitHub Release / 净化包 任何一步。"
   [ "$FAIL_INFLIGHT" -ne 0 ] && exit "$EXIT_INFLIGHT"
   [ "$FAIL_TAG" -ne 0 ] && exit "$EXIT_TAG_TAKEN"
-  exit "$EXIT_DIRTY"
+  [ "$FAIL_DIRTY" -ne 0 ] && exit "$EXIT_DIRTY"
+  exit "$EXIT_CI_RED"
 fi
 
 # ---- 通过：打印四行现状（远端 master / 本地 HEAD / tag 区间 / 在飞链）----
@@ -384,11 +477,12 @@ L_ONLY_N="$(grep -c . "$TMP_PF/local_only.txt" || true)"
 R_ONLY_N="$(grep -c . "$TMP_PF/remote_only.txt" || true)"
 L_ONLY_PREVIEW="$(grep -m 5 . "$TMP_PF/local_only.txt" | tr '\n' ' ' | sed 's/ $//' || true)"
 
-echo "✅ 发版前置闸通过 —— 三查均过，可进入 tag / push / GitHub Release / 净化包"
+echo "✅ 发版前置闸通过 —— 四查均过，可进入 tag / push / GitHub Release / 净化包"
 echo "   ① 远端 master : $REMOTE_MASTER_LINE"
 echo "   ② 本地 HEAD   : $HEAD_SHA（最近 tag $HEAD_TAG）$HEAD_REL_LINE"
 echo "   ③ tag 区间    : 本地最近 $HEAD_TAG / 远端最近 ${R_TAG:-（无）}；本地独有 $L_ONLY_N 个（未推）${L_ONLY_PREVIEW:+［$L_ONLY_PREVIEW］} / 远端独有 $R_ONLY_N 个（未取）"
 echo "   ④ 在飞链      : 0 条（同项目 status=${INFLIGHT_STATUSES} 会话）"
+echo "   ⑤ CI 结论     : ${CI_VERDICT}（待发布提交 ${HEAD_FULL:0:7}；来源 $CI_SOURCE）$CI_DETAIL"
 if [ "$ALLOW_EXISTING_TAG" = true ] && { [ -n "$LOCAL_HIT" ] || [ -n "$REMOTE_HIT" ]; }; then
   echo "   目标编号 $TAG：已存在（--allow-existing-tag 已证属本链历史；远端同号同对象或未推）；工作区干净"
 else

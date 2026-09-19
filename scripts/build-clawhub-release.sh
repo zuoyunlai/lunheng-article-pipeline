@@ -305,12 +305,116 @@ if [[ "$_SA_ACTUAL" != "$_SA_EXPECT" ]]; then
 fi
 echo "✅ _shared 准入清单通过：包内 ${#SHARED_ADMITTED[@]} 个文件全部已登记"
 
+# ---- 2b''. 随包文件清单门（2026-09-19 审计 C-1 推广 · 白名单准入扩到**整个包**）----
+# 根因（与 2b' 同源，作用面从 `_shared/` 扩到**全部内容目录**）：净化包的排除清单是**黑名单式** ——
+#   不在 `--exclude` 里的文件**默认入包**。`_shared/` 已改白名单准入（2b'），但
+#   `references/agents|templates|gates|checkers|dispatch/` 与 `references/` 顶层 md 仍是黑名单式：
+#   新增一个维护者内档 = 默认出厂，直到有人恰好读过它才可能被发现（C-1 事故即此类）。
+# 修法：**提交进仓库的包清单** `scripts/.pkg-manifest.txt`（一行一个相对路径，`LC_ALL=C sort`）
+#   = 当前**应该**进包的完整文件集。构建时对净化后的包做**精确集合相等**判定，
+#   不等即 exit 1，并**双向**打印差异（未登记入包 / 已登记却缺失）。
+#   ⇒ 方向反转：「新文件默认入包」→「新文件默认被拦」。
+# 维护纪律（新增随包文件前必读）：
+#   · **新增任何随包文件 = 必须先显式登记到 scripts/.pkg-manifest.txt**，否则构建失败；
+#   · 登记前须确认该文件可对技能用户公开（不含教训编号 / 维护者工具 / 内档叙事）；
+#   · 维护者内部资产**不入清单**，且须在 §2a 的 rsync `--exclude` 与 cp 分支 `rm -f` 两处同时排除；
+#   · 本门与 `_shared` 准入清单（2b'）是**双保险**：后者管 `_shared/` 目录内新增，前者管**全包**；
+#     两门都不得放宽（宁可构建红，不可默认放行）。
+#   · 重新生成（仅在确认当前包已干净时）：
+#       cd <包根> && find . -type f | sed 's|^\./||' | LC_ALL=C sort > <仓库>/scripts/.pkg-manifest.txt
+# 注：`scripts/` 整目录被 `--exclude`（见 §2 排除清单与 cp 分支 `rm -rf "$OUT_DIR/scripts"`），
+#   故清单文件自身不会进包 —— 下面另有**显式断言**锁这一点（清单属维护者资产，不得随包分发）。
+PKG_MANIFEST="$SCRIPT_DIR/.pkg-manifest.txt"
+if [[ ! -f "$PKG_MANIFEST" ]]; then
+  echo "❌ 随包清单缺失：$PKG_MANIFEST" >&2
+  echo "   该清单是「全包白名单准入」的唯一真源：净化后包内文件集必须精确等于它。" >&2
+  echo "   修法：从一次已确认干净的构建产物生成（见本段注释末的重新生成命令）。" >&2
+  exit 1
+fi
+if [[ -f "$OUT_DIR/scripts/.pkg-manifest.txt" ]]; then
+  echo "❌ 随包清单文件自身进入了发布包（scripts/ 未被剥离）—— 清单是维护者资产，不得随包分发" >&2
+  exit 1
+fi
+_MF_EXPECT="$(LC_ALL=C sort "$PKG_MANIFEST")"
+if [[ -z "$_MF_EXPECT" ]]; then
+  echo "❌ 随包清单为空（$PKG_MANIFEST）—— 空清单 = 准入门空转，按失败处理" >&2
+  exit 1
+fi
+_MF_ACTUAL="$( ( cd "$OUT_DIR" && find . -type f | sed 's|^\./||' ) | LC_ALL=C sort )"
+if [[ "$_MF_EXPECT" != "$_MF_ACTUAL" ]]; then
+  echo "❌ 净化包文件集与随包清单不一致（scripts/.pkg-manifest.txt，全包白名单准入门）——" >&2
+  echo "   —— 包内有但清单未登记（新文件默认入包 = 泄漏风险；C-1 内档出厂的根因）——" >&2
+  LC_ALL=C comm -13 <(printf '%s\n' "$_MF_EXPECT") <(printf '%s\n' "$_MF_ACTUAL") | sed 's/^/   + /' >&2
+  echo "   —— 清单已登记但包内缺失（误删 / 排除清单过度匹配 / 清单过期）——" >&2
+  LC_ALL=C comm -23 <(printf '%s\n' "$_MF_EXPECT") <(printf '%s\n' "$_MF_ACTUAL") | sed 's/^/   - /' >&2
+  echo "   修法：① 有意新增随包文件 → 在 scripts/.pkg-manifest.txt 显式登记（确认可对技能用户公开）；" >&2
+  echo "         ② 维护者内部资产 → 不入清单，且在 §2a 的 rsync --exclude 与 cp 分支 rm -f 两处同时排除。" >&2
+  exit 1
+fi
+echo "✅ 随包清单门通过：包内 $(printf '%s\n' "$_MF_ACTUAL" | wc -l | tr -d ' ') 个文件与 scripts/.pkg-manifest.txt 精确一致"
+
 # ---- 2c. 净化前基线快照（v2.12.30 新增，回应第三方审计 P1-1）----
 # 背景：整条净化链**只有负向检查**（违规模式命中数 = 0 即通过）→ 剥离规则一旦过度匹配、
 #   把正文或结构误删，扫描同样「全绿」= fail-open（「净化成功、内容损坏」）。
 #   故在净化前记录每个 md 的字符数与标题集合，净化后做正向完整性校验（见 4b'）。
 PKG_SNAPSHOT="$(mktemp -t lunheng-pkgsnap.XXXXXX)"
 python3 "$SCRIPT_DIR/pkg-integrity.py" snapshot "$OUT_DIR" "$PKG_SNAPSHOT"
+
+# C-6（2026-09-19 审计）：**基线下限守卫** —— 正向门（4b'）按「字符保留率」判，比率的分母一旦
+#   异常小或被置零（快照不完整 / 目标文件本就近空），比率可**恒过**（0→0、10→10 都算 100%），
+#   门退化为恒真。故在快照生成后**立即**校验：任何文件基线字符数 = 0 或 < PKG_MIN_BASELINE_CHARS
+#   一律 **fail**（而不是去算比率）。阈值为「比率有判别力」的下限，非内容要求。
+_PKG_MIN_BASE="${PKG_MIN_BASELINE_CHARS:-50}"
+if ! python3 - "$PKG_SNAPSHOT" "$_PKG_MIN_BASE" <<'PYEOF'
+import json, pathlib, sys
+
+snap, floor = pathlib.Path(sys.argv[1]), int(sys.argv[2])
+data = json.loads(snap.read_text(encoding='utf-8'))
+files = data.get('files') or {}
+if not files:
+    print('❌ 基线快照为空（无任何 md 基线）—— 正向门将空转，按失败处理', file=sys.stderr)
+    raise SystemExit(1)
+bad = []
+for rel, meta in sorted(files.items()):
+    chars = int(meta.get('chars') or 0)
+    if chars <= 0:
+        bad.append(f'{rel}: 基线字符数 = 0（比率分母为零 ⇒ 保留率检查恒过）')
+    elif chars < floor:
+        bad.append(f'{rel}: 基线仅 {chars} 字符（< 下限 {floor}）—— 该基数上保留率无判别力')
+if bad:
+    print(f'❌ 基线下限守卫未通过（{len(bad)} 项）：', file=sys.stderr)
+    for b in bad:
+        print(f'   - {b}', file=sys.stderr)
+    print('   说明：这是「比率恒过」的根因守卫（审计 C-6），不是内容错误。', file=sys.stderr)
+    print('   若确有随包的极小文件，请显式设 PKG_MIN_BASELINE_CHARS 并写明理由（不得直接跳过本门）。',
+          file=sys.stderr)
+    raise SystemExit(1)
+print(f'  ✅ 基线下限守卫通过（{len(files)} 个 md，基线均 ≥ {floor} 字符）')
+PYEOF
+then
+  echo "❌ 基线快照未通过下限守卫（见上）—— 已清理快照并中止构建" >&2
+  rm -f "$PKG_SNAPSHOT"
+  exit 1
+fi
+
+# C-5（2026-09-19 审计）：正向完整性门原**只覆盖 `*.md`** —— 非 md 随包文本（`.yaml`/`.json`/
+#   `.txt`/`.toml`）净化后即使被整体删空也无人发现（负向扫描只报「违规命中数 ≠ 0」）。
+#   实测包内非 md 文本资产仅 1 个：`references/_shared/phase-order.yaml`（其余随包文件均为 .md
+#   或无扩展名的静态文件 LICENSE）。范围与 §扫描面 `SCAN_INCLUDES` 同口径，日后新增自动纳入。
+PKG_SNAPSHOT_NONMD="$(mktemp -t lunheng-pkgsnap-nonmd.XXXXXX)"
+python3 - "$OUT_DIR" "$PKG_SNAPSHOT_NONMD" <<'PYEOF'
+import json, pathlib, sys
+
+root, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+exts = {'.yaml', '.yml', '.json', '.txt', '.toml'}
+data = {'files': {}}
+for p in sorted(root.rglob('*')):
+    if p.is_file() and p.suffix in exts:
+        data['files'][str(p.relative_to(root))] = {
+            'chars': len(p.read_text(encoding='utf-8', errors='replace'))}
+out.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding='utf-8')
+print(f"  📸 非 md 基线快照：{len(data['files'])} 个文本资产 → {out}")
+PYEOF
 
 # ---- 3. 文档净化（sed 替换，剥离「开发者维护」表述）----
 purify() {
@@ -614,11 +718,156 @@ for path in sys.argv[1:]:
         print("  剥离 DEV-ONLY：", path)
 ' {} +
 
+# ---- 3p. 包内死链中和（2026-09-19 审计 C-4）----
+# 背景：`references/templates/README-模板拆分方案.md` 等**被排除的仓库文档**不进包，
+#   但包内其它文档仍可能以「反引号内联路径 / markdown 链接目标」引用它们 ⇒ 包内死链
+#   （用户点不到、也读不到那个文件）。实测：包内 `references/pipeline-readme.md` 有一处
+#   `（…见 `templates/README-模板拆分方案.md` §四）`（审计 C-4 原名点）。
+# 旧做法：在 purify() 里手写 sed 逐条硬编码路径（3h-4 只认「详见 `templates/README-模板拆分方案.md`。」
+#   这一种字面形态）——**新增一个被排除文件就漏一次**，且规则与排除清单两处维护必然漂移。
+# 修法（程序化生成，审计建议）：排除集**只在此处声明一次**（PKG_EXCLUDED_DOC_PATHS），
+#   匹配规则由 python 从该清单**推导生成**（不手写路径），并对产物做 fail-closed 反向断言：
+#   中和后包内任何 .md 都不得再出现指向被排除文档的反引号引用 / 链接目标。
+# 维护：新增「被 --exclude 的仓库文档」时，把路径补进 PKG_EXCLUDED_DOC_PATHS（一处即可）。
+# 注：只处理行内代码与链接目标两种形态（不动裸文本叙述，也不动代码围栏内的内容）——
+#   运行期产物路径（`run/` `audits/` `final/` 等）不在本清单，故不会被误中和。
+PKG_EXCLUDED_DOC_PATHS=(
+  'references/设计文档.md'
+  'references/设计文档-架构.md'
+  'references/设计文档-哲学.md'
+  'references/_shared/教训索引.md'
+  'references/_shared/论衡仓库内教训.md'
+  'references/_shared/lessons-max.snapshot'
+  'references/_shared/通用韧化块-v2.1.0.md'
+  'references/_shared/版本升级自审门-*.md'
+  'references/_shared/M-Gate-渐进式验证-*.md'
+  'references/templates/README-模板拆分方案.md'
+  'README.md'
+  'CHANGELOG.md'
+  'CHANGELOG-archive.md'
+  'PERFORMANCE-PROFILE.md'
+)
+echo "🔗 中和包内死链（指向被排除文档的引用）..." >&2
+_DEADLINK_LOG="$(mktemp -t lunheng-deadlink.XXXXXX)"
+if ! python3 - "$OUT_DIR" "${PKG_EXCLUDED_DOC_PATHS[@]}" >"$_DEADLINK_LOG" 2>&1 <<'PYEOF'
+import pathlib, re, sys
+
+root = pathlib.Path(sys.argv[1])
+globs = sys.argv[2:]
+if not globs:
+    print('❌ 被排除文档清单为空 —— 死链中和门空转', file=sys.stderr)
+    raise SystemExit(1)
+
+
+def _tail_re(g):
+    """glob → 「路径尾段」正则：`*` 只吃非分隔符/空白字符，避免跨段误配。"""
+    tail = re.escape(g.split('/')[-1]).replace('\\*', r'[^/`\s]*')
+    return re.compile(r'(?:^|/)' + tail + r'$')
+
+
+TAIL_RES = [_tail_re(g) for g in globs]
+
+
+def is_dead(token):
+    t = token.strip().strip('`').strip()
+    if not t or len(t) > 200 or ' ' in t or '\t' in t:
+        return False
+    return any(r.search(t) for r in TAIL_RES)
+
+
+PAREN = re.compile(r'（[^（）\n]{0,300}）')
+CODE = re.compile(r'`([^`\n]{1,200})`')
+LINK = re.compile(r'\[([^\]\n]*)\]\(([^)\n]*)\)')
+FENCE = re.compile(r'^[ \t]*(?:`{3,}|~{3,})')
+
+
+def neutralize(line):
+    def _paren(m):
+        return '' if any(is_dead(c) for c in CODE.findall(m.group(0))) else m.group(0)
+
+    out = PAREN.sub(_paren, line)
+    out = CODE.sub(lambda m: '' if is_dead(m.group(1)) else m.group(0), out)
+    out = LINK.sub(lambda m: '' if is_dead(m.group(2)) else m.group(0), out)
+    out = re.sub(r'（\s*[，。；、,;]?\s*）', '', out)
+    out = re.sub(r'（\s*见\s*）', '', out)
+    out = re.sub(r'，\s*。', '。', out)
+    out = re.sub(r'[ \t]+。', '。', out)
+    return out
+
+
+def process(text):
+    out, in_fence = [], False
+    for line in text.split('\n'):
+        if FENCE.match(line):
+            in_fence = not in_fence
+            out.append(line)
+            continue
+        out.append(line if in_fence else neutralize(line))
+    return '\n'.join(out)
+
+
+def nonfence(text):
+    out, in_fence = [], False
+    for line in text.split('\n'):
+        if FENCE.match(line):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            out.append(line)
+    return '\n'.join(out)
+
+
+changed, leftovers = [], []
+for f in sorted(root.rglob('*.md')):
+    rel = str(f.relative_to(root))
+    text = f.read_text(encoding='utf-8', errors='replace')
+    new = process(text)
+    if new != text:
+        f.write_text(new, encoding='utf-8')
+        changed.append(rel)
+    body = nonfence(new)
+    for tok in CODE.findall(body) + [m[1] for m in LINK.findall(body)]:
+        if is_dead(tok):
+            leftovers.append(f'{rel}: {tok}')
+
+for rel in changed:
+    print(f'  中和死链引用：{rel}')
+if leftovers:
+    print(f'❌ 包内仍有指向被排除文档的引用（{len(leftovers)} 处）——', file=sys.stderr)
+    for item in leftovers[:20]:
+        print(f'   - {item}', file=sys.stderr)
+    print('   修法：把该写法补进本段的匹配规则（或从真源删掉该死引用）；'
+          '确属合法引用请扩充 PKG_EXCLUDED_DOC_PATHS 之外的判定，勿直接弱化本门。', file=sys.stderr)
+    raise SystemExit(1)
+if not changed:
+    print('  （包内无指向被排除文档的引用，无需中和）')
+PYEOF
+then
+  echo "❌ 死链中和失败：包内仍存在指向被排除文档的引用" >&2
+  echo "---- 子步骤输出 ----" >&2
+  tail -n 40 "$_DEADLINK_LOG" >&2
+  echo "--------------------" >&2
+  rm -f "$_DEADLINK_LOG"
+  exit 1
+fi
+cat "$_DEADLINK_LOG"
+rm -f "$_DEADLINK_LOG"
+
 # ---- 3n. 安装命令版本 pin 同步（教训 #297）----
 # 净化包内 `openclaw skills install @...@X.Y.Z` 的 pin 必须等于本包版本，
 # 防止「包是 v2.12.4、安装命令还钉在 v2.10.3」这类用户可见的审计版本错配。
 if [[ -f "$OUT_DIR/QUICKSTART.md" ]]; then
   sed -i -E "s|(@zuoyunlai/lunheng-article-pipeline)@[0-9]+\.[0-9]+\.[0-9]+|\1@$VERSION|g" "$OUT_DIR/QUICKSTART.md"
+  # C-3（2026-09-19 审计）：规则 3n 原本**无产物侧断言** —— pin 替换目标写法一变就静默空转，
+  #   用户会照着旧版 pin 安装（审计版本错配，恰是本规则要防的事）。此处补**正向断言**：
+  #   QUICKSTART.md 内所有安装命令 pin 必须等于本包版本（无 pin 时不触发）。
+  _PIN_BAD="$(grep -oE '@zuoyunlai/lunheng-article-pipeline@[0-9]+\.[0-9]+\.[0-9]+' "$OUT_DIR/QUICKSTART.md" 2>/dev/null | sed 's|^@zuoyunlai/lunheng-article-pipeline@||' | sort -u | grep -vx "$VERSION" || true)"
+  if [[ -n "$_PIN_BAD" ]]; then
+    echo "❌ 规则 3n 断言失败：QUICKSTART.md 安装命令 pin 与本包版本不一致 ——" >&2
+    printf '%s\n' "$_PIN_BAD" | sed 's/^/   - /' >&2
+    echo "   修法：核对 QUICKSTART.md 的安装命令写法是否仍为 @<slug>@<ver> 形态（规则 3n 的替换目标）。" >&2
+    exit 1
+  fi
 fi
 
 # ---- 3e. 净化 SKILL.md description（去掉引用已剥离 scripts/ 的「自我维护」句）----
@@ -747,6 +996,43 @@ if ! python3 "$SCRIPT_DIR/pkg-integrity.py" verify "$OUT_DIR" "$PKG_SNAPSHOT"; t
   exit 1
 fi
 rm -f "$PKG_SNAPSHOT"
+
+# C-5（2026-09-19 审计）：非 md 文本资产的同款正向校验（存在性 + 非空 + 字符保留率）。
+#   与 4b' 的 md 校验互补；覆盖面与 §扫描面 SCAN_INCLUDES 同口径（.md 之外再收 yaml/yml/json/txt/toml）。
+if ! python3 - "$OUT_DIR" "$PKG_SNAPSHOT_NONMD" <<'PYEOF'
+import json, pathlib, sys
+
+root, snap = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+data = json.loads(snap.read_text(encoding='utf-8'))
+files = data.get('files') or {}
+if not files:
+    print('  ℹ️ 本包无非 md 文本资产（yaml/yml/json/txt/toml）—— 本子门无对象（清单门仍保证集合不变）')
+    raise SystemExit(0)
+errs = []
+for rel, meta in sorted(files.items()):
+    f = root / rel
+    if not f.is_file():
+        errs.append(f'{rel} 在净化后**消失**（非 md 资产被误删）')
+        continue
+    b = int(meta.get('chars') or 0)
+    c = len(f.read_text(encoding='utf-8', errors='replace'))
+    if c == 0:
+        errs.append(f'{rel} 被清空（0 字符）')
+    elif b > 0 and c / b < 0.35:
+        errs.append(f'{rel} 字符保留率 {c / b:.0%} < 35%（{b} → {c}）')
+if errs:
+    print(f'❌ 非 md 正向完整性未通过（{len(errs)} 项）：', file=sys.stderr)
+    for e in errs:
+        print(f'   - {e}', file=sys.stderr)
+    raise SystemExit(1)
+print(f'  ✅ 非 md 正向完整性通过（{len(files)} 个文本资产全部存活且未塔陷）')
+PYEOF
+then
+  echo "❌ 非 md 正向完整性门未通过（见上）" >&2
+  rm -f "$PKG_SNAPSHOT_NONMD"
+  exit 1
+fi
+rm -f "$PKG_SNAPSHOT_NONMD"
 
 # ---- 4c. 最终残留扫描（含「教训对用户不可见」铁律的兜底检查）----
 echo "🔍 最终残留扫描..." >&2
@@ -885,9 +1171,112 @@ RULE_CHECKS=(
   # ---- v2.12.63 新增：`#R` 编号空间（v2.12.42 引入后长期不在任何模式射程内）----
   '仓库内教训编号|#R[0-9]{3}|critical|no'      # 真源有（内档正文 + 教训索引指针）；包内必须 0
   '仓库内教训内档名|论衡仓库内教训|critical|no'  # 同上
+  # ---- 2026-09-19 审计 C-3：purify() 全规则覆盖补齐（补入原先未纳入本表的规则）----
+  # 口径说明（为何新条目一律标 allow_empty=yes）：本表新增条目的**真源命中数需实测**，
+  #   而标 `no` 会在「真源已无该写法」时直接 fail（规则本已无用武之地却被判死亡）。
+  #   故新条目一律标 yes（真源零命中只打 info），但**产物侧 ≠0 仍一律 fail** ——
+  #   守卫强度不变，只避免误阻断已同步删除内容的构建。
+  #   若日后实测真源确有命中，应改标 no 以恢复源侧死亡检测（见 C-3 报告）。
+  #   另：regex 字段**不得含 `|`**（字段分隔符），需哈代表达时拆成多条。
+  # 3b  git 发布指令（产物侧另有 §3h RESIDUAL_PATTERNS 同款 fail-closed 守卫）
+  'git提交指令|git commit|warn|yes'
+  'git推送指令|git push|warn|yes'
+  'git打标指令|git tag|warn|yes'
+  # 3k  模型健康度预检的 1-token ping 措辞
+  '健康度ping措辞|1-token ping|warn|yes'
+  # 3j  末条：凭据叠字清洗（真源本就无此叠字，纯产物侧守卫）
+  '凭据三连叠字|主控绝不读取、主控绝不读取|warn|yes'
+  # 3i  通用兜底两条（「列出 run/」/「ls run/」）
+  '历史项目复用兜底A|主控 Phase 0 前用 `列出 run/`|warn|yes'
+  '历史项目复用兜底B|主控 Phase 0 前用 `ls run/`|warn|yes'
+  # 3o  DEV-ONLY 标记不得随包出厂（标记本身即维护者叙事）
+  'DEV-ONLY段落|DEV-ONLY|warn|yes'
+  # 3e  SKILL.md description 的「含技能自我维护」句（引用已剥离的 scripts/）
+  'SKILL自我维护句|含技能自我维护|warn|yes'
+  # 3m  长形态中性化（短形态由 FINAL_PATTERNS / 门 Q 另守）
+  'AIG扫描器叫法|A\.I\.G 扫描器|warn|yes'
+  '平台扫描器名|ClawScan|warn|yes'
+  # 3h  设计文档路径形态（3h-1 / 3h-5，行级反向断言见规则 3h 末段 7c）
+  '设计文档路径引用|references/设计文档\.md|warn|yes'
+  # 3d  旧版自审门文件名（路径形态；短名形态由既有条目覆盖）
+  '旧版自审门路径|_shared/版本升级自审门-v2\.3\.0\.md|warn|yes'
+  # 3h-4 / 3p  模板拆分方案引用（C-4 死链；自本版起由 3p 程序化中和）
+  '模板拆分方案引用|README-模板拆分方案\.md|warn|yes'
 )
+# 豁免理由表（C-7，2026-09-19 审计）—— 格式：名称|理由正文（不得含 `|`）
+# 要求：① 每个 allow_empty=yes 条目必须在此登记理由且长度 ≥ RULE_REASON_MIN_CHARS；
+#       ② 表中不得有孤儿（对应条目已不存在或已改为 no）—— 防理由表腐烂；
+#       ③ 理由必须写「**为何允许真源零命中**」，不能写「待补」等占位词（最短长度即为此设）。
+RULE_EMPTY_REASONS=(
+  '版本修订硬门段|真源内容已外移到 references/设计文档-架构.md §六（该文件整类被 --exclude，不进包）⇒ 零命中属预期；条目保留作产物侧回归守卫。'
+  '版本修订质量门段|同「版本修订硬门段」：内容随 §六 一并外移（不进包）⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '版本升级自审门小节|节标题已被净化规则 3d 改名（版本升级自审门→版本一致性检查）⇒ 零命中属预期；保留作产物侧回归守卫。'
+  'strip剥除叫法|该措辞已在真源侧中性化（审计 §四.1）⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '凭据措辞收敛|第二梯队（万方/科情/NSTL）整体取消后真源已无此措辞 ⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '自动沉淀表述|真源已改用「实战教训沉淀建议（待主人 review 后生效）」措辞 ⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '主动写入表述|真源侧已改为「主控产出建议草稿（待主人 review 后 merge）」表述 ⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '旧版一致性检查文件名|旧文件名只应出现在已出包的历史文档 ⇒ 真源零命中属预期；保留作产物侧回归守卫。'
+  '旧版M-Gate文件名|规则 3d 已把该文件名改指 M-Gate-Algorithm.md ⇒ 真源零命中属预期；保留作产物侧回归守卫。'
+  '相似项目复用段|真源段落已改写为「历史项目素材复用（可选）」⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '二梯队API key|第二梯队检索源整体取消 ⇒ 真源零命中属预期；保留作产物侧回归守卫。'
+  '旧版5.8清理记录|规则 3l 的目标标题已不存在（内容已重写为「项目历史记录归档」）⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '扫描器叫法|真源侧已中性化为「审核工具」（门 Q 同口径）⇒ 零命中属预期；保留作产物侧回归守卫。'
+  'SkillSpector叫法|真源侧已中性化为「平台安全扫描」⇒ 零命中属预期；保留作产物侧回归守卫。'
+  'git提交指令|规则 3b 的替换目标；真源 git 指令可能已全部外移或删除 ⇒ 零命中放行；产物侧另有 §3h 同款守卫。'
+  'git推送指令|同「git提交指令」：真源可能已无该指令 ⇒ 零命中放行；产物侧命中仍一律 fail。'
+  'git打标指令|同「git提交指令」：真源可能已无该指令 ⇒ 零命中放行；产物侧命中仍一律 fail。'
+  '健康度ping措辞|规则 3k 的替换目标；措辞可能已随真源改写而消失 ⇒ 零命中放行；产物侧命中仍一律 fail。'
+  '凭据三连叠字|规则 3j 末条仅作叠字清洗兜底（真源本就无此叠字）⇒ 零命中属预期。'
+  '历史项目复用兜底A|规则 3i 的兜底正则；真源措辞可能已被主替换直接改写 ⇒ 零命中放行。'
+  '历史项目复用兜底B|同「历史项目复用兜底A」：同为兜底正则 ⇒ 零命中放行。'
+  'DEV-ONLY段落|规则 3o 的标记；真源可能已无该标记（段落已整段删除）⇒ 零命中放行；产物侧命中一律 fail。'
+  'SKILL自我维护句|规则 3e 的替换目标（description 自我维护句）；真源可能已删 ⇒ 零命中放行。'
+  'AIG扫描器叫法|真源侧已中性化（门 Q 禁止可见面出现该叫法）⇒ 零命中属预期。'
+  '平台扫描器名|真源侧已中性化（门 Q 同口径）⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '设计文档路径引用|references/设计文档.md 已整类 --exclude；真源引用由规则 3h 系列统一改写 ⇒ 零命中属预期。'
+  '旧版自审门路径|旧文件路径只应存在于已出包的历史文档 ⇒ 零命中属预期；保留作产物侧回归守卫。'
+  '模板拆分方案引用|该模板拆分说明文件已被 --exclude；引用自本版起由规则 3p（程序化死链中和）处理 ⇒ 零命中属预期。'
+)
+RULE_REASON_MIN_CHARS=12
 RULE_FAIL=0
 RULE_EMPTY=0
+
+# ---- C-7（2026-09-19 审计）：豁免理由校验 —— 禁止「空理由即豁免」----
+# 背景：`allow_empty=yes` 是「真源零命中仍放行」的**唯一**逃生口。若理由字段可空，
+#   这条路就退化成「标注一下即可关掉真源侧守卫」（门 R.3 只校验格式与基数，不看理由）。
+# 修法：理由表双向闭合 + 最小长度；任一不满足即计入 RULE_FAIL（与规则自检同批阻断）。
+_RR_YES_NAMES=""   # 必须在 set -u 下显式初始化（否则首个 allow_empty 条目即 unbound variable）
+for entry in "${RULE_CHECKS[@]}"; do
+  IFS='|' read -r _rn _rp _rl _ra <<<"$entry"
+  [[ "$_ra" == "yes" ]] || continue
+  _RR_YES_NAMES="${_RR_YES_NAMES}${_rn}"$'\n'
+  _REASON=""
+  for _re_entry in "${RULE_EMPTY_REASONS[@]}"; do
+    IFS='|' read -r _en _et <<<"$_re_entry"
+    if [[ "$_en" == "$_rn" ]]; then _REASON="$_et"; break; fi
+  done
+  if [[ -z "$_REASON" ]]; then
+    echo "      ❌ 豁免无理由：'$_rn' 标了 allow_empty=yes 但未在 RULE_EMPTY_REASONS 登记理由"
+    RULE_FAIL=$((RULE_FAIL + 1))
+  elif [[ "${#_REASON}" -lt "$RULE_REASON_MIN_CHARS" ]]; then
+    echo "      ❌ 豁免理由过短（${#_REASON} < $RULE_REASON_MIN_CHARS）：'$_rn'"
+    RULE_FAIL=$((RULE_FAIL + 1))
+  fi
+done
+for _re_entry in "${RULE_EMPTY_REASONS[@]}"; do
+  IFS='|' read -r _en _et <<<"$_re_entry"
+  if ! grep -qxF "$_en" <<<"$_RR_YES_NAMES"; then
+    echo "      ❌ 理由表孤儿：'$_en' 已不是 allow_empty=yes 条目（理由表腐烂）"
+    RULE_FAIL=$((RULE_FAIL + 1))
+  fi
+done
+if [[ "$RULE_FAIL" -gt 0 ]]; then
+  echo ""
+  echo "❌ 豁免理由校验未通过（$RULE_FAIL 项）—— 防「空理由即豁免」（审计 C-7）"
+  echo "   修法：在 RULE_EMPTY_REASONS 为每个 allow_empty=yes 条目写明「为何允许真源零命中」；"
+  echo "         已不再豁免的条目请从理由表删除（双向闭合，不留孤儿）。"
+  exit 1
+fi
 for entry in "${RULE_CHECKS[@]}"; do
   IFS='|' read -r rname rpat rlevel rallow <<<"$entry"
   r_src=$( { grep -rE "$rpat" "${SCAN_INCLUDES[@]}" "$SKILL_ROOT/references" "$SKILL_ROOT/SKILL.md" "$SKILL_ROOT/QUICKSTART.md" "$SKILL_ROOT/README.md" 2>/dev/null || true; } | wc -l | tr -d ' ')
@@ -915,6 +1304,35 @@ if [[ "$RULE_FAIL" -gt 0 ]]; then
   exit 1
 fi
 echo "  ✅ 剥离规则自检通过（共 ${#RULE_CHECKS[@]} 条：生效 $(( ${#RULE_CHECKS[@]} - RULE_EMPTY )) 条 / allow_empty $RULE_EMPTY 条）"
+
+# ---- C-3（2026-09-19 审计）：purify() 中**无法用「真源>0 / 产物=0」表达**的规则，改用**正向不变量**断言 ----
+# RULE_CHECKS 只能表达「该有的没有」；但以下规则的失败模式是「规则**根本没生效**」，
+#   产物侧本来就没那个字符串，负向扫描永远看不出来（静默空转）：
+#   ① 规则 3a（版本号栈精简）：产物每个 md 不得再出现**连续**的 `> 版本：` 行
+#      （栈形态 = 连续多行；若精简失效，产物就会留存 20+ 行历史版本栈）。
+#      注：只查「连续栈」，不查单文件总行数 —— 非连续的 `> 版本：` 提及（如模板样例）是合法内容。
+#   ② 规则 3f（反哺报告处理.md 整篇换正文）：产物该文件必须含「（发布版简化）」标题，
+#      证明整篇替换**真的发生了**（该规则的失败模式是目标错位 ⇒ 完全没替换）。
+#   ③ 规则 3n（安装命令版本 pin）：已在 §3n 就地断言（产物 pin 必须等于本包版本）。
+_POS_FAIL=0
+_VSTACK_BAD="$(find "$OUT_DIR" -name '*.md' -exec awk '
+  FNR == 1 { prev = 0 }
+  /^> 版本：/ { if (prev) { print FILENAME "（第 " FNR " 行起有连续版本号栈）" } prev = 1; next }
+  { prev = 0 }' {} + 2>/dev/null)"
+if [[ -n "$_VSTACK_BAD" ]]; then
+  echo "      ❌ 规则 3a 断言失败：产物仍有连续「> 版本：」版本号栈（整段精简未生效）：" >&2
+  printf '%s\n' "$_VSTACK_BAD" | sed 's/^/         - /' >&2
+  _POS_FAIL=$((_POS_FAIL + 1))
+fi
+if ! grep -qF '（发布版简化）' "$OUT_DIR/references/_shared/反哺报告处理.md" 2>/dev/null; then
+  echo "      ❌ 规则 3f 断言失败：references/_shared/反哺报告处理.md 未见「（发布版简化）」标题（整篇替换未发生）" >&2
+  _POS_FAIL=$((_POS_FAIL + 1))
+fi
+if [[ "$_POS_FAIL" -gt 0 ]]; then
+  echo "❌ purify() 正向不变量断言未通过（$_POS_FAIL 项）：规则未生效（静默空转）" >&2
+  exit 1
+fi
+echo "  ✅ purify() 正向不变量通过（版本号栈无连续残留 / 反哺报告整篇替换已发生）"
 
 # 净化残留扫描已完成（前置到 #3h，教训 #213），以下为汇总段（可被 exec timeout SIGTERM 不影响产物）
 

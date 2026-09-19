@@ -98,7 +98,10 @@
 **禁用（`metadata.tools.denied`）— 41 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**；是否在宿主侧额外收紧由宿主自行决定，**不属本 skill 的运行前提**。
 
 **Workspace 路径收口**：
-- 主控 + 所有子代理的 `read/write/edit` 仅允许 `run/<项目名>/` 子树
+- **路径边界分两域**（v2.12.64 定案，回应 2026-09-19 审计 S-2）——原表述「read/write/edit 仅允许 `run/<项目名>/` 子树」与每张角色卡的必读要求**互斥**（role card 任务首句即要求读 `references/_shared/关键协议.md`）⇒ 字面遵守则流水线不可执行，实际执行则每次运行都违反自己的声明。现显式拆为两域：
+  - **① skill 资产域**：`references/**` + `SKILL.md` + `QUICKSTART.md` —— **只读**（`read`），**必需**（角色卡与共享协议属技能本体，不读无法执行）；**禁写**。
+  - **② 项目数据域**：`run/<项目名>/` —— **读写**（`read/write/edit`），一律用**相对路径**收口到该子树。
+  - **判据**：自检项从「read 是否越界」改为「**项目数据域外写入 0 命中**」——读动作允许落在域 ①（只读），违规以**写**为准。
 - **拒绝**：绝对路径（含任何指向宿主敏感位置的路径：系统账号/密码存储文件、SSH 密钥目录、云凭据文件等）、父路径穿越（`..`）、symlink 逃逸、主控工作区根目录外的访问
 - 默认 cwd = workspace 根（**不设 `cwd_default`**，否则 run/ 被解析到 skill 目录内，教训 #255）——主控在 spawn 时**必须显式传绝对路径 `cwd: <workspace>/run/<项目名>/`**；**相对路径会被解析到 skill 目录**（v2.12.28 实测，教训 #255），故一律用绝对路径。子代理任务首句必读 `references/_shared/关键协议.md` §workspace 路径收口（read/write/edit 边界）
 > ⚠️ **用户警示（本文件可见）**：本技能运行期间会创建 / 修改以下路径的文件，**需先经 Phase 0 显式同意**：`run/<项目名>/status.md`（主控独占写）、`run/<项目名>/.tmp/<两位角色号>-<角色名>-heartbeat.md`（**默认不写**——仅 Phase 0 勾选「Operational Telemetry」才写）、`run/<项目名>/drafts/<角色>-status.json`、`run/<项目名>/analysis/`、`run/<项目名>/audits/`、`run/<项目名>/final/`（交付说明 / 定稿 / 图件 / 证据包）。**全部限当前 workspace 的 `run/<项目名>/` 子树**——不写项目外、不写宿主配置。**标准架构 = 多 Agent 九角色**；worker 不可用时按节点主控接管并披露。

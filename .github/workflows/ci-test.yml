@@ -31,9 +31,14 @@ jobs:
         with:
           python-version: '3.12'
       
-      - name: 安装依赖
+      - name: 安装依赖（两份锁定文件全装）
+        # v2.12.62 后补（教训 #430）：原步骤**只装 tests/requirements-test.txt**，而该文件
+        #   当时并未声明 pyyaml ⇒ 下方新步骤 collection 阶段直接 ModuleNotFoundError。
+        #   同一份代码在 quality.yml（装两份）下是绿的 ⇒ **绿灯幻觉**：红的那条没人点开。
+        #   现口径与 quality.yml / 门 N「两份锁定文件」一致：两份全装。
         run: |
           python -m pip install --upgrade pip
+          pip install -r requirements.txt
           pip install -r tests/requirements-test.txt
       
       - name: 跑 M 门 13 项测试
@@ -62,6 +67,19 @@ jobs:
           echo "论衡 权限口径 + 流程图真源测试"
           echo "=========================================="
           python -m pytest tests/test_capability_assert.py tests/test_flow_check.py -q
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: 跑全量测试（与本地同口径；教训 #430）
+        # v2.12.62 后补：此前本 job 只跑 3 个**子集**文件 ⇒ 新测试永不进 CI
+        #   （test_bulk_ratchet.py / test_gate_h_reverse_diff.py 等全部在 CI 判据之外），
+        #   CI 与本地判据分叉 = 「门存在 ≠ 门跑过」的 CI 版。子集步保留作快速定位，
+        #   本步为**权威判据**：全量 tests/ 必须全绿。
+        run: |
+          echo "=========================================="
+          echo "论衡全量测试（tests/ 全量，与本地同口径）"
+          echo "=========================================="
+          python -m pytest tests/ -q
         env:
           PYTHONPATH: ${{ github.workspace }}
 
