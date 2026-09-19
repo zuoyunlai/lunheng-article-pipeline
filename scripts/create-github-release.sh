@@ -153,20 +153,28 @@ import re, sys
 from pathlib import Path
 
 root, tag, out = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])
-text = (root / "CHANGELOG.md").read_text(encoding="utf-8")
-
 HEAD_RE = re.compile(r"^## \[(v\d+(?:\.\d+)*)\]", re.M)
 BOLD_RE = re.compile(r"^\*\*.+\*\*$")
-matches = list(HEAD_RE.finditer(text))
+# v2.12.62 修复（实测暴露）：changelog 分层后，旧版本章节只存在于 CHANGELOG-archive.md ——
+#   只读主文件会让「补发旧版 Release」**永远失败**（工具被自己的分层规则改坏；
+#   实测：v2.12.51/52/54/55 补发时报「CHANGELOG.md 中无章节」而章节其实就在归档里）。
+#   现：主文件优先，未命中再查归档；两文件走同一套解析，不产生第二份真相。
 section = None
-for i, m in enumerate(matches):
-    if m.group(1) == tag:
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        section = text[m.start():end]
+for src in (root / "CHANGELOG.md", root / "CHANGELOG-archive.md"):
+    if not src.is_file():
+        continue
+    text = src.read_text(encoding="utf-8")
+    matches = list(HEAD_RE.finditer(text))
+    for i, m in enumerate(matches):
+        if m.group(1) == tag:
+            end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+            section = text[m.start():end]
+            break
+    if section is not None:
         break
 if section is None:
-    print(f"❌ CHANGELOG.md 中无 [{tag}] 章节——先补章节（python3 scripts/changelog-check.py --fill 或手写）",
-          file=sys.stderr)
+    print(f"❌ CHANGELOG.md / CHANGELOG-archive.md 中均无 [{tag}] 章节——先补章节"
+          f"（python3 scripts/changelog-check.py --fill 或手写）", file=sys.stderr)
     sys.exit(2)
 
 lines = section.split("\n")[1:]                      # 去掉 `## [tag] — <date>` 标题行
