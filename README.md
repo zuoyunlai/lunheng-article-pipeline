@@ -173,7 +173,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.58  # pin 审�
 | v2.12.11 | 2026-09-10 | — | **全仓四路专项审计（口径漂移 / 执行衔接 / 净化链内泄漏 / 交叉引用）真问题全修：加固口径 fail-closed 统一 + 人在环超时兜底 + status.md 写入者收口 + G14/T7/T9 时序校正 + 净化链规则补漏** |
 | v2.12.34 | 2026-09-13 | 规范合规 | 官方规范审计整改：SKILL.md 11,335→9,996 字符（棘轮 10,000）+ description 876→123 字节 + 门 H 改仓库内快照判据 + `outputs/` 迁出技能根（37MB→2.8MB）|
 | v2.12.46 | 2026-09-15 | 架构定案 | 九角色多 Agent 为唯一标准架构 + Phase 编号成为第一类真源字段（flow-check 规则 11）+ 角色产物写入边界 + 人在环 4 个 checkpoint 机械门 |
-| v2.12.54 | 2026-09-18 | 真源收敛 | 全屏与阶段顺序收敛为唯一派生视图（`pipeline-overview.md` 23 节点全表，flow-check 机械守）+ R-2~R-6 构建期校验 + T9 改默认启用 |
+| v2.12.54 | 2026-09-18 | 真源收敛 | 全景与阶段顺序收敛为唯一派生视图（`pipeline-overview.md` 23 节点全表，flow-check 机械守）+ R-2~R-6 构建期校验 + T9 改默认启用 |
 | v2.12.58 | 2026-09-19 | 门扩围 | M 门文档围栏错位修复（教训 #426）+ 自审门 X 新增并**全仓扩围**（X.1-X.4，扩围即抓到第二例同类缺陷）+ 教训 #424-#428 |
 完整 changelog 见仓库内 [CHANGELOG.md](CHANGELOG.md)（最近 5 期）+ [CHANGELOG-archive.md](CHANGELOG-archive.md)（v2.12.47 起拆分轮转，两份合起来仍是逐版本全量记录；轮转边界见归档文件头部）；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 为同一内容的发布视图。教训沉淀见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)（编号以索引为准）。
 
