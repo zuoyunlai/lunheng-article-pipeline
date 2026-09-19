@@ -116,6 +116,8 @@ CHECKS=(
   "_shared/pipeline-overview.md|v$EXPECTED|1"
   "_shared/asset-index.md|v$EXPECTED|1"
   "_shared/external-services.md|v$EXPECTED|1"
+  # v2.12.59：补上审计发现的悬空指针目标文件（原被 2 处活文档引用却从未存在）
+  "_shared/host-verify-recipe.md|v$EXPECTED|1"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 新增）
   "templates/任务简报-template.md|v$EXPECTED|1"

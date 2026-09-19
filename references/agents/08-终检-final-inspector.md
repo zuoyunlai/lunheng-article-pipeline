@@ -1,4 +1,4 @@
-> 版本：v2.12.58（自动同步 2026-09-19）
+> 版本：v2.12.59（自动同步 2026-09-19）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -138,7 +138,7 @@
 
 ### M-1：交付物指纹绑定
 
-1. **写指纹**：`final/定稿.md` 产出后，主控 `read` 后必须由主人在 host shell 跑 `sha256sum` 补算并写入 `final/定稿.sha256`（见 `_shared/host-verify-recipe.md` §指纹补算模板）。
+1. **写指纹**：`final/定稿.md` 产出后，主控 `read` 后必须由主人在 host shell 跑 `sha256sum` 补算并写入 `final/定稿.sha256`（命令模板 + 自验 + 回填登记四处，见 [`../_shared/host-verify-recipe.md`](../_shared/host-verify-recipe.md) §二 / §四）。
 2. **报头必填**：T7 / G14 / T9 / T8 四类只读档报告（含交付说明）头部必填 `audited_artifact.{path,bytes,sha256}` 三元组；任一缺失 = 该报告作废。
 3. **集合相等**：T8 终检现场重算 `final/定稿.sha256`，与 T7/G14/T9 三方声明值集合相等 ⇒ 合格；任一不一致 ⇒ **判不合格（审计对象漂移）**，返回 T5 v(N+1) 重走。
 4. **交付说明头部**：必填 `deliverables_fingerprint` 字段（路径 / bytes / sha256），主人验收时可比对。
@@ -172,7 +172,7 @@
 | # | 建议动作 | 执行者 | 命令来源 |
 |---|---|---|---|
 | 1 | 文档格式转换（docx/pdf/latex） | **主人 host shell** | `_shared/format-export.md` §二 |
-| 2 | SVG → PNG 转换（公众号排版等） | **主人 host shell** | `templates/图表-SVG-template.md` §6.1 |
+| 2 | 图件落地与嵌入（SVG → PNG 转换；如需可渲染定稿，再嵌入定稿 Markdown） | **主人 host shell** | `templates/图表-SVG-template.md` §6.1 + `_shared/host-verify-recipe.md` §四 |
 | 3 | 封面视觉（文生图 / SVG 矢量；论衡 v2.12.52 起不再调用 `image_generate`，由主人自行生成） | **主人自行生成** | `operations.md` 封面段 |
 | 4 | SHA256 校验和登记（终检后对 `final/定稿.md` + 图件） | **主人 host shell** | `_shared/project-archive-sop.md` |
 

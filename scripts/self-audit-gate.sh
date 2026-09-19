@@ -147,6 +147,8 @@ VERSION_FILES=(
   "references/_shared/pipeline-overview.md"
   "references/_shared/asset-index.md"
   "references/_shared/external-services.md"
+  # v2.12.59：补上审计发现的悬空指针目标文件（原被 2 处活文档引用却从未存在）
+  "references/_shared/host-verify-recipe.md"
 )
 VERSION_MISSING=""
 for f in "${VERSION_FILES[@]}"; do
@@ -1001,6 +1003,12 @@ fi
 #   产物目录 / docs/* 指向不存在的目录 / 裸相对名指向不存在文件）——对任何克隆者都不可达，
 #   且此前无任何机械门能发现（只有人工点开才暴露）。本门把它变成机械校验。
 #   注：脚本自身忽略代码围栏/行内代码中的链接（示例文本非真链接）。
+#   v2.12.59 扩面（回应 2026-09-19 全面审计 P1-1/P1-2）：原判据面 = ① markdown 链接
+#   + ② SKILL.md 裸文件名，合起来**仍不覆盖**活文档的**反引号内联路径引用**——实测
+#   `_shared/host-verify-recipe.md` 被 2 处活文档（均在净化包可见面）引用却从未存在过，
+#   而本门报「全部可解析」。⇒ 判据面改为**缺陷类的宿主集**（教训 #427）：三类并列，
+#   第三类扫 references/**（含 templates/）的反引号内联引用，解析顺序 = 同级→仓根→同名。
+#   反向注入单测见 tests/test_link_check.py（注入悬空 token 必须报错 + 真源零写入护栏）。
 # =============================================================================
 if [ -f scripts/link-check.py ] && command -v python3 >/dev/null 2>&1; then
   if GATE_U_OUT="$(python3 scripts/link-check.py 2>&1)"; then
