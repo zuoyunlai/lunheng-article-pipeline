@@ -1414,3 +1414,61 @@ def test_p22_missing_doctrine_reverse_injection(tmp_path):
         return src.replace("silence_doctrine:", "silence_doctrine_retired:", 1)
 
     _inject_and_expect(YAML_REL, mutate, "缺顶层 silence_doctrine", tmp_path)
+
+
+# ===== v2.12.66 M-13 清单跨载体一致性（规则 41） =====
+
+M13_CARRIERS = ("references/dispatch/T8-终检.md", "references/agents/08-终检-final-inspector.md")
+M13_ACTIONS = ("文档格式转换", "SVG → PNG 转换", "封面视觉", "SHA256 校验和登记")
+M13_CMD_NEEDS = ("final/定稿.tex", "--reference-doc=academic-paper-template.docx",
+                 "--bibliography=final/证据包/参考文献.bib", "--csl=chinese-gb7714-2015-numeric")
+
+
+def _m13_cmd_block(rel):
+    """M-13 命令模板（含 pandoc 的围栏块）—— 真源 = 文件正文，测试不复制清单。"""
+    t = (ROOT / rel).read_text(encoding="utf-8")
+    blocks = [b for b in re.findall(r"```[a-zA-Z]*\n(.*?)```", t, re.S) if "pandoc" in b]
+    assert len(blocks) == 1, f"{rel} M-13 命令模板块应恰 1 个，实为 {len(blocks)} 个"
+    return "\n".join(l.strip() for l in blocks[0].splitlines() if l.strip())
+
+
+def test_m13_cross_carrier_consistency():
+    """规则 41：两载体四类动作齐备 + 命令块同源（真源 format-export.md §二）+ 无 v2.12.60 作废写法。
+
+    背景：v2.12.60 把 M-13 第 2 类由「图件落地与嵌入」瘦回「SVG → PNG 转换」（嵌入改由
+    final_assembly 在流水线内完成）时**只改 T8-终检.md、08-终检 漏改**；且 T8 内联命令模板
+    与它自己声明的真源不符。故障面 = 「同一份清单两处承载、改 A 漏 B」。
+    """
+    blocks = {}
+    for rel in M13_CARRIERS:
+        t = (ROOT / rel).read_text(encoding="utf-8")
+        for a in M13_ACTIONS:
+            assert a in t, f"{rel} M-13 缺动作「{a}」（规则 41）"
+        assert "templates/word-reference.docx" not in t, \
+            f"{rel} 含旧 --reference-doc（规则 41）"
+        assert "再嵌入定稿" not in t, \
+            f"{rel} 含 v2.12.60 已作废口径（规则 41：嵌入在流水线内完成）"
+        blocks[rel] = _m13_cmd_block(rel)
+        for need in M13_CMD_NEEDS:
+            assert need in blocks[rel], f"{rel} 命令模板缺 {need}（规则 41）"
+    assert len(set(blocks.values())) == 1, \
+        "M-13 命令模板两载体不一致（规则 41：真源 = format-export.md §二）"
+
+
+def test_m13_stale_embedding_clause_reverse_injection(tmp_path):
+    """规则 41 反向注入：08 第 2 类改回 v2.12.60 前的「再嵌入定稿」⇒ 必须红。"""
+    def mutate(src):
+        return src.replace(
+            "| 2 | SVG → PNG 转换（公众号排版等） |",
+            "| 2 | 图件落地与嵌入（SVG → PNG 转换；如需可渲染定稿，再嵌入定稿 Markdown） |", 1)
+
+    _inject_and_expect("references/agents/08-终检-final-inspector.md", mutate, "规则 41", tmp_path)
+
+
+def test_m13_command_drift_reverse_injection(tmp_path):
+    """规则 41 反向注入：T8 命令块 reference-doc 改回旧文件 ⇒ 必须红（作废写法 + 两载体不一致）。"""
+    def mutate(src):
+        return src.replace("--reference-doc=academic-paper-template.docx",
+                           "--reference-doc=templates/word-reference.docx", 1)
+
+    _inject_and_expect("references/dispatch/T8-终检.md", mutate, "规则 41", tmp_path)

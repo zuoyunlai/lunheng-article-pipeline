@@ -46,6 +46,12 @@
     `provider_silence_escalation` 必须 `halt_pending_owner: true` + `no_default_option: true`
     且 `owner_choices` 无默认项；两侧挂起态**必须相等**（一侧挂起/一侧自动继续 = 不同侧，报红）。
     防「改 A 漏 B」：侧语义只在散文声明时，只改一侧不会报红。
+ 41 **M-13 清单跨载体一致性**（v2.12.66）：T8 dispatch 与 08-终检 是**同一份**「主人自行操作建议
+    清单」的两个载体。两处四类动作名必须齐备；两处「可直接复制的命令模板」必须**彼此相等**且与
+    声明真源 `_shared/format-export.md` §二 同源（含 `.tex` 行 + `--reference-doc=academic-paper-template.docx`
+    + `--bibliography` / `--csl`）；禁 v2.12.60 已作废写法回潮（`templates/word-reference.docx` /
+    「再嵌入定稿」—— 图位嵌入由 `final_assembly` 在流水线内完成，主人只做 SVG→PNG）。
+    防「同一份清单两处承载、改 A 漏 B」（与 P1-1 轻量档口径 / P1-2 路径边界同族）。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import json, pathlib, re, sys, yaml
@@ -887,6 +893,44 @@ def main():
             if _fb40 not in _halt40:
                 errs.append(f"{_n40['id']}.timeout_fallback->{_fb40} 非挂起类"
                             f"（P2-2：必须落在 silence_doctrine.halt_kinds 内）")
+
+    # 41 M-13 清单跨载体一致性（v2.12.66）：T8 dispatch 与 08-终检 是**同一份**「主人自行操作
+    #    建议清单」的两个载体，此前**无任何门**校验二者一致 ⇒ v2.12.60 把第 2 类由「图件落地与
+    #    嵌入」瘦回「SVG → PNG 转换」（嵌入改由 final_assembly 在流水线内完成）时**只改 T8、
+    #    08 漏改**；同期 T8 的内联命令模板又与它自己声明的真源 `_shared/format-export.md` §二
+    #    不符（缺 `.tex` 行、`--reference-doc` 指向旧文件 `templates/word-reference.docx`、
+    #    pdf 缺 `--template/--bibliography/--csl`）—— 主人照拄即得错误产物。
+    #    故障面 = 「同一份清单两处承载、改 A 漏 B」（与 P1-1 轻量档口径、P1-2 路径边界同族）。
+    _M13_ACTIONS41 = ('文档格式转换', 'SVG → PNG 转换', '封面视觉', 'SHA256 校验和登记')
+    _M13_STALE41 = ('templates/word-reference.docx', '再嵌入定稿')
+    _M13_CARRIERS41 = (('T8 dispatch', 'references/dispatch/T8-终检.md'),
+                       ('08-终检', 'references/agents/08-终检-final-inspector.md'))
+    _cmd41 = {}
+    for _lbl41, _rel41 in _M13_CARRIERS41:
+        _t41 = (_R / _rel41).read_text(encoding='utf-8')
+        for _a41 in _M13_ACTIONS41:
+            if _a41 not in _t41:
+                errs.append(f'{_lbl41} M-13 清单缺动作「{_a41}」（规则 41：两载体四类必须一致）')
+        for _s41 in _M13_STALE41:
+            if _s41 in _t41:
+                errs.append(f'{_lbl41} M-13 含已作废写法「{_s41}」'
+                            f'（规则 41：v2.12.60 定案图位嵌入在流水线内，主人只做 SVG→PNG）')
+        _blk41 = [b for b in re.findall(r'```[a-zA-Z]*\n(.*?)```', _t41, re.S) if 'pandoc' in b]
+        if len(_blk41) != 1:
+            errs.append(f'{_lbl41} M-13 命令模板块应恰 1 个，实为 {len(_blk41)} 个（规则 41）')
+        else:
+            _cmd41[_lbl41] = '\n'.join(l.strip() for l in _blk41[0].splitlines() if l.strip())
+    if len(_cmd41) == 2 and len(set(_cmd41.values())) != 1:
+        errs.append('M-13 命令模板两载体不一致（规则 41：T8 dispatch 与 08-终检 必须同源，'
+                    '真源 = _shared/format-export.md §二）')
+    # 命令模板须与声明真源同源：canonical 四要素缺一即红
+    for _lbl41, _txt41 in _cmd41.items():
+        for _need41 in ('final/定稿.tex', '--reference-doc=academic-paper-template.docx',
+                        '--bibliography=final/证据包/参考文献.bib',
+                        '--csl=chinese-gb7714-2015-numeric'):
+            if _need41 not in _txt41:
+                errs.append(f'{_lbl41} M-13 命令模板缺 {_need41}'
+                            f'（规则 41：与真源 format-export.md §二 同源）')
 
     print(';'.join(errs))
     return 0 if not errs else 2

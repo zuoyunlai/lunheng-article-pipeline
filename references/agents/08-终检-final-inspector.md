@@ -178,7 +178,7 @@
 | # | 建议动作 | 执行者 | 命令来源 |
 |---|---|---|---|
 | 1 | 文档格式转换（docx/pdf/latex） | **主人 host shell** | `_shared/format-export.md` §二 |
-| 2 | 图件落地与嵌入（SVG → PNG 转换；如需可渲染定稿，再嵌入定稿 Markdown） | **主人 host shell** | `templates/图表-SVG-template.md` §6.1 + `_shared/host-verify-recipe.md` §四 |
+| 2 | SVG → PNG 转换（公众号排版等） | **主人 host shell** | `templates/图表-SVG-template.md` §6.1 |
 | 3 | 封面视觉（文生图 / SVG 矢量；论衡 v2.12.52 起不再调用 `image_generate`，由主人自行生成） | **主人自行生成** | `operations.md` 封面段 |
 | 4 | SHA256 校验和登记（终检后对 `final/定稿.md` + 图件） | **主人 host shell** | `_shared/project-archive-sop.md` |
 
