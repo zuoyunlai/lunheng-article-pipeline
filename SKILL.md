@@ -4,7 +4,7 @@ description: "学术论文/深度长文/行业分析流水线：含同行评审�
 metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName；其下未知子键加载器忽略（无官方依据）。读版本脚本已支持缩进写法。
-    version: 2.12.65
+    version: 2.12.66
     requires:
       bins: []
   tools:
@@ -24,7 +24,7 @@ metadata:
     # T8 = [] 主控亲完成，不 spawn
   # 不设 cwd_default：设了会被解析到 skill 目录内（项目跑进技能文件夹）；spawn 的 cwd 必须绝对路径
 ---
-> 版本：v2.12.65（自动同步 2026-09-20）
+> 版本：v2.12.66（自动同步 2026-09-20）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 

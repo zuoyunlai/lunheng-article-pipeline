@@ -1,6 +1,6 @@
-# Changelog 归档（v2.12.60 及更早）
+# Changelog 归档（v2.12.61 及更早）
 
-> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入，v2.12.51 于 v2.12.56 轮转迁入，v2.12.52 于 v2.12.57 轮转迁入，v2.12.53 于 v2.12.58 轮转迁入，v2.12.54 于 v2.12.59 轮转迁入，v2.12.55 于 v2.12.60 轮转迁入，v2.12.56 于 v2.12.61 轮转迁入，v2.12.57 于 v2.12.62 轮转迁入，v2.12.58 于 v2.12.63 轮转迁入，v2.12.59 于 v2.12.64 轮转迁入，v2.12.60 于 v2.12.65 轮转迁入）。
+> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入，v2.12.51 于 v2.12.56 轮转迁入，v2.12.52 于 v2.12.57 轮转迁入，v2.12.53 于 v2.12.58 轮转迁入，v2.12.54 于 v2.12.59 轮转迁入，v2.12.55 于 v2.12.60 轮转迁入，v2.12.56 于 v2.12.61 轮转迁入，v2.12.57 于 v2.12.62 轮转迁入，v2.12.58 于 v2.12.63 轮转迁入，v2.12.59 于 v2.12.64 轮转迁入，v2.12.60 于 v2.12.65 轮转迁入，v2.12.61 于 v2.12.66 轮转迁入）。
 > 拆分口径（v2.12.47）：`CHANGELOG.md` 只保留**最近 5 期**，其余逐字迁入本文件。
 > **`scripts/changelog-check.py` 同时读取两份**，故「每个版本 tag 都有章节」的校验纪律不变。
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
@@ -6267,5 +6267,22 @@ Co-Authored-By: OpenClaw <noreply@openclaw.ai>
 - **验收（实测回填 · 最终态）**：自审门 **PASS 30 / FAIL 0**；`python3 -m pytest tests/ -q` → **386 passed**（新增 4 条）；`python3 scripts/link-check.py` RC=0（相对链接 502 条 / 入口裸引用 2 条 / 活文档内联引用 267 条）；`python3 scripts/flow-check.py` RC=0；`bash scripts/check-version.sh` 通过（v2.12.60）；`bash scripts/inject-lang-policy.py --check` 通过（82 交付文件）；本地 tag 总数 180 → **184**（其中版本 tag 178 → **182**）。
 - **changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.55** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.55 及更早」。
 - **本批范围**：图件嵌入裁定 + 两条 flow-check 规则 + 4 条单测 + 补打 4 个 tag + 记账。**未发布、未 push**（外部动作等主人点头）。
+
+---
+
+---
+
+## [v2.12.61] — 2026-09-19
+
+- **人环决策词表三处同源（主人 2026-09-19 问「`checkpoint-card-template.md` 有没有起到实质性作用」引出）**：查证结论是**有**——它是 `progress_card 联动规范` + `plan 标签真源纪律` 的单一真源（`00-主控-扩展职责.md` 明写），被 6 处文档硬指向，且被 flow-check 规则 20/29、4 条单测、3 处版本登记**真吃**；但顺手查出它**真的漏了一处口径**。
+- **Phase 0 决策词表冲突（真缺陷）**：`status-template.md` 写 `decision=<start|补充信息|暂停|拒绝>`，而 `phase-order.yaml` `phase0_definition.decisions` = `approved`/`revision_requested`/`restart_phase` —— **交集为空**；`start`/`暂停`/`拒绝` 在全仓真源**零命中**。⇒ 主人选「暂停」时，主控要写进 `status.md` 的字面值在真源里**根本不存在**，人在环硬门必然判「未记录」。**根因**：Phase 0 把「**是否启动**」（流水线**外**前置门）与「进线后对简报的决策」混编进同一张选项表，`status-template` 照抄。
+- **修复口径（拆开）**：进线二态 `decision=<approved|revision_requested>`（A 开始 / B 补充信息）；未进线两出口**不写** `decision`，记独立字段 `pre_pipeline_exit=<pause|reject>`（暂停 / 拒绝），未启动时 `decision=n/a` + `pre_pipeline_exit` 必填。
+- **真源同步（本批唯一语义判断项，可一键回退）**：`phase0_definition.decisions` 移除 `restart_phase` —— 该值系 v2.12.28「与其余人工节点结构对齐」**复制**而来（行内注释自曝），且在本节点**自指不可达**（Phase 0 即定题，无更早节点可回退；语义上等同「补充信息后重出简报」）。四节点其余三处 `decisions` 未动。
+- **flow-check 规则 33（新）**：① `status-template` 四行 `decision=<...>` 字面值必须 **⊆** 对应节点 yaml `decisions`（Phase 0→`phase0_definition` / 2.5→`phase2_5_outline` / 3.5→`phase3_5_insight` / 5→`phase5_acceptance`，逐一点名）；② 卡片四段**各须带「枚举真源」指针**（`<节点 id>.decisions`）—— 卡片自称「选项固定，不可自由发挥」，原先却只有 Phase 2.5 段有指针，其余三段无真源可对，等于**不可验证的自我声明**。已补齐 3.5 / 5 两段指针，并给四段选项加 `→ <value>` 映射标注。
+- **卡片效力边界显式声明（观测项，非缺陷）**：全仓 `scripts/` + `tests/` 对其呈现行为**零校验**（`grep '🔵 Checkpoint'` 零命中）——机械门只守**内容完整性**（缺关键段 = 红），**不守运行期是否真的按它呈现过**。后者属**行为层**，与 B12（spawn accepted 但子会话不存在）同类，靠主控纪律 + 主人目视。已写入卡片顶部，避免「模板里有这一段」被误读为「门会拦住不呈现」。
+- **配套 4 条单测**：status⊆yaml 正向（四节点） + 卡片四指针正向 + 自创词表反向注入（塞 `paused` ⇒ 必红并点名） + 缺指针反向注入；全部在**临时整仓副本**注入、真源 sha256 前后一致（教训 #333）。
+- **验收（实测回填 · 最终态）**：自审门 **PASS 30 / FAIL 0**；`python3 -m pytest tests/ -q` → **390 passed**（新增 4 条）；`python3 scripts/flow-check.py` RC=0（含新规则 33）；`python3 scripts/link-check.py` RC=0；`bash scripts/check-version.sh` 通过（v2.12.61）；`bash scripts/inject-lang-policy.py --check` 通过；`python3 scripts/changelog-check.py --check` RC=0。
+- **changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.56** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.56 及更早」。
+- **本批范围**：词表同源修复 + 一条 flow-check 规则 + 4 条单测 + 卡片效力边界声明 + 记账。**未发布、未 push**（外部动作等主人点头）。
 
 ---

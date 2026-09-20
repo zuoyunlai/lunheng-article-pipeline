@@ -2,6 +2,23 @@
 
 ---
 
+## [v2.12.66] — 2026-09-20
+
+- **发版流程缺口修补（升版后正文版本加本地机械门）+ M-13 清单跨载体漂移收口**，主人 2026-09-20 指令「修补发版流程缺口：升版后 README 正文版本漂移目前只能被 CI 抓到，本地 pre-push 无法拦」。本批两条工作提交：`79afe51`（升版后正文版本一致性硬门 + 8 条回归测试）、`7a512a1`（M-13 清单跨载体漂移收口 + flow-check 规则 41 + 4 条回归测试）。
+
+- **① 缺失门本体（v2.12.65 实测复盘）**：`sync-version.sh` 同步 91 个文件、自审门 **PASS 36 / FAIL 0**、打印「版本同步完成」—— 但 `README.md` 正文「当前版本」块仍停在 **v2.12.64**。该判据**按设计不在** `check-version.sh` 覆盖面内（后者只校文件头版本戳 / 安装 pin / 9 角色旧命名）⇒ **本地全绿**；推送后 `论衡算法测试 CI（全量）` 与 `Code Quality` 同时红，同一根因 = `tests/test_audit_residuals.py::test_readme_prose_version_matches_frontmatter`（`AssertionError: README 正文版本 v2.12.64 ≠ frontmatter 2.12.65`）。与教训 #428 属**同一缺陷的第二次复现** ⇒ 证明该教训此前**只靠纪律、无机械门**；与 #430 同族（本地门全绿 ≠ CI 全绿）。
+- **② 修法（`79afe51`）：把判据挂到「引入缺陷的那个流程末端」** —— `sync-version.sh` 在非 DRY-RUN 分支、自审门**之后**、`.bak` 清理**之前**触发两条版本真源断言：`::test_readme_prose_version_matches_frontmatter`（README 正文「当前版本」）与 `::test_skill_body_version_header_matches_frontmatter`（SKILL.md 正文版本头）。失败即 `exit 1` ⇒ 既有「**同步成功才清 .bak**」语义自动覆盖本门（失败 = 视同**未同步**，备份保留供回滚）；退出信息点名**文件 + 断言 + 判据真源节点 + 改法**。
+- **③ 口径（一条款一真源，刻意不做第二份判据）**：判据**唯一真源 = 上述两条断言**，本门**只负责触发**、不复制正则 ⇒ **不扩** `check-version.sh` 的判据面（扩 = 两套判据必然漂移，正是本仓 P1-1 / P1-2 刚拆掉的那类）。用**显式节点 id** 而非 `-k "version"`：`-k` 是子串过滤器，测试改名/新增会静默改变覆盖范围；显式 id 由 pytest 以「未收集到」直接报红（fail-closed）。工具链缺失（无 `python3` / 无 `pytest`）同样非零退出并明示「**环境错误，非版本不一致**」，不允许静默降级。
+- **④ M-13 跨载体漂移收口（`7a512a1`）**：T8 dispatch 与 08-终检 是**同一份**「主人自行操作建议清单」的两个载体，两处内容已漂移且**无任何门**校验。漂移 ①：v2.12.60 把第 2 类由「图件落地与嵌入」瘦回「SVG → PNG 转换」（图位嵌入改由 `final_assembly` 在流水线内完成）时**只改 T8、08 漏改** ⇒ 按 08 字面执行 = 让主人重做流水线已完成的嵌入。漂移 ②：T8 内联「可直接复制的命令模板」与它自己声明的真源 `_shared/format-export.md` §二 **不符**（缺 `.tex` 行、`--reference-doc` 指向 `templates/word-reference.docx` 旧文件、pdf 行缺 `--template / --bibliography / --csl`）⇒ 主人照抄即得**错误产物**。修法：08 对齐 T8 口径 + T8 命令模板回真源 §二（两处逐字节一致），并新增 **flow-check 规则 41**（两载体四类动作齐备 + 两处 pandoc 围栏块彼此相等且与 §二同源 + 禁已作废写法）。
+- **⑤ 回归测试（两层，全部整仓副本注入、真源 sha256 前后一致）**：`tests/test_version_prose_gate.py` **8 条** —— 接线（节点清单**从脚本抽取**不复制 + 位置断言「自审门之后 / `.bak` 之前」 + 缺 pytest fail-closed）/ 判据有效（README 正文与 SKILL.md 正文头各一条反向注入必红）/ 端到端（跑**副本的** `sync-version.sh`：注入错版 ⇒ 非零退出 + 点名 + **`.bak` 保留**；一致副本 ⇒ 退出 0 防假阳性；副本自审门换恒过桩，确保红/绿只可能来自本门）。规则 41 **4 条**（跨载体一致性正向 + 08 第 2 类回潮注入 + T8 命令块 `reference-doc` 漂移注入）。
+- **⑥ 文档同步**：`references/设计文档-架构.md`「修订后必跑硬门三件套」段声明 `sync-version.sh` 末尾现**内建两道门**，并说明「本门为何住在这里而非 `check-version.sh`」；同段把长期失真的「**69 个**应含版本号的文件」改为**不写死数字的派生口径**（实测已漂到 91）—— 硬编码副本必然腐烂，同型于 v2.12.62「编号去副本」。
+- **⑦ 并发链实测记录（诚实边界，教训 #423 再现）**：本批工作期间，同一仓库工作树上**另有并行会话链在飞**（同项目 `spawnedCwd`）：该链先提交 ①②，再提交 ③；本链在升号阶段已写下的**版本戳 / README 正文 / CHANGELOG 章节**被该链回收工作树时清除。收口后本链**重做记账 + 先跑发版前置闸（在飞链 = 0，已确认对方 `done`）** 才发版 —— 即既有纪律在真实并发下**正常工作**，也再次证实「先 bump 后检查」的顺序风险（#423）。
+- **⑧ 验收（实测回填 · 最终态）**：对**故意错版**的 README 正文跑 `bash scripts/sync-version.sh` → **RC=1**，输出点名 `README 正文版本 v2.12.64 ≠ frontmatter 2.12.65` + 断言行 + 判据真源节点，且 `references/_shared/phase-order.yaml.bak.*` **未被清理**；真源仓 `README.md` / `SKILL.md` / `scripts/sync-version.sh` sha256 前后不变。自审门 **PASS 36 / FAIL 0**；`bash scripts/check-version.sh` 通过（v2.12.66）；`python3 scripts/flow-check.py` **RC=0**（含新规则 41）；`python3 scripts/changelog-check.py --check` RC=0；`python3 -m pytest tests/ -q` → **463 passed**（含本批新增 12 条）。
+- **⑨ changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 把最旧的 **v2.12.61** 逐字迁入 `CHANGELOG-archive.md` 尾部（与上一轮 v2.12.60 的落位一致），归档标题边界更新为「v2.12.61 及更早」。
+- **本批范围**：一条本地机械门 + 一组 M-13 跨载体收口（含一条 flow-check 规则）+ 12 条回归测试 + 两处文档同步 + 记账。**无新增运行能力、无破坏性行为变更**（不改任何论衡运行时口径）。
+
+---
+
 ## [v2.12.65] — 2026-09-20
 
 - **审计第六批整改 — 三条独立审计链交叉收口（P0×1 + P1×6 + P2×3）**，主人 2026-09-20 指令「发版」。本批五条提交：`342a7f3`（P0-1/P1-1/P1-2 交叉收口）、`eeb5e29`（P1-3 快照抬号）、`a4a9c62`（P1-4/P1-5）、`aa0c8bf`（P2-3）、`caad3f0`（P2-2）。
@@ -106,22 +123,5 @@
 - **验收（实测回填 · 最终态）**：自审门 **PASS 36 / FAIL 0**（新增门 Y 5 条）；`python3 -m pytest tests/ -q` → **399 passed**（新增 9 条）；`python3 scripts/flow-check.py` RC=0（含新规则 34）；`python3 scripts/link-check.py` RC=0；`bash scripts/check-version.sh` 通过（v2.12.62）；`bash scripts/inject-lang-policy.py --check` 通过（83 交付文件）；`python3 scripts/changelog-check.py --check` RC=0。
 - **changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.57** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.57 及更早」。
 - **本批范围**：三条审计项 + 一条历史遗留（B12）+ 门 Y 新门 + 9 条单测 + 记账。**无新增运行能力、无破坏性行为变更**（全部为分层/判据/台账层）。
-
----
-
----
-
-## [v2.12.61] — 2026-09-19
-
-- **人环决策词表三处同源（主人 2026-09-19 问「`checkpoint-card-template.md` 有没有起到实质性作用」引出）**：查证结论是**有**——它是 `progress_card 联动规范` + `plan 标签真源纪律` 的单一真源（`00-主控-扩展职责.md` 明写），被 6 处文档硬指向，且被 flow-check 规则 20/29、4 条单测、3 处版本登记**真吃**；但顺手查出它**真的漏了一处口径**。
-- **Phase 0 决策词表冲突（真缺陷）**：`status-template.md` 写 `decision=<start|补充信息|暂停|拒绝>`，而 `phase-order.yaml` `phase0_definition.decisions` = `approved`/`revision_requested`/`restart_phase` —— **交集为空**；`start`/`暂停`/`拒绝` 在全仓真源**零命中**。⇒ 主人选「暂停」时，主控要写进 `status.md` 的字面值在真源里**根本不存在**，人在环硬门必然判「未记录」。**根因**：Phase 0 把「**是否启动**」（流水线**外**前置门）与「进线后对简报的决策」混编进同一张选项表，`status-template` 照抄。
-- **修复口径（拆开）**：进线二态 `decision=<approved|revision_requested>`（A 开始 / B 补充信息）；未进线两出口**不写** `decision`，记独立字段 `pre_pipeline_exit=<pause|reject>`（暂停 / 拒绝），未启动时 `decision=n/a` + `pre_pipeline_exit` 必填。
-- **真源同步（本批唯一语义判断项，可一键回退）**：`phase0_definition.decisions` 移除 `restart_phase` —— 该值系 v2.12.28「与其余人工节点结构对齐」**复制**而来（行内注释自曝），且在本节点**自指不可达**（Phase 0 即定题，无更早节点可回退；语义上等同「补充信息后重出简报」）。四节点其余三处 `decisions` 未动。
-- **flow-check 规则 33（新）**：① `status-template` 四行 `decision=<...>` 字面值必须 **⊆** 对应节点 yaml `decisions`（Phase 0→`phase0_definition` / 2.5→`phase2_5_outline` / 3.5→`phase3_5_insight` / 5→`phase5_acceptance`，逐一点名）；② 卡片四段**各须带「枚举真源」指针**（`<节点 id>.decisions`）—— 卡片自称「选项固定，不可自由发挥」，原先却只有 Phase 2.5 段有指针，其余三段无真源可对，等于**不可验证的自我声明**。已补齐 3.5 / 5 两段指针，并给四段选项加 `→ <value>` 映射标注。
-- **卡片效力边界显式声明（观测项，非缺陷）**：全仓 `scripts/` + `tests/` 对其呈现行为**零校验**（`grep '🔵 Checkpoint'` 零命中）——机械门只守**内容完整性**（缺关键段 = 红），**不守运行期是否真的按它呈现过**。后者属**行为层**，与 B12（spawn accepted 但子会话不存在）同类，靠主控纪律 + 主人目视。已写入卡片顶部，避免「模板里有这一段」被误读为「门会拦住不呈现」。
-- **配套 4 条单测**：status⊆yaml 正向（四节点） + 卡片四指针正向 + 自创词表反向注入（塞 `paused` ⇒ 必红并点名） + 缺指针反向注入；全部在**临时整仓副本**注入、真源 sha256 前后一致（教训 #333）。
-- **验收（实测回填 · 最终态）**：自审门 **PASS 30 / FAIL 0**；`python3 -m pytest tests/ -q` → **390 passed**（新增 4 条）；`python3 scripts/flow-check.py` RC=0（含新规则 33）；`python3 scripts/link-check.py` RC=0；`bash scripts/check-version.sh` 通过（v2.12.61）；`bash scripts/inject-lang-policy.py --check` 通过；`python3 scripts/changelog-check.py --check` RC=0。
-- **changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.56** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.56 及更早」。
-- **本批范围**：词表同源修复 + 一条 flow-check 规则 + 4 条单测 + 卡片效力边界声明 + 记账。**未发布、未 push**（外部动作等主人点头）。
 
 ---
