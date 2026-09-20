@@ -331,7 +331,7 @@ else
     echo ""
     if bash "$SCRIPT_DIR/self-audit-gate.sh"; then
       echo ""
-      echo "✅ 自审门通过，版本同步完成"
+      echo "✅ 自审门通过"
     else
       echo ""
       echo "❌ 自审门失败，请修复后重新跑 sync-version.sh"
@@ -339,6 +339,58 @@ else
     fi
   else
     echo "⚠️  self-audit-gate.sh 不存在，跳过自动自审门"
+  fi
+
+  # ===========================================================================
+  # v2.12.66：升版后「正文版本」一致性硬门（教训 #428 二次复现 + #430 绿灯幻觉）
+  #
+  # 背景（2026-09-20 实测，v2.12.65 升版）：本脚本同步 91 个文件、自审门 36 门全绿、
+  #   打印「版本同步完成」—— 但 README 正文「当前版本」块仍停在 **v2.12.64**。
+  #   该判据按设计**不在** check-version.sh 覆盖范围（后者只校文件头版本戳 / 安装 pin /
+  #   角色命名），于是「本地全绿 + CI 红」：推送后 `论衡算法测试 CI（全量）` 与 `Code Quality`
+  #   同时红，同一根因 = tests/test_audit_residuals.py::test_readme_prose_version_matches_frontmatter。
+  #   与教训 #428 是**同一缺陷的第二次复现** ⇒ 该教训此前只靠纪律、无机械门（#430 同族）。
+  #
+  # 口径（一条款一真源）：判据的**唯一真源** = tests/test_audit_residuals.py 的两条断言；
+  #   本处只负责在升版流程末端**触发**它，绝不复制正则 —— 否则就是本仓反复出现的
+  #   「两套判据漂移 / 改 A 漏 B」。故不扩 check-version.sh 的判据面。
+  #
+  # 为何用**显式节点 id**而非 `-k "version"`：`-k` 是子串过滤器，日后新增/重命名测试会
+  #   静默改变本门覆盖范围；显式 id 在测试被改名时由 pytest 直接报「未收集到」而非静默降级。
+  #
+  # 位置（刻意）：在自审门**之后**、.bak 清理**之前**。失败即 exit 1 ⇒ 既有「同步成功才清
+  #   .bak」语义自动覆盖本门（失败 = 视同**未同步**，备份保留供回滚）。
+  # 反向注入测试：tests/test_version_prose_gate.py（整仓副本注入 + 真源 sha256 前后一致）。
+  # ===========================================================================
+  VERSION_TRUTH_TESTS=(
+    "tests/test_audit_residuals.py::test_readme_prose_version_matches_frontmatter"
+    "tests/test_audit_residuals.py::test_skill_body_version_header_matches_frontmatter"
+  )
+  # 绝对路径调用 ⇒ 与调用时的 cwd 无关（本仓 SOP 允许从任意目录 `bash scripts/sync-version.sh`）
+  VERSION_TRUTH_ARGS=()
+  for vtt in "${VERSION_TRUTH_TESTS[@]}"; do
+    VERSION_TRUTH_ARGS+=("$SKILL_ROOT/$vtt")
+  done
+  echo ""
+  echo "🔍 升版后正文版本一致性门（README 正文「当前版本」/ SKILL.md 正文版本头）..."
+  if ! command -v python3 >/dev/null 2>&1 || ! python3 -c 'import pytest' >/dev/null 2>&1; then
+    echo "❌ 无法执行正文版本一致性门：python3 或 pytest 不可用（**环境错误，非版本不一致**）"
+    echo "   安装：pip install -r tests/requirements-test.txt"
+    exit 1
+  fi
+  if python3 -m pytest -q "${VERSION_TRUTH_ARGS[@]}"; then
+    echo "✅ 正文版本一致性门通过（v$EXPECTED）"
+  else
+    echo ""
+    echo "❌ 升版后正文版本一致性门失败（v$EXPECTED）：正文版本未同步到 frontmatter"
+    echo "   判据真源（唯一）："
+    echo "     tests/test_audit_residuals.py::test_readme_prose_version_matches_frontmatter"
+    echo "     tests/test_audit_residuals.py::test_skill_body_version_header_matches_frontmatter"
+    echo "   修复：README.md 正文「当前版本」块（\`**vX.Y.Z**（…当前版本\`））与 SKILL.md 正文版本头"
+    echo "         一并改成 v$EXPECTED，再重跑本脚本。"
+    echo "   ⚠️ 本门失败 = 视同**未同步**：.bak 备份保留供回滚，不会被清理。"
+    echo "   （教训 #428 二次复现 / #430 绿灯幻觉：本地门全绿 ≠ CI 全绿）"
+    exit 1
   fi
 fi
 
