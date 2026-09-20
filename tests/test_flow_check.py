@@ -1224,3 +1224,54 @@ def test_p12_path_boundary_reverse_injection(tmp_path):
         return src.replace("项目数据域外写入 0 命中", "run/ 子树外路径 0 命中", 1)
 
     _inject_and_expect("references/_shared/dispatch-header.md", mutate, "P1-2", tmp_path)
+
+
+# ===== v2.12.65 P1-4：安全误报白名单清单完整性（.safe-pattern-manifest.json）=====
+
+def test_p14_safe_pattern_manifest_shape():
+    """P1-4：每条豁免须有 file/reason/lines/note，且 file 真实存在、行号端点落在该文件行数内。
+
+    背景：通用扫描器（skill-auditor-plus/security_audit.py）**不消费本清单**，其豁免只有按行启发式
+    跳过（`#` / `-` / `**` / 围栏行）。因此本清单的价值是「已知误报 + 理由」的可复用判据 ——
+    一旦 file 改名或行号漂移，它就变成假账，下一轮扫描仍要重复人工逐条排查。
+    """
+    import json as _json
+
+    mf = ROOT / ".safe-pattern-manifest.json"
+    assert mf.exists(), "缺 .safe-pattern-manifest.json（P1-4）"
+    d = _json.loads(mf.read_text(encoding="utf-8"))
+    assert isinstance(d.get("version"), int), "manifest 缺整型 version（P1-4）"
+    ex = d.get("exemptions")
+    assert isinstance(ex, list) and ex, "manifest exemptions 缺失或为空（P1-4）"
+    seen = set()
+    for e in ex:
+        for k in ("file", "reason", "lines", "note"):
+            assert e.get(k), f"豁免项缺 {k}（P1-4）: {e}"
+        f = e["file"]
+        assert f not in seen, f"重复登记同一文件（P1-4）: {f}"
+        seen.add(f)
+        assert re.fullmatch(r"[a-z][a-z0-9-]*", e["reason"]), f"reason 非 kebab-case（P1-4）: {e['reason']}"
+        assert re.fullmatch(r"\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*", e["lines"]), f"lines 格式非法（P1-4）: {e['lines']}"
+        assert len(str(e["note"])) >= 10, f"note 过短（未写理由）（P1-4）: {f}"
+        p = ROOT / f
+        assert p.exists(), f"豁免项文件不存在（P1-4）: {f}"
+        total = len(p.read_text(encoding="utf-8", errors="ignore").splitlines())
+        for seg in e["lines"].split(","):
+            for num in seg.split("-"):
+                assert int(num) <= total, f"豁免项行号越界（P1-4）: {f} 第 {num} 行 > {total} 行"
+
+
+def test_p14_manifest_missing_file_reverse_injection(tmp_path):
+    """P1-4 反向注入：豁免项指向不存在的文件 ⇒ flow-check 必须红（白名单成假账）。"""
+    def mutate(src):
+        return src.replace('"scripts/release-preflight.sh"', '"scripts/no-such-file-xyz.sh"', 1)
+
+    _inject_and_expect(".safe-pattern-manifest.json", mutate, "P1-4", tmp_path)
+
+
+def test_p14_manifest_line_drift_reverse_injection(tmp_path):
+    """P1-4 反向注入：登记行号越界（行号漂移）⇒ flow-check 必须红。"""
+    def mutate(src):
+        return src.replace('"lines": "161,257"', '"lines": "161,99999"', 1)
+
+    _inject_and_expect(".safe-pattern-manifest.json", mutate, "P1-4", tmp_path)

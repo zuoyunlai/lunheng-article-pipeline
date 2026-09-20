@@ -40,7 +40,7 @@
     必须承载同一协议（真源 ↔ 角色卡双向接线）—— 防「静默继续」与「只写在散文」。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
-import pathlib, re, sys, yaml
+import json, pathlib, re, sys, yaml
 from collections import deque
 
 # 执行类节点：产出受管产物，必须 input + output
@@ -733,6 +733,57 @@ def main():
         _t37 = (_root24 / _f37).read_text(encoding='utf-8')
         if _tok37 in _t37:
             errs.append(f'{_f37} 仍含旧单域路径口径「{_tok37}」（P1-2：应改为两域 + 指向 permissions.md）')
+
+    # 38 安全误报白名单清单完整性（v2.12.65 P1-4）：`.safe-pattern-manifest.json` 必须可解析，
+    #    每条豁免必须给出 file/reason/lines/note，且 file 真实存在、行号端点落在该文件行数内。
+    #    故障面 = 「登记一行就走」：文件改名 / 行号漂移后，白名单变成**假账**，下一轮安全扫描
+    #    仍要重复人工逐条排查（P1-4 诉求：把「已知误报 + 理由」变成可复用判据，而不是一次性说明）。
+    _mf38 = _root24 / '.safe-pattern-manifest.json'
+    if not _mf38.exists():
+        errs.append('.safe-pattern-manifest.json 缺失（P1-4：已知误报白名单未登记）')
+    else:
+        try:
+            _man38 = json.loads(_mf38.read_text(encoding='utf-8'))
+        except Exception as _e38:
+            _man38 = None
+            errs.append(f'.safe-pattern-manifest.json 解析失败: {_e38}（P1-4）')
+        if isinstance(_man38, dict):
+            if not isinstance(_man38.get('version'), int):
+                errs.append('.safe-pattern-manifest.json 缺整型 version（P1-4）')
+            _ex38 = _man38.get('exemptions')
+            if not isinstance(_ex38, list) or not _ex38:
+                errs.append('.safe-pattern-manifest.json exemptions 缺失或为空（P1-4）')
+            else:
+                _seen38 = set()
+                for _e38 in _ex38:
+                    if not isinstance(_e38, dict):
+                        errs.append(f'manifest 豁免项不是映射（P1-4）: {_e38!r}')
+                        continue
+                    _f38, _r38 = _e38.get('file'), _e38.get('reason')
+                    _l38, _n38 = _e38.get('lines'), _e38.get('note')
+                    if not (_f38 and _r38 and _l38 and _n38):
+                        errs.append(f'manifest 豁免项缺 file/reason/lines/note（P1-4）: {_e38!r}')
+                        continue
+                    if _f38 in _seen38:
+                        errs.append(f'manifest 豁免项重复登记同一文件: {_f38}（P1-4）')
+                    _seen38.add(_f38)
+                    if not re.fullmatch(r'[a-z][a-z0-9-]*', str(_r38)):
+                        errs.append(f'manifest 豁免项 reason 非 kebab-case: {_r38}（P1-4）')
+                    if not re.fullmatch(r'\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*', str(_l38)):
+                        errs.append(f'manifest 豁免项 lines 格式非法: {_l38}（P1-4）')
+                    if len(str(_n38)) < 10:
+                        errs.append(f'manifest 豁免项 note 过短（未写理由）: {_f38}（P1-4）')
+                    _pf38 = _root24 / str(_f38)
+                    if not _pf38.exists():
+                        errs.append(f'manifest 豁免项文件不存在: {_f38}（P1-4：白名单已成假账）')
+                        continue
+                    _tot38 = len(_pf38.read_text(encoding='utf-8', errors='ignore').splitlines())
+                    for _seg38 in str(_l38).split(','):
+                        for _num38 in _seg38.split('-') if isinstance(_seg38, str) else []:
+                            if not str(_num38).isdigit():
+                                continue
+                            if int(_num38) > _tot38:
+                                errs.append(f'manifest 豁免项行号越界: {_f38} 第 {_num38} 行 > 实际 {_tot38} 行（P1-4：行号已漂移）')
 
     print(';'.join(errs))
     return 0 if not errs else 2
