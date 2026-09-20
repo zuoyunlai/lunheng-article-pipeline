@@ -31,5 +31,41 @@
       "lines": "161,257",
       "note": "`bash -c \"$SESSIONS_CMD\"` / `bash -c \"$REMOTE_CMD\"` 动态执行；变量来源为脚本内固定字面量默认值，非外部用户输入，且属维护者工具不进净化包"
     }
-  ]
+  ],
+  "maintainer_danger_ops": {
+    "note": "维护者脚本危险操作**统一审计点**（回应审计 P2-3）：scripts/ 下每个含危险构造的脚本都必须在此登记 + 写明护栏。判据 = flow-check 规则 39（双向对账：命中集 ⊆ 登记集，且登记集 ⊆ 命中集，防漏登记与陈旧登记）。patterns 是本节的唯一真源，规则 39 从中读取。",
+    "patterns": ["rm -rf", "bash -c", "sh -c", "eval"],
+    "files": [
+      {
+        "file": "scripts/build-clawhub-release.sh",
+        "ops": ["rm -rf"],
+        "guard": "输出路径逃逸防护：版本号或输出目录含 `/` / `..` / 空值一律 exit 2，且该校验位于 rm -rf **之前**；删除目标恒为 $OUT_ROOT/$VERSION 之内"
+      },
+      {
+        "file": "scripts/cleanup-skill-store.sh",
+        "ops": ["rm -rf"],
+        "guard": "仅删本脚本自身生成的 clawhub-release/--dry-run 与离线备份目录 $BAK_DIR；--dry-run 分支不落盘"
+      },
+      {
+        "file": "scripts/release-preflight.sh",
+        "ops": ["rm -rf", "bash -c"],
+        "guard": "rm -rf 只作用于 mktemp 临时目录 $TMP_PF（cleanup trap）；bash -c 的命令变量来源为脚本内固定字面量默认值，非外部输入"
+      },
+      {
+        "file": "scripts/self-audit-gate.sh",
+        "ops": ["rm -rf"],
+        "guard": "只删门 R 自证用的 mktemp 探针目录 $PROBE_DIR"
+      },
+      {
+        "file": "scripts/strip-shell-commands.py",
+        "ops": ["rm -rf"],
+        "guard": "危险模式**定义**（剥离规则的匹配串），非执行路径"
+      },
+      {
+        "file": "scripts/test-path-canonical.sh",
+        "ops": ["rm -rf"],
+        "guard": "只删测试自建的 mktemp 基目录 $BASE_DIR"
+      }
+    ]
+  }
 }

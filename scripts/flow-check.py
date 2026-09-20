@@ -739,6 +739,7 @@ def main():
     #    故障面 = 「登记一行就走」：文件改名 / 行号漂移后，白名单变成**假账**，下一轮安全扫描
     #    仍要重复人工逐条排查（P1-4 诉求：把「已知误报 + 理由」变成可复用判据，而不是一次性说明）。
     _mf38 = _root24 / '.safe-pattern-manifest.json'
+    _man38 = None
     if not _mf38.exists():
         errs.append('.safe-pattern-manifest.json 缺失（P1-4：已知误报白名单未登记）')
     else:
@@ -784,6 +785,38 @@ def main():
                                 continue
                             if int(_num38) > _tot38:
                                 errs.append(f'manifest 豁免项行号越界: {_f38} 第 {_num38} 行 > 实际 {_tot38} 行（P1-4：行号已漂移）')
+
+    # 39 维护者脚本危险操作统一审计点（v2.12.65 P2-3）：scripts/ 下含危险构造的脚本必须与
+    #    `.safe-pattern-manifest.json` 的 `maintainer_danger_ops.files` **双向对账** ——
+    #    漏登记（新脚本加了 rm -rf 却没登记）与陈旧登记（脚本已移除该构造却没销账）都要报红。
+    #    扫描口径与通用扫描器一致（跳过 `#` / `-` / `**` / 围栏 / 三引号行），防止两端漏重不一致。
+    #    故障面 = 「危险操作分散在多脚本、无统一审计点」：新增一处 rm -rf / bash -c 时无人察觉。
+    if isinstance(_man38, dict):
+        _mdo39 = _man38.get('maintainer_danger_ops') or {}
+        _pats39 = [str(x) for x in (_mdo39.get('patterns') or [])]
+        _decl39 = {str(e.get('file')) for e in (_mdo39.get('files') or []) if isinstance(e, dict)}
+        if not _pats39:
+            errs.append('maintainer_danger_ops.patterns 缺失或为空（P2-3：统一审计点无判据）')
+        if not _decl39:
+            errs.append('maintainer_danger_ops.files 缺失或为空（P2-3：危险操作无登记）')
+        for _e39 in (_mdo39.get('files') or []):
+            if isinstance(_e39, dict) and not _e39.get('guard'):
+                errs.append(f"maintainer_danger_ops 登记项缺 guard: {_e39.get('file')}（P2-3：必须写明护栏）")
+        _hit39 = set()
+        for _sf39 in (sorted((_root24 / 'scripts').glob('*.sh'))
+                      + sorted((_root24 / 'scripts').glob('*.py'))):
+            for _ln39 in _sf39.read_text(encoding='utf-8', errors='ignore').splitlines():
+                _s39 = _ln39.strip()
+                if (_s39.startswith('#') or _s39.startswith('-') or _s39.startswith('**')
+                        or '"""' in _s39 or "'''" in _s39 or '```' in _s39):
+                    continue
+                if any(_p39 in _ln39 for _p39 in _pats39):
+                    _hit39.add(f'scripts/{_sf39.name}')
+                    break
+        for _f39 in sorted(_hit39 - _decl39):
+            errs.append(f'{_f39} 含维护者危险操作但未登记（P2-3：请补 maintainer_danger_ops.files 并写明护栏）')
+        for _f39 in sorted(_decl39 - _hit39):
+            errs.append(f'{_f39} 已登记危险操作但实际未命中（P2-3：陈旧登记，请销账或复核扫描口径）')
 
     print(';'.join(errs))
     return 0 if not errs else 2

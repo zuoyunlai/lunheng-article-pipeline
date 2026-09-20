@@ -1275,3 +1275,60 @@ def test_p14_manifest_line_drift_reverse_injection(tmp_path):
         return src.replace('"lines": "161,257"', '"lines": "161,99999"', 1)
 
     _inject_and_expect(".safe-pattern-manifest.json", mutate, "P1-4", tmp_path)
+
+
+# ===== v2.12.65 P2-3：维护者脚本危险操作统一审计点 =====
+
+def test_p23_maintainer_danger_ops_bidirectional():
+    """P2-3：scripts/ 危险操作命中集必须与 maintainer_danger_ops.files **双向相等**。
+
+    背景：审计 P2-3 指出 rm -rf / bash -c 分散在多个维护者脚本，无统一审计点。
+    本测试**独立重算**扫描结果（不复用规则 39 的实现），锁死两个方向：
+    漏登记（新危险操作无登记）与陈旧登记（构造已移除但未销账）。
+    """
+    import json as _json
+
+    mf = ROOT / ".safe-pattern-manifest.json"
+    d = _json.loads(mf.read_text(encoding="utf-8"))
+    mdo = d.get("maintainer_danger_ops") or {}
+    pats = [str(x) for x in (mdo.get("patterns") or [])]
+    assert pats, "maintainer_danger_ops.patterns 缺失（P2-3）"
+    entries = mdo.get("files") or []
+    assert entries, "maintainer_danger_ops.files 缺失（P2-3）"
+    declared = set()
+    for e in entries:
+        assert e.get("file"), f"登记项缺 file（P2-3）: {e}"
+        assert e.get("guard"), f"登记项缺 guard（P2-3）: {e}"
+        assert e.get("ops"), f"登记项缺 ops（P2-3）: {e}"
+        declared.add(e["file"])
+        assert (ROOT / e["file"]).exists(), f"登记项文件不存在（P2-3）: {e['file']}"
+
+    hits = set()
+    for p in sorted((ROOT / "scripts").glob("*.sh")) + sorted((ROOT / "scripts").glob("*.py")):
+        for ln in p.read_text(encoding="utf-8", errors="ignore").splitlines():
+            s = ln.strip()
+            if (s.startswith("#") or s.startswith("-") or s.startswith("**")
+                    or '"""' in s or "'''" in s or "```" in s):
+                continue
+            if any(x in ln for x in pats):
+                hits.add(f"scripts/{p.name}")
+                break
+
+    assert hits - declared == set(), f"含危险操作但未登记（P2-3）: {sorted(hits - declared)}"
+    assert declared - hits == set(), f"已登记但实际未命中（P2-3 陈旧登记）: {sorted(declared - hits)}"
+
+
+def test_p23_unregistered_danger_reverse_injection(tmp_path):
+    """P2-3 反向注入：给未登记脚本加一处 bash -c ⇒ flow-check 必须红（漏登记）。"""
+    def mutate(src):
+        return src + '\n_UNREGISTERED = "bash -c echo hi"\n'
+
+    _inject_and_expect("scripts/link-check.py", mutate, "P2-3", tmp_path)
+
+
+def test_p23_stale_registration_reverse_injection(tmp_path):
+    """P2-3 反向注入：抹掉已登记脚本里的危险构造 ⇒ flow-check 必须红（陈旧登记）。"""
+    def mutate(src):
+        return src.replace("(r'rm -rf', '删除目录'),", "(r'rm -rXf', '删除目录'),", 1)
+
+    _inject_and_expect("scripts/strip-shell-commands.py", mutate, "P2-3", tmp_path)
