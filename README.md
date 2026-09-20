@@ -1,4 +1,4 @@
-> 版本：v2.12.64（自动同步 2026-09-19）
+> 版本：v2.12.65（自动同步 2026-09-20）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -128,7 +128,7 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.64  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.65  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 
@@ -183,6 +183,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.64  # pin 审�
 | v2.12.62 | 2026-09-19 | 分层+棘轮 | P2-6 二次分层（§二十/§二十三 外移，净减 12.6KB）+ 门 Y 体量软棘轮 + P2-7 编号去副本（门 H 双判据）+ B12 三点接线与诚实边界 |
 | v2.12.63 | 2026-09-19 | 发布面热修 | 维护者内档停止出厂（`_shared` **白名单准入门**）+ 净化规则误删修复（3h-5 mention-only + 行级断言）|
 | v2.12.64 | 2026-09-19 | 构建链硬化 | 随包文件清单门（**全包**白名单准入，84 条精确集合相等）+ 死链程序化中和（C-4）+ 非 md 正向门（C-5）+ 基线字符下限（C-6）+ 豁免理由双向闭合（C-7）+ CI 判据统一与发版闸四查 + 工具残留排除（`.coverage*`）|
+| v2.12.65 | 2026-09-20 | 交叉审计收口 | 三条审计链合并整改：T2.5 判据输入补生产方（P0，规则 35）+ 轻量档/路径边界口径归一（36/37）+ 安全误报白名单（38）+ 维护者危险操作统一审计点（39，双向对账）+ 跨状态机「静默 ≠ 有效决策」不变式机械化（40）|
 完整 changelog 见仓库内 [CHANGELOG.md](CHANGELOG.md)（最近 5 期）+ [CHANGELOG-archive.md](CHANGELOG-archive.md)（v2.12.47 起拆分轮转，两份合起来仍是逐版本全量记录；轮转边界见归档文件头部）；GitHub [Releases](https://github.com/zuoyunlai/lunheng-article-pipeline/releases) 为同一内容的发布视图。教训沉淀见 [memory/lessons.md](https://github.com/zuoyunlai/openclaw-workspace)（编号以索引为准）。
 
 ---

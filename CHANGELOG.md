@@ -2,6 +2,27 @@
 
 ---
 
+## [v2.12.65] — 2026-09-20
+
+- **审计第六批整改 — 三条独立审计链交叉收口（P0×1 + P1×6 + P2×3）**，主人 2026-09-20 指令「发版」。本批五条提交：`342a7f3`（P0-1/P1-1/P1-2 交叉收口）、`eeb5e29`（P1-3 快照抬号）、`a4a9c62`（P1-4/P1-5）、`aa0c8bf`（P2-3）、`caad3f0`（P2-2）。
+- **审计主体与交叉验证**：对 v2.12.64 开展独立全量审计，合并**主审计 / 子代理只读审计 / 另一台 ECS 审计**三链结果。主链与子代理链在 P0-1（T2.5 判据字段无生产方）与 P1-1（轻量档口径不一致）上**逐条吻合**；ECS 链基于**发布净化包（84 文件）**而非 git 真源（170 文件），行数统计多处失真，**三条 P0 经核实全属设计取舍误判**，仅三条 P2 属实并纳入清单。
+
+- **① P0-1 · T2.5 完整性门判据输入补生产方（致命：机械门可静默放行）**：`M-Integrity-1` 要求读任务简报「研究问题」段各子问题的「**需找数据点 ≥N**」累加为需求量，但**任务简报模板从不提供该字段** ⇒ 需求量恒 0 ⇒ `data_count >= 0` **恒真** ⇒ 「通过才派 T4」的阻断语义对数据量维度**失效**（退化为只查数据卡文件存在）。四点修复：① `任务简报-template.md` 补 `需找数据点 ≥N` 必填行；② `phase-order.yaml` 的 `m_gate_criterion_fields` 登记 producer + producer_marker；③ `M-Gate-Algorithm.md` 伪代码把 `outline_count == None/0` 显式改为 `verdict_undecidable`（禁 `>=0` 放行）；④ `flow-check` 新增**规则 35**：每个 `requires` 字段必须有生产方登记（复用 R-4 marker 断言写法）。
+- **② P1-1 · 轻量档跳过集合三处口径不一致**：模板声称轻量档跳过 **T6/T7/T9**，而真源（`字数判定表` / `phase-order.yaml`）**仅要求跳 T6** —— T7/T9 正常执行、G14 走 selfcheck ⇒ 按模板字面执行会**少做两项质量门**。收口为 `phase-order.yaml` 唯一真源，模板改「T6 必跳 / T4 可省」；新增**规则 36** 防回潮 + 反向注入测试。
+- **③ P1-2 · 路径边界口径四处不一致（旧单域残留）**：v2.12.64 已在 `permissions.md` 定案「两域」口径（skill 资产域只读 / 项目数据域读写，违规以**写**为准），但 `SKILL.md`、`关键协议.md`、`dispatch-header.md` 三处**仍保留旧单域口径** —— 按旧口径字面遵守会导致**流水线不可执行**（把设计意图内的 `read` 也判越界）。三处指针化到 `permissions.md` 真源；新增**规则 37** 防回潮 + 反向注入测试。
+- **④ P1-3 · 门 H 快照抬号**：`lessons-max.snapshot` 430 → **437**。`#431`–`#437` 七条经逐条裁定**全部属论衡类**（论衡流程 / 构建 / 发版），排除表未变，门 H 告警清零。
+- **⑤ P1-4 · 安全扫描误报面收敛**：通用扫描器（`skill-auditor-plus/security_audit.py`）**无豁免机制**，误报只能每轮人工排查。新增 `.safe-pattern-manifest.json` 登记 4 类**已逐条核实**的误报（`regex-engine-call` 正则引擎调用 / `defensive-test-sample` 防御性测试样本 / `guarded-cleanup` 受护栏保护的清理 / `internal-variable-exec` 内部字面量动态执行），每条带 file + reason + lines + note；`flow-check` 新增**规则 38** 校验清单完整性（JSON 可解析 / 四字段齐备 / file 真实存在 / **行号端点不越界**）—— 防「登记一行就走、文件改名或行号漂移后成假账」。
+- **⑥ P1-5 · 审计类子代理回传可回收性**：审计/长报告类子代理只走 completion 回传会 `result_truncated` **且不报错**；若 `cleanup=delete` 则正文**不可回收**（本轮实测 P1-2～P1-6 正文永久丢失，事后靠重跑补）。`dispatch-header.md` 的回传硬上限约定补三条回收纪律：`cleanup=keep` / **先落盘再回报路径+摘要** / 见到截断先回收全文再判断补跑。
+- **⑦ P2-1 · sessionKey 口径合并**：`status-template.md` 头部第 7 行**同时存在两代口径**（「截断前 8 字符」v2.12.41 与「一律不记录」v2.12.42），而正文 §4.7 明确「不记录」—— 头部告警块未随 v2.12.42 收紧回改，新读者无法判断到底截断还是不记录。收口为「**一律不记录**，截断规则仅兜底」。
+- **⑧ P2-3 · 维护者脚本危险操作统一审计点**：`rm -rf` / `bash -c` 分散在多个维护者脚本、**无统一审计点**，新增一处危险操作时无人察觉。收敛为单点：`.safe-pattern-manifest.json` 新增 `maintainer_danger_ops`（`patterns` 为扫描口径**唯一真源** + 6 文件逐项登记 ops/guard）；`flow-check` 新增**规则 39** 做**双向对账** —— 漏登记（新脚本加 `rm -rf` 未登记）与陈旧登记（构造已移除未销账）**都报红**；扫描口径刻意与通用扫描器一致（同样跳过 `#` / `-` / `**` / 围栏 / 三引号行），两端不漏不重。登记 6 文件：`build-clawhub-release.sh`（输出路径逃逸防护，校验位于 `rm -rf` **之前**）、`cleanup-skill-store.sh`、`release-preflight.sh`（`rm -rf` 只作用于 `mktemp`；`bash -c` 变量源为脚本内固定字面量）、`self-audit-gate.sh`、`strip-shell-commands.py`（危险模式**定义**非执行路径）、`test-path-canonical.sh`。
+- **⑨ P2-2 · 跨状态机「静默 ≠ 有效决策」不变式机械化**：审计原判「四个状态机分散、无聚合视图」经核实**不成立**（`verdict_scale` / `owner_timeout_policy` / `provider_silence_escalation` / `terminal_freeze` 本就相邻排在同一文件 `phase-order.yaml`，96 行连续块且头部注释已做交叉索引）—— 新建独立文档会制造第二份副本，**违反一条款一真源**（正是 P1-1 / P1-2 刚拆掉的那类漂移）。但核实出**真缺口**：`owner_timeout_policy`（主人无应答）与 `provider_silence_escalation`（同 provider 连续静默）共享同一不变式（静默/无应答 ≠ 有效决策 ⇒ 挂起等主人 + 无默认继续），而该「同侧」关系**只写在注释散文里**，任一侧被改成自动继续另一侧不会报红。故新增顶层 `silence_doctrine` 单一真源（`invariant` / `halt_kinds` 挂起类处置唯一枚举 / `forbidden_kinds` fail-open 枚举 / `applies_to` 覆盖面）+ `flow-check` **规则 40** 做双侧投影 + 双向对账（两侧挂起态必须相等）。**独有闭合面**：规则 12 只查 `default_fallback ∈ fallback_kinds`，故**新增一个 fail-open 处置**时规则 12/31 都不拦 —— 只有规则 40 能拦，已配专门注入测试证明其为唯一拦截者。
+
+- **⑩ 验收（实测回填 · 最终态）**：自审门 **PASS 36 / FAIL 0**；`python3 -m pytest tests/ -q` → **452 passed**；`python3 scripts/flow-check.py` **RC=0**；`bash scripts/check-version.sh` 通过；`release-preflight.sh` **四查全过**（在飞链 0 / 编号未占用 / 工作区干净 / CI 不红）。新增机械门六条（35–40）**每条均配反向注入测试**（真源 sha256 前后不变 + 副本变异 + 断言报红）。
+- **⑪ 门 Y 棘轮备案**：`phase-order.yaml` 54651 → **55272** B（+621）。按 `test_bulk_ratchet` 的「扩容说明」要求在 `self-audit-gate.sh` 内备案 —— 该段是**真源内容**（`silence_doctrine` 挂起类处置唯一枚举）非注释膨胀，且已把头部 ⑬ 对 S-3 的冗余复述压缩为指针（净增已扣减）。
+- **⑫ changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.60** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.60 及更早」。
+
+---
+
 ## [v2.12.64] — 2026-09-19
 
 - **审计第五批整改 + CI 判据统一 + 发布链工具残留止血**，主人 2026-09-19 指令「版本号 bump 发布」。本批三条提交：`c86bb8f`（第五批整改本体，30 文件 +1318/-60）、`227cf15`（门 Y 棘轮联动）、`d31e23e`（工具残留排除，推送后 CI 实测回归）。
@@ -104,21 +125,3 @@
 - **本批范围**：词表同源修复 + 一条 flow-check 规则 + 4 条单测 + 卡片效力边界声明 + 记账。**未发布、未 push**（外部动作等主人点头）。
 
 ---
-
----
-
-## [v2.12.60] — 2026-09-19
-
-- **图件必须机械嵌入定稿（主人 2026-09-19 裁定「图件如果存在要机械嵌入」）**：修正 v2.12.59 刚写下的「定稿为纯文本占位版、嵌入由主人手动」口径 —— 裁定改为**嵌入是论衡职责**。`final/定稿.md` 的图位必须是可渲染的 `![图N：标题](图件/图N_标题.svg)`（定稿与 `图件/` 同目录相对路径；文件名规范 = `图表-SVG-template.md` §六 的 `图N_标题.svg`）。
-- **M-11 双计数锁**：拍板 N > 0 时须**同时**满足 ① `[图N：` 占位计数 = N 与 ② 嵌入行计数 = N。嵌入式 `![图N：标题](…)` **本身包含** `[图N：标题]` ⇒ 两条计数互为交叉校验（避免了「改嵌入后旧占位规则计数归零」的副作用）。例外窄口：主人 Phase 5 **显式**选择纯占位版（须写 `status.md` 决策记录 + 交付说明披露）才只校 ①，否则双校（fail-closed）。
-- **执行点归位**：`phase4_4_figures`（产 N 张 SVG）→ `final_assembly`（主控 `write` 完成嵌入；该节点 `input` 新增 `final/图件/*.svg`，`kind` 保持 `mechanical_checkpoint`）；`00-主控-coordinator.md` 图件闭环段同步（「有图但文里只有一行字」与「图件目录空」同属不合格）；T8 dispatch 第 2 类**瘦回**「SVG → PNG 转换」（嵌入不再是主人步骤）——M-13 四类基数不变、既有 R-5 单测不受影响。
-- **flow-check 规则 20b（新）**：三处载体（`deliverables.md` / `08-终检-final-inspector.md` / `dispatch/T8-终检.md`）必须**同时**含嵌入式图位规范与「嵌入计数」口径 —— 否则这类口径会静默漂回纯占位版（改 A 漏 B 同型）。
-- **flow-check 规则 32（新｜本批实测发现的门缺口）**：`kind` 是规则 4/5（入参/产出声明）与顶层 `owner_nodes` 归属的**分派键**。本批实测：改 `final_assembly` 节点时误删 `kind: mechanical_checkpoint` 行，**全仓 flow-check RC=0 零报错** ⇒ 「kind 缺失 = 该节点对所有按 kind 分派的检查静默隐身」（与教训 #427 同族：判据所依赖的字段本身没人守）。新增规则：23 个节点必须声明 `kind` 且取值在已知集合内。
-- **配套 4 条单测**：三载体正向（嵌入规范 + 口径词）+ 嵌入锁反向注入（删规范 ⇒ 必红）+ `kind` 正向全量 + `kind` 反向注入（删 kind 行 ⇒ 必红并点名节点）。全部在**临时整仓副本**注入、真源 sha256 前后一致（教训 #333）。
-- **补打 4 个缺失 tag**：`v2.12.51` / `v2.12.52` / `v2.12.54` / `v2.12.55` —— 对应 release 提交均核实为 **HEAD 祖先**，且 `git show <tag>:SKILL.md` 的 frontmatter 版本号与 tag 名**逐一比对一致**（非仅凭提交信息判定）。tag 说明中注明「v2.12.60 批次补打，恢复版本可追溯性，不改动任何文件内容」。补打后 `changelog-check` 的无 tag 告警只剩当前未发版版本。**v2.12.59 未补 tag** —— 它是本仓当前未发版版本，tag 属发布动作，待主人发版时打。
-- **验收（实测回填 · 最终态）**：自审门 **PASS 30 / FAIL 0**；`python3 -m pytest tests/ -q` → **386 passed**（新增 4 条）；`python3 scripts/link-check.py` RC=0（相对链接 502 条 / 入口裸引用 2 条 / 活文档内联引用 267 条）；`python3 scripts/flow-check.py` RC=0；`bash scripts/check-version.sh` 通过（v2.12.60）；`bash scripts/inject-lang-policy.py --check` 通过（82 交付文件）；本地 tag 总数 180 → **184**（其中版本 tag 178 → **182**）。
-- **changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.55** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.55 及更早」。
-- **本批范围**：图件嵌入裁定 + 两条 flow-check 规则 + 4 条单测 + 补打 4 个 tag + 记账。**未发布、未 push**（外部动作等主人点头）。
-
----
-
