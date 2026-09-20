@@ -688,6 +688,52 @@ def main():
     if '机械兜底边界' not in _st34:
         errs.append('status-template 缺「机械兜底边界」诚实声明（B12：防把纪律层误读为机械门）')
 
+    # 35 M 门判据字段生产方（v2.12.65 P0-1）：m_gate_criterion_fields 每条必须登记
+    #    `producer` + `producer_marker`，且 producer 文件存在、marker 确实出现在该文件中 ——
+    #    封掉「M 门判据字段全仓无生产方 ⇒ 数据量维度门静默放行」。
+    #    与规则 25（R-4）同族，但 25 只覆盖 condition_definitions，本规则覆盖 M 门算法判据字段。
+    for cname, cdef in (d.get('m_gate_criterion_fields') or {}).items():
+        if not isinstance(cdef, dict):
+            errs.append(f'm_gate_criterion_fields.{cname} 不是映射（P0-1）')
+            continue
+        _p = cdef.get('producer')
+        _m = cdef.get('producer_marker')
+        if not _p or not _m:
+            errs.append(f'm_gate_criterion_fields.{cname} 缺 producer/producer_marker（P0-1 判据字段生产方登记）')
+            continue
+        _pf = _root24 / str(_p)
+        if not _pf.exists():
+            errs.append(f'm_gate_criterion_fields.{cname}.producer 文件不存在: {_p}（P0-1）')
+        elif str(_m) not in _pf.read_text(encoding='utf-8'):
+            errs.append(f'm_gate_criterion_fields.{cname}.producer_marker “{_m}” 不在 {_p}（P0-1：判据字段无生产方）')
+
+    # 36 轻量档跳过集合单一真源（v2.12.65 P1-1）：phase-order.yaml 中 `degrade: skip_in_lite_tier`
+    #    的节点集必须 == {t6_critique}（轻量档唯一必跳角色；G14 走 selfcheck 而非 skip）；
+    #    任务简报档位表「轻量」行的**跳过列**不得声称跳过 T7/T9（与真源冲突）。
+    lite_skip = [n['id'] for n in P if n.get('degrade') == 'skip_in_lite_tier']
+    if set(lite_skip) != {'t6_critique'}:
+        errs.append(f'轻量档 skip_in_lite_tier 节点集 = {sorted(lite_skip)}（P1-1：真源应为 {{t6_critique}}）')
+    _jb36 = (_root24 / 'references/templates/任务简报-template.md').read_text(encoding='utf-8')
+    for _ln36 in _jb36.splitlines():
+        if _ln36.startswith('| **轻量**'):
+            _cols36 = [c.strip() for c in _ln36.split('|')]
+            _skip36 = _cols36[2] if len(_cols36) > 2 else ''
+            if 'T7' in _skip36 or 'T9' in _skip36:
+                errs.append('任务简报档位表「轻量」跳过列声称跳过 T7/T9（P1-1：与 phase-order.yaml 真源冲突）')
+            break
+
+    # 37 路径边界两域口径（v2.12.65 P1-2）：三处旧单域口径必须已收敛为两域 + 指向 permissions.md。
+    #    旧口径「read/write/edit 仅限 run/<项目名>/ 子树」与角色卡必读 references/ 互斥 ⇒ 字面遵守则
+    #    流水线不可执行。三处载体不得再含旧单域措辞（防 v2.12.64「只修一处、三处回潮」复发）。
+    for _f37, _tok37 in (
+        ('SKILL.md', '仅限 `run/<项目名>/` 子树'),
+        ('references/_shared/关键协议.md', '仅允许 `run/<项目名>/` 子树'),
+        ('references/_shared/dispatch-header.md', 'run/ 子树外路径'),
+    ):
+        _t37 = (_root24 / _f37).read_text(encoding='utf-8')
+        if _tok37 in _t37:
+            errs.append(f'{_f37} 仍含旧单域路径口径「{_tok37}」（P1-2：应改为两域 + 指向 permissions.md）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

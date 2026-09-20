@@ -1063,7 +1063,7 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|73689,references/_shared/M-Gate-Algorithm.md|84570,references/_shared/phase-order.yaml|54701"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|73689,references/_shared/M-Gate-Algorithm.md|84250,references/_shared/phase-order.yaml|54651"
 BULK_RATCHET_CEIL="${LUNHENG_BULK_RATCHET:-$BULK_RATCHET_CEIL_DEFAULT}"
 SKILL_MARGIN_WARN="${LUNHENG_SKILL_MARGIN_WARN:-300}"
 BULK_RATCHET_OK=1

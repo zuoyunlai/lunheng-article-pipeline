@@ -39,7 +39,7 @@
 >
 > **T6 / T7 / G14 允许主控 fallback**（披露后交付）；**T9 禁用主控 fallback**（违反独立性硬定义）—— `independence: blind_review` 节点**不得**声明 `on_worker_failure`，失败只走 `independence_failure_policy`（只能重试 spawn → 仍失败记 `missing_blind_review` + 告知主人，**禁代笔/代产结论**；真源 = [`phase-order.yaml`](phase-order.yaml) `t9_review.independence_failure_policy`）。两者口径在 `references/dispatch/T*-*.md` 同步。
 
-> 🛡️ **路径访问自检（v2.12.27 修订）**：交接报告**脱敏自报**字段必须为 **`run/ 子树外路径 0 命中`** —— 子代理**只允许**提及 `run/<项目名>/` 子树下的路径；任何 `run/` 外路径（含 `~/`、绝对路径、父路径穿越 `..`、symlink 逃逸）= 违规。论衡「**纯 skill**」立场：不替宿主枚举敏感路径，**由路径边界兜底**（`run/` 外 = 业务无关 = 禁止提及）。这是子代理自检的根约束（防止子代理在否定式「不会读 `~/.ssh/`」之类中偷偷提及宿主路径）。
+> 🛡️ **路径访问自检（v2.12.65 两域收口）**：交接报告**脱敏自报**字段必须为 **`项目数据域外写入 0 命中`**。两域（真源 = [`permissions.md`](../permissions.md) §Workspace 路径收口）：① **skill 资产域**（`references/**` + `SKILL.md` 等）= **只读**（必读，可提及）；② **项目数据域** `run/<项目名>/` = 读写。子代理**只允许写入** `run/<项目名>/` 子树下路径；任何项目数据域外的**写入**（含 `~/`、绝对路径、父路径穿越 `..`、symlink 逃逸）= 违规。论衡「**纯 skill**」立场：不替宿主枚举敏感路径，**由路径边界兜底**（项目数据域外写 = 业务无关 = 禁止）。这是子代理自检的根约束（防止子代理在否定式「不会读 `~/.ssh/`」之类中偷偷提及宿主路径）。
 
 > ⏱️ **spawn watchdog（v2.12.27，回应复盘 R-V2-26-02）**：spawn 任何角色后 **spawn watchdog 时长内若无产物**（**具体时长见 SKILL.md 硬卡阈值表**；v2.12.27 增列 8 分钟），主控在 00-主控-扩展职责.md「spawn 超时兜底」段执行 → **主控亲写兜底 + status.md 记 `failed_silent_watchdog` + 告知主人**；**不重试 spawn 同一任务**。8 min 阈值依据：v2.12.26 实战 T4 静默临界点 ≈ 130k tokens / 5min（v2.12.23 8.5k tokens / 6m 仍产物的对比），留 3 min 余量。**声明式立场不保证 spawn 可靠性** —— spawn 跟踪状态机延迟属 OpenClaw 平台责任（v2.12.26 实战：T4 5m57s+128k tokens 0 产物、spawn 失败率 25% vs v2.12.23 12.5% 恶化 12.5pp），论衡内容侧升级无法根除，watchdog **仅是降级兜底、非可靠性保证**。
 

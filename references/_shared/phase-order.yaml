@@ -201,11 +201,9 @@ architecture:
   worker_failure_policy: owner_takeover_with_disclosure
   fallback_is_not_equivalent: true
 condition_definitions:
-# ⚠️ v2.12.54 R-4（Batch A）：每条条件定义**必须登记生产方**（`producer` + `producer_marker`）——
-#   即 `requires` 的字段必须在 ≥1 个模板/角色卡里**真的被记录**，否则构建期红（flow-check 规则 25）。
-#   实测背景（2026-09-18 论文实跑）：`t9_review` 依赖 `owner_peer_review_consent`，而**全仓无任何生产方** ⇒
-#   节点静默不触发、主控代做其产出并给出编造精度；同型断链另有 `owner_methodology_snapshot_opt_out`。
-#   规则：字段名无生产方 ≠ 保守失败，而是**断链**——条件永远取假，节点在认知层与执行层同时消失。
+# ⚠️ v2.12.54 R-4：每条条件定义必须登记生产方（producer + producer_marker），否则构建期红（规则 25）。
+#   实测：t9_review 依赖 owner_peer_review_consent 而全仓无生产方 ⇒ 节点静默不触发。
+#   规则：字段名无生产方 ≠ 保守失败，而是断链——条件永远取假，节点在认知层与执行层同时消失。
   owner_peer_review_opt_out:         # v2.12.54 S-1：由 opt-in（owner_peer_review_consent）改为「**默认启用 + 主人 opt-out**」（写法同 methodology_snapshot_opt_out）；本键语义 = 主人已显式 opt-out 同行评审
     requires: [owner_peer_review_opt_out]
     producer: references/templates/任务简报-template.md
@@ -238,6 +236,12 @@ condition_definitions:
     requires: [owner_figure_decision]
     producer: references/templates/任务简报-template.md
     producer_marker: "figure_decision"
+
+m_gate_criterion_fields:
+# v2.12.65 P0-1：M 门判据字段须登记生产方（同 R-4 断链治理）
+  data_requirements_in_brief:
+    producer: references/templates/任务简报-template.md
+    producer_marker: "需找数据点"
 
 owner_checkpoints:
   - phase0_definition

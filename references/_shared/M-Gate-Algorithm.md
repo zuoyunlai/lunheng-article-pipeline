@@ -8,13 +8,9 @@
 
 > **渐进式执行模式（已合并入本文档）**：把 13 项 M 门从「T8 一次性全跑」改为「5 阶段分批执行 + T8 兜底」，P0 错误提前暴露（Phase 1.5 而非 T8），节省 30-50% 工作量。详见本文档 M-Form / M-Exist / M-Integrity 各阶段描述。
 >
-> **v2.2.8 Phase D-1 重大变更**：本规约从「**4 个增量版本并存**」合并为「**1 个完整版**」（本文件约 12K tokens，主流程只读这一份）。
+> **版本史**：本规约由 4 个增量版本（v2.2.0 / v2.2.1 / v2.2.1.2 / v2.2.4）合并为本完整版，主流程只读这一份；历史版本已归档，不随发布包分发。
 >
-> 完整版包含 v2.2.0 基础 + v2.2.1 扩展（M-Form-6 + M-Exist-3 + M-Integrity-1/2）+ v2.2.1.2 算法升级（M-Form-3 + M-Exist-1 + M-Form-6 + M-Exist-3 双格式）+ v2.2.4 内联引用 + 补检索回填 + 修订轮流程约束。**3 个历史版本已由维护者归档，不随发布包分发（仅做版本演进参考，不需主流程读取）**。
->
-> **执行前置**：「同时读取 4 个版本」改为「**读取本完整版**」。节省 ~10K tokens 主流程加载。
->
-> **章节级增量验证**：文件级变更检测升级为**章节级**——把 Markdown 按 `## ` 二级标题拆章节，识别「改了哪一章」而非「改了哪个文件」。修订轮（v2→v3）只改一章时，主控只需对该章节重跑引用类 M 门（M-Form-1/M-Exist-1/M-Form-6），未变更章节复用上轮结果。**定位**：章节级聚焦是**主控 LLM 的推理思路**（M 门本就是 LLM 推理，见下方诚实声明）——修订轮时先定位「哪些章节变了」，再只对这些章节重跑引用类 M 门，未变章节复用上轮结果，不必全文重跑。本地开发辅助脚本 `scripts/incremental_m_gate.py`（新增 `SectionChangeDetector`，用法 `python scripts/incremental_m_gate.py <项目目录> [--no-section-level]`）给主人手工复核变更范围用，**净化包剥离 scripts/，不依赖此脚本运行**。
+> **章节级增量验证**：文件级变更检测升级为**章节级**——把 Markdown 按 `## ` 二级标题拆章节，识别「改了哪一章」而非「改了哪个文件」。修订轮（v2→v3）只改一章时，主控先定位「哪些章节变了」，只对这些章节重跑引用类 M 门（M-Form-1/M-Exist-1/M-Form-6），未变章节复用上轮结果（章节级聚焦是主控 LLM 的推理思路，M 门本就是 LLM 推理，见下方诚实声明）。本地开发辅助脚本 `scripts/incremental_m_gate.py`（新增 `SectionChangeDetector`，用法 `python scripts/incremental_m_gate.py <项目目录> [--no-section-level]`）给主人手工复核变更范围用，**净化包剥离 scripts/，不依赖此脚本运行**。
 
 ---
 
@@ -1169,6 +1165,9 @@ fail_reasons = [
 # 四档出口（见 §统一抽取规则真源 C）
 if data_count is None or outline_count is None:
     return verdict_undecidable("数据条目数或简报需求数不可读，不足以判定", **{"sha256_pending": sha256_pending})
+if outline_count == 0:
+    # v2.12.65 P0-1：需求数 0 = 简报未标「需找数据点」（断链），禁 data_count >= 0 恒真放行
+    return verdict_undecidable("简报未标注任何「需找数据点」，数据量需求不可判（断链）", **{"sha256_pending": sha256_pending})
 all_pass = data_ok and trust_form_ok and trust_exist_ok and header_consistent  # v2.3.2 删 owner_signed（主人签字不在 T2.5 闸门，教训 #136）
 if all_pass:
     return verdict_pass(**{"数据条目数": data_count, "简报需求数": outline_count, "sha256_pending": sha256_pending})

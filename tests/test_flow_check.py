@@ -1149,3 +1149,78 @@ def test_b12_honest_boundary_reverse_injection(tmp_path):
         return src.replace("机械兜底边界", "兜底边界（已删）", 1)
 
     _inject_and_expect("references/_shared/执行韧化协议-exec.md", mutate, "机械兜底边界", tmp_path)
+
+
+# ===== v2.12.65 P0-1：M 门判据字段生产方（m_gate_criterion_fields）=====
+
+def test_p01_m_gate_criterion_fields_have_producers():
+    """P0-1：每条 m_gate_criterion_fields 必登记 producer + producer_marker，且 marker 真的在生产方文件里。
+
+    背景：M-Integrity-1 读任务简报「需找数据点 ≥N」，但模板全文无此字段 ⇒ 需求数取 0 ⇒
+    data_count >= 0 恒真 ⇒ 数据量维度门静默放行。与 R-4（condition_definitions）同族，
+    但 R-4 只覆盖条件字段，本段覆盖 M 门算法判据字段。
+    """
+    fields = _pipeline().get("m_gate_criterion_fields") or {}
+    assert fields, "phase-order.yaml 缺 m_gate_criterion_fields（P0-1）"
+    for name, d in fields.items():
+        assert d.get("producer"), f"{name} 缺 producer（P0-1：判据字段无生产方）"
+        assert d.get("producer_marker"), f"{name} 缺 producer_marker（P0-1）"
+        f = ROOT / d["producer"]
+        assert f.exists(), f"{name}.producer 文件不存在：{d['producer']}"
+        assert d["producer_marker"] in f.read_text(encoding="utf-8"), \
+            f"{name}.producer_marker 不在 {d['producer']} 中（P0-1）"
+
+
+def test_p01_m_gate_criterion_field_reverse_injection(tmp_path):
+    """P0-1 反向注入：抹掉 producer_marker ⇒ flow-check 必须红。"""
+    def mutate(src):
+        return src.replace('producer_marker: "需找数据点"', 'producer_marker: "需找数据点_x"')
+
+    _inject_and_expect(YAML_REL, mutate, "P0-1", tmp_path)
+
+
+# ===== v2.12.65 P1-1：轻量档跳过集合单一真源 =====
+
+def test_p11_lite_tier_skip_single_source():
+    """P1-1：轻量档跳过集合唯一真源 = phase-order.yaml 的 skip_in_lite_tier 节点集 == {t6_critique}。
+
+    背景：模板档位表写「跳过 T6/T7/T9」，字数判定表只写「T6 必跳」，phase-order.yaml 只 t6_critique
+    声明 degrade —— 三处口径不一。真源 = yaml（T6 必跳、G14 走 selfcheck）；模板跳过列不得声称 T7/T9。
+    """
+    lite_skip = [n["id"] for n in _pipeline()["pipeline"] if n.get("degrade") == "skip_in_lite_tier"]
+    assert set(lite_skip) == {"t6_critique"}, f"轻量档跳过集合异常: {sorted(lite_skip)}"
+
+
+def test_p11_lite_tier_template_reverse_injection(tmp_path):
+    """P1-1 反向注入：模板轻量档跳过列重新声称跳过 T7/T9 ⇒ flow-check 必须红。"""
+    def mutate(src):
+        return src.replace("T6 批判（必跳）、T4 大纲（可省）", "T6 批判 / T7 审计 / T9 评审", 1)
+
+    _inject_and_expect("references/templates/任务简报-template.md", mutate, "P1-1", tmp_path)
+
+
+# ===== v2.12.65 P1-2：路径边界两域口径 =====
+
+def test_p12_path_boundary_two_domain_single_source():
+    """P1-2：三处旧单域路径口径（SKILL.md / 关键协议.md / dispatch-header.md）必须已收敛为两域。
+
+    背景：v2.12.64 只把两域口径落在 permissions.md 一处，SKILL.md「仅限 run/ 子树」、
+    关键协议.md「仅允许 run/ 子树」、dispatch-header.md「run/ 子树外路径」仍是旧单域口径
+    （按字面遵守则角色卡必读 references/ 即越界）。本测试锁三处旧措辞已清除。
+    """
+    checks = {
+        "SKILL.md": "仅限 `run/<项目名>/` 子树",
+        "references/_shared/关键协议.md": "仅允许 `run/<项目名>/` 子树",
+        "references/_shared/dispatch-header.md": "run/ 子树外路径",
+    }
+    for rel, old in checks.items():
+        t = (ROOT / rel).read_text(encoding="utf-8")
+        assert old not in t, f"{rel} 仍含旧单域路径口径「{old}」（P1-2）"
+
+
+def test_p12_path_boundary_reverse_injection(tmp_path):
+    """P1-2 反向注入：dispatch-header.md 回退旧单域口径 ⇒ flow-check 必须红。"""
+    def mutate(src):
+        return src.replace("项目数据域外写入 0 命中", "run/ 子树外路径 0 命中", 1)
+
+    _inject_and_expect("references/_shared/dispatch-header.md", mutate, "P1-2", tmp_path)
