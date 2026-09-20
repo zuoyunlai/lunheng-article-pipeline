@@ -39,11 +39,8 @@
 #      反面实况（v2.12.54 前）：`t9_review` **同时**声明通用 fallback（= 主控接管）与下方
 #      `independence_rules`「必须 spawn 为独立子代理（禁主控代笔）」→ 两条互斥条款并存，
 #      实测被读成「主控代写审稿报告并给出编造精度」。未接线 = 构建期 flow-check 失败（规则 30）。
-#   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3 新增，修「静默无升级规则」）：
-#      `top_tier_liveness_gate` 只做 spawn **前**探活，**管不到 accepted 之后不产出**。
-#      规则 = 同 provider 连续 ≥3 次静默 ⇒ **强制呈现主人三选**（换 provider 族 / 换能力档 / 接受同源并披露），
-#      **不再静默继续**；三项**无默认**且必须挂起。真源 = 顶层 `provider_silence_escalation`。
-#      未接线 = 构建期 flow-check 失败（规则 31）。
+#   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
+#      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 version: 2.12.64
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
@@ -88,6 +85,17 @@ verdict_scale:
     凡 condition 依赖他角色报告、或 mechanical_checkpoint 前置为「相关报告/产物已落盘」者，
     必须在报告落盘后重跑；主控预跑的结果不得直接当作闸门输入。节点级标注 = rerun_after_report: true。
 
+# ⚠️ 跨状态机共享不变式（v2.12.65 新增，修 P2-2「同侧只活在散文」）
+#   `owner_timeout_policy`（主人无应答）与 `provider_silence_escalation`（同 provider 连续静默）
+#   共享同一不变式 —— **静默/无应答 ≠ 有效决策 ⇒ 挂起等主人 + 无默认继续**。
+#   此前该不变式只用散文声明「与 `owner_timeout_policy` 同侧」，**无任何机械门**：任一侧被改成
+#   自动继续，另一侧不会报红。现收敛为单一真源 + flow-check 规则 40 双向投影校验。
+silence_doctrine:
+  invariant: silence_is_not_valid_decision
+  halt_kinds: [pending_owner_halt]                       # 「挂起等主人」类处置的**唯一枚举**
+  forbidden_kinds: [auto_continue, silent_proceed, degrade_and_continue]  # 禁止的 fail-open 处置
+  applies_to: [owner_timeout_policy, provider_silence_escalation]
+
 # ⚠️ 人在环节点无应答处置的**唯一真源**（v2.12.49 新增，修 P2-2）
 #   已删除的旧语义（防回潮）：「Phase 5 复用『不答 = 接受当前定稿』」。
 #     该写法使 Phase 5 成为**全流程唯一 fail-open 人环节点** —— 静默 60 分钟即等于主人拍板「接受」；
@@ -120,7 +128,7 @@ owner_timeout_policy:
 #     连续 4 次静默（spawn 返回成功、随后既无产物落盘也无交接回执），全程**无任何升级动作** ——
 #     因 `top_tier_liveness_gate` 只做 spawn **前**探活，**管不到 accepted 之后不产出**。
 #   规则：同一 provider 连续 ≥3 次静默 ⇒ **强制暂停 + 呈现主人三选**，**不再静默继续**。
-#     三项**无默认**（不得「按最保守项自动继续」）；静默**永不**等于有效决策（与 `owner_timeout_policy` 同侧）。
+#     三项**无默认**；静默**永不**等于有效决策（「同侧」真源 = 顶层 `silence_doctrine`，规则 40 机械校验）。
 #   计数口径：一次「静默」= 该次 spawn 既无产物落盘、又无交接回执
 #     （与「心跳缺失」区分：心跳仍在续 = 未静默，不计数）。
 #   归零：换族或换档并成功产出后计数归零（status.md 记 `resolved_by`）。

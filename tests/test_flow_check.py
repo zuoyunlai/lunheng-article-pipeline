@@ -1332,3 +1332,85 @@ def test_p23_stale_registration_reverse_injection(tmp_path):
         return src.replace("(r'rm -rf', '删除目录'),", "(r'rm -rXf', '删除目录'),", 1)
 
     _inject_and_expect("scripts/strip-shell-commands.py", mutate, "P2-3", tmp_path)
+
+
+# ===== v2.12.65 P2-2：跨状态机「静默 ≠ 有效决策」一致性（规则 40） =====
+
+def test_p22_silence_doctrine_bidirectional():
+    """P2-2：两侧状态机必须同侧（挂起等主人 + 无默认继续），真源 = 顶层 `silence_doctrine`。
+
+    背景：`owner_timeout_policy`（主人无应答）与 `provider_silence_escalation`（同 provider 连续静默）
+    共享同一不变式，此前只用**散文**声明「同侧」—— 任一侧改成自动继续，另一侧不会报红。
+    本测试**独立重算**两侧投影（不复用规则 40 的实现），锁死：挂起类枚举唯一、两侧同时挂在挂起侧。
+    """
+    d = yaml.safe_load(YAML_PATH.read_text(encoding="utf-8"))
+    sd = d.get("silence_doctrine") or {}
+    assert sd, "缺顶层 silence_doctrine（P2-2：不变式无机器可读真源）"
+    halt = [str(x) for x in (sd.get("halt_kinds") or [])]
+    forb = [str(x) for x in (sd.get("forbidden_kinds") or [])]
+    assert halt, "silence_doctrine.halt_kinds 为空（P2-2）"
+    assert forb, "silence_doctrine.forbidden_kinds 为空（P2-2）"
+    assert not set(halt) & set(forb), \
+        f"halt_kinds 与 forbidden_kinds 冲突（P2-2）: {sorted(set(halt) & set(forb))}"
+    assert set(sd.get("applies_to") or []) == {"owner_timeout_policy", "provider_silence_escalation"}, \
+        f"applies_to 未恰好覆盖两侧状态机（P2-2）: {sd.get('applies_to')}"
+
+    # 主人侧投影
+    otp = d.get("owner_timeout_policy") or {}
+    fk = otp.get("fallback_kinds") or {}
+    assert set(fk) <= set(halt), \
+        f"fallback_kinds 含非挂起类处置（P2-2）: {sorted(set(fk) - set(halt))}"
+    assert otp.get("default_fallback") in halt, \
+        f"default_fallback 非挂起类（P2-2）: {otp.get('default_fallback')}"
+    owner_halt = bool(fk) and set(fk) <= set(halt) and otp.get("default_fallback") in halt
+
+    # provider 侧投影
+    pse = d.get("provider_silence_escalation") or {}
+    prov_halt = (pse.get("halt_pending_owner") is True and pse.get("no_default_option") is True)
+    assert prov_halt, "provider 侧未挂在挂起侧（halt_pending_owner / no_default_option 必须为 true）（P2-2）"
+    for c in (pse.get("owner_choices") or []):
+        if isinstance(c, dict):
+            assert not (c.get("default") or c.get("is_default")), \
+                f"三选一标了默认项（P2-2/S-3）: {c.get('id')}"
+
+    # 双向对账
+    assert owner_halt == prov_halt, \
+        f"跨状态机不同侧（P2-2）: owner={owner_halt} provider={prov_halt}"
+
+    # 节点级：owner_checkpoint 的无应答处置也必须落在 halt_kinds
+    for n in (d.get("pipeline") or []):
+        if isinstance(n, dict) and n.get("kind") == "owner_checkpoint":
+            assert n.get("timeout_fallback") in halt, \
+                f"{n.get('id')}.timeout_fallback 非挂起类（P2-2）: {n.get('timeout_fallback')}"
+
+
+def test_p22_provider_side_flip_reverse_injection(tmp_path):
+    """P2-2 反向注入：只把 provider 侧改成自动继续 ⇒ 必须报「跨状态机不同侧」。"""
+    def mutate(src):
+        return src.replace("  halt_pending_owner: true      # 到阈值即挂起等主人，不自动继续",
+                           "  halt_pending_owner: false     # 到阈值即挂起等主人，不自动继续", 1)
+
+    _inject_and_expect(YAML_REL, mutate, "跨状态机不同侧", tmp_path)
+
+
+def test_p22_owner_side_failopen_kind_reverse_injection(tmp_path):
+    """P2-2 反向注入：主人侧新增一个 fail-open 处置 ⇒ 必须报「含非挂起类处置」。
+
+    这是规则 40 的**独有闭合面**：规则 12 只查 `default_fallback ∈ fallback_kinds`，
+    新增处置后该断言仍成立 ⇒ 只有规则 40 能拦住这类 fail-open。
+    """
+    def mutate(src):
+        return src.replace(
+            "    pending_owner_halt: 写 status.md `pending_owner` + 告警挂起，不静默推进（四节点统一，无例外）\n",
+            "    pending_owner_halt: 写 status.md `pending_owner` + 告警挂起，不静默推进（四节点统一，无例外）\n"
+            "    auto_continue_most_conservative: 按最保守项自动继续\n", 1)
+
+    _inject_and_expect(YAML_REL, mutate, "含非挂起类处置", tmp_path)
+
+
+def test_p22_missing_doctrine_reverse_injection(tmp_path):
+    """P2-2 反向注入：真源段被摘除（改名）⇒ 必须报「缺顶层 silence_doctrine」。"""
+    def mutate(src):
+        return src.replace("silence_doctrine:", "silence_doctrine_retired:", 1)
+
+    _inject_and_expect(YAML_REL, mutate, "缺顶层 silence_doctrine", tmp_path)

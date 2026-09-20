@@ -38,6 +38,14 @@
  31 **同 provider 连续静默升级**（v2.12.55 S-3）：顶层 `provider_silence_escalation` 必须存在且为
     「≥3 次 / `scope: same_provider` / 三选一无默认 / `halt_pending_owner: true`」，且主控角色卡
     必须承载同一协议（真源 ↔ 角色卡双向接线）—— 防「静默继续」与「只写在散文」。
+ 40 **跨状态机「静默 ≠ 有效决策」一致性**（v2.12.65 修 P2-2）：顶层 `silence_doctrine` 是
+    「静默/无应答 ≠ 有效决策 ⇒ 挂起等主人 + 无默认继续」的**单一真源**
+    （`halt_kinds` 挂起类处置唯一枚举 / `forbidden_kinds` fail-open 枚举 / `applies_to` 覆盖面）。
+    本规则做**双侧投影 + 双向对账**：`owner_timeout_policy` 的无应答处置必须全落 `halt_kinds`
+    且 `default_fallback ∈ halt_kinds`、各 `owner_checkpoint.timeout_fallback ∈ halt_kinds`；
+    `provider_silence_escalation` 必须 `halt_pending_owner: true` + `no_default_option: true`
+    且 `owner_choices` 无默认项；两侧挂起态**必须相等**（一侧挂起/一侧自动继续 = 不同侧，报红）。
+    防「改 A 漏 B」：侧语义只在散文声明时，只改一侧不会报红。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import json, pathlib, re, sys, yaml
@@ -817,6 +825,68 @@ def main():
             errs.append(f'{_f39} 含维护者危险操作但未登记（P2-3：请补 maintainer_danger_ops.files 并写明护栏）')
         for _f39 in sorted(_decl39 - _hit39):
             errs.append(f'{_f39} 已登记危险操作但实际未命中（P2-3：陈旧登记，请销账或复核扫描口径）')
+
+    # 40 跨状态机「静默 ≠ 有效决策」一致性（v2.12.65 修 P2-2）：
+    #    `owner_timeout_policy`（主人无应答）与 `provider_silence_escalation`（同 provider 连续静默）
+    #    共享同一不变式 —— 静默/无应答 ≠ 有效决策 ⇒ 挂起等主人 + 无默认继续。此前该不变式
+    #    **只用散文声明**（「与 owner_timeout_policy 同侧」），任一侧改成自动继续另一侧不会报红。
+    #    真源 = 顶层 `silence_doctrine`；本规则做双侧投影 + 双向对账（故障面 = 「改 A 漏 B」）。
+    _sd40 = d.get('silence_doctrine') or {}
+    if not isinstance(_sd40, dict) or not _sd40:
+        errs.append('缺顶层 silence_doctrine（P2-2：跨状态机不变式无机器可读真源，只能靠散文）')
+    else:
+        _halt40 = [str(x) for x in (_sd40.get('halt_kinds') or [])]
+        _forb40 = [str(x) for x in (_sd40.get('forbidden_kinds') or [])]
+        _app40 = [str(x) for x in (_sd40.get('applies_to') or [])]
+        if not _halt40:
+            errs.append('silence_doctrine.halt_kinds 缺失或为空（P2-2：挂起类处置无枚举）')
+        if not _forb40:
+            errs.append('silence_doctrine.forbidden_kinds 缺失或为空（P2-2：fail-open 类无枚举）')
+        _both40 = sorted(set(_halt40) & set(_forb40))
+        if _both40:
+            errs.append(f'silence_doctrine 自洽冲突：{_both40} 同时列为挂起类与 fail-open 类（P2-2）')
+        if set(_app40) != {'owner_timeout_policy', 'provider_silence_escalation'}:
+            errs.append(f'silence_doctrine.applies_to 未恰好覆盖两侧状态机：{_app40}（P2-2）')
+
+        # 主人侧投影：无应答处置必须全为挂起类（比规则 12 更严：12 只查 ∈ fallback_kinds）
+        _otp40 = d.get('owner_timeout_policy') or {}
+        _fk40 = _otp40.get('fallback_kinds') or {}
+        _bad40 = sorted(set(_fk40) - set(_halt40))
+        if _bad40:
+            errs.append(f'owner_timeout_policy.fallback_kinds 含非挂起类处置 {_bad40}'
+                        f'（P2-2：新增处置必须登记进 silence_doctrine.halt_kinds）')
+        _df40 = _otp40.get('default_fallback')
+        if _df40 not in _halt40:
+            errs.append(f'owner_timeout_policy.default_fallback->{_df40} 非挂起类'
+                        f'（P2-2：无应答默认处置必须在 halt_kinds 内）')
+        _owner_halt40 = bool(_fk40) and not _bad40 and _df40 in _halt40
+
+        # provider 侧投影：同侧的两个布尔必须为真；三选一不得带默认项
+        _pse40 = d.get('provider_silence_escalation') or {}
+        _prov_halt40 = (_pse40.get('halt_pending_owner') is True
+                        and _pse40.get('no_default_option') is True)
+        for _c40 in (_pse40.get('owner_choices') or []):
+            if isinstance(_c40, dict) and (_c40.get('default') or _c40.get('is_default')):
+                errs.append(f"provider_silence_escalation.owner_choices.{_c40.get('id')} 标了默认项"
+                            f"（P2-2/S-3：三选一不得有默认）")
+
+        # 双向对账：两侧必须同侧；一侧挂起、另一侧自动继续 = 状态机不同侧
+        if _owner_halt40 != _prov_halt40:
+            errs.append(
+                '跨状态机不同侧：owner_timeout_policy='
+                + ('halt' if _owner_halt40 else 'auto_continue')
+                + ' vs provider_silence_escalation='
+                + ('halt' if _prov_halt40 else 'auto_continue')
+                + '（P2-2：静默/无应答必须同侧 —— 挂起等主人 + 无默认继续）')
+
+        # 节点级：各 owner_checkpoint 的 timeout_fallback 必须落在 halt_kinds
+        for _n40 in P:
+            if _n40.get('kind') != 'owner_checkpoint':
+                continue
+            _fb40 = _n40.get('timeout_fallback')
+            if _fb40 not in _halt40:
+                errs.append(f"{_n40['id']}.timeout_fallback->{_fb40} 非挂起类"
+                            f"（P2-2：必须落在 silence_doctrine.halt_kinds 内）")
 
     print(';'.join(errs))
     return 0 if not errs else 2
