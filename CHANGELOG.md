@@ -2,6 +2,26 @@
 
 ---
 
+## [v2.12.69] — 2026-09-21
+
+- **写作质量守门批次 1（借 DSH writing-guard，续批次 0）**，主人 2026-09-21 指令「继续批次1修订」——对 2026-09-21 优化方案「H 类：写作质量守门」剩余三个借鉴点（H4/H5/H6）落地。批次 0 已完成 H1/H2/H3（三个 P1），本批落地 H5/H6（P2/P3）+ H4 交叉引用标注，**H 类 6 点全部闭环**。借鉴对象 `github.com/xmutfyh/dsh-plugin-writing-guard`，仍**只借鉴方法论、不引入其 exec 实现**（论衡零 exec 路线不变）。
+
+- **① H5 · G17「数据指纹比对」（借 EVIDENCE 层「Scholarship Lock」）**：对正文所有硬数据点（数字 / 单位 / p 值 / DOI / 统计量）做**修订前后精确比对**——修订 / 润色后数据指纹必须与修订前一致，**不可静默改写**。与 G2 数据溯源互补（G2 看「数字有无来源」真实性，G17 看「数字在修订中变没变」完整性）。静默改写（改了但修订说明未披露）→ P1；豁免窄口 = 修订说明记载「数据修正依据」+ T7 核验回查依据真实。触发时机 = T7 审计（修订回环每轮核对 vN → vN+1）。
+
+- **② H6 · T9「期刊约定校验」（借 JOURNAL 层 scope/style/convention）**：T9 期刊匹配从「纯 LLM 判断」升级为「期刊约定词表 + 确定性核对」——① scope 学科范围 / ② style 引文风格（GB/T 7714-2015 / APA / MLA / Chicago 对齐）/ ③ convention 格式约定（栏目 / 字数上限 / 结构）。任一类不满足 → 匹配度降档并标注缺口；目标期刊无已知约定 → 标注「需主人补充期刊约定」。落点 = T9 同行评审 + 09-审稿角色卡。
+
+- **③ H4「润色膨胀指数」——已被既有约束覆盖，不另立第二判据**：writing-guard 2.0「Style-only revisions same length or shorter」（≤1.05）的诉求，已被字数判定表 §八「修订净增上限 ≤2%」（v2.12.49 T-5）**等价且更严格**覆盖（2% < 5%）。本批在 §八 补「writing-guard 对照」交叉引用标注，明确「润色类修订同长度或更短」已由净增上限机械约束，**不新增第二判据**（一条款一真源，防两套口径漂移）。
+
+- **④ G 门计数收口（G0-G16 → G0-G17，19 → 20 项）**：G17 入 T7 审计后，G 门总数 19 → 20 项（含 G0.5/G2.5 子项）。audit-checklist-quickref（真源）+ T7 dispatch + 07-审计 + 06-批判 + 09-审稿 + 08-终检 + 00-主控 + 设计文档 + glossary-full/core + skill-entry-appendix + asset-index + deliverables + SKILL.md 同步计数；**顺带修正批次 0 漏改的 README/QUICKSTART「G0-G14 = 17 项」残留**（README 架构图 + G 清单表 + QUICKSTART G 清单表 3 处）。
+
+- **⑤ 机械闭环**：flow-check **规则 44**（G17 数据指纹跨载体一致性）+ **规则 45**（期刊约定校验跨载体一致性）；`test_rules_consistency.py` 新增 `test_G17_data_fingerprint_consistency` + `test_H6_journal_convention_check_consistency`；`test_flow_check_meta.py` DEBT 登记规则 44/45。
+
+- **验收（实测回填 · 最终态）**：自审门 **PASS 36 / FAIL 0**；`python3 -m pytest tests/ -q` → **479 passed**（新增 2 条）；`python3 scripts/flow-check.py` **RC=0**（含新规则 44/45）；`bash scripts/check-version.sh` 通过（v2.12.69）；`python3 scripts/changelog-check.py --check` RC=0。
+
+- **本批范围**：三个写作质量门（G17 + 期刊约定校验 + 润色膨胀指数标注）+ G 门计数收口 + 2 条 flow-check 规则 + 2 条测试 + 记账。**无新增运行能力、无破坏性行为变更**（全部为判据/词表/计数层）。**未 tag、未 push**（发布动作等主人点头）。
+
+---
+
 ## [v2.12.68] — 2026-09-21
 
 - **写作质量三门（借 DSH writing-guard，批次 0）**，主人 2026-09-21 指令「依次开始修订」——对 2026-09-21 优化方案「H 类：写作质量守门」首批落地。A-G 七项优化聚焦「工程/治理/性能」，H 类补的恰是论衡作为写作技能**最该强、当前测试零覆盖**的维度——写作质量与学术规范的机械守门。借鉴对象 `github.com/xmutfyh/dsh-plugin-writing-guard`（五层 guard：STYLE/EVIDENCE/JOURNAL/DELIVERY/DOCUMENT），**只借鉴方法论、不引入其 exec 实现**（论衡零 exec 路线不变，全部 LLM 推理判定 + 判据真源 + 反向注入测试落进既有体系）。
@@ -76,46 +96,5 @@
 - **⑩ 验收（实测回填 · 最终态）**：自审门 **PASS 36 / FAIL 0**；`python3 -m pytest tests/ -q` → **452 passed**；`python3 scripts/flow-check.py` **RC=0**；`bash scripts/check-version.sh` 通过；`release-preflight.sh` **四查全过**（在飞链 0 / 编号未占用 / 工作区干净 / CI 不红）。新增机械门六条（35–40）**每条均配反向注入测试**（真源 sha256 前后不变 + 副本变异 + 断言报红）。
 - **⑪ 门 Y 棘轮备案**：`phase-order.yaml` 54651 → **55272** B（+621）。按 `test_bulk_ratchet` 的「扩容说明」要求在 `self-audit-gate.sh` 内备案 —— 该段是**真源内容**（`silence_doctrine` 挂起类处置唯一枚举）非注释膨胀，且已把头部 ⑬ 对 S-3 的冗余复述压缩为指针（净增已扣减）。
 - **⑫ changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.60** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.60 及更早」。
-
----
-
-## [v2.12.64] — 2026-09-19
-
-- **审计第五批整改 + CI 判据统一 + 发布链工具残留止血**，主人 2026-09-19 指令「版本号 bump 发布」。本批三条提交：`c86bb8f`（第五批整改本体，30 文件 +1318/-60）、`227cf15`（门 Y 棘轮联动）、`d31e23e`（工具残留排除，推送后 CI 实测回归）。
-
-- **① 构建链根因治理（C-1 推广 / C-3 / C-4 / C-5 / C-6 / C-7，`build-clawhub-release.sh` +418 行）**：v2.12.63 只把 `references/_shared/` 改成白名单准入，并**诚实登记**了「`agents/` `templates/` `gates/` `checkers/` `dispatch/` 仍是默认入包」这一同族残余债务。本批把它做完：
-  - **C-1 推广（P0 同源）· 新增 §2b″「随包文件清单门」**：包内文件集必须与 `scripts/.pkg-manifest.txt`（**84 条**）**精确集合相等**，不等即 `exit 1`，并用 `comm -13/-23` **双向**打印差异（`+` 未登记入包 / `-` 已登记缺失）。作用面从 `_shared/` 扩到**全包** —— 「新文件默认入包」→「**新文件默认被拦**」的方向反转彻底完成。清单另加**「清单自身不得进包」**显式断言（防清单随包出厂 = 自曝维护面）。
-  - **C-4 · 死链中和改程序化**：包内对被排除文档的引用原由 `purify()` **逐条硬编码 sed** 中和 ⇒ 新增一个被排除文件就漏一次（规则与排除清单两处必然漂移）。现改为 `PKG_EXCLUDED_DOC_PATHS`（**14 条为唯一真源**）→ 由 python 从该清单**推导**正则，覆盖「括注内引用 / 反引号 mention / 链接目标」三种形态并跳过代码围栏；随后**同规则 fail-closed 反向断言**，残留即 `exit 1` 并点名文件 + token。（C-4 的实测依据：真实产物 `pipeline-readme.md` 内确有 `见 \`templates/README-模板拆分方案.md\` §四` 这类死链，而旧规则 3h-4 只认「详见 …。」一种字面，故长期漏网。）
-  - **C-5 · 非 md 文本资产纳入正向完整性门**：`yaml/yml/json/txt/toml` 纳入快照与校验（存在性 / 非空 / 保留率 ≥35%）。原先正向门**只覆盖 `*.md`** ⇒ 非 md 资产被整篇删空无人报错（负向扫描只报「违规命中数 ≠ 0」）。
-  - **C-6 · 基线字符下限守卫**：正向门按**字符保留率**判，分母异常小或为零时比率可恒过（0→0、10→10 都算 100%）⇒ 新增 `PKG_MIN_BASELINE_CHARS`（默认 50），基线 `chars == 0` 或低于下限即 fail，不再去算比率 —— 治「分母退化 ⇒ 门退化为恒真」。
-  - **C-3 / C-7 · 规则自检全量覆盖 + 豁免理由双向闭合**：剥离规则自检由部分覆盖扩到 **14 条全量**（44 条规则：生效 27 / `allow_empty` 17）+ §3n 就地 pin 正向不变量块；新增 `RULE_EMPTY_REASONS`（28 条）与最小理由长度 **12 字符**，**双向闭合**校验（每个 `yes` 条目必有理由且长度达标 / 理由表不得有孤儿），根治「`allow_empty=yes` 是唯一逃生口，理由字段可空 ⇒ 标注一下即可关掉真源侧守卫」这条衰减路径。
-  - **单测**：新增 `tests/test_build_gate_hardening.py`（**11 条**，全部临时整仓副本注入 / 真源零写入）；`test_release_script_guards.py` +164 行（含 3 条真实构建负向注入）；既有 e2e 增「包 ≡ 清单」「无死链」两断言。四条新门（随包清单门 / 基线下限门 / 非 md 正向门 / 豁免理由门）均经**负向注入**确认必红。
-
-- **② 文档一致性 / 权限口径（19 份 `references` + README + `scripts/README`）**：
-  - **零 exec 语义收口（S-1/S-4）**：08-终检 / T8-终检 / `M-Gate-Algorithm` / `host-verify-recipe` / `deliverables` / `status-template` 统一口径 —— **sha256 与精确 bytes 属主人侧量值**，agent **不计算、不声称复算**；未回填记 `unavailable` ⇒ `pending_owner_verification`，**明文禁止判通过**。（原口径下「agent 复算 sha256」与零 exec 硬边界自相矛盾。）
-  - **路径两域拆分（S-2）**：`permissions.md` 显式拆「skill 资产域（只读）」/「项目数据域（读写）」，判据由「`read` 是否越界」改为「**项目数据域外写入 0 命中**」—— 原判据把 `read` 纳入越界口径，与「读技能资产是设计意图」直接冲突。
-  - **字数阈值真源收口（V-7）**：`任务简报-template` 不再复述阈值，改指向字数判定表（原模板写 `≤1% / 1-5% / >5%` 与真源 `5% / 10%` **两套并存** ⇒ 同稿分级互斥、必然冲突）。
-  - **图件判据同行互斥修正**：08-终检改「**= Phase 2.5 拍板 N 张**」（与 M-11 严格相等口径一致，废除「≥5」）。
-  - `lessons-max.snapshot` **429 → 430**（棘轮跟上主真源续录）。
-
-- **③ CI 判据统一 + 发版闸查 ④**：
-  - `tests/requirements-test.txt` 补 **pyyaml**（根因：测试依赖未自声明 ⇒ 子集安装面必断）。
-  - `.github/workflows/ci-test.yml`：改**两份 requirements 全装 + 跑全量**（与本地同口径）。
-  - `scripts/release-preflight.sh` 新增**查 ④「待发布提交 CI 不红」**（退出码 13；`--allow-red-ci` 为显式逃生口；不可判定时只警告不阻塞）。**背景（教训 #430）**：v2.12.62 发版后发现 `ci-test.yml` **连续 30 次失败、跨 3 天、覆盖 10+ 个版本**，而本地门全绿、发版照走 —— 根因是「同一份代码在另一个 workflow 下是绿的」造成**绿灯幻觉**，红的那条没人点开。本查把「脚下的提交 CI 是否红」搬进发版闸。`Makefile` 由「两查一停」改「**四查一停**」。
-  - 新增 `tests/test_ci_config.py`（5 条机械锁）+ `test_release_preflight.py` 补 4 条。
-
-- **④ 发布链工具残留止血（`d31e23e`，推送后 CI 实测回归）**：`c86bb8f` 推送后 **Code Quality 变红**，报错来自本批新加的 §2b″ 清单门，多出 `+ .coverage.<host>.<pid>.<随机>`。
-  - **根因**：Code Quality 以 `pytest --cov=scripts` 跑全量 ⇒ coverage **并行模式**在每个 python 子进程退出时向其 cwd（**仓库根**）写 `.coverage.<host>.<pid>.<随机>` ⇒ 构建的 `rsync -a` 全量复制把它们带进包。排除清单是**黑名单式**，已有 `.pytest_cache` / `__pycache__` / `*.pyc`，**唯独漏了 `.coverage*`**。本地不跑 `--cov` ⇒ 从未复现 ⇒「**本地绿 / CI 红**」（#430 同族）。
-  - **关键判断：门没错**。§2b″ 拦的确实是包内不该有的文件（coverage 数据含维护者脚本路径，属**真**泄漏）。第一反应若是「把门放宽」，就等于把刚建立的白名单准入重新变成漏勺。故修的是**排除清单**：rsync 侧与 cp 分支**两侧对称**新增 `.coverage` / `.coverage.*` / `htmlcov` / `.mypy_cache` / `.ruff_cache` / `.DS_Store` / `*.swp` / `*.swo`（`cp` 是 rsync 缺失时的罕见路径 ⇒ 单侧补漏更难在真实使用中暴露）。
-  - **新增 2 条回归测试**：`test_tool_residue_is_excluded_in_both_copy_branches`（两侧对称的**源侧不变量**）+ `test_build_survives_and_drops_tool_residue`（**故障注入**：仓库根铺满 `.coverage*` / `.DS_Store` / `*.swp` / `htmlcov` ⇒ 构建必须成功**且**残留不得入包 —— 即该次 CI 回归的复现）。
-
-- **⑤ 门 Y 棘轮联动（`227cf15`）**：`references/agents/00-主控-扩展职责.md` 卡体量下调后，`scripts/self-audit-gate.sh` 的门 Y 上限表同步 **73690 → 73689**。两者**必须同批提交**，否则提交态 `test_bulk_ratchet` 必红（`c86bb8f` 已显式登记该约束）。
-
-- **⑥ 验收（实测回填 · 最终态）**：自审门 **PASS 36 / FAIL 0**；`python3 -m pytest tests/ -q` → **436 passed**；`bash scripts/check-version.sh` 通过（**v2.12.64，87 处版本戳**）；`release-preflight.sh` **四查全过**（在飞链 0 / 编号未占用 / 工作区干净 / CI 不红）；隔离 `OUTPUTS_ROOT` 构建 **RC=0**，包内 **84 文件 ≡ 随包清单**、14 条排除路径**死链 0 命中**。
-  - **CI 最终态（`d31e23e`）**：`论衡算法测试 CI（全量）` ✅ success、`Code Quality` ✅ success。**其中「论衡算法测试 CI」此前自 v2.12.62 起长期红着**（`29ac87c` / `a4a9060` 均为 failure）—— 本批 ③ 的 CI 判据统一（补 pyyaml + 跑全量）使其**转绿**，「红着没人看」的绿灯幻觉到此结束。
-
-- **⑦ changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.59** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.59 及更早」。
-
-- **本批范围**：六类构建链缺陷（C-1 推广 / C-3 / C-4 / C-5 / C-6 / C-7）+ 五项文档一致性 + CI 判据统一与发版闸查 ④ + 一次 CI 实测回归止血 + 13 条新单测。**无新增运行能力、无破坏性行为变更。**
 
 ---

@@ -968,6 +968,36 @@ def main():
                 errs.append(f'{_lbl43} 缺「{_need43}」（规则 43：G15/G16 写作质量门不得从载体静默消失，'
                             f'真源 = _shared/audit-checklist-quickref.md）')
 
+    # 44 G17 数据指纹比对跨载体一致性（v2.12.69，借 writing-guard Scholarship Lock）：
+    #    数据完整性门不得从真源（audit-checklist-quickref.md）或 T7 dispatch 载体静默消失。
+    #    真源 = _shared/audit-checklist-quickref.md；T7 dispatch 是派发载体（一条款一真源，
+    #    本规则只锁存在性，不复制判据全文 —— 防两套判据漂移）。
+    _C44_CARRIERS = (
+        ('G 门真源', 'references/_shared/audit-checklist-quickref.md'),
+        ('T7 dispatch', 'references/dispatch/T7-审计.md'),
+    )
+    for _lbl44, _rel44 in _C44_CARRIERS:
+        _t44 = (_R / _rel44).read_text(encoding='utf-8')
+        for _need44 in ('G17 数据指纹',):
+            if _need44 not in _t44:
+                errs.append(f'{_lbl44} 缺「{_need44}」（规则 44：G17 数据指纹门不得从载体静默消失，'
+                            f'真源 = _shared/audit-checklist-quickref.md）')
+
+    # 45 期刊约定校验跨载体一致性（v2.12.69，借 writing-guard JOURNAL 层）：
+    #    期刊约定校验不得从 T9 dispatch 或 09-审稿角色卡载体静默消失。
+    #    真源 = 09-审稿-peer-reviewer.md（角色卡）；T9 dispatch 是派发载体（一条款一真源，
+    #    本规则只锁存在性，不复制判据全文 —— 防两套判据漂移）。
+    _C45_CARRIERS = (
+        ('T9 dispatch', 'references/dispatch/T9-同行评审.md'),
+        ('09-审稿角色卡', 'references/agents/09-审稿-peer-reviewer.md'),
+    )
+    for _lbl45, _rel45 in _C45_CARRIERS:
+        _t45 = (_R / _rel45).read_text(encoding='utf-8')
+        for _need45 in ('期刊约定校验',):
+            if _need45 not in _t45:
+                errs.append(f'{_lbl45} 缺「{_need45}」（规则 45：期刊约定校验不得从载体静默消失，'
+                            f'真源 = 09-审稿-peer-reviewer.md）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

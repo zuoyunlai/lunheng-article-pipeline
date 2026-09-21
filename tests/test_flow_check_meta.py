@@ -80,6 +80,8 @@ DEBT = {
     "11": "Phase 编号唯一性/不回退：仅正向（test_phase_numbering_is_explicit_and_monotonic）；『seq 冲突/回退注入 ⇒ 必红』负例待补。",
     "29": "进度卡映射 + QUICKSTART 指针锁：无专项测试（仅 flow-check 本体判据）；『摘映射段 ⇒ 必红』负例待补。",
     "43": "G15/G16 写作质量门跨载体一致性：正向已测（test_G15_G16_writing_quality_gates_consistency 双载体齐全）；『删 G15 或 G16 ⇒ 必红』负例注入待补。",
+    "44": "G17 数据指纹比对跨载体一致性：正向已测（test_G17_data_fingerprint_consistency 双载体齐全）；『删 G17 ⇒ 必红』负例注入待补。",
+    "45": "期刊约定校验跨载体一致性：正向已测（test_H6_journal_convention_check_consistency 双载体齐全）；『删期刊约定校验 ⇒ 必红』负例注入待补。",
 }
 
 # 软棘轮下限：已覆盖（负例在位）规则数只许涨。把规则从 COVERED 挪回 DEBT 而不同步

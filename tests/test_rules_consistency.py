@@ -233,6 +233,32 @@ def test_G15_G16_writing_quality_gates_consistency():
     print("  ✓ G15/G16: 真源 + T7 dispatch 两处齐全（写作质量门不漂移）")
 
 
+G17_TERM = "G17 数据指纹"
+
+
+def test_G17_data_fingerprint_consistency():
+    """G17 数据指纹比对在真源 + T7 dispatch 两处齐全（防漂移）"""
+    quickref = _read(ROOT / "references" / "_shared" / "audit-checklist-quickref.md")
+    t7 = _read(ROOT / "references" / "dispatch" / "T7-审计.md")
+
+    assert G17_TERM in quickref, "audit-checklist-quickref.md 缺 G17 数据指纹"
+    assert G17_TERM in t7, "T7 dispatch 缺 G17 数据指纹"
+    print("  ✓ G17: 真源 + T7 dispatch 两处齐全（数据指纹门不漂移）")
+
+
+H6_TERM = "期刊约定校验"
+
+
+def test_H6_journal_convention_check_consistency():
+    """H6 期刊约定校验在 T9 dispatch + 09-审稿角色卡两处齐全（防漂移）"""
+    t9 = _read(ROOT / "references" / "dispatch" / "T9-同行评审.md")
+    card = _read(ROOT / "references" / "agents" / "09-审稿-peer-reviewer.md")
+
+    assert H6_TERM in t9, "T9 dispatch 缺期刊约定校验"
+    assert H6_TERM in card, "09-审稿角色卡缺期刊约定校验"
+    print("  ✓ H6: T9 dispatch + 09-审稿角色卡两处齐全（期刊约定校验不漂移）")
+
+
 # =============================================================================
 # 主入口（v2.12.42 删）
 # =============================================================================

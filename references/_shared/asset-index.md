@@ -1,4 +1,4 @@
-> 版本：v2.12.68（自动同步 2026-09-21）
+> 版本：v2.12.69（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -34,7 +34,7 @@
 | **T4** 分析 | 论点-论据映射 + 反方规划 + 三角验证 | `analysis/分析大纲.md` |
 | **T5** 写作 | 初稿 + 修订（引用标 [Lxx]、数字标 [Dxx]、案例标 [Cxx]） | `drafts/初稿-vN.md` |
 | **T6** 批判 | C1-C7 七维批判（攻击 v2 不是 v1） | `analysis/批判报告-vN.md` |
-| **T7** 审计 | G0-G16 独立审计（只审不改） | `audits/审计报告-vN.md` |
+| **T7** 审计 | G0-G17 独立审计（只审不改） | `audits/审计报告-vN.md` |
 | **T8** 终检 | 可发表性 48 项终检（主控亲完成，不 spawn） | `final/定稿.md` + 交付说明 |
 | **T9** 同行评审 | 6 维度评分（行业/学术默认开启，公众号可选） | `audits/审稿报告-vN.md` |
 
@@ -72,7 +72,7 @@
 | 错误友好化（12 类常见错误）| [`errors.md`](../errors.md) | 出错时查 |
 | 配图 + 写手禁做 + 成本模型 | [`operations.md`](../operations.md) | Phase 4.4 |
 | 证据检索边界（能/不能主动采集，判断口诀「这是已发布证据吗」）| [`phase-1-details.md`](phase-1-details.md)「检索边界」| Phase 1 |
-| G0-G16 审计详解 | [`audit-checklist-quickref.md`](audit-checklist-quickref.md) | Phase 4 |
+| G0-G17 审计详解 | [`audit-checklist-quickref.md`](audit-checklist-quickref.md) | Phase 4 |
 | M 门算法完整规约 | [`M-Gate-Algorithm.md`](M-Gate-Algorithm.md)（🟠 分片必读：伪代码段必读 / 附录按需 → [`M-Gate-Algorithm-appendix.md`](M-Gate-Algorithm-appendix.md)）| 跑 M 门前 + T8 终检前 |
 | 实战案例库（商业热点 / 品牌一致性 / 原创性悖论）| [`case-studies.md`](../case-studies.md) | 参考 |
 
