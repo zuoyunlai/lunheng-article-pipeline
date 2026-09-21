@@ -4,7 +4,7 @@
 
 背景（2026-09-19 全面审计 P1-1 / P1-2）：
   门 U 原判据面 = ① markdown 链接 + ② SKILL.md 裸文件名。两类合起来**仍不覆盖**
-  活文档里的**反引号内联路径引用**（例：`_shared/host-verify-recipe.md`）。
+  活文档里的**反引号内联路径引用**（例：`_shared/真源/host-verify-recipe.md`）。
   实测后果：`host-verify-recipe.md` 被 2 处活文档引用（均在净化包可见面）却**从未存在过**，
   而门 U 报「全部可解析」——给的是「markdown 链接面全绿」，被读成「引用面全绿」。
   可复用结论（教训 #427）：**判据的扫描面 = 该缺陷「类」的宿主集，不是「上次出事的那一个文件」**。
@@ -28,7 +28,7 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 LINK_CHECK = REPO / "scripts" / "link-check.py"
 # 变异落点：选一个既在扫描面内、又不在净化白名单排除项里的活文档
-MUTATION_TARGET = REPO / "references" / "_shared" / "关键协议.md"
+MUTATION_TARGET = REPO / "references" / "_shared" / "真源" / "关键协议.md"
 COPY_IGNORE = shutil.ignore_patterns(
     ".git", "outputs", "reports", "memory", "__pycache__", ".pytest_cache", "*.bak.*",
 )

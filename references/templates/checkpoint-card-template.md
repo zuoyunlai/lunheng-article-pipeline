@@ -1,8 +1,8 @@
-> 版本：v2.12.69（自动同步 2026-09-21）
+> 版本：v2.12.70（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
-> 📎 **流水线全景与阶段顺序** → [唯一派生视图](../_shared/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](../_shared/真源/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 # 人在环节点呈现卡模板
 
@@ -129,7 +129,7 @@
 
 ## plan 标签真源纪律（v2.12.28 新增）
 
-> ⚠️ **plan / 进度标签必须取自 [`phase-order.yaml`](../_shared/phase-order.yaml) 的「别名映射」表 —— 主控不得自创标签。**
+> ⚠️ **plan / 进度标签必须取自 [`phase-order.yaml`](../_shared/真源/phase-order.yaml) 的「别名映射」表 —— 主控不得自创标签。**
 >
 > - **无文档层编号的节点**：要么在 yaml 补编号（由维护者定），要么**不进 plan**；**不得**套用其他节点的编号。
 > - **反面实例（2026-09-11 实测）**：`t5_feedback_revision` 当时无编号 → 主控把它标成「Phase 4.2」（实为 `audit_revision` 的别名）→ 主控据此按 `audit_revision.next` 推进 → **整段跳过 `t7_audit`（Phase 4 T7 审计）**，论文在无审计状态下交付。
@@ -175,7 +175,7 @@ progress_card 的 **plan** 字段承载流水线阶段清单——比在 markdow
 
 > ① **本卡 plan 清单按 Phase 列 13 步，是「人环可见节点」的简化呈现**，与真源 **23 节点不等价**：13 步 ≠ 流程只有 13 个节点。机械闸门、条件节点与主控亲为节点**不单独占 plan 步**，被折叠进相邻步的实施明细（它们仍为必经节点，「不在 plan 清单」不等于「不执行」）。
 >
-> ② **节点 id 与全量节点集的唯一真源 = [`phase-order.yaml`](../_shared/phase-order.yaml)**（`phase_order` 表，seq 0–22）；**全景 = [`pipeline-overview.md`](../_shared/pipeline-overview.md)**（全仓唯一派生视图）。本卡**不承载全景**，只做映射；两处冲突时以 `phase-order.yaml` 为准。
+> ② **节点 id 与全量节点集的唯一真源 = [`phase-order.yaml`](../_shared/真源/phase-order.yaml)**（`phase_order` 表，seq 0–22）；**全景 = [`pipeline-overview.md`](../_shared/真源/pipeline-overview.md)**（全仓唯一派生视图）。本卡**不承载全景**，只做映射；两处冲突时以 `phase-order.yaml` 为准。
 >
 > ③ **逐条映射（13 步 → 节点 id）**：
 >    1. Phase 0 定题 → `phase0_definition`

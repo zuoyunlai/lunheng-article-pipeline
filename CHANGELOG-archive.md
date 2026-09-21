@@ -1,6 +1,6 @@
-# Changelog 归档（v2.12.64 及更早）
+# Changelog 归档（v2.12.65 及更早）
 
-> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入，v2.12.51 于 v2.12.56 轮转迁入，v2.12.52 于 v2.12.57 轮转迁入，v2.12.53 于 v2.12.58 轮转迁入，v2.12.54 于 v2.12.59 轮转迁入，v2.12.55 于 v2.12.60 轮转迁入，v2.12.56 于 v2.12.61 轮转迁入，v2.12.57 于 v2.12.62 轮转迁入，v2.12.58 于 v2.12.63 轮转迁入，v2.12.59 于 v2.12.64 轮转迁入，v2.12.60 于 v2.12.65 轮转迁入，v2.12.61 于 v2.12.66 轮转迁入，v2.12.62 于 v2.12.67 轮转迁入，v2.12.63 于 v2.12.68 轮转迁入，v2.12.64 于 v2.12.69 轮转迁入）。
+> ⚠️ **本文件是 `CHANGELOG.md` 的历史归档**，收录 v2.12.47 及更早的全部版本章节（v2.12.46 于 v2.12.51 轮转迁入，v2.12.47 于 v2.12.52 轮转迁入，v2.12.49 / v2.12.50 于 v2.12.55 轮转迁入，v2.12.51 于 v2.12.56 轮转迁入，v2.12.52 于 v2.12.57 轮转迁入，v2.12.53 于 v2.12.58 轮转迁入，v2.12.54 于 v2.12.59 轮转迁入，v2.12.55 于 v2.12.60 轮转迁入，v2.12.56 于 v2.12.61 轮转迁入，v2.12.57 于 v2.12.62 轮转迁入，v2.12.58 于 v2.12.63 轮转迁入，v2.12.59 于 v2.12.64 轮转迁入，v2.12.60 于 v2.12.65 轮转迁入，v2.12.61 于 v2.12.66 轮转迁入，v2.12.62 于 v2.12.67 轮转迁入，v2.12.63 于 v2.12.68 轮转迁入，v2.12.64 于 v2.12.69 轮转迁入，v2.12.65 于 v2.12.70 轮转迁入）。
 > 拆分口径（v2.12.47）：`CHANGELOG.md` 只保留**最近 5 期**，其余逐字迁入本文件。
 > **`scripts/changelog-check.py` 同时读取两份**，故「每个版本 tag 都有章节」的校验纪律不变。
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
@@ -16,7 +16,7 @@
 
 ## [v2.12.59] — 2026-09-19
 
-- **补上悬空文档指针（2026-09-19 全面审计 P1-1）**：`references/_shared/host-verify-recipe.md` 被 2 处**活文档**引用（`agents/08-终检-final-inspector.md` M-1 第 1 条、`templates/交接报告-template.md` 的 `audited_artifact.sha256` 字段），而 `git log --all -- '*host-verify-recipe*'` 与全盘查找均证实该文件**从未存在过**；两处引用点都在**净化包可见面**，且指向的正是 v2.12.54 刚把「写指纹」移交给主人 host shell 的那个动作 —— 最需要命令模板的环节指向了不存在的模板。修复：新建该文件作为「主人 host shell 补算与登记」的**唯一命令模板真源**（§二 补算命令 / §三 自验 / §四 四处回填登记 / §五 与既有文档的关系），两处引用改为可解析的仓库相对链接；并登记进 `sync-version.sh` / `check-version.sh` / 自审门 C 三处版本戳载体清单（防「新文件漏出三处清单」的 #118.1 同型）。
+- **补上悬空文档指针（2026-09-19 全面审计 P1-1）**：`references/_shared/真源/host-verify-recipe.md` 被 2 处**活文档**引用（`agents/08-终检-final-inspector.md` M-1 第 1 条、`templates/交接报告-template.md` 的 `audited_artifact.sha256` 字段），而 `git log --all -- '*host-verify-recipe*'` 与全盘查找均证实该文件**从未存在过**；两处引用点都在**净化包可见面**，且指向的正是 v2.12.54 刚把「写指纹」移交给主人 host shell 的那个动作 —— 最需要命令模板的环节指向了不存在的模板。修复：新建该文件作为「主人 host shell 补算与登记」的**唯一命令模板真源**（§二 补算命令 / §三 自验 / §四 四处回填登记 / §五 与既有文档的关系），两处引用改为可解析的仓库相对链接；并登记进 `sync-version.sh` / `check-version.sh` / 自审门 C 三处版本戳载体清单（防「新文件漏出三处清单」的 #118.1 同型）。
 - **门 U 扩第三类扫描面（P1-2，判据面修正）**：原判据 = ① markdown 链接 + ② SKILL.md 裸文件名，二者合起来**仍不覆盖活文档的反引号内联路径引用** —— 这正是上一条漏检的机制原因（门报「全部可解析」，实为「markdown 链接面全绿」，被读者当成「引用面全绿」）。新增第三类：`references/**/*.md`（含 `templates/`）的反引号内联 `.md` 引用逐条解析（解析顺序 = 同级目录 → 仓库根 → 仓库内同名文件，共 **268 条**）；豁免 = 占位符 / 含空格 / `docs/` / `scripts/` / 运行时项目树前缀 / 显式 `INLINE_ALLOW` 债务清单（每条注明理由）。可复用结论：**判据的扫描面 = 该缺陷「类」的宿主集，不是「上次出事的那一个文件」**（教训 #427 的自证式应用 —— 把该原则回头施加到自己剩下的门上）。
 - **配套 5 条单测 `tests/test_link_check.py`**：① 基线三类全绿、rc=0；② **反向注入**（临时副本注入指向不存在文档的反引号引用 ⇒ 必须 rc=1 并点名该 token）；③ 防过度拦截（扩展名枚举 `.sh`/`.md` 不是路径，不得报错）；④ 防过度拦截（运行时产物 `status.md` / `交付说明.md` / 心跳文件名不得报错 —— 「门收紧到天天误报 ⇒ 训练读者忽略告警」是同族风险）；⑤ **真源零写入护栏**（变异一律在临时整仓副本，真源 sha256 前后一致，同教训 #333）。**变异必须被门真跑到并报错才算有效**（教训 #175 / #421 同型）。
 - **§十六 补分层指针（P2-8）**：`agents/00-主控-扩展职责.md` §十六「边界与主动介入」与其下文 §二十一 / §二十二 / §二十三 / §二十四 标题重叠（实测「主动介入机制」出现 3 次、「交接报告格式」5 次）；§二十四 已自觉标注「已合并 → 见本文件『交接报告格式』段」= 合法指针，但 §十六 的对应子段**未标注**，读者从 §十六 进入看不到消歧。修复：§十六 加「本节定位 = 概览与入口」声明 + 四个子段各加一行「📍 概览；详版真源 = §N」。**只加指针、不动内容** —— 改动仍只在真源段落进行。
@@ -33,14 +33,14 @@
 
 ## [v2.12.58] — 2026-09-19
 
-- **M 门算法文档围栏错位修复（教训 #426 沉淀）**：`references/_shared/M-Gate-Algorithm.md` 此前有 2 个多余围栏（L1048、L1181）把 `M-Exist-3: 数据信任级别一致性 diff` 与 `M-Integrity-1: T2.5 完整性门` 两个标题裹进代码块，并使 7 行伪代码注释（L1081/1085/1090/1102 + L1148/1160/1170 + L1203 后的）落到块外被渲染为文档 H1。实测：原围栏总数 46（偶）但相位错位 ⇒ 13 个 M 门标题中只有 4 个在块外、9 个被吞；删两个多余围栏后围栏总数 44（偶）且全部 M 门标题归位、伪 H1 消失。可复用结论：**围栏总数偶数只是必要不充分条件**（错位的围栏可以两两配对但配错了位置），要真校验相位必须叠加「M 门标题必须在块外 + 围栏外无紧跟围栏的 # 伪 H1」。
+- **M 门算法文档围栏错位修复（教训 #426 沉淀）**：`references/_shared/真源/M-Gate-Algorithm.md` 此前有 2 个多余围栏（L1048、L1181）把 `M-Exist-3: 数据信任级别一致性 diff` 与 `M-Integrity-1: T2.5 完整性门` 两个标题裹进代码块，并使 7 行伪代码注释（L1081/1085/1090/1102 + L1148/1160/1170 + L1203 后的）落到块外被渲染为文档 H1。实测：原围栏总数 46（偶）但相位错位 ⇒ 13 个 M 门标题中只有 4 个在块外、9 个被吞；删两个多余围栏后围栏总数 44（偶）且全部 M 门标题归位、伪 H1 消失。可复用结论：**围栏总数偶数只是必要不充分条件**（错位的围栏可以两两配对但配错了位置），要真校验相位必须叠加「M 门标题必须在块外 + 围栏外无紧跟围栏的 # 伪 H1」。
 - **同类缺陷扩围抓到第二例（教训 #427）**：把 X.1 的判据从「M-Gate 单文件」扩到「全仓 `.md`」后**立即红** —— `references/pipeline-readme.md` 围栏 **7 个（奇）= 未闭合**，按渲染配对规则其尾部 **57 行**（含 `## status.md 状态机` / `## 模板加载策略` / `## 设计文档加载策略` 等章节）整块被吞进代码块；对比 v2.12.53 该文件为 8 个围栏（偶）⇒ 缺陷由 **v2.12.54 全景收敛的删除残留**引入（删开围栏、留闭围栏），**存活 4 个版本 / 跨 5 次发版**未被任何门拦下（门 X.1 的扫描面当时写死为单文件）。修复：删孤儿闭围栏（7 → 6 个围栏，尾部 57 行归位）。可复用结论：**判据的扫描面 = 该缺陷「类」的宿主集，不是「上次出事的那一个文件」**；修完个案先问「同类问题在别处是否可能」，并把范围先开大跑一遍（红 = 又抓到同类；全绿 = 拿到「该类当前为零」的基线）。
 - **README 正文版本 + 排版残留修正（教训 #428）**：主人问「readme 是否需要修正」→ 先跑全量 pytest 取证，发现仓库**实际是红的**：`tests/test_audit_residuals.py::test_readme_prose_version_matches_frontmatter` 报 `README 正文版本 v2.12.57 ≠ frontmatter 2.12.58`（README 正文「当前版本」段是**手写载体**，不在 `sync-version.sh` / `check-version.sh` 受管网内 ⇒ 自审门 C 与 check-version 全绿；但 pytest 里早就有这条断言）⇒ **「门存在」≠「门跑过」**：上一批升版本戳（89 文件）未跑全量测试，本版内记录的「373 passed」在最终态不成立。已修：README 正文段 v2.12.57 → v2.12.58（同批补本版摘要），并顺手收敛 README **43 行** / `glossary-full.md` **13 行**连续空行块（排版残留，渲染为巨空白；全仓仅此两处 ≥4 行）。
 - **新增自审门 X（v2.12.58，回应教训 #426）**：`scripts/self-audit-gate.sh` 末尾新增门 X.1 / X.2 / X.3 三道断言 —— X.1 抓 M-Gate 围栏总数为奇数；X.2 抓 13 个 M 门标题（8 Form + 3 Exist + 2 Integrity）被裹进代码围栏；X.3 抓围栏外「紧跟围栏行且首字符为 #」的伪 H1（围栏错位的真实信号）。CHANGELOG-archive.md 走白名单（历史归档允许多 H1）。
 - **配套 6 条单测 `tests/test_gate_x_fence_phase.py`**：① 基线正向验证（X.1-X.4 全 ✓ + 退出码 0）；② X.2 变异（M-Gate 追加被围栏裹的 M-Form-99，须 ✗）；③ X.2 变异（把 `pipeline-readme.md` 的章节锚点裹进围栏，须 ✗ —— 验证锚点表第二项真生效）；④ X.1 变异（删一个裸围栏让总数变奇数，须 ✗）；⑤ X.3 变异（追加「紧跟围栏关闭的 # 伪 H1」，须 ✗）；⑥ X.4 变异（新增一个含未闭合围栏的 `.md`，须 ✗）。**变异必须被门真跑到并 FAIL 才算有效**（避免 #175/#421 同型「门只描述不执行 → 静默空转」）；且**变异一律注入临时整仓副本、真源零写入**（旧写法直接写真源再 finally 还原，中途被 kill 即把变异留在真源里 —— 同族教训 #333）；另配两条护栏单测：真源 sha256 前后一致、锚点表登记文件必须存在且覆盖两份立项文档。
 - **changelog 分层轮转（同批收尾）**：主文件加 v2.12.58 章节后有 **6 期**（上限 5）⇒ `python3 scripts/changelog-check.py --check` 红；按既定口径把最旧的 **v2.12.53** 逐字迁入 `CHANGELOG-archive.md`（守恒断言：归档内恰一份、主文件为 0、主文件剩 5 期），归档标题边界更新为「v2.12.53 及更早」并补记 v2.12.52（于 v2.12.57 轮转，上一批漏记）；同时把主文件「范围说明」与 README 里的**字面版本边界**（曾写 v2.12.44 / v2.12.41，逐版漂移）改为不写死边界 + 指向归档轮转记录。
-- **验收（实测回填 · 最终态，本批重跑）**：自审门 **PASS 30 / FAIL 0**（门 X.1-X.4 全绿 + 既有 26 门无回退）；`python3 -m pytest tests/ -q` → **377 passed**（门 X 单测改造后共 6 条）；`bash -n scripts/self-audit-gate.sh` 通过；`bash scripts/check-version.sh` 通过（v2.12.58）；`python3 scripts/flow-check.py` RC=0；`python3 scripts/link-check.py` RC=0（494 条相对链接全解析）；`python3 scripts/changelog-check.py --check` RC=0（轮转后恢复）。**⚠️ 修正说明**：本版上一批记录的「PASS 29 / 373 passed」在最终态**不成立** —— 升版本戳（89 文件）后 README 正文版本断言红（见教训 #428），本批已修并重跑；围栏修复后 `references/_shared/M-Gate-Algorithm.md` 行数 1250 → 1248，`references/pipeline-readme.md` 围栏 7 → 6。
-- **教训库同批同步（#424-#428 五条入库 + 编号修正）**：主真源续录 **#424**（裸 grep/awk 不认围栏，标题编号从错写的 #423 修正）/ **#425**（trigger 脚本 exec 大 JSON 静默不报）/ **#426**（围栏错位 → 偶数必要不充分 → 门 X 三道）/ **#427**（结构类判据限定单文件 ⇒ 同类缺陷漏检）/ **#428**（门存在 ≠ 门跑过）；`references/_shared/lessons-max.snapshot` 423 → **425** → **428**（载明两段更新记录 + 一段 off-by-one 修正记录）；`references/_shared/教训索引.md` 三处副本同批对齐（§一 / §二 / §三 完整教训库）+ 新增 §三点八 批次 G 分类补记 / §三点九 快照 off-by-one 修正补记 / §三点十 批次 H 分类补记；排除表 `LUNHENG_LESSON_EXCLUDE` **未变** —— 五条均属论衡类（F 审计/分析方法 + 工程实践）。
+- **验收（实测回填 · 最终态，本批重跑）**：自审门 **PASS 30 / FAIL 0**（门 X.1-X.4 全绿 + 既有 26 门无回退）；`python3 -m pytest tests/ -q` → **377 passed**（门 X 单测改造后共 6 条）；`bash -n scripts/self-audit-gate.sh` 通过；`bash scripts/check-version.sh` 通过（v2.12.58）；`python3 scripts/flow-check.py` RC=0；`python3 scripts/link-check.py` RC=0（494 条相对链接全解析）；`python3 scripts/changelog-check.py --check` RC=0（轮转后恢复）。**⚠️ 修正说明**：本版上一批记录的「PASS 29 / 373 passed」在最终态**不成立** —— 升版本戳（89 文件）后 README 正文版本断言红（见教训 #428），本批已修并重跑；围栏修复后 `references/_shared/真源/M-Gate-Algorithm.md` 行数 1250 → 1248，`references/pipeline-readme.md` 围栏 7 → 6。
+- **教训库同批同步（#424-#428 五条入库 + 编号修正）**：主真源续录 **#424**（裸 grep/awk 不认围栏，标题编号从错写的 #423 修正）/ **#425**（trigger 脚本 exec 大 JSON 静默不报）/ **#426**（围栏错位 → 偶数必要不充分 → 门 X 三道）/ **#427**（结构类判据限定单文件 ⇒ 同类缺陷漏检）/ **#428**（门存在 ≠ 门跑过）；`references/_shared/治理/lessons-max.snapshot` 423 → **425** → **428**（载明两段更新记录 + 一段 off-by-one 修正记录）；`references/_shared/治理/教训索引.md` 三处副本同批对齐（§一 / §二 / §三 完整教训库）+ 新增 §三点八 批次 G 分类补记 / §三点九 快照 off-by-one 修正补记 / §三点十 批次 H 分类补记；排除表 `LUNHENG_LESSON_EXCLUDE` **未变** —— 五条均属论衡类（F 审计/分析方法 + 工程实践）。
 
 ---
 
@@ -54,10 +54,10 @@
 
 - **教训 #421 入库（唯一真源 = 主工作区 `memory/lessons.md`，新编号 #421）**：`scripts/publish-clawhub.sh` 的 `extract_changelog()` 压缩器只认「`> **主题：…**` 主题行 + `### 小节标题`」两种**旧**写法，而 CHANGELOG 写作风格早已迁移为顶层 `- **要点**：详解`（v2.12.54/55/56 三章的 `###` 计数均为 0）⇒ 提取恒空 ⇒ 走 fail-closed 分支 `exit 3`，ClawHub 发布被中止。历史遗留：v2.12.53 仅因该章残留 1 行主题行才「非空」通过 —— 这道门长期近乎空转。可复用结论：**压缩/提取类门必须对真源的实际书写格式有正向样本，否则门会静默空转**（判据是「解析结果」而非「真源内容」，故「解析为空」不能直接推断「真源缺失」）。
   - 报错位置（「CHANGELOG 找不到该版本」）与真实缺陷位置（提取口径认不出格式）**完全不同**：门把「读取侧缺陷」误诊为「写入侧缺陷」。
-- **索引与快照同批刷新（三者同批，不提交中间态）**：`references/_shared/教训索引.md` 声明的最大编号 #420 → **#421**（§一 分类行 / §二 定位行 / §三 完整教训库 三处副本同批），`references/_shared/lessons-max.snapshot` **421**（载明 420→421 的更新记录）；排除表 `LUNHENG_LESSON_EXCLUDE` **未变** —— #421 属论衡类，按设计不入排除表（新增宿主/通用类才入表，且不得靠放宽门判据代替）。
+- **索引与快照同批刷新（三者同批，不提交中间态）**：`references/_shared/治理/教训索引.md` 声明的最大编号 #420 → **#421**（§一 分类行 / §二 定位行 / §三 完整教训库 三处副本同批），`references/_shared/治理/lessons-max.snapshot` **421**（载明 420→421 的更新记录）；排除表 `LUNHENG_LESSON_EXCLUDE` **未变** —— #421 属论衡类，按设计不入排除表（新增宿主/通用类才入表，且不得靠放宽门判据代替）。
 - **提取器兜底口径（提交 d51c03c，本版一并记录）**：主口径（主题行 + `###` 小节标题）**保留不变**（旧章行为不变），新增**顶层要点标题**兜底（`- **…**：…` → `- …`）；缩进子项与纯文本条目**不入正文**，平台页面仍是压缩摘要而非全文。e2e 实绩：v2.12.56 提取 6 行 → dry-run `would-publish` → 正式发布已提交。
 - **新增正向单测 `tests/test_publish_changelog_extraction.py`（6 条）**：给这道门补「应当放行」的样本（教训 #334 同族）。实现口径 = 从真脚本抽出 `extract_changelog()` **函数真身**执行（不复制一份实现，避免第二真源漂移），在临时 `SKILL_ROOT` 下放构造章节。覆盖 —— ① 新格式章节提取非空且只留顶层要点标题；② 缩进子项 / 纯文本条目不入正文、无残留强调符；③ 旧格式（主题行 + `###`）行为不变；④ 两种写法并存时主口径优先；⑤ 章节确实缺失时仍为空（fail-closed 分支可达、语义未被兜底冲掉）；⑥ **真源防线**：本仓 CHANGELOG 的**当前 SKILL.md 版本**章节必须提取非空（不往仓库根写临时文件，避免弄脏「工作区干净」发版前置闸）。
-- **随批并入的其他链已收口内容（如实登记，避免「谁改的」不可考）**：本版提交同时收进本仓三条并行链已收口但未提交的改动 —— ①「P1 软边界收口」内容（`agents/00-主控-扩展职责.md` 的「处置优先级规则（v2.12.57 单一权威口径）」与「两层别混」精确口径、`08-终检-final-inspector.md` 的职责/边界澄清、`任务简报-template.md` 的「换档重派」措辞、`执行韧化协议-design.md` 的适用边界、`errors.md` 零产物处置指针、`_shared/external-services.md` 与 `permissions.md` 的消歧义）；② `设计文档-架构.md` 补 `scripts/README.md` 索引视图指针（索引本体已于 `9f6f095` 提交）；③ 开发者侧探针 `scripts/runtime-capability-probe.py` 入库（纯标准库、不需新增依赖；`scripts/` 不入净化包）。
+- **随批并入的其他链已收口内容（如实登记，避免「谁改的」不可考）**：本版提交同时收进本仓三条并行链已收口但未提交的改动 —— ①「P1 软边界收口」内容（`agents/00-主控-扩展职责.md` 的「处置优先级规则（v2.12.57 单一权威口径）」与「两层别混」精确口径、`08-终检-final-inspector.md` 的职责/边界澄清、`任务简报-template.md` 的「换档重派」措辞、`执行韧化协议-design.md` 的适用边界、`errors.md` 零产物处置指针、`_shared/真源/external-services.md` 与 `permissions.md` 的消歧义）；② `设计文档-架构.md` 补 `scripts/README.md` 索引视图指针（索引本体已于 `9f6f095` 提交）；③ 开发者侧探针 `scripts/runtime-capability-probe.py` 入库（纯标准库、不需新增依赖；`scripts/` 不入净化包）。
 - **门 Q 与 build 的「可见面」口径对齐（主人 2026-09-19 裁定：`reports/` / `memory/` 属工程过程产物、不进版本库）**：二者已由 `.gitignore` 拦，但 `build-clawhub-release.sh` 只排除 `memory`、门 Q 两者都不排除 ⇒ 前者会把未跟踪报告扫进净化包（触发 #333 跟踪性断言），后者会因报告内的扫描器编号**误红**。本版补齐：build 增 `--exclude 'reports'`（含 `cp -a` 回退路径的清理），门 Q 扫描范围增 `reports/*` / `memory/*` —— 与 build 可见面一致，正是该门注释自己声明的口径。
 - **验收（实测回填 · 最终态）**：自审门 **PASS 26 / FAIL 0**（门 C 53 文件版本号 v2.12.57 一致 / 门 H 双向差集：引用 164 个编号全有定义、索引 #421 ≥ 快照 #421 / 门 Q 可见面口径补齐后恢复绿 / 门 V SKILL.md 9827 ≤ 10000 字符）；`python3 -m pytest tests/ -q` → **369 passed**（含本批新增 `tests/test_publish_changelog_extraction.py` 6 条）；`scripts/README.md` 随探针入库重生成（28 条，双向漂移锁转绿）；版本戳同步 **89 文件**；`python3 scripts/changelog-check.py --check` **RC=0**。
 
@@ -70,14 +70,14 @@
 ## [v2.12.56] — 2026-09-18
 
 - **批次 C · Layer 4 运行时收尾协议（P-1~P-5）**：把「子代理完成后主控不自动推进」的**无人值守环**（2026-09-18 实测：约 17 分钟零完成事件，只能事后读盘重建状态）从「靠运气」改为**可核查协议**：
-  - **P-1 收尾协议（硬约束）**：`_shared/dispatch-header.md` 新增 §收尾协议 —— worker 写完交接报告后**以正常最终消息结束回合**（该消息即 completion event）；**主动作废**自行 `sessions_yield` 的写法（worker 自 `sessions_yield` = 挂起 run 而非完成它 ⇒ 主控收不到完成事件）；交接摘要**不得**塞进 `acknowledgment` 字段（该字段不从子代理回合发出，实际不送达 ⇒ 完成事件 + 摘要双丢）。9 张角色卡 + 两份交接报告模板同步接线，禁用原语清单统一为 `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history`。
+  - **P-1 收尾协议（硬约束）**：`_shared/真源/dispatch-header.md` 新增 §收尾协议 —— worker 写完交接报告后**以正常最终消息结束回合**（该消息即 completion event）；**主动作废**自行 `sessions_yield` 的写法（worker 自 `sessions_yield` = 挂起 run 而非完成它 ⇒ 主控收不到完成事件）；交接摘要**不得**塞进 `acknowledgment` 字段（该字段不从子代理回合发出，实际不送达 ⇒ 完成事件 + 摘要双丢）。9 张角色卡 + 两份交接报告模板同步接线，禁用原语清单统一为 `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history`。
   - **P-2 主控兜底唤醒**：`00-主控-扩展职责.md` 新增第 6 条（与既有第 1 条「spawn 后不轮询」**并存不冲突**）—— spawn 后**必须**安排一次定时自唤醒（= 该角色硬卡阈值 + 缓冲），到点**主动 `read` 核对磁盘产物**，**推进判据以磁盘产物为准**、completion event 仅作**加速信号**；宿主无可用定时面 ⇒ 退化为「下次进入本会话即复核」+ `status.md` 记 `watchdog_unavailable`（不得静默）。⚠️ 方案原文示例的 `automations` **在 `denied` 内**，本协议**不授权调用**（本版不改 `denied` / `coordinator_only`）。
   - **P-3 能力自检真收口**：把「写 `能力自检：通过`」升级为**必须逐项列出本会话实际可见的工具清单**（禁止只写「通过」），档位不符 ⇒ 当场回报主控、不继续跑（实测事故：派发前未核实实际工具面 ⇒ 子代理无 `exec`/`grep`，无法自验）。
   - **P-4/P-5 版本链完整性**：交接报告模板正文须随最终消息结束回合；`dispatch/T5-写手.md` + `dispatch/T7-审计.md` 新增 —— 每个 `drafts/初稿-vN.md` 须配同版本号 `交接报告-T5-vN.md`，或 `修订说明-vN.md` 记录完整版本链（版本号 + 日期 + 产物路径）；缺任一版本且无记录链 ⇒ 该版本**不可核验**（T7 判 **P1**；`status.md` 回环记录**不替代**版本链）。实测反例：仅产 `v{1,3,4}`，v2/v5 缺失。
 - **批次 C · Layer 5 删除清理（D-1~D-3）**：
   - **D-1 多格式导出彻底移出 Phase 0（主人裁定 2026-09-18）**：删 Phase 5 的 A–F「多格式导出选择卡」（7 文件），改为**并入 M-13「主人自行操作建议清单」第 1 项**（执行者 = 主人 host shell，**agent 不执行**任何转换命令）；`SKILL.md` / `关键协议.md` / `external-services.md` / `设计文档-哲学.md` / `checkpoint-card-template.md` / `任务简报-template.md` / `00-主控-扩展职责.md` 六处「3 项 + 多格式 6 选项」口径统一收敛为「**2 项**（期刊匹配 / 中文数据源）」。
   - **D-2 配图表述核实**：全清单仅 2 处涉及配图，均为合规表述（`image_generate` 已于 v2.12.52 移除 ⇒ 论衡不调用），**未为改而改**。
-  - **D-3 建议清单命令同源**：T8 命令模板改为与 `_shared/format-export.md` §〇/§二 **同源**，并显式标注 latex/docx/pdf 所需模板 / `.bib` / `.csl` **需主人自备**（否则会卡壳）；封面类**无统一可复制命令**故模板只覆盖第 1/2/4 类。
+  - **D-3 建议清单命令同源**：T8 命令模板改为与 `_shared/真源/format-export.md` §〇/§二 **同源**，并显式标注 latex/docx/pdf 所需模板 / `.bib` / `.csl` **需主人自备**（否则会卡壳）；封面类**无统一可复制命令**故模板只覆盖第 1/2/4 类。
 - **M-Gate 规范补全（M-1~M-7）**：
   - **M-2 抽取规则唯一真源**：`M-Gate-Algorithm.md` 新增 §统一抽取规则真源（**A 文末节集合**：REQUIRED 4 / OPTIONAL 3 / ALL 7 / NONSTANDARD；**B 引用编号正则**：标准 / 基线 / 表格三类），消除**三组**同源不一致（M-Form-2↔M-Form-7、M-Form-1↔M-Exist-3，外加 A.2 未列的 M-Form-3↔M-Form-7 marker 清单）；各门改为引用真源 + 派生展开视图（注明「非第二真源」）。
   - **M-1 悬空指针**：§6 删「主人手工跑 `bash scripts/m-gate-check.sh`」实指写法（全仓无该文件），改为显式标注「未实现 / 未随仓保留」，**不凭空造脚本**。
@@ -86,7 +86,7 @@
   - **M-5 判定出口唯一真源**：13 项 M 门伪代码统一经 §统一抽取规则真源 C 的 `verdict_pass` / `verdict_fail` / `verdict_undecidable` / `verdict_path_error` 返回，`档位` 取值与附录 schema `判定记录_双字段` **逐字一致**。
   - **M-6 依赖面补全**：`scripts/m_gate_dependencies.yaml` 补 M-Form-1 / M-Exist-3 的 `final/图件/*.svg` 依赖（对齐自审门 J）、M-Form-8 的 `01-任务简报.md` 依赖（伪代码从简报提取 `[论点N]`），并注明**本文件只影响「变更定位范围」、不产出 M 门结论**。
   - **M-7 未定义 helper**：新增 §未定义 helper 清单与替代口径（`extract_intext_v2` / `extract_endnote_v2` → 按真源 A + B 切分提取）。
-- **残余 S-4 指针化收口**：`references/templates/任务简报-template.md` 最后一处轮次口径复述点（原「第 3 轮触发 → Acknowledged Limitations 模式」）改为指向 `_shared/pipeline-overview.md`『修订回环仲裁规则』。
+- **残余 S-4 指针化收口**：`references/templates/任务简报-template.md` 最后一处轮次口径复述点（原「第 3 轮触发 → Acknowledged Limitations 模式」）改为指向 `_shared/真源/pipeline-overview.md`『修订回环仲裁规则』。
 - **教训库同步**：`lessons-max.snapshot` 409 → **420**（主真源续录 #415-#420 六条论衡类教训）；`教训索引.md` 最大编号同步为 #420，并注明**编号撞号未清**（#415×2 / #416×2，撞号不推高本值语义）。
 - **验证**：构建期三件套全绿 —— `flow-check.py` rc=0、`self-audit-gate.sh` **PASS 26 / FAIL 0**、`pytest` **348 passed**；`link-check` 相对链接 485 条 + 入口裸引用 2 条全部可解析。
 
@@ -100,7 +100,7 @@
   - **S-2 盲审禁代笔**：`t9_review` **删除**通用 fallback `on_worker_failure.executor: 主控`，改为 `independence_failure_policy`（`retry_spawn_only` / `retry_limit` / `executor_takeover: forbidden` / 重试耗尽 ⇒ `record_missing_and_notify_owner`）；封掉「盲审节点由主控接管」的结构性冲突——主控已读遍全部内部材料，代笔即独立性归零且**事后不可修复**。构建期门 = `flow-check.py` 规则 30。
   - **S-3 同 provider 连续静默升级**：顶层新增 `provider_silence_escalation`（同 provider 连续 **≥3** 次静默 ⇒ **强制暂停 + 呈现主人三选**：换 provider 族 / 换能力档 / 接受同源并披露；**无默认项、必须挂起**），补齐「spawn 前探活门管不到 accepted 之后不产出」的缺口（实测背景：批判审计档 4 连静默无任何升级规则）。构建期门 = `flow-check.py` 规则 31。
   - **S-6 Phase 1.5 触发条件**：删首轮不可达的占位项「T9 证据强度评分低」，改为明示「**上一轮 T9 审稿报告**指出证据强度不足（仅续跑可达）」。
-  - **S-4 修订回环口径归一**：轮次口径**唯一真源 = `_shared/pipeline-overview.md`『修订回环仲裁规则』**；全仓副本（README / QUICKSTART / 架构篇 / 哲学篇 / 关键协议 / glossary-core·full / deliverables / errors / dispatch T5·T7 / audit-checklist-quickref / writer·auditor 卡 / 主控扩展职责）改为**指针**，不再复述轮次数字。
+  - **S-4 修订回环口径归一**：轮次口径**唯一真源 = `_shared/真源/pipeline-overview.md`『修订回环仲裁规则』**；全仓副本（README / QUICKSTART / 架构篇 / 哲学篇 / 关键协议 / glossary-core·full / deliverables / errors / dispatch T5·T7 / audit-checklist-quickref / writer·auditor 卡 / 主控扩展职责）改为**指针**，不再复述轮次数字。
   - **S-5 字数上限口径归一**：`字数判定表.md` 不再复述绝对上限，四档一律按任务简报 **`body_limit`（M-14）比例换算**，消除历史上与 `body_limit` 的互斥。
 - **新增/加强测试**：`tests/test_flow_check.py` 新增 8 个用例（S-2 正向/锚点 + 2 条反向注入；S-3 正向/主控卡双向接线 + 2 条反向注入）。反向注入实测：恢复通用 fallback ⇒ `rc=2` 并点名 `t9_review（blind_review）仍声明 on_worker_failure.executor: 主控`；阈值改 `9` ⇒ `rc=2` 并点名 `provider_silence_escalation.threshold->9`；副本还原 ⇒ `rc=0`，真源 sha256 前后一致。
 
@@ -111,14 +111,14 @@
 ## [v2.12.54] — 2026-09-18
 
 - **批次 A · Layer 1 机械校验（R-1~R-6）**：把「派生文档与真源漂移」从「靠人记」改为「构建期红」（均位于构建期 `scripts/flow-check.py`，由维护者 host shell 运行；**论衡运行期仍零 exec**）：
-  - **R-1 全景一致性**：全景**收敛为唯一一份派生视图**（`_shared/pipeline-overview.md`，23 节点全表 + 修订回环仲裁表）；其余文档**删除全景段、只留指针**；登记真源 = `phase_order.yaml` `panorama_sources`（canary / mirrors / pointer_exempt）；`pointer_exempt` 文件亦**禁承载全景段**。实测背景：11 份含 Phase 序列的文档**无一与真源一致**（pipeline-overview 缺 4 节点且 T7.5 门位置倒置、README 缺 7、pipeline-readme 缺 4、QUICKSTART 口径错 + 指针失效）。
+  - **R-1 全景一致性**：全景**收敛为唯一一份派生视图**（`_shared/真源/pipeline-overview.md`，23 节点全表 + 修订回环仲裁表）；其余文档**删除全景段、只留指针**；登记真源 = `phase_order.yaml` `panorama_sources`（canary / mirrors / pointer_exempt）；`pointer_exempt` 文件亦**禁承载全景段**。实测背景：11 份含 Phase 序列的文档**无一与真源一致**（pipeline-overview 缺 4 节点且 T7.5 门位置倒置、README 缺 7、pipeline-readme 缺 4、QUICKSTART 口径错 + 指针失效）。
   - **R-2 节点 id 合法性**：status 模板必含「节点 id 取自 yaml / **禁止自创**」断言（历史事故：自创 `t5_final_v5` 致进度表顺序错乱）。
   - **R-3 Done 记账一致性**：`Not Triggered` / `opt_out` / `pending_owner` / 产物缺失 **一律不得计 Done**；汇总行须与逐节点行一致。
   - **R-4 条件字段生产方**：`condition_definitions` 每条必须登记 `producer` + `producer_marker`，否则构建期红 —— 封掉「条件字段全仓无生产方 ⇒ 节点静默不触发」（实测：T9 依赖 `owner_peer_review_consent` 无生产方 ⇒ **T9 整节点消失**、主控代做其产出并给出编造精度）。
   - **R-5 T8 建议清单四类**：文档格式转换 / SVG→PNG / **封面视觉** / **SHA256 登记** 缺一即 T8 不合格（实测：交付说明只给两类、「封面」0 命中）。
   - **R-6 条件不可判定处置**：声明 `condition` 或 `opt_out` 的节点必须显式声明 `condition_undecidable`，禁止用 `on_not_triggered` 静默吞掉「条件证据读不到」。
 - **夹带的最小真源修复（S-1）**：`t9_review` 由 opt-in（`owner_peer_review_consent`，**全仓无生产方**）改为「**默认启用 + 主人 opt-out**」（写法同 `methodology_snapshot`）；`任务简报-template.md` 新增 `owner_peer_review_opt_out` 与 `owner_methodology_snapshot_opt_out` 两个生产方字段（后者原为同型断链）。
-- **批次 A · Layer 3 表述收敛（T-1~T-5）**：修订回环口径按主人 2026-09-18 裁定归一（**不计轮** = Phase 3.5 主人洞察轮；**轮 1** = Phase 3.6/3.7 批判修订；**轮 2** = Phase 4.2 审计修订；超限 → Acknowledged Limitations 须主人拍板），失效副本（QUICKSTART / degraded-scenarios 等）改为指向 `_shared/pipeline-overview.md`；修复 QUICKSTART 指向已外移 SKILL.md 章节的失效指针；**Phase 0 不再询问输出格式、不再询问是否配图**（格式转换/封面/SHA256 一律下行到 T8 终检后的「主人自行操作建议清单」）；人环卡新增「13 步 ↔ 23 节点映射说明」；`pipeline-readme` 删残留「4 选 1」孤行并明确「Phase 0 呈现时必须实际列出四个模式」。
+- **批次 A · Layer 3 表述收敛（T-1~T-5）**：修订回环口径按主人 2026-09-18 裁定归一（**不计轮** = Phase 3.5 主人洞察轮；**轮 1** = Phase 3.6/3.7 批判修订；**轮 2** = Phase 4.2 审计修订；超限 → Acknowledged Limitations 须主人拍板），失效副本（QUICKSTART / degraded-scenarios 等）改为指向 `_shared/真源/pipeline-overview.md`；修复 QUICKSTART 指向已外移 SKILL.md 章节的失效指针；**Phase 0 不再询问输出格式、不再询问是否配图**（格式转换/封面/SHA256 一律下行到 T8 终检后的「主人自行操作建议清单」）；人环卡新增「13 步 ↔ 23 节点映射说明」；`pipeline-readme` 删残留「4 选 1」孤行并明确「Phase 0 呈现时必须实际列出四个模式」。
 - **新增/加强测试**：`tests/test_flow_check.py` 补 R-4 / R-6 / R-2+R-3 / R-5 / R-1(exempt) 正向断言 + 反向注入用例（真源 sha256 前后不变、副本必红）。
 
 ---
@@ -160,9 +160,9 @@
 ### 一、封面与格式转换退出流水线（接续 v2.12.49「`image_generate` 入 denied」，本轮清文档侧残留）
 
 - **外发服务类别 4 → 3 类**：删「③ 封面（opt-in）」行；同意轴 A「外发数据形态」**3 → 2 项**（检索关键词 / 大模型推理全文）
-- `references/_shared/关键协议.md`：4 选 1 选项 ①/③ 去「图像 prompt」；同意门逐类表删「封面（`image_generate`）」行；**新增「v2.12.52 能力移除登记（非口径削弱）」**段 —— 明示条目消失源自能力删除（该外发路径客观不存在），且「未恢复调用能力前，任何后续版本不得重新出现封面同意项」
+- `references/_shared/真源/关键协议.md`：4 选 1 选项 ①/③ 去「图像 prompt」；同意门逐类表删「封面（`image_generate`）」行；**新增「v2.12.52 能力移除登记（非口径削弱）」**段 —— 明示条目消失源自能力删除（该外发路径客观不存在），且「未恢复调用能力前，任何后续版本不得重新出现封面同意项」
 - 统一表述为「**封面与格式转换不在流水线内**」→ T8 终检后写入「主人自行操作建议清单」（命令模板 + 执行者 = 主人 host shell）：`operations.md` / `图表-SVG-template.md` / `glossary-full.md` / `phase-1-details.md` / `pipeline-overview.md` / `external-services.md` / `dispatch-header.md` / `任务简报-template.md` / `checkpoint-card-template.md` / `投稿就绪检查表-template.md` / `SKILL.md` / `QUICKSTART.md`
-- 删除残留授权面：`README.md` 外发服务表行、`pipeline-readme.md` 逐类表行、`_shared/工具能力边界.md`「可视化：image_generate」行、`glossary-full.md` 服务清单第 4 条与备选方案「封面生成」三条
+- 删除残留授权面：`README.md` 外发服务表行、`pipeline-readme.md` 逐类表行、`_shared/真源/工具能力边界.md`「可视化：image_generate」行、`glossary-full.md` 服务清单第 4 条与备选方案「封面生成」三条
 - `图表-SVG-template.md`：数据图表 vs 封面视觉对比表收敛为单列（数据图表）；转换表删「主控调 `image_generate` 转 PNG」行与 Phase 0「PNG 转换需求」触发门
 - `任务简报-template.md`：`consent` 结构体删「图像 prompt」/「封面」两键（轴 A 2 项 / 轴 B 3 类）
 
@@ -205,14 +205,14 @@
 
 - **背景**：v2.12.50 一致性审计检出两套口径并存 —— 10 处角色卡 / dispatch 写「我无 `write` 工具，报告随交接回传、由主控 `write` 落盘」，而 `permissions.md:61`「两径定义」+ `phase-order.yaml` 四节点 `write_authority: executor` + `dispatch/T9-同行评审.md:40` 写「报告由 T9 写盘」。
 - **裁定**：统一为「**主控代写盘**」。三条理由：① 只读档确无 `write` 工具 = 更强的权限姿态；② 与 10 处角色卡 / dispatch 口径一致；③ 与 `verification_authority: 主控` 自洽（核验者不落盘则无从核验）。
-- `references/_shared/phase-order.yaml`：`t6_critique` / `t7_audit` / `g14_style_gate` / `t9_review` 四节点 `write_authority: executor` → **`owner`**（行尾注明 D-3）；T1/T2/T3/T4/T5 等自有产物节点保持 `executor` 不动。
+- `references/_shared/真源/phase-order.yaml`：`t6_critique` / `t7_audit` / `g14_style_gate` / `t9_review` 四节点 `write_authority: executor` → **`owner`**（行尾注明 D-3）；T1/T2/T3/T4/T5 等自有产物节点保持 `executor` 不动。
 - `references/permissions.md`：删「只读档落盘例外（v2.12.32/33 两径定义）」，改为统一口径段（工具面 = `read`；报告正文随交接回传、主控 `write` 落盘；不得直写；上游产物一律只读）；五档表 `allow_audit` / `allow_review` 两行「工具集」列去掉「+ 自有报告可写」，第三列改为「不修改上游产物；报告由主控落盘」。
 - `references/dispatch/T9-同行评审.md`：「报告由 T9 写盘；主控收到后 `read` 核验并 `write` 落盘二次核验」→「报告正文随交接回传；主控收到后 `write` 落盘并 `read` 核验（**读盘确认铁律**）」；**T9 独立性硬定义（禁主控代笔、主控只做派发 / 收报告 / 落盘拼装）表述不变**。
 
 ### 二、D-4：测试反向注入不再写真源（副本注入 + 硬断言）
 
 - **背景**：`tests/test_flow_check.py` ≥11 处反向注入直接 `write_text` **真源**（`phase-order.yaml` / `字数判定表.md` / `可发表性判定表.md` / `08-终检-final-inspector.md`），仅靠 `try/finally` 恢复 —— kill / 超时 / 并行即**永久污染真源**。
-- 新增 helper：`_sandbox()`（`copytree` 整仓 → `tmp_path/repo`，忽略 `.git` / `__pycache__` / `.pytest_cache` / `*.pyc`）+ `_flow_check_in()`（`subprocess.run([sys.executable, <副本>/scripts/flow-check.py], cwd=副本根)` —— 因 `main()` 读**相对路径** `references/_shared/phase-order.yaml`，cwd 必须 = 副本根）+ `_inject_and_expect()`（三断言：真源 sha256 前后不变 / 副本 RC≠0 / 报错指向预期节点或路径）。
+- 新增 helper：`_sandbox()`（`copytree` 整仓 → `tmp_path/repo`，忽略 `.git` / `__pycache__` / `.pytest_cache` / `*.pyc`）+ `_flow_check_in()`（`subprocess.run([sys.executable, <副本>/scripts/flow-check.py], cwd=副本根)` —— 因 `main()` 读**相对路径** `references/_shared/真源/phase-order.yaml`，cwd 必须 = 副本根）+ `_inject_and_expect()`（三断言：真源 sha256 前后不变 / 副本 RC≠0 / 报错指向预期节点或路径）。
 - 11 处反向注入全部改为副本注入；`tests/test_flow_check.py` 独立跑模式（`__main__`）支持 `tmp_path` 参数（临时目录注入）。
 
 ### 三、新增机械门「只读档写权」（flow-check）+ 双向回归
@@ -246,7 +246,7 @@
 ### 二、机械门空转止血（D-2：增量 M 门验证假绿灯 → fail-closed）
 
 - `scripts/incremental_m_gate.py:354` 原写 `'passed': True, # 占位`，全文件**唯一** `passed` 赋值 ⇒ `main()` 的 `if failed:`（:407）不可达 ⇒ 任何输入都印「✓ 所有 M 门验证通过」。
-- 现改为 fail-closed：`_validate_single_gate` 返回 `passed=False` / `status=unverified`；`main()` 空结果分支也直接 RC=1。M 门真验证见 `references/_shared/M-Gate-Algorithm.md`，由 agent 按流程执行。
+- 现改为 fail-closed：`_validate_single_gate` 返回 `passed=False` / `status=unverified`；`main()` 空结果分支也直接 RC=1。M 门真验证见 `references/_shared/真源/M-Gate-Algorithm.md`，由 agent 按流程执行。
 - 同步说明：本工具**只做变更定位 + 依赖判定**，不产出「M 门通过」结论（任何 `passed:True` 都属于历史错误，**不得**回滚此约定）。
 
 ### 三、回归测试反向注入（锁死能红）
@@ -260,7 +260,7 @@
 > 本版**仅**止血 P0（机械门空转）。下列两条 P1 一致性回归**已记录**于 `outputs/论衡-一致性审计-2026-09-17.md`，留待同批或下批处理：
 
 - **D-3**：只读档「写盘责任主体」两套口径并存（主控代写盘 10 处 vs 角色直写 3 处，`permissions.md:61`「两径定义」与 `phase-order.yaml` 的 `t6/t7/g14/t9` 全 `write_authority: executor` 互斥，属 v2.7.x 已修过一次又被 v2.12.32/33 例外重开的回归）。
-- **D-4**：`tests/test_flow_check.py` ≥10 处反向注入直接 `write_text` 真源 `references/_shared/phase-order.yaml` + 字数判定表 + 08-终检，仅靠 `try/finally` 恢复 → kill/超时/并行即污染真源。
+- **D-4**：`tests/test_flow_check.py` ≥10 处反向注入直接 `write_text` 真源 `references/_shared/真源/phase-order.yaml` + 字数判定表 + 08-终检，仅靠 `try/finally` 恢复 → kill/超时/并行即污染真源。
 
 **建议**：D-3 + D-4 合并走 **v2.12.51**（不攒批拖延：D-3 是真源互斥、D-4 是测试污染真源，两者都属「不该有的松」）。
 
@@ -376,7 +376,7 @@
 ### 二、仓库冗余清理
 
 - 删除 `references/_shared/m_exist_1_diff.sh`：零 exec 立场下主控永久不可达（唯一使用方式是宿主 shell 手跑，与「纯 skill」定位冲突）；同步清理 `build-clawhub-release.sh` 中配套的 `exclude` / `rm` 失效引用
-- `references/_shared/lessons-max.snapshot` 加入发布包排除清单（rsync + 非 rsync 两分支）—— 按该文件头注自述「不随包交付」修正长期矛盾；该文件是门 H 反向差集的 **hermetic 判据基准**，**必须留在仓库**
+- `references/_shared/治理/lessons-max.snapshot` 加入发布包排除清单（rsync + 非 rsync 两分支）—— 按该文件头注自述「不随包交付」修正长期矛盾；该文件是门 H 反向差集的 **hermetic 判据基准**，**必须留在仓库**
 - 删除仓库外过期产物与工作区缓存（`clawhub-scan…-2.12.37.zip` / `__pycache__` / `.pytest_cache`）
 
 ### 三、changelog 分层（主文件 5 期 + 归档）
@@ -459,16 +459,16 @@
 
 | Finding | 文件 / 行 | 修复 |
 |---|---|---|
-| **SDI-1 0.93** 心跳 vs metadata 同意语义矛盾 | `references/_shared/执行韧化协议-exec.md:11-13` | 重写：默认**不**写盘；写盘需 Phase 0 显式同意；manifest「Operational Telemetry」已声明 |
-| **SDI-1 0.93** 同上 | `references/_shared/dispatch-header.md:29` | 同上 |
+| **SDI-1 0.93** 心跳 vs metadata 同意语义矛盾 | `references/_shared/真源/执行韧化协议-exec.md:11-13` | 重写：默认**不**写盘；写盘需 Phase 0 显式同意；manifest「Operational Telemetry」已声明 |
+| **SDI-1 0.93** 同上 | `references/_shared/真源/dispatch-header.md:29` | 同上 |
 | **SDI-1 0.87** routine 写盘未声明 | `references/agents/00-主控-扩展职责.md:65-70` | description 已显式声明 |
 | **SDI-1 0.89** Phase 1 retrieval 缺同意门 | `references/agents/00-主控-扩展职责.md:100-103` | 加 Phase 0 硬关卡（spawn 前显式核对同意记录；未勾选 ⇒ 主控亲为单主控） |
 | **SDI-1 0.93** manifest vs orchestrator 控制面 | `references/agents/00-主控-扩展职责.md:381-395` | description 已显式声明 sessions_history / subagents / sessions_list / sessions_yield 等编排面 |
 | **SDI-1 0.91** project-end snapshot 自动写盘 | `references/templates/status-template.md:133` | 改为 Phase 0 opt-in：未勾选不写；勾选才写 |
 | **SDI-1 0.93** session_status / token-cost 默认收集 | `references/templates/status-template.md:204` | 改为 Phase 0 opt-in：未勾选仅在交付说明写"token 总计 ≈ Σ（精度 0）" |
 | **SDI-1 0.84** T9 journal 匹配被描述为自动 | `references/agents/00-主控-扩展职责.md:198-200` | 改为 advisory-only：T9 仅产出候选，主人 Phase 5 须显式确认才进交付说明；manifest「Journal / Venue Matching」已声明 |
-| **SDI-2 0.83** heartbeat 缺平台层 opt-in | `references/_shared/执行韧化协议-exec.md:11-13` | 同 SDI-1 0.93：opt-in |
-| **SDI-2 0.78** run-control lifecycle 未声明 | `references/_shared/执行韧化协议-exec.md:44-46` | description 已显式声明 |
+| **SDI-2 0.83** heartbeat 缺平台层 opt-in | `references/_shared/真源/执行韧化协议-exec.md:11-13` | 同 SDI-1 0.93：opt-in |
+| **SDI-2 0.78** run-control lifecycle 未声明 | `references/_shared/真源/执行韧化协议-exec.md:44-46` | description 已显式声明 |
 | **SDI-4 0.76** telemetry 矛盾 | `references/templates/status-template.md:202-203` | 由 SDI-1 0.93 token-cost opt-in 一并解决 |
 | **SDI-4 0.92** controller 不读 host config vs 自我审计 | `references/agents/00-主控-扩展职责.md:94-95` | 「不读 host config」+「自我审计可见工具面」二者并不矛盾（前者指配置读取、后者指运行期观测），已在一致性 pass 中明确 |
 | **SQP-2 0.75** permissions.md 缺用户警示 | `references/permissions.md:105` | 加用户警示 block：列出所有写盘路径 + Phase 0 同意门 + 默认单主控 |
@@ -574,7 +574,7 @@
 ### 五、附带修复（既有红门 2 项，非本批引入）
 
 - **`deliverables.md` M-Form-7 白名单回补「致谢」**：白名单声明与表格停在 **5** 节，与 v2.12.32「补入致谢」注释及可发表性 F 选项**自相矛盾**（`test_p1_3_whitelist_has_thanks` 长期红）→ 声明改 **6** 节 + 表格补第 6 行
-- **`references/_shared/论衡仓库内教训.md` 补语言政策声明**（v2.12.42 新增该文件时漏注入 → 净化包构建门「语言政策声明缺失」长期红）→ 跑 `inject-lang-policy.py` 补齐
+- **`references/_shared/治理/论衡仓库内教训.md` 补语言政策声明**（v2.12.42 新增该文件时漏注入 → 净化包构建门「语言政策声明缺失」长期红）→ 跑 `inject-lang-policy.py` 补齐
 
 ### 验收
 
@@ -997,7 +997,7 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 
 ### 二、🟠 P1：关键整改（7 项）
 
-- **F1/F3 门 H 反向差集改 hermetic 判据**：原判据依赖仓库外 `memory/lessons.md` → 「已发布的绿」可被墙外追加**追溯性推翻**（实测：宿主类教训 #355 续录后 HEAD 由绿转红）。现改用仓库内快照 `references/_shared/lessons-max.snapshot`；外部真源仅作**参照告警**（warn，不参与 exit code）。主真源不可达时**显式披露**「正向差集未执行，本门覆盖缩小」，不再静默跳过。排除表默认扩为 `340 341 355`。
+- **F1/F3 门 H 反向差集改 hermetic 判据**：原判据依赖仓库外 `memory/lessons.md` → 「已发布的绿」可被墙外追加**追溯性推翻**（实测：宿主类教训 #355 续录后 HEAD 由绿转红）。现改用仓库内快照 `references/_shared/治理/lessons-max.snapshot`；外部真源仅作**参照告警**（warn，不参与 exit code）。主真源不可达时**显式披露**「正向差集未执行，本门覆盖缩小」，不再静默跳过。排除表默认扩为 `340 341 355`。
 - **A5 `outputs/` 迁出技能根**：原技能根 3,135 文件 / 37 MB（含 36 份历史 SKILL.md 副本）→ **188 文件 / 2.8 MB**。新位置 `~/lunheng-build/lunheng-outputs/`（`$OUTPUTS_ROOT` 可覆盖）；`build-clawhub-release.sh` / `publish-clawhub.sh` / `cleanup-skill-store.sh` / `strip-internal-leakage.sh` 四处路径同批迁移。
 - **C2 数据卡模板注脚上移**：`references/templates/数据卡-template.md` 的「伪代码非真实命令」⚠️ 标注从代码块内（相隔 9 行）上移到紧邻行，消除「先给命令、后说别执行」的窗口。
 - **D3 敏感题材默认收紧**：「可切单主控模式」→ 敏感题材**默认**切单主控（关 G14、跳并行出网；4 个检索工具逐项同意）。
@@ -1021,7 +1021,7 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 
 ### 六、结构与资产
 
-- 新建 `references/_shared/skill-entry-appendix.md`（5 节）：承载从 SKILL.md 外移的 spawn 参数约定、主控必读清单、License、Phase 0 必走步骤、单源指针低频行。
+- 新建 `references/_shared/真源/skill-entry-appendix.md`（5 节）：承载从 SKILL.md 外移的 spawn 参数约定、主控必读清单、License、Phase 0 必走步骤、单源指针低频行。
 - 修正「Phase 0 必走 **8** 步」与实际 7 条不符（编号 1,3,4…8 缺 #2）→ SKILL.md 与附录两处改「必走步骤」+ 重编号 1-7。
 - 清理复验测试残留野目录 `clawhub-release/9.9.9`。
 
@@ -1073,7 +1073,7 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 
 ### 六、涉及文件
 
-`references/_shared/dispatch-header.md`、`references/_shared/M-Gate-Algorithm.md`、`references/_shared/host-hardening-recipe.md`、`references/agents/00-主控-扩展职责.md`、`references/permissions.md`、`SKILL.md`、`tests/test_v21233_audit_fixes.py`（新增）。
+`references/_shared/真源/dispatch-header.md`、`references/_shared/真源/M-Gate-Algorithm.md`、`references/_shared/host-hardening-recipe.md`、`references/agents/00-主控-扩展职责.md`、`references/permissions.md`、`SKILL.md`、`tests/test_v21233_audit_fixes.py`（新增）。
 
 ---
 
@@ -1185,7 +1185,7 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 
 ### 七、🟡 教训索引补录
 
-- `references/_shared/教训索引.md` 补录 **#348**（汇总审计发现须逐条登记处置状态，不得用自选汇总数表述覆盖面）/ **#349**（ClawHub「Outcome: Pass」≠ 无风险：门禁聚合与启发式清单不可互推，须拉完整报告分扫描器陈述）；声明最大编号 #347 → **#349**（门 H 反向差集）。
+- `references/_shared/治理/教训索引.md` 补录 **#348**（汇总审计发现须逐条登记处置状态，不得用自选汇总数表述覆盖面）/ **#349**（ClawHub「Outcome: Pass」≠ 无风险：门禁聚合与启发式清单不可互推，须拉完整报告分扫描器陈述）；声明最大编号 #347 → **#349**（门 H 反向差集）。
 
 ### 八、验收
 
@@ -1206,7 +1206,7 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 
 ### 二、🔴 P0-2 流程真源重复 `output` 键导致输出路径丢失
 
-- `references/_shared/phase-order.yaml:79-82` 同一节点出现**两个 `output` 键** —— YAML 后键覆盖前键，**G14 的输出路径被静默吞掉**；既有校验不查重复键。
+- `references/_shared/真源/phase-order.yaml:79-82` 同一节点出现**两个 `output` 键** —— YAML 后键覆盖前键，**G14 的输出路径被静默吞掉**；既有校验不查重复键。
 - **修法**：合并为单个 `output` 映射键；新增 `scripts/flow-check.py`（**重复键 + 入参闭合 + 节点种类全覆盖**），并集成进**门 S**。
 
 ### 三、🔴 P0-3 `current_draft.md` 无生产契约
@@ -1267,8 +1267,8 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 
 ### 三、声明与实际不符
 
-- **pandoc / rsvg-convert 裸命令**：`投稿就绪检查表-template.md:26-27` 两个表行 + `_shared/format-export.md` §二 命令段 → 明标「**主人手工执行 · agent 零 exec**」+ §二 加总声明（命令模板**只为让主人照抄**，**不构成 agent 的执行面**）。
-- **「零外发」措辞**：`_shared/format-export.md`「零外发原则」段加限定「**本处「零外发」仅指该转换步骤不出网** ≠ 全流程零外发」（全文/大纲/卡片的 LLM provider 外发见 Phase 0 同意口径与 `external-services.md`）。
+- **pandoc / rsvg-convert 裸命令**：`投稿就绪检查表-template.md:26-27` 两个表行 + `_shared/真源/format-export.md` §二 命令段 → 明标「**主人手工执行 · agent 零 exec**」+ §二 加总声明（命令模板**只为让主人照抄**，**不构成 agent 的执行面**）。
+- **「零外发」措辞**：`_shared/真源/format-export.md`「零外发原则」段加限定「**本处「零外发」仅指该转换步骤不出网** ≠ 全流程零外发」（全文/大纲/卡片的 LLM provider 外发见 Phase 0 同意口径与 `external-services.md`）。
 
 ### 四、触发边界
 
@@ -1569,7 +1569,7 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 | 文件 | 错误 | 修法 |
 |---|---|---|
 | `references/permissions.md` | 自指链接 `[references/permissions.md](references/permissions.md)`（本文件内再写 `references/` 前缀） | 该文即「完整版」，改为无链接的陈述 |
-| `references/_shared/glossary-full.md` | `[project-archive-sop.md](references/_shared/project-archive-sop.md)`（同目录文件多写了前缀） | 改为 `](project-archive-sop.md)` |
+| `references/_shared/真源/glossary-full.md` | `[project-archive-sop.md](references/_shared/治理/project-archive-sop.md)`（同目录文件多写了前缀） | 改为 `](project-archive-sop.md)` |
 
 ### 三、#333 构建侧根治
 
@@ -1638,7 +1638,7 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 - `scripts/release-preflight.sh`：新增 `--allow-existing-tag` / `--expect-commit`，重写 ② 判定与报告，header 用法说明同步。
 - `scripts/create-github-release.sh`：写路径调闸自动带 `--allow-existing-tag`，header 补「两个调用点」说明。
 - `references/agents/00-主控-扩展职责.md` §十四：新增「两个调用点：tag 前 vs tag 后补发 Release（教训 #334）」小节 + 放松口径的判据与调用点表。
-- `references/_shared/教训索引.md`：补 #334，最大编号声明推高到 **#334**（门 H 反向差集）。
+- `references/_shared/治理/教训索引.md`：补 #334，最大编号声明推高到 **#334**（门 H 反向差集）。
 
 ---
 
@@ -1678,7 +1678,7 @@ b00fc07 feat(pipeline): 真源层 P0 修复 + 证据层加固
 - 实测（本仓）：闸正确拒绝本次发版检查——在飞链 2 条（含本链自身与一条仅报告型 automation）+ 工作区 3 条未提交/未跟踪，退出码 10。
 - `bash scripts/check-version.sh` 全一致；`bash scripts/self-audit-gate.sh` 全 PASS；`cd tests && pytest -q` 全通过；`python3 scripts/changelog-check.py --check` 退出 0。
 
-随动：SKILL.md 版本号升位 v2.12.20 → v2.12.21、全仓版本戳同步、本节 CHANGELOG、教训 #332（主真源 `memory/lessons.md` + 本仓教训索引 `references/_shared/教训索引.md`）。
+随动：SKILL.md 版本号升位 v2.12.20 → v2.12.21、全仓版本戳同步、本节 CHANGELOG、教训 #332（主真源 `memory/lessons.md` + 本仓教训索引 `references/_shared/治理/教训索引.md`）。
 
 ---
 
@@ -1910,7 +1910,7 @@ v2.12.16 回读时我读到的是一份**尚未写完的中间态报告**（`man
 - **去掉触发措辞**：`可选` / `不核验` / `非前置门` 等改为中性的「不要求、也不附带任何宿主配置项或加固配方」
 - **核心能力零变更**：默认多 Agent 模式、T1∥T2∥T3 三方真并行检索 + 三角验证照常；单主控仍为可选降级
 
-涉及 `SKILL.md`（frontmatter description + 权限边界段）、`references/permissions.md`、`QUICKSTART.md`、`references/agents/00-主控-扩展职责.md`、`references/_shared/关键协议.md`、`references/_shared/教训索引.md`。
+涉及 `SKILL.md`（frontmatter description + 权限边界段）、`references/permissions.md`、`QUICKSTART.md`、`references/agents/00-主控-扩展职责.md`、`references/_shared/真源/关键协议.md`、`references/_shared/治理/教训索引.md`。
 
 ### 二、A 类真缺陷 7 项
 
@@ -1952,12 +1952,12 @@ v2.12.16 回读时我读到的是一份**尚未写完的中间态报告**（`man
 
 | 保留在 `SKILL.md` | 外移到 |
 |---|---|
-| 触发场景 + 字数分层（压缩） | 字数分层表 → 既有 `_shared/字数判定表.md` §五 |
+| 触发场景 + 字数分层（压缩） | 字数分层表 → 既有 `_shared/真源/字数判定表.md` §五 |
 | 加固声明 + 执行能力边界（压缩） | 权限细节 → 既有 `references/permissions.md`（+ 新增「外部内容处理原则」段） |
-| 启动清单 / Phase 0 8 步 | 核心原则 6 条 → 既有 `_shared/glossary-full.md` §十二 |
-| 单源指针与派发索引（新） | 角色卡清单 / 模板表 / 项目目录 / 文档索引 → **新** `_shared/asset-index.md` |
-| License | 全景细节 + 修订回环 → **新** `_shared/pipeline-overview.md` |
-| | 安全须知 + 外部服务声明 → **新** `_shared/external-services.md` |
+| 启动清单 / Phase 0 8 步 | 核心原则 6 条 → 既有 `_shared/真源/glossary-full.md` §十二 |
+| 单源指针与派发索引（新） | 角色卡清单 / 模板表 / 项目目录 / 文档索引 → **新** `_shared/真源/asset-index.md` |
+| License | 全景细节 + 修订回环 → **新** `_shared/真源/pipeline-overview.md` |
+| | 安全须知 + 外部服务声明 → **新** `_shared/真源/external-services.md` |
 
 ### 二、M 门文档降为「分片必读」
 
@@ -2089,7 +2089,7 @@ v2.12.16 回读时我读到的是一份**尚未写完的中间态报告**（`man
 
 ### 六、已知残留（显式披露，非门禁项）
 
-- `CHANGELOG.md` / `README.md` / `references/_shared/教训索引.md` 保留完整扫描史（**均为不外发文件**，被 `build-clawhub-release.sh` 排除）——历史归历史，外发面归零
+- `CHANGELOG.md` / `README.md` / `references/_shared/治理/教训索引.md` 保留完整扫描史（**均为不外发文件**，被 `build-clawhub-release.sh` 排除）——历史归历史，外发面归零
 - `scripts/*` 头注释仍含少量归属语（维护者工具，**从不进包**）
 
 ---
@@ -2132,7 +2132,7 @@ v2.12.16 回读时我读到的是一份**尚未写完的中间态报告**（`man
 
 ### 三、净化链内泄漏（P1×2 + P2×7）
 
-- `references/_shared/路径校验规范.md`：删除「ClawHub T05 复审」整行（净化包内唯一 `subprocess` 命中，暴露复审流程 + 净化脚本机制 + 版本演化史）；同文件「与本地开发者脚本 `path-canonical.py` 同源」改纯描述（该脚本净化包已剥，引用包内不存在文件）
+- `references/_shared/真源/路径校验规范.md`：删除「ClawHub T05 复审」整行（净化包内唯一 `subprocess` 命中，暴露复审流程 + 净化脚本机制 + 版本演化史）；同文件「与本地开发者脚本 `path-canonical.py` 同源」改纯描述（该脚本净化包已剥，引用包内不存在文件）
 - `scripts/build-clawhub-release.sh` 残留扫描规则补漏：§十四维护者发布 SOP 两小节（含 `> **根因**` 引块）整段剥离、`scripts/` 路径前缀扫描、维护者语汇（ClawHub / 净化包 / 净化脚本…）拦截；剥离规则命中数自检新增 **critical / warn 分级**（真源有、产物为 0 才放行）
 - 其余收口：`M-Gate-Algorithm*` 附录指向被 `--exclude` 的 `archive/` 目录 → 改中性说明；`pipeline-readme.md` 孤儿 TOC 条目收口；`phase-order.yaml` 头注释去「开发者维护真源 / 实测 #4」内部编号；`QUICKSTART.md` 安装围栏显式标注「以下命令由**主人手动执行**，技能本体零 exec」（消除 ClawHub 反复误报的裸命令面）；`.safe-pattern-manifest.json` 豁免注记去扫描史（v2.10.1 / v2.10.3 复审语）
 
@@ -2142,7 +2142,7 @@ v2.12.16 回读时我读到的是一份**尚未写完的中间态报告**（`man
 - 5 处 `final/figures/*.mmd` → `final/图件/*.svg`（与主控卡 / M-Form-1 伪代码一致）
 - `glossary.md` 显示名陈旧 → `glossary-full.md`；`glossary-full.md` 自指显示名同步
 - `SKILL.md` 流水线全景：补 **T2.5 / T7.5 完整性门**独立行（原仅在别行顺带提及 → 只读全景的主控不会主动跑）、配图行改 **Phase 4.4**（原「Phase 4.5」重复编号，与 alias `Phase 4.5 = t9_review` 冲突）
-- `references/_shared/教训索引.md` 收录教训 #300（净化脚本标点修补误伤函数调用）
+- `references/_shared/治理/教训索引.md` 收录教训 #300（净化脚本标点修补误伤函数调用）
 - `references/templates/G14检测报告-template.md` 后续动作「继续 Phase 5」→「进入 T7 审计（Phase 4）」
 
 ### 五、构建链与验证
@@ -2192,28 +2192,28 @@ v2.12.16 回读时我读到的是一份**尚未写完的中间态报告**（`man
 
 ### 三、描述-行为不符口径（`SDI-1` ×1，承接 v2.12.9）
 
-- v2.12.9 已在 `00-主控-扩展职责.md`「主控复验 4 件套」与 fallback 派发前置检查处加**语义口径声明**：`ls` / `wc` / `grep` / `find` / `stat` 指的是**语义等价动作**（产物存在性 / 数量对账 / 标记计数 / 时间戳新鲜度），主控用 `read` + 文件元数据推理实现，不执行任何 shell；命令形态仅为人类 host shell 复核参考（`references/_shared/audit-checklist-quickref.md` G8 代码块同步标注）
+- v2.12.9 已在 `00-主控-扩展职责.md`「主控复验 4 件套」与 fallback 派发前置检查处加**语义口径声明**：`ls` / `wc` / `grep` / `find` / `stat` 指的是**语义等价动作**（产物存在性 / 数量对账 / 标记计数 / 时间戳新鲜度），主控用 `read` + 文件元数据推理实现，不执行任何 shell；命令形态仅为人类 host shell 复核参考（`references/_shared/真源/audit-checklist-quickref.md` G8 代码块同步标注）
 - 本轮 `SDI-1`（confidence 0.91）的口径转为「manifest 零 exec 承诺与维护者脚本并存」——由 §九 第 4 条的 Maintainer-only 分区段消解，与 v2.12.9 的语义口径声明互补
 
 ### 四、意图-代码背离 / 状态一致性（本轮 `SDI-4` ×4；实修 3 处 + 1 处即加固模型 → §九）
 
 - **宿主配置口径（本版重写）**：v2.12.9 的「不读 `openclaw.json`、加固与否由主人声明」被判「既拒绝核验又允许继续运行」（`SDI-4`，confidence 0.84）→ 本版改为**机械核对**：首次 spawn 前 `read ~/.openclaw/openclaw.json` 核实两条加固，读不到即 `degraded` 且不 spawn（详见 §九 加固段）
 - **数据检索角色卡（v2.12.9 已澄清，本轮 `expected`）**：`02-数据检索-data-scout.md` 同文档既写「叶子 worker 不得调用 `sessions_spawn`」，又写「T2/T3 通过独立 `sessions_spawn` 隔离」——后者指**主控侧**动作（主控分别 spawn T2/T3），叶子 worker 不自行 spawn
-- **外部传输口径（v2.12.9 已补，本轮 `E1` ×2 判 `expected`）**：`references/_shared/中文数据源集成.md` 声明 OpenAlex / Crossref 为只读学术元数据 API，**不外发稿件正文/文献卡/数据卡内容**；文中 URL 为文档示例形态，非自动外发链路
+- **外部传输口径（v2.12.9 已补，本轮 `E1` ×2 判 `expected`）**：`references/_shared/真源/中文数据源集成.md` 声明 OpenAlex / Crossref 为只读学术元数据 API，**不外发稿件正文/文献卡/数据卡内容**；文中 URL 为文档示例形态，非自动外发链路
 - **叶锁口径同步**：`status-template.md` / `00-主控-扩展职责.md` 的「叶子锁定」取值由 `mechanical / prompt-level` 改为 `mechanical / degraded`，与加固二选一模型对齐
 
 ### 五、语言政策声明（本轮 `SQP-3` ×3 + `SQP-1` ×1；机制承接 v2.12.9）
 
-- **本轮实际条数**：v2.12.9 报告 NLP 类已从 **17 条降到 3 条**（`SQP-3`：`references/_shared/phase-order.yaml`、`references/case-studies.md`、`references/templates/先行者清单-template.md`）+ **1 条** `SQP-1`（`trigger_conditions` 命名不可自解释）——原 v2.12.8 报告的 17 条已在 v2.12.9 集中处理
+- **本轮实际条数**：v2.12.9 报告 NLP 类已从 **17 条降到 3 条**（`SQP-3`：`references/_shared/真源/phase-order.yaml`、`references/case-studies.md`、`references/templates/先行者清单-template.md`）+ **1 条** `SQP-1`（`trigger_conditions` 命名不可自解释）——原 v2.12.8 报告的 17 条已在 v2.12.9 集中处理
 - **v2.12.9 已落地**（本版承接，非本版新增）：`scripts/inject-lang-policy.py`（幂等）——为 **76 个**交付 md 在版本行下注入一行**语言政策**声明：产出语言默认中文、Phase 0 可改 English / 中英混 / 其他（全流程以任务简报「目标语言」字段为准）；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）是**设计定位**，不构成使用者语种限制
-- **注入范围与 7 项例外**（`EXCLUDE_REL`）：`SKILL.md`（自带「语言边界」表，用另一套声明）、`CHANGELOG.md`、`references/设计文档{,-架构,-哲学}.md`、`references/_shared/教训索引.md`、`references/templates/README-模板拆分方案.md` 不注入；脚本按 `MARKER` 判重，重复运行不产生双重声明
+- **注入范围与 7 项例外**（`EXCLUDE_REL`）：`SKILL.md`（自带「语言边界」表，用另一套声明）、`CHANGELOG.md`、`references/设计文档{,-架构,-哲学}.md`、`references/_shared/治理/教训索引.md`、`references/templates/README-模板拆分方案.md` 不注入；脚本按 `MARKER` 判重，重复运行不产生双重声明
 - `scripts/build-clawhub-release.sh` 新增**语言政策声明门**（4d 段，防回归）：对净化包内**每个** md 正向校验是否含 `🌐 **语言政策**`，缺失即打印文件清单并 exit 1；唯一豁免 `SKILL.md`。实测净化包 76 个 md 中 75 个含声明（1 个例外 = `SKILL.md`）
 - 净化包规模：真源 148 文件 → 净化包 **79 文件**（其中 md 76 个）
 
 ### 六、发布链与构建链
 
 - **版本同步**：**36 个**含版本戳文件同步至 v2.12.10（自审门 门 C 口径）
-- **自审门（18 门）**：**17 PASS / 0 FAIL** + 门 G ⚠ 警告（净化包 md5 与真源不一致，属**预期**——净化链对 `SKILL.md` / `QUICKSTART.md` / `references/_shared/glossary-full.md` 做替换）
+- **自审门（18 门）**：**17 PASS / 0 FAIL** + 门 G ⚠ 警告（净化包 md5 与真源不一致，属**预期**——净化链对 `SKILL.md` / `QUICKSTART.md` / `references/_shared/真源/glossary-full.md` 做替换）
 - **净化包 2.12.10**：79 文件（md 76 个），净化残留扫描 + 最终残留扫描 + 语言政策声明门**三门通过**；开发者工具（`scripts/` / `Makefile` / `tests/` / `docs/` / `.github/` / `CHANGELOG.md` 等）全部剥离
 - **`scripts/create-github-release.sh` 入库**（233 行；**开发者工具，净化包已剥**）：把「建 Release」从「靠人记」变成一条命令，修复教训 #307「推 tag ≠ 建 Release」缺口——正文要手工粘、标题要手工拼，于是 v2.3.11 / v2.11.0 / v2.11.1 / v2.12.8 均曾漏建或正文漂移
   - **三条铁律机械化**：① 正文单一真源 = 逐字提取 `CHANGELOG.md` 对应章节（不产生第二份真相）；② 标题单一格式 = `论衡 <tag> — <摘要>`，摘要取自该 tag 的发版提交 subject（约定 `release: <tag> — <摘要>`）；③ 已存在则 `gh release edit` **同步**（修正文/标题漂移），不新建、不覆盖历史
@@ -2239,7 +2239,7 @@ ClawHub 对**已发布 v2.12.9 净化包**做语义审计（`scanId: skill:lunhe
 
 **SkillSpector 真问题（5 条全修）**
 
-1. **`SDI-4`（confidence 0.94 · `references/pipeline-readme.md` L240）意图-代码背离：pandoc 冲突**：原 SKILL.md Phase 5 段写「按 `_shared/format-export.md` 跑 pandoc + rsvg-convert」，与 SKILL.md §执行能力边界「不读取宿主配置」+ description「零 exec」直接冲突。修复：Phase 5 段重写为「默认 md 完整支持；latex/docx/pdf 由主人自备模板 + 手动跑 pandoc + rsvg-convert，论衡 agent 不执行」；format-export.md 顶部「诚实声明」段同步收紧
+1. **`SDI-4`（confidence 0.94 · `references/pipeline-readme.md` L240）意图-代码背离：pandoc 冲突**：原 SKILL.md Phase 5 段写「按 `_shared/真源/format-export.md` 跑 pandoc + rsvg-convert」，与 SKILL.md §执行能力边界「不读取宿主配置」+ description「零 exec」直接冲突。修复：Phase 5 段重写为「默认 md 完整支持；latex/docx/pdf 由主人自备模板 + 手动跑 pandoc + rsvg-convert，论衡 agent 不执行」；format-export.md 顶部「诚实声明」段同步收紧
 2. **`SDI-4`（confidence 0.95 · `references/dispatch/T7-审计.md`）意图-代码背离：审计员落盘矛盾**：07-审计员角色卡与 SKILL.md 段落对「审计报告落盘 vs 仅终交付消息返回」表述不一。修复：明确 T7 审计报告 + 反哺报告经交接回传主控，主控 `write` 落盘 `audits/审计报告-vN.md` + `audits/反哺报告-vN.md`，再用 `read` 核验存在/非空/首尾哨兵/版本一致（角色卡 L62 既有口径全文件统一）
 3. **`SDI-4`（confidence 0.84 · `references/templates/status-template.md` L255 vs L265）意图-代码背离：归档/删除混淆**：SKILL.md 同时存在「失败回滚不自动删除」（§核心原则 #6）与「主控自动归档方法论脚印文件」（§T8 终检段）。修复：「失败回滚」段改写为「文件保留原则」，明确「归档」= 复制/移动到 `run/.archive/`、「删除」= 主人手工 `rm -rf`——两者都由主人在 host shell 完成，agent 一律不碰；project-archive-sop.md「归档 = 移动 vs 删除」段同步对齐
 4. **`SDI-1`（confidence 0.91 · `references/agents/00-主控-扩展职责.md`）描述-行为不符：零 exec 承诺与维护者脚本并存**：description 写「零exec = 不执行 shell」但 SKILL.md 多处提及 `self-audit-gate.sh` / `Makefile` / `sync-version.sh` 等开发者脚本，审核工具判为 user-facing 文档与实际运行行为口径不一致。修复：SKILL.md §核心原则 #6 末尾新增「Maintainer-only 分区」段，明确 `scripts/` / `tests/` / `Makefile` / 自审门脚本化副本 / 版本同步脚本 / 构建发布脚本均为维护者工具，与论衡运行时能力**无关**——运行时仅依靠 `references/_shared/` 下的 LLM 推理判定 + `read/write/edit/sessions_spawn` 编排；ClawHub 净化包已剥离这些工具
@@ -2259,7 +2259,7 @@ ClawHub 对**已发布 v2.12.9 净化包**做语义审计（`scanId: skill:lunhe
 
 **新增维护者字段 / 触发器改名**
 
-- references/_shared/phase-order.yaml 的 `trigger_conditions` 两条含糊命名（`task_brief_marks_Dxx_for_review` / `unresolved_red_second_hand_data`）改为自解释名（`brief_marked_Dxx_for_review` / `t2_5_red_data_unresolved`）
+- references/_shared/真源/phase-order.yaml 的 `trigger_conditions` 两条含糊命名（`task_brief_marks_Dxx_for_review` / `unresolved_red_second_hand_data`）改为自解释名（`brief_marked_Dxx_for_review` / `t2_5_red_data_unresolved`）
 
 ### 十、构建链代码保真
 
@@ -2300,7 +2300,7 @@ ClawHub 对**已发布 v2.12.9 净化包**做语义审计（`scanId: skill:lunhe
 
 - `references/permissions.md` §零 exec ≠ 零核验 与 SKILL.md §零 exec 软保障 段对齐：算法文档的 bash 示例一律标注「人类主人手动复核参考命令，不是 agent 执行代码」
 - `references/templates/status-template.md` 「加固状态」字段取值统一为 `mechanical / acknowledged-prompt-level`（v2.12.10 改为 `mechanical / degraded`）
-- `references/_shared/format-export.md` §零 exec 段顶部「诚实声明」扩写：latex/docx/pdf 三格式依赖 pandoc + rsvg-convert 由主人手工跑，论衡 agent 不执行
+- `references/_shared/真源/format-export.md` §零 exec 段顶部「诚实声明」扩写：latex/docx/pdf 三格式依赖 pandoc + rsvg-convert 由主人手工跑，论衡 agent 不执行
 
 ### 四、构建链单一入口
 
@@ -2317,7 +2317,7 @@ ClawHub 对**已发布 v2.12.9 净化包**做语义审计（`scanId: skill:lunhe
 ### 一、叶子纪律（核心：子代理不再委托）
 
 - **背景**：OpenClaw 2026.9.3 起默认开启有界递归委派，depth < `maxSpawnDepth` 的子代理实际拿到 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history`。而论衡主控只接**直接**子级（announce 链逐级上传），子代理自行 spawn 的孙辈产物不上传主控 = 产出静默丢失 + token 已花
-- **三层落地**（机械层优先，纪律层兑付）：① 宿主 `agents.defaults.subagents.maxSpawnDepth: 1`；② `references/_shared/关键协议.md` 新增 §叶子纪律（规则 + 三层冗余表 + 代价说明）；③ T1-T7/T9 角色卡头部 + `references/_shared/dispatch-header.md` 新增叶子声明；④ 主控 `00-主控-扩展职责.md` §三 任务书必含叶子声明 + leaf-lock 状态标注
+- **三层落地**（机械层优先，纪律层兑付）：① 宿主 `agents.defaults.subagents.maxSpawnDepth: 1`；② `references/_shared/真源/关键协议.md` 新增 §叶子纪律（规则 + 三层冗余表 + 代价说明）；③ T1-T7/T9 角色卡头部 + `references/_shared/真源/dispatch-header.md` 新增叶子声明；④ 主控 `00-主控-扩展职责.md` §三 任务书必含叶子声明 + leaf-lock 状态标注
 - `references/templates/status-template.md` 项目元数据新增 `**叶子锁定**` 字段（mechanical / prompt-level）
 
 ### 二、宿主加固推荐（回应 ClawHub T05 fail-open）
@@ -2339,9 +2339,9 @@ ClawHub 对**已发布 v2.12.9 净化包**做语义审计（`scanId: skill:lunhe
 
 ### 一、外发同意 fail-closed 语义下沉到 dispatch 层
 
-- `references/_shared/dispatch-header.md` 新增「出网 deny-precedence（fail-closed）」条：检索类工具（`web_search` / `web_fetch` / `tavily_search` / `tavily_extract`）属 Phase 0「外发同意 4 选 1」管辖；主人选 ④「全部拒绝」时本次运行**不调用任何出网工具**，改纯本地（主人自带材料 + 本地推理）；「开工」不隐含外发同意；同意记录缺失 / 矛盾 / 不可读 = 按拒绝处理，停止并回报主控
+- `references/_shared/真源/dispatch-header.md` 新增「出网 deny-precedence（fail-closed）」条：检索类工具（`web_search` / `web_fetch` / `tavily_search` / `tavily_extract`）属 Phase 0「外发同意 4 选 1」管辖；主人选 ④「全部拒绝」时本次运行**不调用任何出网工具**，改纯本地（主人自带材料 + 本地推理）；「开工」不隐含外发同意；同意记录缺失 / 矛盾 / 不可读 = 按拒绝处理，停止并回报主控
 - `references/dispatch/T1-文献检索.md` 第 1.1 步同步：区分「未勾选中文数据源集成（但普通检索已授权）」与「主人选 ④全部拒绝」两种情形，后者不调用任何出网工具
-- 与 `references/_shared/关键协议.md` 既有 fail-closed 语义对齐，消除 dispatch 层与协议层的表述分叉（ClawHub T09 一致性审计回应）
+- 与 `references/_shared/真源/关键协议.md` 既有 fail-closed 语义对齐，消除 dispatch 层与协议层的表述分叉（ClawHub T09 一致性审计回应）
 
 ### 二、版本号元数据同步
 
@@ -2580,7 +2580,7 @@ v2.12.10 冻结后对流水线做全量深度审计，修复实战复盘提出�
 
 ## 核心改动
 
-**1. 判据单源化**（`references/_shared/可发表性判定表.md`, 459 行新文件）
+**1. 判据单源化**（`references/_shared/真源/可发表性判定表.md`, 459 行新文件）
 - 36 项 6 维度可发表性检查：F1-F5 头部洁净 / F6-F10 前置要素 / F11-F15 AI 声明 / F16-F22 国标引用（顺序编码+类型标识）/ F23-F27 图表 / F28-F31 致谢+先行者
 - 含 5 段 python 伪代码（仅本地真源，净化版剥除）
 - 教训 #251 核心修复：顺序编码闭环验证器，独立于类型标识检查
@@ -2629,7 +2629,7 @@ v2.12.10 冻结后对流水线做全量深度审计，修复实战复盘提出�
 
 ## 收尾同步（按 v2.11.1 11:06 节奏的硬约束）
 
-- 教训索引（`references/_shared/教训索引.md`）：同步 #251/#252/#253
+- 教训索引（`references/_shared/治理/教训索引.md`）：同步 #251/#252/#253
 - 主控卡（`references/agents/00-主控-扩展职责.md`）§十四：硬门三件套 → 四件套，新增 `paper-ready-check.sh`
 - `memory/lessons.md`：新增 #252/#253/#254 共 3 条新教训
 - `memory/2026-09-09.md`：v2.12.0 完整收尾笔记
@@ -3732,7 +3732,7 @@ QUICKSTART + README 安装命令 pin 审计版本：`openclaw skills install @zu
 ## [v2.7.11] — 2026-09-07
 
 ### 修复
-- **路径迁移补完**（4dfe652）：v2.7.10 拆分 `references/glossary.md` 后全库仍残留旧引用，统一替换为 `references/_shared/glossary-full.md`，同步 build-clawhub-release.sh 中 sed 替换规则，确保净化包 SKILL.md 路径正确
+- **路径迁移补完**（4dfe652）：v2.7.10 拆分 `references/glossary.md` 后全库仍残留旧引用，统一替换为 `references/_shared/真源/glossary-full.md`，同步 build-clawhub-release.sh 中 sed 替换规则，确保净化包 SKILL.md 路径正确
 - **自审门历史快照路径修正**：自审门（v2.7.3 仲裁表）历史快照中残留的旧路径同步刷新
 - **build 脚本净化包路径同步**：publish-clawhub.sh / build-clawhub-release.sh 全部使用绝对路径，避免 CLI 找不到净化包文件夹
 - **升版**：v2.7.10 → v2.7.11
@@ -6294,8 +6294,8 @@ Co-Authored-By: OpenClaw <noreply@openclaw.ai>
 - **① P1-3 新增「必读文件体量软棘轮」（自审门 Y）**：审计指出的结构性事实——1.72M 字符仓库里**唯一**有硬棘轮的，恰恰是余量最紧的 SKILL.md（0.57%）。现给三个「每次必读」大文件设 **⚠️ 提示级**上限（**不计入 exit code**）：`00-主控-扩展职责.md` **73690** B / `M-Gate-Algorithm.md` 84570 B / `phase-order.yaml` 54701 B，语义为**只许降**（瘦身后须同步下调本表）。同批新增 **SKILL.md 余量告警**（余量 < 300 字符即响）：余量枯竭会诱发论衡自认的头号死敌「改 A 漏 B」（先删后加），必须在撞上门 V 硬墙**之前**被看见。
 - **② SKILL.md 余量真的腾出来（不靠调阈值消音）**：9827 → **9680** 字符，余量 173 → **320**。手法全部是「指向既有真源」而非删信息：合并重复的服务级外发 bullet、G14 判定分档改为指针（保留 `8 类判定` + gate 路径两个被测试锚定的 token）、T8 可发表性段落收敛。**门 V 上限 10000 未动**（官方约束）。
 - **③ P2-6 二次分层（一个文件装四类生命周期 → 按生命周期分层）**：
-  - §二十 反哺报告处理（运行时规范 + 教训沉淀编号体系混装）→ 独立文件 [`_shared/反哺报告处理.md`](references/_shared/反哺报告处理.md)，主卡留**编号保留的指针段**；新文件登记进三处版本载体清单（sync / check-version / 门 C）。
-  - §二十三 编排循环防空转——原与 `_shared/执行韧化协议-exec.md`「编排循环三防」+ `-design.md` §4 **三处承载**同一主题 ⇒ 收敛为**一处真源**：三防本体归 `-exec.md`/`-design.md`，其**仅此一处**的三条（`taskName` 传参规范 / 显示截断捞取 / 维护者诊断段）迁入 `-exec.md`「主控侧补充口径」；主卡 §二十三 留指针段。
+  - §二十 反哺报告处理（运行时规范 + 教训沉淀编号体系混装）→ 独立文件 [`_shared/治理/反哺报告处理.md`](references/_shared/治理/反哺报告处理.md)，主卡留**编号保留的指针段**；新文件登记进三处版本载体清单（sync / check-version / 门 C）。
+  - §二十三 编排循环防空转——原与 `_shared/真源/执行韧化协议-exec.md`「编排循环三防」+ `-design.md` §4 **三处承载**同一主题 ⇒ 收敛为**一处真源**：三防本体归 `-exec.md`/`-design.md`，其**仅此一处**的三条（`taskName` 传参规范 / 显示截断捞取 / 维护者诊断段）迁入 `-exec.md`「主控侧补充口径」；主卡 §二十三 留指针段。
   - **同步迁移净化规则**：`build-clawhub-release.sh` 的「反哺段替换」原文按 `## 二十、…(?=## 二十一、)` 在扩展职责卡内做段替换——内容外移后该模式**永不匹配**，正是审计点名的「规则静默空转」老坑（v2.12.11 先例）。现改为**按文件整篇换正文**（保留版本头 + 语言政策行）并**加硬断言**：替换未发生 ⇒ 构建失败。
   - 本卡净减约 **12.7KB**（86412 → **73690** B）；同步修正「按需加载索引」的陈旧计数（原写「28 节约 25K chars」，实际 55 真标题）——**改为不硬编码计数**（同 ④ 的原则）。
 - **④ P2-7 教训编号 5 处联动 → 压到 2 处**：编号原需**同批移动 5 个载体**（索引 §一 / §二 / §三 + 快照 + 头部散文），v2.12.58 已实测一次 off-by-one（快照 425→426，注释与数值自相矛盾）。现：索引三处硬编码**全部改为派生指针**（**编号只在 `lessons-max.snapshot` 写一次**）；门 H 判据改为**双判据**——**① 快照单一真源可解析**（唯一数值载体消失即红）+ **② 索引不得出现硬编码最大编号**（出现即红）。漂移面从「人工记得改 5 处」压成「机器拒绝第 2 处副本」——**类别从结构上移除**，不是靠人更小心。
@@ -6315,7 +6315,7 @@ Co-Authored-By: OpenClaw <noreply@openclaw.ai>
 
 - **发布面泄漏热修（P0）**，主人 2026-09-19 指令「起 v2.12.63 热修」。触发：第三批四线审计中，**主控实跑复核**发现净化链存在一处**已发生**的对外泄漏（不是理论风险）。
 
-- **① P0 · 维护者工程内档一直随发布包出厂（`references/_shared/论衡仓库内教训.md`）**：该文件登记的是**仓库内工程工具链教训**（CI 漂移 / YAML 漂移 / 净化链漂移 / 发布脚本问题），编号走 **`#R001` 起的独立编号空间**（`#R` = repo-internal，与主真源 `#N` 解耦）。自 **v2.12.42** 引入后**每次构建都随包出厂**，包内仍带 `CI run 34918738996` / `push ff4ae99` / `pytest tests/test_rules_consistency.py` / `__main__ NameError` / 「净化链」「release 链」等维护者叙事。**它同时绕过全部三道门**：不在排除清单（黑名单式，新文件默认入包）；不匹配任何残留模式（模式只认 `教训 #N` 字面，而该文件用 `#R001`）；是 git 跟踪文件 ⇒ 未跟踪残留反向断言也不拦。**这正是铁律「教训不对技能用户开放」的正面违反，也是该文件自身声明的「发布面与维护面分离」的失效。**
+- **① P0 · 维护者工程内档一直随发布包出厂（`references/_shared/治理/论衡仓库内教训.md`）**：该文件登记的是**仓库内工程工具链教训**（CI 漂移 / YAML 漂移 / 净化链漂移 / 发布脚本问题），编号走 **`#R001` 起的独立编号空间**（`#R` = repo-internal，与主真源 `#N` 解耦）。自 **v2.12.42** 引入后**每次构建都随包出厂**，包内仍带 `CI run 34918738996` / `push ff4ae99` / `pytest tests/test_rules_consistency.py` / `__main__ NameError` / 「净化链」「release 链」等维护者叙事。**它同时绕过全部三道门**：不在排除清单（黑名单式，新文件默认入包）；不匹配任何残留模式（模式只认 `教训 #N` 字面，而该文件用 `#R001`）；是 git 跟踪文件 ⇒ 未跟踪残留反向断言也不拦。**这正是铁律「教训不对技能用户开放」的正面违反，也是该文件自身声明的「发布面与维护面分离」的失效。**
   - **修法三层**：**① 源头拦截**——`rsync --exclude` 与 `cp` 分支 `rm -f` 两处同时排除；**② 产物侧兜底**——`FINAL_PATTERNS` 新增 `#R[0-9]{3}` / `repo-internal` / `论衡仓库内教训` 三条，4e 剥离规则自检清单新增两条 critical 条目（真源有、包内必须 0）。
   - **③ 根因治理（类别级，不是再补一条黑名单）**：新增 **§2b' `_shared/` 目录准入清单门** —— `references/_shared/` 改为**白名单准入**，包内该目录文件集必须**精确等于**已登记的 31 项，否则**构建失败**并双向打印差异（未登记入包 / 已登记却缺失）。这是「新文件默认入包」→「**新文件默认被拦**」的方向反转。教训 #333 早在 2a 段承认过「黑名单式 = 新文件默认入包」这一根因，但当时只补了 `memory/` 与人格文件两类，未做类别级修正；本条补上。
   - **残余债务（诚实登记）**：本门目前只覆盖 `references/_shared/`；`agents/` / `templates/` / `gates/` / `checkers/` / `dispatch/` 仍为「默认入包」，属同族未覆盖面，登记进第五批。
@@ -6372,5 +6372,26 @@ Co-Authored-By: OpenClaw <noreply@openclaw.ai>
 - **⑦ changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.59** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.59 及更早」。
 
 - **本批范围**：六类构建链缺陷（C-1 推广 / C-3 / C-4 / C-5 / C-6 / C-7）+ 五项文档一致性 + CI 判据统一与发版闸查 ④ + 一次 CI 实测回归止血 + 13 条新单测。**无新增运行能力、无破坏性行为变更。**
+
+---
+
+## [v2.12.65] — 2026-09-20
+
+- **审计第六批整改 — 三条独立审计链交叉收口（P0×1 + P1×6 + P2×3）**，主人 2026-09-20 指令「发版」。本批五条提交：`342a7f3`（P0-1/P1-1/P1-2 交叉收口）、`eeb5e29`（P1-3 快照抬号）、`a4a9c62`（P1-4/P1-5）、`aa0c8bf`（P2-3）、`caad3f0`（P2-2）。
+- **审计主体与交叉验证**：对 v2.12.64 开展独立全量审计，合并**主审计 / 子代理只读审计 / 另一台 ECS 审计**三链结果。主链与子代理链在 P0-1（T2.5 判据字段无生产方）与 P1-1（轻量档口径不一致）上**逐条吻合**；ECS 链基于**发布净化包（84 文件）**而非 git 真源（170 文件），行数统计多处失真，**三条 P0 经核实全属设计取舍误判**，仅三条 P2 属实并纳入清单。
+
+- **① P0-1 · T2.5 完整性门判据输入补生产方（致命：机械门可静默放行）**：`M-Integrity-1` 要求读任务简报「研究问题」段各子问题的「**需找数据点 ≥N**」累加为需求量，但**任务简报模板从不提供该字段** ⇒ 需求量恒 0 ⇒ `data_count >= 0` **恒真** ⇒ 「通过才派 T4」的阻断语义对数据量维度**失效**（退化为只查数据卡文件存在）。四点修复：① `任务简报-template.md` 补 `需找数据点 ≥N` 必填行；② `phase-order.yaml` 的 `m_gate_criterion_fields` 登记 producer + producer_marker；③ `M-Gate-Algorithm.md` 伪代码把 `outline_count == None/0` 显式改为 `verdict_undecidable`（禁 `>=0` 放行）；④ `flow-check` 新增**规则 35**：每个 `requires` 字段必须有生产方登记（复用 R-4 marker 断言写法）。
+- **② P1-1 · 轻量档跳过集合三处口径不一致**：模板声称轻量档跳过 **T6/T7/T9**，而真源（`字数判定表` / `phase-order.yaml`）**仅要求跳 T6** —— T7/T9 正常执行、G14 走 selfcheck ⇒ 按模板字面执行会**少做两项质量门**。收口为 `phase-order.yaml` 唯一真源，模板改「T6 必跳 / T4 可省」；新增**规则 36** 防回潮 + 反向注入测试。
+- **③ P1-2 · 路径边界口径四处不一致（旧单域残留）**：v2.12.64 已在 `permissions.md` 定案「两域」口径（skill 资产域只读 / 项目数据域读写，违规以**写**为准），但 `SKILL.md`、`关键协议.md`、`dispatch-header.md` 三处**仍保留旧单域口径** —— 按旧口径字面遵守会导致**流水线不可执行**（把设计意图内的 `read` 也判越界）。三处指针化到 `permissions.md` 真源；新增**规则 37** 防回潮 + 反向注入测试。
+- **④ P1-3 · 门 H 快照抬号**：`lessons-max.snapshot` 430 → **437**。`#431`–`#437` 七条经逐条裁定**全部属论衡类**（论衡流程 / 构建 / 发版），排除表未变，门 H 告警清零。
+- **⑤ P1-4 · 安全扫描误报面收敛**：通用扫描器（`skill-auditor-plus/security_audit.py`）**无豁免机制**，误报只能每轮人工排查。新增 `.safe-pattern-manifest.json` 登记 4 类**已逐条核实**的误报（`regex-engine-call` 正则引擎调用 / `defensive-test-sample` 防御性测试样本 / `guarded-cleanup` 受护栏保护的清理 / `internal-variable-exec` 内部字面量动态执行），每条带 file + reason + lines + note；`flow-check` 新增**规则 38** 校验清单完整性（JSON 可解析 / 四字段齐备 / file 真实存在 / **行号端点不越界**）—— 防「登记一行就走、文件改名或行号漂移后成假账」。
+- **⑥ P1-5 · 审计类子代理回传可回收性**：审计/长报告类子代理只走 completion 回传会 `result_truncated` **且不报错**；若 `cleanup=delete` 则正文**不可回收**（本轮实测 P1-2～P1-6 正文永久丢失，事后靠重跑补）。`dispatch-header.md` 的回传硬上限约定补三条回收纪律：`cleanup=keep` / **先落盘再回报路径+摘要** / 见到截断先回收全文再判断补跑。
+- **⑦ P2-1 · sessionKey 口径合并**：`status-template.md` 头部第 7 行**同时存在两代口径**（「截断前 8 字符」v2.12.41 与「一律不记录」v2.12.42），而正文 §4.7 明确「不记录」—— 头部告警块未随 v2.12.42 收紧回改，新读者无法判断到底截断还是不记录。收口为「**一律不记录**，截断规则仅兜底」。
+- **⑧ P2-3 · 维护者脚本危险操作统一审计点**：`rm -rf` / `bash -c` 分散在多个维护者脚本、**无统一审计点**，新增一处危险操作时无人察觉。收敛为单点：`.safe-pattern-manifest.json` 新增 `maintainer_danger_ops`（`patterns` 为扫描口径**唯一真源** + 6 文件逐项登记 ops/guard）；`flow-check` 新增**规则 39** 做**双向对账** —— 漏登记（新脚本加 `rm -rf` 未登记）与陈旧登记（构造已移除未销账）**都报红**；扫描口径刻意与通用扫描器一致（同样跳过 `#` / `-` / `**` / 围栏 / 三引号行），两端不漏不重。登记 6 文件：`build-clawhub-release.sh`（输出路径逃逸防护，校验位于 `rm -rf` **之前**）、`cleanup-skill-store.sh`、`release-preflight.sh`（`rm -rf` 只作用于 `mktemp`；`bash -c` 变量源为脚本内固定字面量）、`self-audit-gate.sh`、`strip-shell-commands.py`（危险模式**定义**非执行路径）、`test-path-canonical.sh`。
+- **⑨ P2-2 · 跨状态机「静默 ≠ 有效决策」不变式机械化**：审计原判「四个状态机分散、无聚合视图」经核实**不成立**（`verdict_scale` / `owner_timeout_policy` / `provider_silence_escalation` / `terminal_freeze` 本就相邻排在同一文件 `phase-order.yaml`，96 行连续块且头部注释已做交叉索引）—— 新建独立文档会制造第二份副本，**违反一条款一真源**（正是 P1-1 / P1-2 刚拆掉的那类漂移）。但核实出**真缺口**：`owner_timeout_policy`（主人无应答）与 `provider_silence_escalation`（同 provider 连续静默）共享同一不变式（静默/无应答 ≠ 有效决策 ⇒ 挂起等主人 + 无默认继续），而该「同侧」关系**只写在注释散文里**，任一侧被改成自动继续另一侧不会报红。故新增顶层 `silence_doctrine` 单一真源（`invariant` / `halt_kinds` 挂起类处置唯一枚举 / `forbidden_kinds` fail-open 枚举 / `applies_to` 覆盖面）+ `flow-check` **规则 40** 做双侧投影 + 双向对账（两侧挂起态必须相等）。**独有闭合面**：规则 12 只查 `default_fallback ∈ fallback_kinds`，故**新增一个 fail-open 处置**时规则 12/31 都不拦 —— 只有规则 40 能拦，已配专门注入测试证明其为唯一拦截者。
+
+- **⑩ 验收（实测回填 · 最终态）**：自审门 **PASS 36 / FAIL 0**；`python3 -m pytest tests/ -q` → **452 passed**；`python3 scripts/flow-check.py` **RC=0**；`bash scripts/check-version.sh` 通过；`release-preflight.sh` **四查全过**（在飞链 0 / 编号未占用 / 工作区干净 / CI 不红）。新增机械门六条（35–40）**每条均配反向注入测试**（真源 sha256 前后不变 + 副本变异 + 断言报红）。
+- **⑪ 门 Y 棘轮备案**：`phase-order.yaml` 54651 → **55272** B（+621）。按 `test_bulk_ratchet` 的「扩容说明」要求在 `self-audit-gate.sh` 内备案 —— 该段是**真源内容**（`silence_doctrine` 挂起类处置唯一枚举）非注释膨胀，且已把头部 ⑬ 对 S-3 的冗余复述压缩为指针（净增已扣减）。
+- **⑫ changelog 分层轮转（同批收尾）**：主文件加本节后有 **6 期**（上限 5）⇒ 按既定口径把最旧的 **v2.12.60** 逐字迁入 `CHANGELOG-archive.md`，归档标题边界更新为「v2.12.60 及更早」。
 
 ---

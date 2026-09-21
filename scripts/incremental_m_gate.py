@@ -9,7 +9,7 @@ v2.12.50 修（教训 #399「机械门必须能红」）: 原 `_validate_single_
   分支不可达 ⇒ 任何输入都打印「✓ 所有 M 门验证通过」（假绿灯）。
   现改为 fail-closed：未做机械验证的 M 门一律报 `passed=False` / `status=unverified`，
   进程退出码非 0，并在输出中明示「未验证 ≠ 通过」。M 门真验证在
-  `references/_shared/M-Gate-Algorithm.md` 由 agent 按流程执行。
+  `references/_shared/真源/M-Gate-Algorithm.md` 由 agent 按流程执行。
 """
 
 import hashlib
@@ -369,7 +369,7 @@ class IncrementalMGateValidator:
         # 原实现为 `'passed': True,  # 占位` ⇒ 全文件唯一赋值 ⇒ main() 失败分支不可达（假绿灯）。
         message = (
             f'{gate_id} 未验证：本工具只做变更定位 + 依赖判定；'
-            f'M 门真验证见 references/_shared/M-Gate-Algorithm.md（由 agent 按流程执行）'
+            f'M 门真验证见 references/_shared/真源/M-Gate-Algorithm.md（由 agent 按流程执行）'
         )
         if section_changes:
             # 附带章节级变更信息，供后续真验证聚焦范围
@@ -444,7 +444,7 @@ def main():
     if failed:
         if unverified:
             print(f'\n❌ 未通过/未验证 {len(failed)} 项（其中未验证 {len(unverified)} 项）：')
-            print('   注：未验证 ≠ 通过。M 门真验证见 references/_shared/M-Gate-Algorithm.md。')
+            print('   注：未验证 ≠ 通过。M 门真验证见 references/_shared/真源/M-Gate-Algorithm.md。')
         else:
             print(f'\n❌ 验证失败，{len(failed)} 项未通过:')
         for gate_id in failed:

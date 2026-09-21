@@ -3,7 +3,7 @@
 """门 X：Markdown 围栏相位 + 声明式锚点 + 伪 H1 检测。
 
 背景（教训 #424 / #426 / #427）：
-  references/_shared/M-Gate-Algorithm.md 曾因两个多余围栏（L1048 / L1181）导致
+  references/_shared/真源/M-Gate-Algorithm.md 曾因两个多余围栏（L1048 / L1181）导致
   M-Exist-3 / M-Integrity-1 标题被裹进代码块、7 行伪代码注释落到块外被渲染为文档 H1。
 
     X.1  M-Gate-Algorithm.md 围栏总数偶数
@@ -28,7 +28,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 GATE = REPO / "scripts" / "self-audit-gate.sh"
-MGATE = REPO / "references" / "_shared" / "M-Gate-Algorithm.md"
+MGATE = REPO / "references" / "_shared" / "真源" / "M-Gate-Algorithm.md"
 PIPE_README = REPO / "references" / "pipeline-readme.md"
 
 FENCE = re.compile(r"^[ \t]*(```|~~~)")
@@ -206,5 +206,5 @@ def test_anchor_table_registers_known_docs():
         assert pattern and label, f"锚点表条目缺正则或说明：{entry[:60]}"
         assert (REPO / f).exists(), f"锚点表登记了不存在的文件：{f}"
         files.append(f)
-    assert "references/_shared/M-Gate-Algorithm.md" in files
+    assert "references/_shared/真源/M-Gate-Algorithm.md" in files
     assert "references/pipeline-readme.md" in files

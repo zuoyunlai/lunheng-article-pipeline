@@ -23,16 +23,16 @@ import re
 import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-DH = ROOT / "references/_shared/dispatch-header.md"
+DH = ROOT / "references/_shared/真源/dispatch-header.md"
 PERM = ROOT / "references/permissions.md"
 COORD = ROOT / "references/agents/00-主控-扩展职责.md"
 STATUS_TPL = ROOT / "references/templates/status-template.md"
 BRIEF_TPL = ROOT / "references/templates/任务简报-template.md"
-WC_TABLE = ROOT / "references/_shared/字数判定表.md"
+WC_TABLE = ROOT / "references/_shared/真源/字数判定表.md"
 G14 = ROOT / "references/gates/14-中文AI痕迹-gate.md"
-PHASE_ORDER = ROOT / "references/_shared/phase-order.yaml"
+PHASE_ORDER = ROOT / "references/_shared/真源/phase-order.yaml"
 DELIVERABLES = ROOT / "references/deliverables.md"
-MGATE = ROOT / "references/_shared/M-Gate-Algorithm.md"
+MGATE = ROOT / "references/_shared/真源/M-Gate-Algorithm.md"
 T5 = ROOT / "references/dispatch/T5-写手.md"
 
 

@@ -141,7 +141,7 @@ def test_G14_3_tiers_consistency():
 # =============================================================================
 # 字数判定表：单一口径 + 三级阈值一致性（v2.5.13 新增；口径统一为「仅正文」）
 # =============================================================================
-WORDCOUNT_TABLE = ROOT / "references" / "_shared" / "字数判定表.md"
+WORDCOUNT_TABLE = ROOT / "references" / "_shared" / "真源" / "字数判定表.md"
 WORDCOUNT_REF_FILES = [
     ROOT / "references" / "agents" / "07-审计-auditor.md",
     ROOT / "references" / "templates" / "任务简报-template.md",
@@ -222,7 +222,7 @@ G15_G16_TERMS = ("G15 主张强度", "G16 上下文泄漏")
 
 def test_G15_G16_writing_quality_gates_consistency():
     """G15 主张强度 + G16 上下文泄漏在真源 + T7 dispatch 两处齐全（防漂移）"""
-    quickref = _read(ROOT / "references" / "_shared" / "audit-checklist-quickref.md")
+    quickref = _read(ROOT / "references" / "_shared" / "真源" / "audit-checklist-quickref.md")
     t7 = _read(ROOT / "references" / "dispatch" / "T7-审计.md")
 
     missing_quickref = [t for t in G15_G16_TERMS if t not in quickref]
@@ -238,7 +238,7 @@ G17_TERM = "G17 数据指纹"
 
 def test_G17_data_fingerprint_consistency():
     """G17 数据指纹比对在真源 + T7 dispatch 两处齐全（防漂移）"""
-    quickref = _read(ROOT / "references" / "_shared" / "audit-checklist-quickref.md")
+    quickref = _read(ROOT / "references" / "_shared" / "真源" / "audit-checklist-quickref.md")
     t7 = _read(ROOT / "references" / "dispatch" / "T7-审计.md")
 
     assert G17_TERM in quickref, "audit-checklist-quickref.md 缺 G17 数据指纹"

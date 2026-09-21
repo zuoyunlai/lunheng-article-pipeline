@@ -24,8 +24,8 @@ GATE = ROOT / "scripts" / "self-audit-gate.sh"
 
 BULK_FILES = (
     "references/agents/00-主控-扩展职责.md",
-    "references/_shared/M-Gate-Algorithm.md",
-    "references/_shared/phase-order.yaml",
+    "references/_shared/真源/M-Gate-Algorithm.md",
+    "references/_shared/真源/phase-order.yaml",
 )
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 

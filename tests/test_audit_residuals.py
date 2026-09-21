@@ -24,7 +24,7 @@ ROOT = pathlib.Path(__file__).parent.parent
 SKILL = ROOT / "SKILL.md"
 README = ROOT / "README.md"
 REFS = ROOT / "references"
-YAML = REFS / "_shared" / "phase-order.yaml"
+YAML = REFS / "_shared" / "真源" / "phase-order.yaml"
 
 # 行号型引用：任何 `<path>.md:<数字>`（修订下必然漂移，2026-09-12 审计 P2-2）
 LINE_REF = re.compile(r"[A-Za-z0-9_/\-]+\.md:[0-9]+")
@@ -52,7 +52,7 @@ def test_no_dangling_arbitration_pointers():
                 bad.append(f"{p.relative_to(ROOT)}:{i}")
     assert not bad, "悬挂指针（应指向 pipeline-overview.md）：\n" + "\n".join(bad)
     # 正向前提：外移目标章节确实存在，否则「重定向」本身也是悬空的
-    assert "## 修订回环仲裁规则" in (REFS / "_shared" / "pipeline-overview.md").read_text(encoding="utf-8"), \
+    assert "## 修订回环仲裁规则" in (REFS / "_shared" / "真源" / "pipeline-overview.md").read_text(encoding="utf-8"), \
         "pipeline-overview.md 缺「修订回环仲裁规则」章节 —— 指针目标不存在"
 
 
@@ -116,6 +116,6 @@ def test_g14_warning_declares_non_owner_checkpoint():
 
 def test_t7_5_does_not_depend_on_t8_artifact():
     """P1-6：T7.5 在 T8 之前执行，不得要求读 T8 才产出的 final/M-Gate-Report JSON"""
-    t = (REFS / "_shared" / "M-Gate-Algorithm.md").read_text(encoding="utf-8")
+    t = (REFS / "_shared" / "真源" / "M-Gate-Algorithm.md").read_text(encoding="utf-8")
     assert "不得依赖 `final/M-Gate-Report-v2.2.12.json`" in t, \
         "M-Gate-Algorithm 的 M-Integrity-2 仍要求读 T8 产物（前后依赖倒置）"

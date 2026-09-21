@@ -1,8 +1,8 @@
-> 版本：v2.12.69（自动同步 2026-09-21）
+> 版本：v2.12.70（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
-> 🏁 **收尾硬规则（v2.12.56 P-4，硬约束；与 P-1 同源）**：本交接报告**正文必须随最终消息一起结束回合** —— 该消息即交接摘要，会作为 completion event 送达主控。**不得**把摘要塞进 `acknowledgment` 字段（该字段不从子代理回合发出，实际不送达——实测导致主控「完成事件 + 摘要」双丢）。**禁用** `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history`（worker 自行 `sessions_yield` = 挂起 run 而非完成它）。详见 [`../_shared/dispatch-header.md`](../_shared/dispatch-header.md) §收尾协议。
+> 🏁 **收尾硬规则（v2.12.56 P-4，硬约束；与 P-1 同源）**：本交接报告**正文必须随最终消息一起结束回合** —— 该消息即交接摘要，会作为 completion event 送达主控。**不得**把摘要塞进 `acknowledgment` 字段（该字段不从子代理回合发出，实际不送达——实测导致主控「完成事件 + 摘要」双丢）。**禁用** `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history`（worker 自行 `sessions_yield` = 挂起 run 而非完成它）。详见 [`../_shared/真源/dispatch-header.md`](../_shared/真源/dispatch-header.md) §收尾协议。
 
 # 交接报告模板
 
@@ -20,7 +20,7 @@
 ### audited_artifact（v2.12.49 必填）
 - path: final/定稿.md
 - bytes: <主控 read 后填>
-- sha256: <主人在 host shell 跑 sha256sum 补算；补算命令模板见 references/_shared/host-verify-recipe.md §二>
+- sha256: <主人在 host shell 跑 sha256sum 补算；补算命令模板见 references/_shared/真源/host-verify-recipe.md §二>
 
 ### upstream_read（v2.12.49 T-1 必填，仅**只读档报告类**角色：T6 / T7 / T9 / G14）
 - path: audits/审计报告-vN.md

@@ -25,7 +25,7 @@ from pathlib import Path
 
 # 测试配置
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-ALGORITHM_FILE = Path(__file__).parent.parent / "references" / "_shared" / "M-Gate-Algorithm.md"
+ALGORITHM_FILE = Path(__file__).parent.parent / "references" / "_shared" / "真源" / "M-Gate-Algorithm.md"
 
 # 加载 M 门算法文档
 with open(ALGORITHM_FILE) as f:

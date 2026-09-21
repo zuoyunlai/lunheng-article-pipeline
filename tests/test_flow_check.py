@@ -21,17 +21,17 @@ import sys
 import yaml
 
 ROOT = pathlib.Path(__file__).parent.parent
-YAML_PATH = ROOT / "references" / "_shared" / "phase-order.yaml"
+YAML_PATH = ROOT / "references" / "_shared" / "真源" / "phase-order.yaml"
 
 # ===== v2.12.51 D-4：反向注入一律在「整仓副本」上施加，真源只读 =====
 # 背景：v2.12.51 前 ≥11 处反向注入直接 write_text 真源（phase-order.yaml / 字数判定表.md /
 #   可发表性判定表.md / 08-终检-final-inspector.md），仅靠 try/finally 恢复
 #   —— kill / 超时 / 并行即永久污染真源。
 # 现口径：copytree 整仓到 tmp_path → 在**副本**上变异 → 跑**副本的** scripts/flow-check.py
-#   （cwd 必须 = 副本根：main() 读相对路径 references/_shared/phase-order.yaml）
+#   （cwd 必须 = 副本根：main() 读相对路径 references/_shared/真源/phase-order.yaml）
 #   → 断言 RC≠0 + 报错指向预期节点/路径 + **真源 sha256 前后不变**（硬断言）。
 COPY_IGNORE = shutil.ignore_patterns(".git", "__pycache__", ".pytest_cache", "*.pyc")
-YAML_REL = "references/_shared/phase-order.yaml"
+YAML_REL = "references/_shared/真源/phase-order.yaml"
 
 
 def _sha256(path):
@@ -429,9 +429,9 @@ def test_owner_timeout_policy_is_single_source():
     data = _pipeline()
     assert isinstance(data["owner_timeout_policy"]["no_answer_minutes"], int)
     assert data["owner_timeout_policy"]["no_answer_minutes"] > 0
-    for rel in ("references/_shared/glossary-full.md",
-                "references/_shared/phase-2-details.md",
-                "references/_shared/执行韧化协议-design.md"):
+    for rel in ("references/_shared/真源/glossary-full.md",
+                "references/_shared/真源/phase-2-details.md",
+                "references/_shared/真源/执行韧化协议-design.md"):
         text = (ROOT / rel).read_text(encoding="utf-8")
         assert "60 分钟" not in text, f"{rel} 重列了无应答分钟数（违一条款一真源）"
 
@@ -447,7 +447,7 @@ def test_phase5_silence_is_not_acceptance():
     assert n.get("timeout_fallback") == "pending_owner_halt", \
         "Phase 5 又变成 fail-open（静默自动接受）"
     DELETED_MARKERS = ("已删除", "旧写法", "旧口径", "防回潮", "已收紧")
-    for rel in ("references/_shared/glossary-full.md",
+    for rel in ("references/_shared/真源/glossary-full.md",
                 "references/agents/00-主控-扩展职责.md"):
         for i, line in enumerate((ROOT / rel).read_text(encoding="utf-8").splitlines(), 1):
             if "不答 = 接受当前定稿" in line:
@@ -552,8 +552,8 @@ def test_m3_counting_uses_band_not_exact():
 
 def test_m5_p2_quantitative_anchors_declared():
     """M-5：字数判定表 §二 + M-Gate-Algorithm §🎯 必须同时声明 P2 量化锚点（3 倍 / 1.5 倍 / 累积升级）。"""
-    wz = (ROOT / "references/_shared/字数判定表.md").read_text(encoding="utf-8")
-    mgate = (ROOT / "references/_shared/M-Gate-Algorithm.md").read_text(encoding="utf-8")
+    wz = (ROOT / "references/_shared/真源/字数判定表.md").read_text(encoding="utf-8")
+    mgate = (ROOT / "references/_shared/真源/M-Gate-Algorithm.md").read_text(encoding="utf-8")
     assert "实测 > 3 倍" in wz and "1.5 倍" in wz, "字数判定表 §二 缺 M-5 P2 量化锚点"
     assert "P2 ≥ 3 项" in mgate and "形态类瑕疵" in mgate, "M-Gate §🎯 缺 M-5 P2 量化锚点"
 
@@ -569,7 +569,7 @@ def test_m3_m5_dual_source_lock_in_flow_check(tmp_path):
         if bad == src:
             bad = re.sub(r"\*\*实测 > 3 倍\*\*", "~~删~~~~", src, count=1)
         return bad
-    _inject_and_expect("references/_shared/字数判定表.md", mutate, "字数判定表", tmp_path)
+    _inject_and_expect("references/_shared/真源/字数判定表.md", mutate, "字数判定表", tmp_path)
 
 
 # ===== v2.12.49 M-4 G14 严重度 + M-6 轮次出口三选一 =====
@@ -618,7 +618,7 @@ def test_m4_m6_flow_check_dual_lock(tmp_path):
 
 def test_m9_48_items_have_severity_column():
     """M-9：可发表性判定表 §二 A-E 5 组每行必含严重度列（P0/P1/P2/advisory）。"""
-    text = (ROOT / "references/_shared/可发表性判定表.md").read_text(encoding="utf-8")
+    text = (ROOT / "references/_shared/真源/可发表性判定表.md").read_text(encoding="utf-8")
     sec2 = text[text.index("## 二、"):text.index("\n## 三、")]
     # §二 A-E 必含 17 处严重度标记（4+5+4+2+2 = 17 行）
     sev_count = sum(sec2.count(f"**{sev}**") for sev in ("P0", "P1", "P2", "advisory"))
@@ -640,7 +640,7 @@ def test_m7_m9_flow_check_dual_lock(tmp_path):
     """M-7/M-9：flow-check 规则 19 须锁 §二 A-E 严重度 + status-template 节点标注（D-4 副本注入）。"""
     def mutate(src):
         return re.sub(r"(\| A3 \| .+? \| A \| )\*\*P1\*\*", r"\1~~", src, count=1)
-    out = _inject_and_expect("references/_shared/可发表性判定表.md", mutate, "严重度", tmp_path)
+    out = _inject_and_expect("references/_shared/真源/可发表性判定表.md", mutate, "严重度", tmp_path)
     assert "17" in out, f"报错未指向严重度阈值 17: {out}"
 
 
@@ -727,7 +727,7 @@ def test_m13_m14_flow_check_dual_lock(tmp_path):
 
 def test_t1_upstream_read_contract():
     """T-1：关键协议须含落盘前置 + 派发禁摘要；交接报告须含 upstream_read 差集字段。"""
-    kp = (ROOT / "references/_shared/关键协议.md").read_text(encoding="utf-8")
+    kp = (ROOT / "references/_shared/真源/关键协议.md").read_text(encoding="utf-8")
     assert "四·补" in kp and "派发禁止摘要" in kp, "关键协议缺 §四·补（T-1）"
     assert "前置断言" in kp, "关键协议缺 spawn 前置断言（T-1）"
     jj = (ROOT / "references/templates/交接报告-template.md").read_text(encoding="utf-8")
@@ -737,7 +737,7 @@ def test_t1_upstream_read_contract():
 
 def test_t2_t3_model_family_and_liveness_gate():
     """T-2/T-3：候选池须含换族优先/断路器/族级独立性/探活门；探活门须入真源。"""
-    c = (ROOT / "references/_shared/模型候选池.md").read_text(encoding="utf-8")
+    c = (ROOT / "references/_shared/真源/模型候选池.md").read_text(encoding="utf-8")
     assert "优先换 provider 族" in c, "候选池缺换族优先（T-2）"
     assert "断路器" in c, "候选池缺断路器（T-2）"
     assert "模型族" in c and "两两不同" in c, "候选池缺族级独立性判据（T-2）"
@@ -760,7 +760,7 @@ def test_t4_peer_review_family_fields():
 
 def test_t5_net_delta_cap():
     """T-5：字数判定表须含单轮净增 ≤2% + 等量置换；修订说明须含 net_delta_cjk。"""
-    w = (ROOT / "references/_shared/字数判定表.md").read_text(encoding="utf-8")
+    w = (ROOT / "references/_shared/真源/字数判定表.md").read_text(encoding="utf-8")
     assert "修订净增上限" in w and "≤ 2%" in w, "字数判定表缺净增上限（T-5）"
     assert "等量置换" in w, "字数判定表缺等量置换要求（T-5）"
     assert "92%" in w, "字数判定表缺 Phase 0 92% 预留（T-5）"
@@ -782,7 +782,7 @@ def test_t8_citation_style_unified():
     d = (ROOT / "references/deliverables.md").read_text(encoding="utf-8")
     assert "引用体例单一化" in d, "deliverables 缺 T-8 段"
     assert "两套体例并存" in d, "deliverables 缺「禁止两套体例并存」铁律"
-    g = (ROOT / "references/_shared/M-Gate-Algorithm.md").read_text(encoding="utf-8")
+    g = (ROOT / "references/_shared/真源/M-Gate-Algorithm.md").read_text(encoding="utf-8")
     assert "引用体例层" in g, "M-Gate-Exist-1 缺引用体例层校验（T-8）"
 
 
@@ -1123,7 +1123,7 @@ def test_b12_spawn_landing_three_point_wiring():
     （agent 零 exec），故只锁「协议不许从载体里静默消失」+「留痕字段必须在位」+「必须写明
     构建期无机械兜底」（防后人误以为有门）。
     """
-    hp = (ROOT / "references/_shared/执行韧化协议-exec.md").read_text(encoding="utf-8")
+    hp = (ROOT / "references/_shared/真源/执行韧化协议-exec.md").read_text(encoding="utf-8")
     for tok in ("spawn 后", "active runs", "重试 ≤2 次", "机械兜底边界"):
         assert tok in hp, f"执行韧化协议-exec.md 缺「{tok}」（B12）"
     mc = (ROOT / "references/agents/00-主控-coordinator.md").read_text(encoding="utf-8")
@@ -1148,7 +1148,7 @@ def test_b12_honest_boundary_reverse_injection(tmp_path):
         assert "机械兜底边界" in src, "反向注入点未命中（诚实边界声明写法已变）"
         return src.replace("机械兜底边界", "兜底边界（已删）", 1)
 
-    _inject_and_expect("references/_shared/执行韧化协议-exec.md", mutate, "机械兜底边界", tmp_path)
+    _inject_and_expect("references/_shared/真源/执行韧化协议-exec.md", mutate, "机械兜底边界", tmp_path)
 
 
 # ===== v2.12.65 P0-1：M 门判据字段生产方（m_gate_criterion_fields）=====
@@ -1210,8 +1210,8 @@ def test_p12_path_boundary_two_domain_single_source():
     """
     checks = {
         "SKILL.md": "仅限 `run/<项目名>/` 子树",
-        "references/_shared/关键协议.md": "仅允许 `run/<项目名>/` 子树",
-        "references/_shared/dispatch-header.md": "run/ 子树外路径",
+        "references/_shared/真源/关键协议.md": "仅允许 `run/<项目名>/` 子树",
+        "references/_shared/真源/dispatch-header.md": "run/ 子树外路径",
     }
     for rel, old in checks.items():
         t = (ROOT / rel).read_text(encoding="utf-8")
@@ -1223,7 +1223,7 @@ def test_p12_path_boundary_reverse_injection(tmp_path):
     def mutate(src):
         return src.replace("项目数据域外写入 0 命中", "run/ 子树外路径 0 命中", 1)
 
-    _inject_and_expect("references/_shared/dispatch-header.md", mutate, "P1-2", tmp_path)
+    _inject_and_expect("references/_shared/真源/dispatch-header.md", mutate, "P1-2", tmp_path)
 
 
 # ===== v2.12.65 P1-4：安全误报白名单清单完整性（.safe-pattern-manifest.json）=====
@@ -1477,7 +1477,7 @@ def test_m13_command_drift_reverse_injection(tmp_path):
 # ===== v2.12.67 只读档报告分片预申报接线（规则 42） =====
 
 RULE42_CARRIERS = (
-    "references/_shared/执行韧化协议-exec.md",
+    "references/_shared/真源/执行韧化协议-exec.md",
     "references/dispatch/T6-批判.md",
     "references/dispatch/T7-审计.md",
     "references/dispatch/T9-同行评审.md",
@@ -1521,4 +1521,4 @@ def test_rule42_protocol_truth_source_reverse_injection(tmp_path):
     def mutate(src):
         return src.replace("final message 首块 = 分片清单", "final message 首块 = 摘要头", 1)
 
-    _inject_and_expect("references/_shared/执行韧化协议-exec.md", mutate, "规则 42", tmp_path)
+    _inject_and_expect("references/_shared/真源/执行韧化协议-exec.md", mutate, "规则 42", tmp_path)

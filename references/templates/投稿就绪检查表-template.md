@@ -1,4 +1,4 @@
-> 版本：v2.12.69（自动同步 2026-09-21）
+> 版本：v2.12.70（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -19,7 +19,7 @@
 
 ## 二、Word / PDF 转换
 
-> **多格式导出**：详见 [`../_shared/format-export.md`](../_shared/format-export.md)（默认 `--format md` 零额外 token；选 `latex/docx/pdf` 按 pandoc + rsvg-convert 命令生成）
+> **多格式导出**：详见 [`../_shared/真源/format-export.md`](../_shared/真源/format-export.md)（默认 `--format md` 零额外 token；选 `latex/docx/pdf` 按 pandoc + rsvg-convert 命令生成）
 
 | 项 | 操作 |
 |----|------|
@@ -42,7 +42,7 @@
 
 ## 四、投稿前最后核验
 
-- [ ] 字数达标（按 [`_shared/字数判定表.md`](../_shared/字数判定表.md) 单一口径（仅正文，不含文末附录））
+- [ ] 字数达标（按 [`_shared/真源/字数判定表.md`](../_shared/真源/字数判定表.md) 单一口径（仅正文，不含文末附录））
 - [ ] 引用闭环（正文 [Lxx]/[Dxx]/[Cxx] ↔ 文末四节双向 diff 通过）
 - [ ] G14 中文 AI 痕迹检测通过（**目标语言含中文即必跑**，纯外语记 `n/a`；`exempted_by_owner` 时须已披露）
 - [ ] T9 评分 + 判定（accept/minor/major/reject）已记录

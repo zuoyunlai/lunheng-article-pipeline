@@ -48,7 +48,7 @@
     防「改 A 漏 B」：侧语义只在散文声明时，只改一侧不会报红。
  41 **M-13 清单跨载体一致性**（v2.12.66）：T8 dispatch 与 08-终检 是**同一份**「主人自行操作建议
     清单」的两个载体。两处四类动作名必须齐备；两处「可直接复制的命令模板」必须**彼此相等**且与
-    声明真源 `_shared/format-export.md` §二 同源（含 `.tex` 行 + `--reference-doc=academic-paper-template.docx`
+    声明真源 `_shared/真源/format-export.md` §二 同源（含 `.tex` 行 + `--reference-doc=academic-paper-template.docx`
     + `--bibliography` / `--csl`）；禁 v2.12.60 已作废写法回潮（`templates/word-reference.docx` /
     「再嵌入定稿」—— 图位嵌入由 `final_assembly` 在流水线内完成，主人只做 SVG→PNG）。
     防「同一份清单两处承载、改 A 漏 B」（与 P1-1 轻量档口径 / P1-2 路径边界同族）。
@@ -114,7 +114,7 @@ def _paths(decl):
 
 
 def main():
-    p = pathlib.Path('references/_shared/phase-order.yaml')
+    p = pathlib.Path('references/_shared/真源/phase-order.yaml')
     try:
         d = yaml.load(p.read_text(encoding='utf-8'), Loader=UniqueKeyLoader)
         P = d['pipeline']
@@ -327,9 +327,9 @@ def main():
     #    M-Gate-Algorithm.md 与 字数判定表.md 是计数档位 + P2 量化锚点定义的双真源。
     #    机械门锁死两个文件必须同时声明 v2.12.49 新段（防其中一份走散文被另一个被丢）。
     m3_m5_required = [
-        ('references/_shared/M-Gate-Algorithm.md',
+        ('references/_shared/真源/M-Gate-Algorithm.md',
          '## 🎯 计数类档位真源 + P2 量化锚点'),
-        ('references/_shared/字数判定表.md',
+        ('references/_shared/真源/字数判定表.md',
          '实测 > 3 倍'),
     ]
     for rel, marker in m3_m5_required:
@@ -366,7 +366,7 @@ def main():
     # 19 M-9 48 必查严重度列 + M-7 status 对账锁死（v2.12.49）：
     #    M-9：可发表性判定表 §二 A-E 各表每行必含「严重度」字段（| P0/P1/P2/advisory **|）
     #    M-7：status-template §四产物路径每条必含节点 ID 标注（[节点: <id>]）
-    fabiao = pathlib.Path(__file__).resolve().parent.parent / 'references/_shared/可发表性判定表.md'
+    fabiao = pathlib.Path(__file__).resolve().parent.parent / 'references/_shared/真源/可发表性判定表.md'
     fabiao_text = fabiao.read_text(encoding='utf-8')
     sev_in_section2 = sum(fabiao_text.count(f'**{sev}**') for sev in ('P0', 'P1', 'P2', 'advisory'))
     if sev_in_section2 < 17:   # A-E 17 行 × 严重度列必填（17 项中至少 14 P1 + 2 P2 + 1 P0 + 1 advisory）
@@ -432,13 +432,13 @@ def main():
     #    T-2 换族优先 + 族级独立性 + 断路器；T-3 Phase 0 顶配档探活门
     #    T-4 审稿报告族级字段；T-5 修订净增上限；T-6 快照默认触发；T-8 引用体例单一化
     _R = pathlib.Path(__file__).resolve().parent.parent
-    kp_text = (_R / 'references/_shared/关键协议.md').read_text(encoding='utf-8')
+    kp_text = (_R / 'references/_shared/真源/关键协议.md').read_text(encoding='utf-8')
     if '四·补' not in kp_text or '派发禁止摘要' not in kp_text:
         errs.append('关键协议 缺 §四·补 只读档报告落盘前置 + 派发禁止摘要（T-1）')
     jj_text = (_R / 'references/templates/交接报告-template.md').read_text(encoding='utf-8')
     if 'upstream_read' not in jj_text or 'dispatched_ids' not in jj_text:
         errs.append('交接报告模板 缺 upstream_read/dispatched_ids 差集断言字段（T-1）')
-    cand_text = (_R / 'references/_shared/模型候选池.md').read_text(encoding='utf-8')
+    cand_text = (_R / 'references/_shared/真源/模型候选池.md').read_text(encoding='utf-8')
     if '优先换 provider 族' not in cand_text or '断路器' not in cand_text:
         errs.append('模型候选池 缺 T-2 换族优先 + 断路器')
     if '二·补' not in cand_text or '探活门' not in cand_text:
@@ -450,7 +450,7 @@ def main():
     for _k in ('executor_model', 'model_family', 'independent_from'):
         if _k not in t9t_text:
             errs.append(f'审稿报告模板 缺 {_k}（T-4 族级独立性）')
-    wc_text = (_R / 'references/_shared/字数判定表.md').read_text(encoding='utf-8')
+    wc_text = (_R / 'references/_shared/真源/字数判定表.md').read_text(encoding='utf-8')
     if '修订净增上限' not in wc_text or 'net_delta_cjk' not in wc_text:
         errs.append('字数判定表 缺 §八 修订净增上限 + net_delta_cjk（T-5）')
     n_ms = byid.get('methodology_snapshot')
@@ -458,7 +458,7 @@ def main():
         errs.append('methodology_snapshot 未改为「默认 triggered + opt_out」（T-6）')
     if '引用体例单一化' not in deliv_text:
         errs.append('deliverables.md 缺 T-8 引用体例单一化段')
-    m_exist_text = (_R / 'references/_shared/M-Gate-Algorithm.md').read_text(encoding='utf-8')
+    m_exist_text = (_R / 'references/_shared/真源/M-Gate-Algorithm.md').read_text(encoding='utf-8')
     if '引用体例层' not in m_exist_text:
         errs.append('M-Gate-Algorithm 缺 M-Exist-1 引用体例层校验（T-8）')
 
@@ -692,7 +692,7 @@ def main():
     #      ② 主控卡：必须指向该真源（防「只活在 _shared、主控不执行」）
     #      ③ 运行期留痕：status-template 必须有 `spawn_landing` 记账字段（主人可事后核验，
     #         失败不再无声）—— 这是把「纪律」变成「可核验痕迹」的唯一机械化路径。
-    _hp34 = (_root24 / 'references/_shared/执行韧化协议-exec.md').read_text(encoding='utf-8')
+    _hp34 = (_root24 / 'references/_shared/真源/执行韧化协议-exec.md').read_text(encoding='utf-8')
     for _tok34 in ('spawn 后', 'active runs', '重试 ≤2 次', '机械兜底边界'):
         if _tok34 not in _hp34:
             errs.append(f'执行韧化协议-exec.md 缺「{_tok34}」（B12：落地验证协议或诚实边界声明缺失）')
@@ -744,8 +744,8 @@ def main():
     #    流水线不可执行。三处载体不得再含旧单域措辞（防 v2.12.64「只修一处、三处回潮」复发）。
     for _f37, _tok37 in (
         ('SKILL.md', '仅限 `run/<项目名>/` 子树'),
-        ('references/_shared/关键协议.md', '仅允许 `run/<项目名>/` 子树'),
-        ('references/_shared/dispatch-header.md', 'run/ 子树外路径'),
+        ('references/_shared/真源/关键协议.md', '仅允许 `run/<项目名>/` 子树'),
+        ('references/_shared/真源/dispatch-header.md', 'run/ 子树外路径'),
     ):
         _t37 = (_root24 / _f37).read_text(encoding='utf-8')
         if _tok37 in _t37:
@@ -900,7 +900,7 @@ def main():
     # 41 M-13 清单跨载体一致性（v2.12.66）：T8 dispatch 与 08-终检 是**同一份**「主人自行操作
     #    建议清单」的两个载体，此前**无任何门**校验二者一致 ⇒ v2.12.60 把第 2 类由「图件落地与
     #    嵌入」瘦回「SVG → PNG 转换」（嵌入改由 final_assembly 在流水线内完成）时**只改 T8、
-    #    08 漏改**；同期 T8 的内联命令模板又与它自己声明的真源 `_shared/format-export.md` §二
+    #    08 漏改**；同期 T8 的内联命令模板又与它自己声明的真源 `_shared/真源/format-export.md` §二
     #    不符（缺 `.tex` 行、`--reference-doc` 指向旧文件 `templates/word-reference.docx`、
     #    pdf 缺 `--template/--bibliography/--csl`）—— 主人照拄即得错误产物。
     #    故障面 = 「同一份清单两处承载、改 A 漏 B」（与 P1-1 轻量档口径、P1-2 路径边界同族）。
@@ -925,7 +925,7 @@ def main():
             _cmd41[_lbl41] = '\n'.join(l.strip() for l in _blk41[0].splitlines() if l.strip())
     if len(_cmd41) == 2 and len(set(_cmd41.values())) != 1:
         errs.append('M-13 命令模板两载体不一致（规则 41：T8 dispatch 与 08-终检 必须同源，'
-                    '真源 = _shared/format-export.md §二）')
+                    '真源 = _shared/真源/format-export.md §二）')
     # 命令模板须与声明真源同源：canonical 四要素缺一即红
     for _lbl41, _txt41 in _cmd41.items():
         for _need41 in ('final/定稿.tex', '--reference-doc=academic-paper-template.docx',
@@ -940,7 +940,7 @@ def main():
     #    均须含「分片清单」与「报告分片 N/M」口径。触发线 3500 的数值真源在协议本体（一条款一真源，
     #    本规则只锁存在性，不复制数值 —— 防两套判据漂移）。
     _C42_CARRIERS = (
-        ('协议真源', 'references/_shared/执行韧化协议-exec.md'),
+        ('协议真源', 'references/_shared/真源/执行韧化协议-exec.md'),
         ('T6 dispatch', 'references/dispatch/T6-批判.md'),
         ('T7 dispatch', 'references/dispatch/T7-审计.md'),
         ('T9 dispatch', 'references/dispatch/T9-同行评审.md'),
@@ -951,14 +951,14 @@ def main():
         for _need42 in ('报告分片 N/M', '分片清单'):
             if _need42 not in _t42:
                 errs.append(f'{_lbl42} 缺「{_need42}」（规则 42：超长报告分片预申报不得从载体静默消失，'
-                            f'真源 = _shared/执行韧化协议-exec.md §6）')
+                            f'真源 = _shared/真源/执行韧化协议-exec.md §6）')
 
     # 43 G15/G16 写作质量门跨载体一致性（v2.12.68，借 writing-guard）：主张强度校准 + 上下文泄漏
     #    两项写作质量门不得从真源（audit-checklist-quickref.md）或 T7 dispatch 载体静默消失。
-    #    真源 = _shared/audit-checklist-quickref.md；T7 dispatch 是派发载体（一条款一真源，
+    #    真源 = _shared/真源/audit-checklist-quickref.md；T7 dispatch 是派发载体（一条款一真源，
     #    本规则只锁存在性，不复制判据全文 —— 防两套判据漂移）。
     _C43_CARRIERS = (
-        ('G 门真源', 'references/_shared/audit-checklist-quickref.md'),
+        ('G 门真源', 'references/_shared/真源/audit-checklist-quickref.md'),
         ('T7 dispatch', 'references/dispatch/T7-审计.md'),
     )
     for _lbl43, _rel43 in _C43_CARRIERS:
@@ -966,14 +966,14 @@ def main():
         for _need43 in ('G15 主张强度', 'G16 上下文泄漏'):
             if _need43 not in _t43:
                 errs.append(f'{_lbl43} 缺「{_need43}」（规则 43：G15/G16 写作质量门不得从载体静默消失，'
-                            f'真源 = _shared/audit-checklist-quickref.md）')
+                            f'真源 = _shared/真源/audit-checklist-quickref.md）')
 
     # 44 G17 数据指纹比对跨载体一致性（v2.12.69，借 writing-guard Scholarship Lock）：
     #    数据完整性门不得从真源（audit-checklist-quickref.md）或 T7 dispatch 载体静默消失。
-    #    真源 = _shared/audit-checklist-quickref.md；T7 dispatch 是派发载体（一条款一真源，
+    #    真源 = _shared/真源/audit-checklist-quickref.md；T7 dispatch 是派发载体（一条款一真源，
     #    本规则只锁存在性，不复制判据全文 —— 防两套判据漂移）。
     _C44_CARRIERS = (
-        ('G 门真源', 'references/_shared/audit-checklist-quickref.md'),
+        ('G 门真源', 'references/_shared/真源/audit-checklist-quickref.md'),
         ('T7 dispatch', 'references/dispatch/T7-审计.md'),
     )
     for _lbl44, _rel44 in _C44_CARRIERS:
@@ -981,7 +981,7 @@ def main():
         for _need44 in ('G17 数据指纹',):
             if _need44 not in _t44:
                 errs.append(f'{_lbl44} 缺「{_need44}」（规则 44：G17 数据指纹门不得从载体静默消失，'
-                            f'真源 = _shared/audit-checklist-quickref.md）')
+                            f'真源 = _shared/真源/audit-checklist-quickref.md）')
 
     # 45 期刊约定校验跨载体一致性（v2.12.69，借 writing-guard JOURNAL 层）：
     #    期刊约定校验不得从 T9 dispatch 或 09-审稿角色卡载体静默消失。

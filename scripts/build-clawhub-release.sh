@@ -74,7 +74,7 @@ esac
 
 # ---- 扫描面：文本类文件全集（v2.12.11 起覆盖非 md 资产）----
 # 背景（leak-audit §四.2）：旧版所有残留扫描只认 `--include='*.md'`，
-#   `.safe-pattern-manifest.json` 与 `references/_shared/phase-order.yaml` 长期处于**盲区**
+#   `.safe-pattern-manifest.json` 与 `references/_shared/真源/phase-order.yaml` 长期处于**盲区**
 #   （二者各含 1 项维护者内泄漏却无人报错）。
 # 选择「扩展扫描面」而非「逐文件补扫」：根因级修正——日后新增任何非 md 文本资产自动纳入。
 SCAN_INCLUDES=(--include='*.md' --include='*.json' --include='*.yaml' --include='*.yml' --include='*.txt' --include='*.toml')
@@ -134,7 +134,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude '.bak-*' --exclude 'docs' --exclude '.gitignore' \
     --exclude 'audits' --exclude 'scripts' --exclude '.github' \
     --exclude 'references/_shared/archive' --exclude 'references/design' \
-    --exclude 'references/_shared/lessons-max.snapshot' \
+    --exclude 'references/_shared/治理/lessons-max.snapshot' \
     --exclude 'references/_shared/通用韧化块-v2.1.0.md' \
     --exclude 'references/_shared/版本升级自审门-*.md' \
     --exclude 'references/_shared/M-Gate-渐进式验证-*.md' \
@@ -147,8 +147,8 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/设计文档-架构.md' \
     --exclude 'references/设计文档-哲学.md' \
     --exclude 'PERFORMANCE-PROFILE.md' \
-    --exclude 'references/_shared/教训索引.md' \
-    --exclude 'references/_shared/论衡仓库内教训.md' \
+    --exclude 'references/_shared/治理/教训索引.md' \
+    --exclude 'references/_shared/治理/论衡仓库内教训.md' \
     --exclude '.safe-pattern-manifest.json' \
     --exclude 'pyproject.toml' \
     --exclude 'requirements.txt' \
@@ -189,11 +189,11 @@ else
   find "$OUT_DIR" -name '.DS_Store' -delete
   find "$OUT_DIR" \( -name '*.swp' -o -name '*.swo' \) -delete
   rm -f "$OUT_DIR/PERFORMANCE-PROFILE.md"
-  rm -f "$OUT_DIR/references/_shared/教训索引.md"
+  rm -f "$OUT_DIR/references/_shared/治理/教训索引.md"
   # v2.12.63：维护者工程内档（#R 编号空间），实测自 v2.12.42 起长期随包出厂 —— 见 2b' 段根因说明
-  rm -f "$OUT_DIR/references/_shared/论衡仓库内教训.md"
+  rm -f "$OUT_DIR/references/_shared/治理/论衡仓库内教训.md"
   # v2.12.47：维护者侧门 H 判据快照（不随包交付，与教训索引同侧）
-  rm -f "$OUT_DIR/references/_shared/lessons-max.snapshot"
+  rm -f "$OUT_DIR/references/_shared/治理/lessons-max.snapshot"
   # ② v2.12.12：维护者扫描器豁免清单（非 md，消费者无用）不再随包分发
   rm -f "$OUT_DIR/.safe-pattern-manifest.json"
   rm -f "$OUT_DIR/references/_shared/通用韧化块-v2.1.0.md"
@@ -265,7 +265,7 @@ done
 
 # ---- 2b'. `_shared/` 目录准入清单（v2.12.63 新增 · 根因治理 · 回应 2026-09-19 审计 C-1）----
 # 根因：净化包排除清单是**黑名单式** —— 排除项之外的任何文件**默认入包**。实测事故：
-#   `references/_shared/论衡仓库内教训.md`（维护者工程内档：CI run id / commit hash / pytest 命令 /
+#   `references/_shared/治理/论衡仓库内教训.md`（维护者工程内档：CI run id / commit hash / pytest 命令 /
 #   `#R` 编号空间 / 「净化链」「release 链」等内部叫法）自 v2.12.42 引入后**一直随包出厂**，
 #   且**同时绕过三道门**：① 不在排除清单；② 不匹配残留模式（模式只认 `教训 #N` 字面，
 #   不认 `#R001` 这一 v2.12.42 新引入的编号空间）；③ 它是 git 跟踪文件 ⇒ 2a' 反向断言也不拦。
@@ -275,41 +275,43 @@ done
 #   新增文件必须先在此登记（并在排除清单里决定去留），否则**构建失败**。
 #   即「新文件默认入包」→「新文件默认被拦」的方向反转（不是再补一个黑名单条目）。
 # 维护：本表按 `LC_ALL=C sort` 排序（下方有机械自检）；增删条目请保持 ASCII-优先排序。
+# v2.12.70 A-治理瘦身：`_shared/` 分层为 真源/（判据）+ 治理/（叙事），本表项带子目录前缀；
+#   下方 find 用 -mindepth 1 -maxdepth 2 + %P 输出相对路径，与带前缀清单精确对表。
 SHARED_ADMITTED=(
-  'M-Gate-Algorithm-appendix.md'
-  'M-Gate-Algorithm.md'
-  'asset-index.md'
-  'audit-checklist-quickref.md'
-  'degraded-scenarios.md'
-  'dispatch-header.md'
-  'external-services.md'
-  'failure-modes.md'
-  'format-export.md'
-  'glossary-core.md'
-  'glossary-full.md'
-  'host-verify-recipe.md'
-  'performance-benchmarks.md'
-  'phase-1-details.md'
-  'phase-2-details.md'
-  'phase-3-details.md'
-  'phase-order.yaml'
-  'pipeline-overview.md'
-  'project-archive-sop.md'
-  'skill-entry-appendix.md'
-  '中文数据源集成.md'
-  '关键协议.md'
-  '反哺报告处理.md'
-  '可发表性判定表.md'
-  '字数判定表.md'
-  '工具能力边界.md'
-  '执行韧化协议-design.md'
-  '执行韧化协议-exec.md'
-  '期刊匹配算法.md'
-  '期刊数据库.md'
-  '模型候选池.md'
-  '路径校验规范.md'
+  '治理/project-archive-sop.md'
+  '治理/反哺报告处理.md'
+  '真源/M-Gate-Algorithm-appendix.md'
+  '真源/M-Gate-Algorithm.md'
+  '真源/asset-index.md'
+  '真源/audit-checklist-quickref.md'
+  '真源/degraded-scenarios.md'
+  '真源/dispatch-header.md'
+  '真源/external-services.md'
+  '真源/failure-modes.md'
+  '真源/format-export.md'
+  '真源/glossary-core.md'
+  '真源/glossary-full.md'
+  '真源/host-verify-recipe.md'
+  '真源/performance-benchmarks.md'
+  '真源/phase-1-details.md'
+  '真源/phase-2-details.md'
+  '真源/phase-3-details.md'
+  '真源/phase-order.yaml'
+  '真源/pipeline-overview.md'
+  '真源/skill-entry-appendix.md'
+  '真源/中文数据源集成.md'
+  '真源/关键协议.md'
+  '真源/可发表性判定表.md'
+  '真源/字数判定表.md'
+  '真源/工具能力边界.md'
+  '真源/执行韧化协议-design.md'
+  '真源/执行韧化协议-exec.md'
+  '真源/期刊匹配算法.md'
+  '真源/期刊数据库.md'
+  '真源/模型候选池.md'
+  '真源/路径校验规范.md'
 )
-_SA_ACTUAL=$(find "$OUT_DIR/references/_shared" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null | LC_ALL=C sort)
+_SA_ACTUAL=$(find "$OUT_DIR/references/_shared" -mindepth 1 -maxdepth 2 -type f -printf '%P\n' 2>/dev/null | LC_ALL=C sort)
 _SA_EXPECT=$(printf '%s\n' "${SHARED_ADMITTED[@]}" | LC_ALL=C sort)
 if [[ "$(printf '%s\n' "${SHARED_ADMITTED[@]}" | LC_ALL=C sort)" != "$(printf '%s\n' "${SHARED_ADMITTED[@]}")" ]]; then
   echo "❌ SHARED_ADMITTED 未按 LC_ALL=C sort 排序（维护性自检）—— 请重排后再提交" >&2
@@ -421,7 +423,7 @@ fi
 
 # C-5（2026-09-19 审计）：正向完整性门原**只覆盖 `*.md`** —— 非 md 随包文本（`.yaml`/`.json`/
 #   `.txt`/`.toml`）净化后即使被整体删空也无人发现（负向扫描只报「违规命中数 ≠ 0」）。
-#   实测包内非 md 文本资产仅 1 个：`references/_shared/phase-order.yaml`（其余随包文件均为 .md
+#   实测包内非 md 文本资产仅 1 个：`references/_shared/真源/phase-order.yaml`（其余随包文件均为 .md
 #   或无扩展名的静态文件 LICENSE）。范围与 §扫描面 `SCAN_INCLUDES` 同口径，日后新增自动纳入。
 PKG_SNAPSHOT_NONMD="$(mktemp -t lunheng-pkgsnap-nonmd.XXXXXX)"
 python3 - "$OUT_DIR" "$PKG_SNAPSHOT_NONMD" <<'PYEOF'
@@ -486,7 +488,7 @@ PYEOF
   sed -i -E 's/M-Gate-渐进式验证-v2\.2\.15\.md/M-Gate-Algorithm.md/g' "$f"
 
   # 3f. 反哺报告处理「发布版简化」（彻底消除跨项目共享状态写入表述，回应 Finding 3）
-  #   v2.12.61：该正文已由 00-主控-扩展职责.md §二十 外移到 references/_shared/反哺报告处理.md
+  #   v2.12.61：该正文已由 00-主控-扩展职责.md §二十 外移到 references/_shared/治理/反哺报告处理.md
   #   （审计 P2-6 二次分层）——**规则目标必须随内容同步迁移**：旧版按「## 二十、…(?=## 二十一、)」
   #   在扩展职责卡内做段替换；内容外移后该模式永不匹配，会复现「规则静默空转」
   #   （v2.12.11 已有先例）。现改为**按文件整篇换正文（保留版本头 + 语言政策行）**，
@@ -525,10 +527,10 @@ s = open(path, encoding='utf-8').read()
 # v2.12.63：规则 3h-5 的行级反向断言基线（见本块末尾 7c）——只对「源侧本就有该行」的文件生效
 _src_had_layer1 = '入口必读（启动清单 1-2 步）' in s
 
-# 1. SKILL.md 启动清单第 2 步：设计文档 → glossary-full（v2.7.10 起 glossary.md 拆分到 _shared/glossary-full.md）
+# 1. SKILL.md 启动清单第 2 步：设计文档 → glossary-full（v2.7.10 起 glossary.md 拆分到 _shared/真源/glossary-full.md）
 s = s.replace(
     '读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）',
-    '读 `references/_shared/glossary-full.md`（核心概念单一真源：10 张角色卡 / 三层防御 / 数据信任 / 关键协议 / 工具边界）'
+    '读 `references/_shared/真源/glossary-full.md`（核心概念单一真源：10 张角色卡 / 三层防御 / 数据信任 / 关键协议 / 工具边界）'
 )
 
 # 2. SKILL.md 角色卡与模板段：删除「设计文档」行
@@ -757,9 +759,9 @@ PKG_EXCLUDED_DOC_PATHS=(
   'references/设计文档.md'
   'references/设计文档-架构.md'
   'references/设计文档-哲学.md'
-  'references/_shared/教训索引.md'
-  'references/_shared/论衡仓库内教训.md'
-  'references/_shared/lessons-max.snapshot'
+  'references/_shared/治理/教训索引.md'
+  'references/_shared/治理/论衡仓库内教训.md'
+  'references/_shared/治理/lessons-max.snapshot'
   'references/_shared/通用韧化块-v2.1.0.md'
   'references/_shared/版本升级自审门-*.md'
   'references/_shared/M-Gate-渐进式验证-*.md'
@@ -1096,7 +1098,7 @@ FINAL_PATTERNS=(
   '双视图'                       # v2.12.13：双视图发布架构内部叫法
   # ---- v2.12.63 新增：v2.12.42 引入的 `#R` 编号空间 + 维护者内档文件名 ----
   # 背景（2026-09-19 审计 C-1）：上列模式只认 `教训 #N` 字面，而 v2.12.42 新增的
-  #   `references/_shared/论衡仓库内教训.md` 用的是**另一套编号空间**（`#R001` 起，与 `#N` 解耦）
+  #   `references/_shared/治理/论衡仓库内教训.md` 用的是**另一套编号空间**（`#R001` 起，与 `#N` 解耦）
   #   ⇒ 该文件整篇维护者叙事（CI run id / commit hash / pytest 命令 / 「净化链」「release 链」）
   #   对全部残留模式**结构性地不可见**，随包出厂且从未报错。
   # 注：本组是**产物侧兜底**；源头拦截在 §2a 排除清单 + §2b' 白名单准入门（双保险）。
@@ -1346,8 +1348,8 @@ if [[ -n "$_VSTACK_BAD" ]]; then
   printf '%s\n' "$_VSTACK_BAD" | sed 's/^/         - /' >&2
   _POS_FAIL=$((_POS_FAIL + 1))
 fi
-if ! grep -qF '（发布版简化）' "$OUT_DIR/references/_shared/反哺报告处理.md" 2>/dev/null; then
-  echo "      ❌ 规则 3f 断言失败：references/_shared/反哺报告处理.md 未见「（发布版简化）」标题（整篇替换未发生）" >&2
+if ! grep -qF '（发布版简化）' "$OUT_DIR/references/_shared/治理/反哺报告处理.md" 2>/dev/null; then
+  echo "      ❌ 规则 3f 断言失败：references/_shared/治理/反哺报告处理.md 未见「（发布版简化）」标题（整篇替换未发生）" >&2
   _POS_FAIL=$((_POS_FAIL + 1))
 fi
 if [[ "$_POS_FAIL" -gt 0 ]]; then

@@ -18,9 +18,9 @@
 import pathlib
 
 ROOT = pathlib.Path(__file__).parent.parent
-PROTOCOL = ROOT / "references" / "_shared" / "关键协议.md"
+PROTOCOL = ROOT / "references" / "_shared" / "真源" / "关键协议.md"
 STATUS_TPL = ROOT / "references" / "templates" / "status-template.md"
-ARCHIVE = ROOT / "references" / "_shared" / "project-archive-sop.md"
+ARCHIVE = ROOT / "references" / "_shared" / "治理" / "project-archive-sop.md"
 DELIVERABLES = ROOT / "references" / "deliverables.md"
 
 

@@ -19,7 +19,7 @@ v2.12.62 改判据（审计 P2-7：教训编号「5 处联动副本」必然 off
   于是「同批改」从 5 处压到 2 处（快照值 + 排除表），且第 2 处副本由机器拒绝。
 
 官方审计整改（F1/F3，2026-09-13）后的口径（v2.12.62 起在下列基础上收敛）：
-  ① 反向差集判据改为 **仓库内快照** `references/_shared/lessons-max.snapshot`（hermetic）——
+  ① 反向差集判据改为 **仓库内快照** `references/_shared/治理/lessons-max.snapshot`（hermetic）——
     不再受仓库外 `memory/lessons.md` 的「已发布的绿可被墙外追加追溯性推翻」影响
   ② 外部真源仅作 **参照告警**（warn），不参与 exit code
   ③ 排除表 `LUNHENG_LESSON_EXCLUDE` 默认 `340 341 355 374 375 376 380 382 383 385 392 393 394 395 396 397 398 402 403 404 405 410 411 412 413 414 380 382 383 385 392 393 394 395 396 397 398 402 403 404 405 410 411 412 413 414`（宿主/工作区/通用类，索引设计上不入本索引）
@@ -41,8 +41,8 @@ import pytest
 
 ROOT = pathlib.Path(__file__).parent.parent
 GATE = ROOT / "scripts" / "self-audit-gate.sh"
-INDEX = ROOT / "references" / "_shared" / "教训索引.md"
-SNAPSHOT = ROOT / "references" / "_shared" / "lessons-max.snapshot"
+INDEX = ROOT / "references" / "_shared" / "治理" / "教训索引.md"
+SNAPSHOT = ROOT / "references" / "_shared" / "治理" / "lessons-max.snapshot"
 
 HOME = pathlib.Path.home()
 REAL_SRC = pathlib.Path(os.environ.get(

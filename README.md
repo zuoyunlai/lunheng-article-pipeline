@@ -1,4 +1,4 @@
-> 版本：v2.12.69（自动同步 2026-09-21）
+> 版本：v2.12.70（自动同步 2026-09-21）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -14,7 +14,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.12.69**（2026-09-21，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**写作质量守门（借 writing-guard，批次 1）**：G17 数据指纹比对 + T9 期刊约定校验 + 润色膨胀指数（已由修订净增上限覆盖）；G 门计数收口（G0-G16 → G0-G17，20 项）。详见 CHANGELOG §v2.12.69。
+**v2.12.70**（2026-09-21，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**治理瘦身（方案 A）**：`_shared/` 分层（真源/ + 治理/）+ 规则软上限（flow-check ≤50 / 自审门 ≤40）。详见 CHANGELOG §v2.12.70。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -28,7 +28,7 @@
 2. **主控自动派发**：T1∥T2∥T3 并行检索 → T4 分析 → T5 写作 → T6 批判 → T7 审计 → T9 审稿 → T8 主控亲终检
 3. **主人在 4 个节点介入**：Phase 0（定题）/ 2.5（大纲）/ 3.5（洞察）/ 5（终稿验收）——T6/G14 与 T9 均是内部动作，T9 只提供建议；T8 技术终检不能代替 Phase 5 主人验收
 
-**预计项目时间**：轻量档（**2000-3000 字**，真源 = `字数判定表.md`）30-60 分钟 / 中段档 1-2 小时 / 重量档（≥5000 字）2-4 小时。实测四维数据（字数/耗时/token/成本）唯一登记表 = [`references/_shared/performance-benchmarks.md`](references/_shared/performance-benchmarks.md)；重量档尚无实测，上述数字为估计值（禁线性外推，见该表 §三）。
+**预计项目时间**：轻量档（**2000-3000 字**，真源 = `字数判定表.md`）30-60 分钟 / 中段档 1-2 小时 / 重量档（≥5000 字）2-4 小时。实测四维数据（字数/耗时/token/成本）唯一登记表 = [`references/_shared/真源/performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md)；重量档尚无实测，上述数字为估计值（禁线性外推，见该表 §三）。
 
 ---
 
@@ -36,7 +36,7 @@
 
 **流水线默认会调用以下外部服务**（使用前需主人同意——Phase 0 同意关卡）。
 
-> ⚠️ **本表为导读**；**外发类别唯一真源 = [`references/_shared/external-services.md`](references/_shared/external-services.md) 逐类表**。下表若与真源不一致，以真源为准（一条款一真源）；**类别数只在真源声明，本导读不复述数字**（v2.12.64：原写「4 类」与真源实际类别数不符）。另：**「大模型推理全文」属「数据形态」轴**（非服务类别轴），单独一行列出。
+> ⚠️ **本表为导读**；**外发类别唯一真源 = [`references/_shared/真源/external-services.md`](references/_shared/真源/external-services.md) 逐类表**。下表若与真源不一致，以真源为准（一条款一真源）；**类别数只在真源声明，本导读不复述数字**（v2.12.64：原写「4 类」与真源实际类别数不符）。另：**「大模型推理全文」属「数据形态」轴**（非服务类别轴），单独一行列出。
 
 | 操作 | 第三方服务商 | 发送内容 |
 |------|------------|---------|
@@ -100,7 +100,7 @@
 - **主人投喂数据**（中信任）— 一手调研 / 访谈记录 / 田野调查
 - **二手转引**（低信任，严格限制）— 必须回溯一次文献 + 顶部标注
 
-> ⚠️ **两轴不混用**（v2.12.64 修复，回应审计 V-9；真源 [`_shared/glossary-full.md`](references/_shared/glossary-full.md) §三）：**信任级别 = 上述文字取值**（数据卡字段）；**emoji 🟢🟡🔴 专用于「时效评级」**（🟢当前 / 🟡1-3 年 / 🔴3 年以上）。
+> ⚠️ **两轴不混用**（v2.12.64 修复，回应审计 V-9；真源 [`_shared/真源/glossary-full.md`](references/_shared/真源/glossary-full.md) §三）：**信任级别 = 上述文字取值**（数据卡字段）；**emoji 🟢🟡🔴 专用于「时效评级」**（🟢当前 / 🟡1-3 年 / 🔴3 年以上）。
 
 ### 人在环四节点
 - **Phase 0 定题** · **Phase 2.5 大纲** · **Phase 3.5 洞察补充** · **Phase 5 终稿验收**
@@ -114,21 +114,21 @@
 | **F 模式**（失败模式）| 面向用户的叙事 | F1-F9 失败模式清单（幻觉/格式/数据信任/论证强度）|
 | **G 清单**（质量审计）| 面向审计员 | G0-G17 共 20 项（含 G0.5 / G2.5）|
 
-**常规修订 ≤2 轮硬约束**（例外通道须主人拍板）：例外通道触发 → Acknowledged Limitations 模式（未关闭 P0/P1 搬入 `final/局限性.md`，论文正常交付不假装完美）。**轮次映射与各通道判定 → 见 [`references/_shared/pipeline-overview.md`](references/_shared/pipeline-overview.md)『修订回环仲裁规则』（单一真源；本文件不复述轮次数字）**。
+**常规修订 ≤2 轮硬约束**（例外通道须主人拍板）：例外通道触发 → Acknowledged Limitations 模式（未关闭 P0/P1 搬入 `final/局限性.md`，论文正常交付不假装完美）。**轮次映射与各通道判定 → 见 [`references/_shared/真源/pipeline-overview.md`](references/_shared/真源/pipeline-overview.md)『修订回环仲裁规则』（单一真源；本文件不复述轮次数字）**。
 
-完整定义：详见 [`references/_shared/glossary-full.md`](references/_shared/glossary-full.md)。
+完整定义：详见 [`references/_shared/真源/glossary-full.md`](references/_shared/真源/glossary-full.md)。
 
 ---
 
 ## 全景与阶段顺序（指针）
 
-> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 ## 怎么用
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.70  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

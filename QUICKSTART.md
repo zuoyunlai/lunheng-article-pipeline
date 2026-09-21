@@ -1,8 +1,8 @@
-> 版本：v2.12.69（自动同步 2026-09-21）
+> 版本：v2.12.70（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
-> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 # 论衡快速开始指南
 
@@ -16,7 +16,7 @@
 论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.70  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -104,7 +104,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pi
 
 1. **Phase 0 两个「4 选 1」同意关卡**：
    - **1a. 定题确认 4 选 1**（Phase 0 启动前）：开工 / 补充信息 / 暂停 / 拒绝（**是否启动流水线**）
-   - **1b. 外部服务同意 4 选 1**（主控启动后）：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝（**外发数据范围**，详见 SKILL.md「⚠️ 执行前安全须知 + 外部服务声明（精简合并）」段）  <!-- 外发同意 4 选 1 真源 = references/_shared/关键协议.md（本节不重列选项全文） -->
+   - **1b. 外部服务同意 4 选 1**（主控启动后）：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝（**外发数据范围**，详见 SKILL.md「⚠️ 执行前安全须知 + 外部服务声明（精简合并）」段）  <!-- 外发同意 4 选 1 真源 = references/_shared/真源/关键协议.md（本节不重列选项全文） -->
 2. **Phase 1 检索派发**：自动 spawn **T1∥T2∥T3**三个独立检索员，三方真并行（Phase 1.5 定向回查：条件触发——任务简报标 [Dxx 待复核] / 🔴 二手转引未回溯 / 上一轮 T9 报告指出证据强度不足（仅续跑可达）；触发则 spawn T1b 回查，未触发须记录 `not_triggered`，不可静默跳过）
 3. **Phase 2 分析派发**：自动派 **T4** 分析员生成大纲
 4. **Phase 2.5 主人确认**：主人过目大纲
@@ -127,7 +127,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pi
 预计时间（典型项目）：
 - 轻量档（**2000-3000 字**）：约 30-60 分钟
 - 中段档（4000-8000 字）：约 1-2 小时
-- 重量档（8000+ 字）：约 2-4 小时（估计值；实测登记表 = `references/_shared/performance-benchmarks.md`）
+- 重量档（8000+ 字）：约 2-4 小时（估计值；实测登记表 = `references/_shared/真源/performance-benchmarks.md`）
 
 **注意**：实际时间包含 LLM 推理等待，可能因网络/模型负载波动
 
@@ -164,7 +164,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pi
 
 > **G14 中文 AI 痕迹闸**：**Phase 4.4 前置**（`g14_style_gate`），**全流程只审一次、不复检**；与 T6 **已解耦**（v2.12.40）；适用性 = 目标语言含中文即必跑（纯外语 `n/a`）。8 类判定（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语），0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → T5 最后一次风格层修订（`t5_style_revision`）。
 
-完整角色定义：详见 [`glossary-full.md § 一 核心角色`](references/_shared/glossary-full.md)
+完整角色定义：详见 [`glossary-full.md § 一 核心角色`](references/_shared/真源/glossary-full.md)
 
 ---
 
@@ -176,7 +176,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pi
 | **F 模式**（失败模式） | 面向用户的叙事 | 解释"为什么要这么做" |
 | **G 清单**（质量审计） | 面向审计员 | G0-G17 共 20 项检查（含 G0.5 / G2.5） |
 
-完整定义：详见 [`glossary-full.md § 二 三层防御体系`](references/_shared/glossary-full.md)
+完整定义：详见 [`glossary-full.md § 二 三层防御体系`](references/_shared/真源/glossary-full.md)
 
 ---
 
@@ -215,7 +215,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pi
 - 搬入 `final/局限性.md`
 - 论文正常交付（不假装完美）
 
-> ⚠️ **修订回环口径**（v2.12.54 主人裁定）：**常规修订 ≤2 轮硬约束**；耗尽仍有 P0 / 结构性 P1 → **Acknowledged Limitations**（未关闭项搬入 `final/局限性.md`，论文正常交付，须主人拍板）——无静默无限修订。**轮次映射与各通道判定 → 见 [`references/_shared/pipeline-overview.md`](references/_shared/pipeline-overview.md)『修订回环仲裁规则』（单一真源；本文件不复述轮次数字）**。
+> ⚠️ **修订回环口径**（v2.12.54 主人裁定）：**常规修订 ≤2 轮硬约束**；耗尽仍有 P0 / 结构性 P1 → **Acknowledged Limitations**（未关闭项搬入 `final/局限性.md`，论文正常交付，须主人拍板）——无静默无限修订。**轮次映射与各通道判定 → 见 [`references/_shared/真源/pipeline-overview.md`](references/_shared/真源/pipeline-overview.md)『修订回环仲裁规则』（单一真源；本文件不复述轮次数字）**。
 
 ---
 
@@ -224,11 +224,11 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pi
 | 用途 | 路径 |
 |------|------|
 | 完整使用手册 | `references/pipeline-readme.md` |
-| 核心概念 | `references/_shared/glossary-full.md`（精简核心版 `references/_shared/glossary-core.md`） |
+| 核心概念 | `references/_shared/真源/glossary-full.md`（精简核心版 `references/_shared/真源/glossary-core.md`） |
 | 角色卡 | `references/agents/` |
-| M 门算法（🟠 分片：伪代码段必读 / 附录按需）| `references/_shared/M-Gate-Algorithm.md` + `references/_shared/M-Gate-Algorithm-appendix.md` |
-| F 模式防御 | `references/_shared/failure-modes.md` |
-| G 审计清单 | `references/_shared/audit-checklist-quickref.md` |
+| M 门算法（🟠 分片：伪代码段必读 / 附录按需）| `references/_shared/真源/M-Gate-Algorithm.md` + `references/_shared/真源/M-Gate-Algorithm-appendix.md` |
+| F 模式防御 | `references/_shared/真源/failure-modes.md` |
+| G 审计清单 | `references/_shared/真源/audit-checklist-quickref.md` |
 | 任务简报模板 | `references/templates/任务简报-template.md` |
 | 实战案例库 | `references/case-studies.md` |
 
@@ -244,7 +244,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pi
 
 ### Q2：数据来源可以是二手转引吗？
 
-**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/glossary-full.md)。**🟢🟡🔴 是「信任级别」标识**，**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`references/_shared/audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md) 的 G11 条）：
+**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/真源/glossary-full.md)。**🟢🟡🔴 是「信任级别」标识**，**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`references/_shared/真源/audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md) 的 G11 条）：
 - 🟢 已发布公开数据（最高信任）
 - 🟡 主人投喂数据（中信任）
 - 🔴 二手转引（低信任，必须回溯一次文献 + 顶部标注）
@@ -270,10 +270,10 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.69  # 建议 pi
 
 ## 📞 获取帮助
 
-- **文档问题**：先读 `references/_shared/glossary-full.md`（核心概念单一真源；子代理精简版 `references/_shared/glossary-core.md`）
+- **文档问题**：先读 `references/_shared/真源/glossary-full.md`（核心概念单一真源；子代理精简版 `references/_shared/真源/glossary-core.md`）
 - **流程问题**：先读 `references/pipeline-readme.md`（运行手册）
 - **实战参考**：先读 `references/case-studies.md`（5 个完整实战案例）
-- **质量问题**：先读 `references/_shared/failure-modes.md`（F 模式防御）
+- **质量问题**：先读 `references/_shared/真源/failure-modes.md`（F 模式防御）
 
 ---
 

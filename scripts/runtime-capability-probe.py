@@ -3,7 +3,7 @@
 
 ⚠️ 开发者侧工具（developer-side ONLY）。
   本脚本读取宿主配置（`~/.openclaw/openclaw.json`）用于**工程验证**。
-  论衡流水线运行时**不读取宿主配置**（真源 = `references/_shared/external-services.md`
+  论衡流水线运行时**不读取宿主配置**（真源 = `references/_shared/真源/external-services.md`
   §「不读取宿主网关配置（精确口径）」）。**不要把本脚本接进 Makefile / 自审门 / CI**
   —— 它属于开发者侧验证手法，不是流水线步骤。
 

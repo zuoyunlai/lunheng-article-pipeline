@@ -31,10 +31,10 @@ SKILL = ROOT / "SKILL.md"
 README = ROOT / "README.md"
 QUICKSTART = ROOT / "QUICKSTART.md"
 PERMISSIONS = ROOT / "references" / "permissions.md"
-PROTOCOL = ROOT / "references" / "_shared" / "关键协议.md"
-EXT_SERVICES = ROOT / "references" / "_shared" / "external-services.md"
-DISPATCH_HEADER = ROOT / "references" / "_shared" / "dispatch-header.md"
-RESILIENCE = ROOT / "references" / "_shared" / "执行韧化协议-design.md"
+PROTOCOL = ROOT / "references" / "_shared" / "真源" / "关键协议.md"
+EXT_SERVICES = ROOT / "references" / "_shared" / "真源" / "external-services.md"
+DISPATCH_HEADER = ROOT / "references" / "_shared" / "真源" / "dispatch-header.md"
+RESILIENCE = ROOT / "references" / "_shared" / "真源" / "执行韧化协议-design.md"
 
 # 审计/扫描器先后点名的遗漏工具（必须进 denied；v2.12.39 从 39 扩至 40；v2.12.49 从 40 扩至 41，含 image_generate）
 AUDIT_NAMED = ["message", "gateway", "secrets", "code_execution", "sessions",
@@ -183,12 +183,12 @@ def test_taskname_constraint_complete():
     """taskName 约束须含 {0,63} 上限与 last/all 保留字。
 
     v2.12.62 起：该约束随「主控扩展职责 §二十三 二次分层」迁入唯一真源
-    `_shared/执行韧化协议-exec.md`（审计 P2-6；原三处承载收敛为一处）。
+    `_shared/真源/执行韧化协议-exec.md`（审计 P2-6；原三处承载收敛为一处）。
     本测试相应**加强**为「真源含完整约束 **且** 卡内留有指向真源的指针」——
     比只查一个文件的字面更强：约束既完整、又不得从主控阅读路径上消失。
     """
     ext = (ROOT / "references" / "agents" / "00-主控-扩展职责.md").read_text(encoding="utf-8")
-    src = (ROOT / "references" / "_shared" / "执行韧化协议-exec.md").read_text(encoding="utf-8")
+    src = (ROOT / "references" / "_shared" / "真源" / "执行韧化协议-exec.md").read_text(encoding="utf-8")
     assert "{0,63}" in src, "taskName 约束缺 {0,63} 长度上限（真源）"
     assert "保留字" in src and "last" in src and "all" in src, (
         "taskName 约束缺 last/all 保留字说明（真源）")

@@ -99,7 +99,7 @@ fi
 EXPECTED_VERSION=$(grep -m1 -E '^[[:space:]]*version:' SKILL.md | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
 VERSION_FILES=(
   "SKILL.md" "README.md" "QUICKSTART.md"
-  "references/_shared/glossary-full.md" "references/pipeline-readme.md"
+  "references/_shared/真源/glossary-full.md" "references/pipeline-readme.md"
   "references/deliverables.md" "references/case-studies.md"
   "references/operations.md" "references/errors.md"
   "references/agents/00-主控-coordinator.md"
@@ -113,18 +113,18 @@ VERSION_FILES=(
   "references/agents/07-审计-auditor.md"
   "references/agents/08-终检-final-inspector.md"
   "references/agents/09-审稿-peer-reviewer.md"
-  "references/_shared/M-Gate-Algorithm.md"
-  "references/_shared/M-Gate-Algorithm-appendix.md"
-  "references/_shared/audit-checklist-quickref.md"
-  "references/_shared/failure-modes.md"
-  "references/_shared/degraded-scenarios.md"
-  "references/_shared/字数判定表.md"
-  "references/_shared/期刊数据库.md"
-  "references/_shared/期刊匹配算法.md"
-  "references/_shared/中文数据源集成.md"
-  "references/_shared/format-export.md"
-  "references/_shared/执行韧化协议-exec.md"
-  "references/_shared/执行韧化协议-design.md"
+  "references/_shared/真源/M-Gate-Algorithm.md"
+  "references/_shared/真源/M-Gate-Algorithm-appendix.md"
+  "references/_shared/真源/audit-checklist-quickref.md"
+  "references/_shared/真源/failure-modes.md"
+  "references/_shared/真源/degraded-scenarios.md"
+  "references/_shared/真源/字数判定表.md"
+  "references/_shared/真源/期刊数据库.md"
+  "references/_shared/真源/期刊匹配算法.md"
+  "references/_shared/真源/中文数据源集成.md"
+  "references/_shared/真源/format-export.md"
+  "references/_shared/真源/执行韧化协议-exec.md"
+  "references/_shared/真源/执行韧化协议-design.md"
   "references/gates/14-中文AI痕迹-gate.md"
   "references/checkers/中文AI痕迹-checker.md"
   "references/templates/任务简报-template.md"
@@ -139,19 +139,19 @@ VERSION_FILES=(
   "references/templates/先行者清单-template.md"
   "references/templates/交接报告-template.md"
   "references/templates/图表-SVG-template.md"
-  "references/_shared/工具能力边界.md"
-  "references/_shared/关键协议.md"
-  "references/_shared/教训索引.md"
-  "references/_shared/模型候选池.md"
+  "references/_shared/真源/工具能力边界.md"
+  "references/_shared/真源/关键协议.md"
+  "references/_shared/治理/教训索引.md"
+  "references/_shared/真源/模型候选池.md"
   # v2.12.14 SKILL.md 瘦身外移文件（批次 4.6/4B）
-  "references/_shared/pipeline-overview.md"
-  "references/_shared/asset-index.md"
-  "references/_shared/external-services.md"
+  "references/_shared/真源/pipeline-overview.md"
+  "references/_shared/真源/asset-index.md"
+  "references/_shared/真源/external-services.md"
   # v2.12.59：补上审计发现的悬空指针目标文件（原被 2 处活文档引用却从未存在）
-  "references/_shared/host-verify-recipe.md"
-  "references/_shared/反哺报告处理.md"
+  "references/_shared/真源/host-verify-recipe.md"
+  "references/_shared/治理/反哺报告处理.md"
   # v2.12.67：性能基准表（审计 P1-2）——版本戳第三处载体登记（sync / check-version 已先行登记）
-  "references/_shared/performance-benchmarks.md"
+  "references/_shared/真源/performance-benchmarks.md"
 )
 VERSION_MISSING=""
 for f in "${VERSION_FILES[@]}"; do
@@ -208,7 +208,7 @@ if awk 'NR > 60' SKILL.md 2>/dev/null | grep -E 'deepseek-v4-flash.*glm-4-flash.
   HARDCODED_MODELS="[SKILL.md]"
 fi
 # 检查 references/agents/ + _shared/ 候选池表格行
-for f in references/agents/*.md references/_shared/*.md; do
+for f in references/agents/*.md references/_shared/真源/*.md references/_shared/治理/*.md; do
   HITS=$(awk 'NR > 60' "$f" 2>/dev/null | grep -E 'deepseek-v4-flash.*glm-4-flash.*qwen3-coder|minimax-M3.*deepseek-v4-pro.*claude-opus-5' | grep -v "v2.5.6 修订前" | grep -v "changelog" | grep -v "v2.3.13" | head -1)
   if [ -n "$HITS" ]; then
     HARDCODED_MODELS="$HARDCODED_MODELS [$f]"
@@ -225,7 +225,7 @@ fi
 # =============================================================================
 # M-Gate-Algorithm.md 头部必明示「LLM 推理判定，非机器强制」
 M_GATE_MISSING=""
-if ! grep -qE 'M 门.*LLM 推理|LLM 推理判定.*M 门' references/_shared/M-Gate-Algorithm.md 2>/dev/null; then
+if ! grep -qE 'M 门.*LLM 推理|LLM 推理判定.*M 门' references/_shared/真源/M-Gate-Algorithm.md 2>/dev/null; then
   M_GATE_MISSING="[M-Gate-Algorithm.md 缺诚实声明]"
 fi
 if [ -z "$M_GATE_MISSING" ]; then
@@ -253,10 +253,10 @@ LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341 355 374 375 376 380 38
 # v2.12.62（审计 P2-7）：**编号只在快照写一次**。索引三处旧副本已于本版改为派生指针；
 #   本门改为「索引**不得**出现硬编码最大编号」——把「5 处联动必然 off-by-one」的漂移面
 #   从「人工记得改 5 处」压成「机器拒绝第 2 处副本」。LUNHENG_LESSON_INDEX 供测试注入副本。
-LESSON_INDEX_FILE="${LUNHENG_LESSON_INDEX:-references/_shared/教训索引.md}"
+LESSON_INDEX_FILE="${LUNHENG_LESSON_INDEX:-references/_shared/治理/教训索引.md}"
 IDX_HARDCODED_COUNT=$(grep -cE '最大编号 \*\*#[0-9]+\*\*' "$LESSON_INDEX_FILE" 2>/dev/null | tr -d '[:space:]')
 IDX_HARDCODED_COUNT=${IDX_HARDCODED_COUNT:-0}
-SNAPSHOT_FILE="${LESSONS_SNAPSHOT:-references/_shared/lessons-max.snapshot}"
+SNAPSHOT_FILE="${LESSONS_SNAPSHOT:-references/_shared/治理/lessons-max.snapshot}"
 SNAP_MAX=$(grep -oE '[0-9]+' "$SNAPSHOT_FILE" 2>/dev/null | head -1)
 SRC_MAX=""
 
@@ -433,7 +433,7 @@ fi
 VERIFY_SCOPE_FAIL=""
 # 核验范围文件清单：M 门 + T6/T7 dispatch
 VERIFY_SCOPE_FILES=(
-  "references/_shared/M-Gate-Algorithm.md:M-Gate算法"
+  "references/_shared/真源/M-Gate-Algorithm.md:M-Gate算法"
   "references/dispatch/T6-批判.md:T6"
   "references/dispatch/T7-审计.md:T7"
 )
@@ -472,7 +472,7 @@ GLOBAL_LESSON_REFS=$(grep -rhoE '教训 #[0-9]+' \
     --include="*.md" --include="*.sh" \
     --exclude="*.bak*" \
     references/agents/ references/_shared/ references/gates/ \
-    references/_shared/glossary-full.md references/_shared/glossary-core.md references/pipeline-readme.md references/operations.md \
+    references/_shared/真源/glossary-full.md references/_shared/真源/glossary-core.md references/pipeline-readme.md references/operations.md \
     references/design*.md references/设计文档*.md \
     SKILL.md README.md QUICKSTART.md 2>/dev/null \
   | grep -oE '[0-9]+' | sort -un | tr '\n' ' ')
@@ -519,7 +519,7 @@ fi
 # -----------------------------------------------------------------------------
 # 背景（v2.5.22 主人核查发现）：
 #   M 门是论衡三大防线之首，13 项规则（M-Form×8 / M-Exist×3 / M-Integrity×2）
-#   描述在 references/_shared/M-Gate-Algorithm.md。但门 F 只检查"LLM 推理诚实
+#   描述在 references/_shared/真源/M-Gate-Algorithm.md。但门 F 只检查"LLM 推理诚实
 #   声明"，不检查算法自身一致性也不检查应用文档是否同步。教训 #187 同型。
 #
 #   更严重：M-Gate-Report JSON 产出 = LLM 主动 write，零触发器保证——实战中
@@ -536,18 +536,18 @@ fi
 GATE_L_FAIL=""
 
 # --- L.1：算法文档实际定义的 M-Form/M-Exist/M-Integrity 项数 ---
-M_FORM_DEFINED=$(grep -cE '^### M-Form-[0-9]+:' references/_shared/M-Gate-Algorithm.md 2>/dev/null)
-M_EXIST_DEFINED=$(grep -cE '^### M-Exist-[0-9]+:' references/_shared/M-Gate-Algorithm.md 2>/dev/null)
-M_INTEGRITY_DEFINED=$(grep -cE '^### M-Integrity-[0-9]+:' references/_shared/M-Gate-Algorithm.md 2>/dev/null)
+M_FORM_DEFINED=$(grep -cE '^### M-Form-[0-9]+:' references/_shared/真源/M-Gate-Algorithm.md 2>/dev/null)
+M_EXIST_DEFINED=$(grep -cE '^### M-Exist-[0-9]+:' references/_shared/真源/M-Gate-Algorithm.md 2>/dev/null)
+M_INTEGRITY_DEFINED=$(grep -cE '^### M-Integrity-[0-9]+:' references/_shared/真源/M-Gate-Algorithm.md 2>/dev/null)
 
 # --- L.2：跨文档项数描述一致性（deliverables.md / 主控扩责 / status-template）---
 # 期望表述：「M-Form N 项」「M-Exist N 项」中 N 与算法文档匹配。
 # 仅检测明确「总项数 = N」的表述（如「M-Form 共 6 项」「（6 项）」），不含
 # 「v2.2.0 5 项 + 新增 = 8」这类合法的「原版 N 项 + 新增」拆分表述。
-# v2.12.13（方案 1.5）：补 `references/_shared/audit-checklist-quickref.md`——该文件是**最高风险单点**
+# v2.12.13（方案 1.5）：补 `references/_shared/真源/audit-checklist-quickref.md`——该文件是**最高风险单点**
 #   （G8 双重编号 + M-Form 项数 6 vs 8），却不在门 L 描述一致性扫描面内；
 #   且下方 `[ -f ] || continue` 会对缺失文件**静默跳过**（门 R 已加存在性反向校验）。
-for doc in references/deliverables.md references/agents/00-主控-扩展职责.md references/templates/status-template.md references/_shared/audit-checklist-quickref.md; do
+for doc in references/deliverables.md references/agents/00-主控-扩展职责.md references/templates/status-template.md references/_shared/真源/audit-checklist-quickref.md; do
   [ -f "$SKILL_ROOT/$doc" ] || continue
   doc_name=$(basename "$doc")
   for wrong_count in 5 6 7; do
@@ -569,7 +569,7 @@ for doc in references/deliverables.md references/agents/00-主控-扩展职责.m
 done
 
 # --- L.3：附录 schema 文件存在（JSON 输出格式定义） ---
-if [ ! -f "references/_shared/M-Gate-Algorithm-appendix.md" ]; then
+if [ ! -f "references/_shared/真源/M-Gate-Algorithm-appendix.md" ]; then
   GATE_L_FAIL="$GATE_L_FAIL [缺 M-Gate-Algorithm-appendix.md（JSON schema 必要）]"
 fi
 
@@ -830,7 +830,7 @@ if [ -d "$PURIFY_DIR" ]; then
     GATE_G_FAIL="$GATE_G_FAIL [包内含开发者脚本]"
   fi
   # informational：关键文件 md5 差异（净化链替换导致，属预期，不计 PASS/FAIL）
-  KEY_FILES=("SKILL.md" "QUICKSTART.md" "references/_shared/glossary-full.md")
+  KEY_FILES=("SKILL.md" "QUICKSTART.md" "references/_shared/真源/glossary-full.md")
   MD5_MISMATCH=""
   for kf in "${KEY_FILES[@]}"; do
     [ ! -f "$kf" ] && continue
@@ -862,7 +862,7 @@ GATE_Q_FAIL=""
 Q_FILES=()
 while IFS= read -r -d '' f; do
   case "${f#"$SKILL_ROOT"/}" in
-    references/_shared/教训索引.md|references/设计文档*.md|references/design/*|references/_shared/archive/*) continue ;;
+    references/_shared/治理/教训索引.md|references/设计文档*.md|references/design/*|references/_shared/archive/*) continue ;;
     reports/*|memory/*) continue ;;   # v2.12.57：主人 2026-09-19 裁定「工程过程产物不进版本库」（.gitignore 已拦）⇒ 同 build 可见面，不纳入本门扫描
   esac
   Q_FILES+=("$f")
@@ -918,7 +918,7 @@ GATE_L_DOCS=(
   references/deliverables.md
   references/agents/00-主控-扩展职责.md
   references/templates/status-template.md
-  references/_shared/audit-checklist-quickref.md
+  references/_shared/真源/audit-checklist-quickref.md
 )
 for d in "${GATE_L_DOCS[@]}"; do
   [ -f "$SKILL_ROOT/$d" ] || GATE_R_FAIL="$GATE_R_FAIL [门 L 扫描文档缺失：$d（原逻辑会静默跳过）]"
@@ -966,10 +966,10 @@ fi
 #   background：2026-09-12 实测发现 phase4_4_figures 无上游指向（配图被跳），
 #   且 6 个执行类节点缺 input 声明 → 衔接无机械校验。本门防复发。
 # =============================================================================
-if command -v python3 >/dev/null 2>&1 && [ -f references/_shared/phase-order.yaml ]; then
+if command -v python3 >/dev/null 2>&1 && [ -f references/_shared/真源/phase-order.yaml ]; then
   FLOW_ERR="$(python3 scripts/flow-check.py 2>&1)"
   if [ -z "$FLOW_ERR" ]; then
-    NODES=$(grep -c '^  - id:' references/_shared/phase-order.yaml)
+    NODES=$(grep -c '^  - id:' references/_shared/真源/phase-order.yaml)
     pass "门 S: 流程图可达性与入参链（$NODES 节点全可达 + 无缺 next/input）"
   else
     fail "门 S: 流程图断链/孤立节点" "$FLOW_ERR"
@@ -1019,7 +1019,7 @@ fi
 #   注：脚本自身忽略代码围栏/行内代码中的链接（示例文本非真链接）。
 #   v2.12.59 扩面（回应 2026-09-19 全面审计 P1-1/P1-2）：原判据面 = ① markdown 链接
 #   + ② SKILL.md 裸文件名，合起来**仍不覆盖**活文档的**反引号内联路径引用**——实测
-#   `_shared/host-verify-recipe.md` 被 2 处活文档（均在净化包可见面）引用却从未存在过，
+#   `_shared/真源/host-verify-recipe.md` 被 2 处活文档（均在净化包可见面）引用却从未存在过，
 #   而本门报「全部可解析」。⇒ 判据面改为**缺陷类的宿主集**（教训 #427）：三类并列，
 #   第三类扫 references/**（含 templates/）的反引号内联引用，解析顺序 = 同级→仓根→同名。
 #   反向注入单测见 tests/test_link_check.py（注入悬空 token 必须报错 + 真源零写入护栏）。
@@ -1065,7 +1065,12 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|73538,references/_shared/M-Gate-Algorithm.md|84250,references/_shared/phase-order.yaml|55272"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|74028,references/_shared/真源/M-Gate-Algorithm.md|84274,references/_shared/真源/phase-order.yaml|55328"
+# ⚠️ v2.12.70 扩容备案（A-治理瘦身分层 · 审计 P2-6 要求的「扩容说明」）：三个大文件微增，
+#   原因 = `_shared/` 分层为 真源/ + 治理/ 后，大文件内引用的 `_shared/xxx.md` 前缀统一变为
+#   `_shared/真源/xxx.md` / `_shared/治理/xxx.md`（每次引用 +3 字节），属**路径前缀机械变长**，
+#   非内容膨胀：00-主控 73538→74028（+490）/ M-Gate 84250→84274（+24）/ phase-order 55272→55328（+56）。
+#   分层完成后若后续做归档外移/内容瘦身，按实下调本节所有上限（只许降）。
 # ⚠️ v2.12.65 扩容备案（审计 P2-6 要求的「扩容说明」）：phase-order.yaml 54651 → 55272（+621 B），
 #   原因 = 新增顶层 `silence_doctrine` 单一真源（跨状态机「静默 ≠ 有效决策」不变式 + 挂起类处置枚举），
 #   配套 flow-check 规则 40 双向投影校验。该段是**真源内容**（非注释膨胀），同时已把头部 ⑬ 的 S-3
@@ -1132,7 +1137,7 @@ fi
 
 # =============================================================================
 # 门 X：Markdown 围栏相位 + 声明式锚点 + 伪 H1（v2.12.58 新增，教训 #424/#426）
-#   历史教训：references/_shared/M-Gate-Algorithm.md 曾有 2 个 M 门标题
+#   历史教训：references/_shared/真源/M-Gate-Algorithm.md 曾有 2 个 M 门标题
 #   (M-Exist-3 / M-Integrity-1) 被裹进代码围栏，7 行伪代码注释落到块外被
 #   渲染为文档 H1；根因是围栏配对错位。
 #   判据扩围（教训 #427）：原 X.1/X.2 只锚 M-Gate 单文件 ⇒ 同类缺陷在其余文档
@@ -1144,7 +1149,7 @@ fi
 #     X.3  全仓：围栏外「紧跟围栏且首字符为 #」的伪 H1 = 0
 #     X.4  全仓 .md 围栏总数均为偶数（未闭合围栏 = 尾部整块被吞）
 # =============================================================================
-MGATE=references/_shared/M-Gate-Algorithm.md
+MGATE=references/_shared/真源/M-Gate-Algorithm.md
 if [ -f "$MGATE" ]; then
   # X.1：围栏总数偶数
   FENCE_COUNT=$(grep -cE '^[[:space:]]*(`{3,}|~{3,})' "$MGATE" 2>/dev/null || echo 0)
@@ -1167,7 +1172,7 @@ fi
 #   （v2.12.58 实测：截断后正则失效 ⇒ 本门变空转绿灯；变异单测把它抓了出来）。
 #   配套「正向样本」自检：每个锚点正则必须至少命中 1 行，否则判失效（同族教训 #334/#421）。
 ANCHOR_TABLE=(
-  "references/_shared/M-Gate-Algorithm.md@@^#{2,4}[[:space:]]+M-(Form|Exist|Integrity)-[0-9]+:@@13 个 M 门标题（8 Form + 3 Exist + 2 Integrity）"
+  "references/_shared/真源/M-Gate-Algorithm.md@@^#{2,4}[[:space:]]+M-(Form|Exist|Integrity)-[0-9]+:@@13 个 M 门标题（8 Form + 3 Exist + 2 Integrity）"
   "references/pipeline-readme.md@@^##[[:space:]]+(全景与阶段顺序|status\.md 状态机|模板加载策略|设计文档加载策略)@@4 个章节锚点"
 )
 ANCHOR_INSIDE=""
@@ -1251,6 +1256,17 @@ fi
 # 总结（v2.12.30 修：计分必须在**全部门执行之后** —— 原位置在门 S/门 T 之前，
 #   导致这两门的失败不进入 TOTAL_FAIL，脚本仍以 exit 0 收尾 = 假绿灯）
 # =============================================================================
+# 门 Z：自审门项数软上限（v2.12.70 方案 A 第③步「规则软上限」）
+#   语义：软门（warn 级，不计 exit code）；项数只许降 —— 加门前先合并/退役旧门，
+#   治「规则的规则」内卷。检查的是门 A-X 的项数（不含门 Z 自身）。
+GATE_COUNT_CEIL=40
+_GATE_AX_COUNT=${#PASSED[@]}
+if [ "$_GATE_AX_COUNT" -le "$GATE_COUNT_CEIL" ]; then
+  pass "门 Z: 自审门项数 ${_GATE_AX_COUNT} ≤ ${GATE_COUNT_CEIL}（软上限，只许降）"
+else
+  warn "门 Z: 自审门项数 ${_GATE_AX_COUNT} > 软上限 ${GATE_COUNT_CEIL} —— 加门前先合并/退役旧门，不要放宽本上限"
+fi
+
 TOTAL_PASS=${#PASSED[@]}
 TOTAL_FAIL=${#FAILED[@]}
 

@@ -141,7 +141,7 @@ def test_bare_ref_check_excludes_link_text_and_exemptions(tmp_path):
     """链接文本（含带后缀词写法）/ 占位符 / docs 前缀 / 运行时清单项均不报"""
     entry = tmp_path / "SKILL.md"
     entry.write_text(
-        "[`external-services.md` 逐类表](references/_shared/external-services.md) "
+        "[`external-services.md` 逐类表](references/_shared/真源/external-services.md) "
         "`docs/tools/subagents.md` `.tmp/<角色>-heartbeat.md` `status.md` `01-任务简报.md`\n",
         encoding="utf-8")
     bad, checked = _load_link_check().check_bare_entry_refs(str(entry))

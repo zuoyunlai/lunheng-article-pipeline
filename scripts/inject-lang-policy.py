@@ -41,7 +41,7 @@ EXCLUDE_REL = {
     "references/设计文档.md",
     "references/设计文档-架构.md",
     "references/设计文档-哲学.md",
-    "references/_shared/教训索引.md",
+    "references/_shared/治理/教训索引.md",
     "references/templates/README-模板拆分方案.md",
 }
 

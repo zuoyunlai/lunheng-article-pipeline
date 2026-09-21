@@ -35,7 +35,7 @@ DEFAULT_RETENTION = 0.35  # 字符保留率下限（净化会刻意删内容，�
 #   ⚠️ 只降下限、**不取消检查**：仍受 MIN_CHARS + 标题 + frontmatter 三重约束 ⇒
 #   被覆盖的文件也不可能「消失或塌陷而不被发现」。
 RETENTION_FLOOR_OVERRIDE = {
-    "references/_shared/反哺报告处理.md":
+    "references/_shared/治理/反哺报告处理.md":
         "构建期规则 3f 有意整篇换为发布版正文（剥离教训编号双轨体系 / 跨项目同步表述）",
 }
 RETENTION_FLOOR_OVERRIDE_VALUE = 0.15
@@ -45,13 +45,13 @@ REQUIRED_ANCHORS = [
     ("SKILL.md", "name: lunheng-article-pipeline"),
     ("SKILL.md", "metadata:"),
     ("QUICKSTART.md", "lunheng-article-pipeline"),
-    ("references/_shared/phase-order.yaml", "pipeline:"),
-    ("references/_shared/字数判定表.md", "2000-3000"),
+    ("references/_shared/真源/phase-order.yaml", "pipeline:"),
+    ("references/_shared/真源/字数判定表.md", "2000-3000"),
     ("references/gates/14-中文AI痕迹-gate.md", "G14"),
     ("references/agents/05-写作-writer.md", "T5"),
     ("references/agents/00-主控-coordinator.md", "T0"),
     ("references/templates/任务简报-template.md", "任务简报"),
-    ("references/_shared/M-Gate-Algorithm.md", "M 门"),
+    ("references/_shared/真源/M-Gate-Algorithm.md", "M 门"),
 ]
 
 HEADING_RE = re.compile(r'^#{1,6}\s+\S', re.MULTILINE)

@@ -92,6 +92,11 @@ COVERED_MIN = 33
 #   抽取面静默缩水时，这里先红，避免完整性对账给出「陈旧登记」的误导性报错）
 EXTRACTION_FLOOR = 40
 
+# 规则总数软上限（v2.12.70 方案 A 第③步「规则软上限」）：只许降。
+#   治「规则的规则」内卷——加规则前先合并/退役旧规则，而不是让规则集无限膨胀。
+#   方案原文建议「规则 ≤50」；当前 46 条（33 covered + 13 debt），上限留 4 条余量。
+RULE_COUNT_MAX = 50
+
 
 def _rule_labels():
     """从 flow-check.py 真源抽取规则号：docstring 行首（1-2 空格 + 数字）+ 内联注释（# N / # Nb）。"""
@@ -115,6 +120,14 @@ def _all_test_function_names():
         for m in re.finditer(r"^def (test_\w+)\(", p.read_text(encoding="utf-8"), re.M):
             names.add(m.group(1))
     return names
+
+
+def test_rule_count_soft_ceiling():
+    """规则总数软上限：≤ RULE_COUNT_MAX（只许降）。加规则前先合并/退役旧规则（方案 A 第③步）。"""
+    labels = _rule_labels()
+    assert len(labels) <= RULE_COUNT_MAX, (
+        f"flow-check 规则数 {len(labels)} > 软上限 {RULE_COUNT_MAX} —— "
+        f"加规则前先合并/退役旧规则（治「规则的规则」内卷），不要放宽本上限")
 
 
 def test_rule_extraction_sanity_floor():

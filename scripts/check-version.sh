@@ -47,8 +47,8 @@ echo ""
 # 路径规则：内容文件相对 CONTENT_DIR；入口文件（README/QUICKSTART）用 @ 前缀，相对 ENTRY_DIR
 CHECKS=(
   # 核心文档
-  "_shared/glossary-full.md|v$EXPECTED|1"
-  "_shared/glossary-core.md|v$EXPECTED|1"
+  "_shared/真源/glossary-full.md|v$EXPECTED|1"
+  "_shared/真源/glossary-core.md|v$EXPECTED|1"
   "pipeline-readme.md|v$EXPECTED|1"
   "设计文档.md|v$EXPECTED|1"
   "设计文档-架构.md|v$EXPECTED|1"
@@ -59,9 +59,9 @@ CHECKS=(
   "errors.md|v$EXPECTED|1"
 
   # 共享协议
-  "_shared/M-Gate-Algorithm.md|v$EXPECTED|1"
-  "_shared/M-Gate-Algorithm-appendix.md|v$EXPECTED|1"
-  "_shared/audit-checklist-quickref.md|v$EXPECTED|1"
+  "_shared/真源/M-Gate-Algorithm.md|v$EXPECTED|1"
+  "_shared/真源/M-Gate-Algorithm-appendix.md|v$EXPECTED|1"
+  "_shared/真源/audit-checklist-quickref.md|v$EXPECTED|1"
 
   # 10 个角色卡（顶部必须含版本号）
   "agents/00-主控-coordinator.md|v$EXPECTED|1"
@@ -95,31 +95,31 @@ CHECKS=(
   "checkers/中文AI痕迹-checker.md|v$EXPECTED|1"
 
   # 扩展 _shared 协议（实战反馈 + v2.5.0/v2.5.1 新增）
-  "_shared/执行韧化协议-exec.md|v$EXPECTED|1"
-  "_shared/执行韧化协议-design.md|v$EXPECTED|1"
-  "_shared/failure-modes.md|v$EXPECTED|1"
-  "_shared/字数判定表.md|v$EXPECTED|1"
-  "_shared/degraded-scenarios.md|v$EXPECTED|1"
-  "_shared/期刊数据库.md|v$EXPECTED|1"
-  "_shared/期刊匹配算法.md|v$EXPECTED|1"
-  "_shared/中文数据源集成.md|v$EXPECTED|1"
-  "_shared/format-export.md|v$EXPECTED|1"
-  "_shared/工具能力边界.md|v$EXPECTED|1"
-  "_shared/关键协议.md|v$EXPECTED|1"
-  "_shared/教训索引.md|v$EXPECTED|1"
-  "_shared/模型候选池.md|v$EXPECTED|1"
-  "_shared/可发表性判定表.md|v$EXPECTED|1"
+  "_shared/真源/执行韧化协议-exec.md|v$EXPECTED|1"
+  "_shared/真源/执行韧化协议-design.md|v$EXPECTED|1"
+  "_shared/真源/failure-modes.md|v$EXPECTED|1"
+  "_shared/真源/字数判定表.md|v$EXPECTED|1"
+  "_shared/真源/degraded-scenarios.md|v$EXPECTED|1"
+  "_shared/真源/期刊数据库.md|v$EXPECTED|1"
+  "_shared/真源/期刊匹配算法.md|v$EXPECTED|1"
+  "_shared/真源/中文数据源集成.md|v$EXPECTED|1"
+  "_shared/真源/format-export.md|v$EXPECTED|1"
+  "_shared/真源/工具能力边界.md|v$EXPECTED|1"
+  "_shared/真源/关键协议.md|v$EXPECTED|1"
+  "_shared/治理/教训索引.md|v$EXPECTED|1"
+  "_shared/真源/模型候选池.md|v$EXPECTED|1"
+  "_shared/真源/可发表性判定表.md|v$EXPECTED|1"
   # v2.12.1 版本一致性盲区修复：project-archive-sop（v2.7.16 引入，版本戳格式已归一化）+ 路径校验规范（v2.9.1 引入，此前无版本戳）补入清单
-  "_shared/project-archive-sop.md|v$EXPECTED|1"
-  "_shared/路径校验规范.md|v$EXPECTED|1"
+  "_shared/治理/project-archive-sop.md|v$EXPECTED|1"
+  "_shared/真源/路径校验规范.md|v$EXPECTED|1"
   # v2.12.14 SKILL.md 瘦身外移文件（批次 4.6/4B）
-  "_shared/pipeline-overview.md|v$EXPECTED|1"
-  "_shared/asset-index.md|v$EXPECTED|1"
-  "_shared/external-services.md|v$EXPECTED|1"
+  "_shared/真源/pipeline-overview.md|v$EXPECTED|1"
+  "_shared/真源/asset-index.md|v$EXPECTED|1"
+  "_shared/真源/external-services.md|v$EXPECTED|1"
   # v2.12.59：补上审计发现的悬空指针目标文件（原被 2 处活文档引用却从未存在）
-  "_shared/host-verify-recipe.md|v$EXPECTED|1"
-  "_shared/performance-benchmarks.md|v$EXPECTED|1"
-  "_shared/反哺报告处理.md|v$EXPECTED|1"
+  "_shared/真源/host-verify-recipe.md|v$EXPECTED|1"
+  "_shared/真源/performance-benchmarks.md|v$EXPECTED|1"
+  "_shared/治理/反哺报告处理.md|v$EXPECTED|1"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 新增）
   "templates/任务简报-template.md|v$EXPECTED|1"
@@ -138,11 +138,11 @@ CHECKS=(
   # v2.10.0 SKILL.md 外置文件（v2.10.0 P1-3 拆分新增，教训 #198 补入防漏改）
   "model-assignment.md|v$EXPECTED|1"
   "permissions.md|v$EXPECTED|1"
-  "_shared/phase-1-details.md|v$EXPECTED|1"
-  "_shared/phase-2-details.md|v$EXPECTED|1"
-  "_shared/phase-3-details.md|v$EXPECTED|1"
-  "_shared/dispatch-header.md|v$EXPECTED|1"
-  "_shared/skill-entry-appendix.md|v$EXPECTED|1"
+  "_shared/真源/phase-1-details.md|v$EXPECTED|1"
+  "_shared/真源/phase-2-details.md|v$EXPECTED|1"
+  "_shared/真源/phase-3-details.md|v$EXPECTED|1"
+  "_shared/真源/dispatch-header.md|v$EXPECTED|1"
+  "_shared/真源/skill-entry-appendix.md|v$EXPECTED|1"
   "templates/README-模板拆分方案.md|v$EXPECTED|1"
   "templates/checkpoint-card-template.md|v$EXPECTED|1"
   "templates/status-template-lite.md|v$EXPECTED|1"
@@ -271,8 +271,8 @@ echo ""
 # 箭头映射（→ T3）、「原 T」「应改」「重构标注」等沿革标注形态一律视为合法。
 # 旧命名 → 新命名：T6 案例检索→T3 / T8 批判→T6 / T5 审计→T7 / T7 终检→T8 / T3 分析→T4 / T4 写手→T5
 ROLE_FILES=(
-  "references/_shared/glossary-full.md"
-  "references/_shared/glossary-core.md"
+  "references/_shared/真源/glossary-full.md"
+  "references/_shared/真源/glossary-core.md"
   "references/pipeline-readme.md"
   "README.md"
   "SKILL.md"

@@ -247,7 +247,7 @@ def test_build_fails_on_nonmd_asset_collapse(tmp_path):
     anchor = "# ---- 3. 文档净化（sed 替换"
     assert anchor in src, "注入锚点缺失（构建脚本结构变了，请同步本用例）"
     inject = (
-        '_C5T="$OUT_DIR/references/_shared/phase-order.yaml"\n'
+        '_C5T="$OUT_DIR/references/_shared/真源/phase-order.yaml"\n'
         '[[ -f "$_C5T" ]] && printf "pipeline: ok\\n" > "$_C5T"\n\n'
     )
     script.write_text(src.replace(anchor, inject + anchor, 1), encoding="utf-8")

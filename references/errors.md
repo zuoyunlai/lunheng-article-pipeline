@@ -1,4 +1,4 @@
-> 版本：v2.12.69（自动同步 2026-09-21）
+> 版本：v2.12.70（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -63,7 +63,7 @@ M-Form-3 failed: temp_id pattern detected in output
 |---|---|
 | **触发** | M-Form-6 检测数据卡缺少信任级别标注 |
 | **原报错** | `M-Form-6 failed: trust_level field missing in D05` |
-| **友好版** | `❌ 数据卡 D05 缺少信任级别<br>【发生了什么】D05 没有标注「🟢/🟡/🔴」数据来源<br>【为什么】所有数据必须标信任级别（防 F8.4）<br>【怎么解决】1) 确认 D05 是「已发布/主人投喂/二手转引」哪类  2) 在 D05 头部加 🟢/🟡/🔴 标注  3) 详见 _shared/glossary-full.md § 三 数据信任级别` |
+| **友好版** | `❌ 数据卡 D05 缺少信任级别<br>【发生了什么】D05 没有标注「🟢/🟡/🔴」数据来源<br>【为什么】所有数据必须标信任级别（防 F8.4）<br>【怎么解决】1) 确认 D05 是「已发布/主人投喂/二手转引」哪类  2) 在 D05 头部加 🟢/🟡/🔴 标注  3) 详见 _shared/真源/glossary-full.md § 三 数据信任级别` |
 
 #### E04：M-Integrity-1 时序矛盾
 
@@ -145,7 +145,7 @@ M-Form-3 failed: temp_id pattern detected in output
 
 | 项 | 内容 |
 |---|---|
-| **触发** | 修订回环耗尽（例外通道）后仍有未关闭 P0/P1（轮次映射与各通道判定 → 见 [`_shared/pipeline-overview.md`](_shared/pipeline-overview.md)『修订回环仲裁规则』） |
+| **触发** | 修订回环耗尽（例外通道）后仍有未关闭 P0/P1（轮次映射与各通道判定 → 见 [`_shared/真源/pipeline-overview.md`](_shared/真源/pipeline-overview.md)『修订回环仲裁规则』） |
 | **原报错** | `Revision loop exceeded (3+ rounds), triggering Acknowledged Limitations mode` |
 | **友好版** | `📋 Acknowledged Limitations 模式触发<br>【发生了什么】修订回环耗尽仍有 P0/P1 未关闭<br>【为什么】硬约束（教训 #270）—— 防止无限循环<br>【怎么解决】1) 主控 T8 把未关闭项搬入 final/局限性.md  2) 文末列「未关闭 P0/P1」清单  3) 论文正常交付（不假装完美）` |
 
@@ -203,11 +203,11 @@ M-Form-3 failed: temp_id pattern detected in output
 
 ---
 
-## 四、与 _shared/glossary-full.md / failure-modes.md 的关系
+## 四、与 _shared/真源/glossary-full.md / failure-modes.md 的关系
 
 | 文档 | 职责 |
 |------|------|
-| `_shared/glossary-full.md § 五 工具能力边界` | 工具能做/不能做 |
+| `_shared/真源/glossary-full.md § 五 工具能力边界` | 工具能做/不能做 |
 | `failure-modes.md` | 失败模式定义（F1-F9） |
 | `本文` | 错误信息友好化（13 类） |
 
@@ -231,7 +231,7 @@ M-Form-3 failed: temp_id pattern detected in output
 【怎么解决】
    ✅ 确认 D05 是「已发布/主人投喂/二手转引」哪类
    ✅ 在 D05 头部加 🟢/🟡/🔴 标注
-   ✅ 详见 _shared/glossary-full.md § 三 数据信任级别
+   ✅ 详见 _shared/真源/glossary-full.md § 三 数据信任级别
 
 需要我帮你自动修复吗？
 ```

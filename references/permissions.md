@@ -1,4 +1,4 @@
-> 版本：v2.12.69（自动同步 2026-09-21）
+> 版本：v2.12.70（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -14,10 +14,10 @@
 |---|---|---|---|
 | ① | **「零 exec」精确口径** | 只指**执行类**工具（`exec`/`process`/`code_execution`）；`denied` 另含 `browser`/`terminal`/`computer`/`nodes` 等**非执行类**工具，口号**不涵盖**它们，且 **≠「不外发数据」**。**主控另持编排与状态面**（`coordinator_only`）= 派发 / 收报告 / 记账的**设计内必需**能力，非特权扩张 | 本文 §执行层真源三层 + §能力自检 |
 | ② | **会话可见性收口** | 会话类工具**仅限本项目本轮 spawn 的角色会话**；**禁**枚举 / 读取 / 取消无关会话，命中即**不操作、不记录、不转述** | 本文 §会话可见性收口 |
-| ③ | **display-cap 截断** | 子代理回传被截断 → 先 `read` **磁盘产物（优先）**；产物缺 → 按该角色会话拉 `sessions_history` 整合（**不轮询** `subagents list`），标 `[主控 fallback 产物]`，`status.md` 记 `display_cap_truncated` | [`dispatch-header.md`](_shared/dispatch-header.md) + [`00-主控-扩展职责.md`](agents/00-主控-扩展职责.md) |
+| ③ | **display-cap 截断** | 子代理回传被截断 → 先 `read` **磁盘产物（优先）**；产物缺 → 按该角色会话拉 `sessions_history` 整合（**不轮询** `subagents list`），标 `[主控 fallback 产物]`，`status.md` 记 `display_cap_truncated` | [`dispatch-header.md`](_shared/真源/dispatch-header.md) + [`00-主控-扩展职责.md`](agents/00-主控-扩展职责.md) |
 | ④ | **投稿域 vs 工程域** | 投稿版定稿**只放纯学术结构**；工程元数据段 + 「投稿就绪附录」一律进工程版交付说明 | [`deliverables.md`](deliverables.md) |
 
-> 🔒 **权限边界（v2.12.48）**：论衡只声明自身的角色工具边界，不读取、不修改、不校验宿主配置。OpenClaw 原生负责多 Agent、会话和实际工具策略；论衡不把宿主是否配置 deny、sandbox 或 spawn 深度限制作为启动、质量或交付条件。🧭 **两层别混（消歧义）**：论衡**永不读 / 不写 / 不改 / 不校验宿主配置文件**（如 `openclaw.json`），**但这不等于「不做运行时可观测」**——自检读的是**当前会话自身可见的工具面**（agent 环境内已有信息），用途是防止本 skill 自己调用未声明工具；它不检查宿主配置，也不产生任何宿主侧项目状态。**精确口径唯一真源 = [`_shared/external-services.md`](_shared/external-services.md) §「不读取宿主网关配置（精确口径）」**。
+> 🔒 **权限边界（v2.12.48）**：论衡只声明自身的角色工具边界，不读取、不修改、不校验宿主配置。OpenClaw 原生负责多 Agent、会话和实际工具策略；论衡不把宿主是否配置 deny、sandbox 或 spawn 深度限制作为启动、质量或交付条件。🧭 **两层别混（消歧义）**：论衡**永不读 / 不写 / 不改 / 不校验宿主配置文件**（如 `openclaw.json`），**但这不等于「不做运行时可观测」**——自检读的是**当前会话自身可见的工具面**（agent 环境内已有信息），用途是防止本 skill 自己调用未声明工具；它不检查宿主配置，也不产生任何宿主侧项目状态。**精确口径唯一真源 = [`_shared/真源/external-services.md`](_shared/真源/external-services.md) §「不读取宿主网关配置（精确口径）」**。
 
 ---
 
@@ -45,7 +45,7 @@
 - session_status / progress_card（`coordinator_only`，可观测性）
 
 **子代理 5 档分级白名单（`metadata.subagent_tiers`）**：**档位命名真源 = `SKILL.md` frontmatter 短名**（`research` / `analysis` / `writing` / `audit` / `review`）。
-> 🔤 **命名映射（消除双轨）**：本表与 [`dispatch-header.md`](_shared/dispatch-header.md) 历史上用 `allow_*` 前缀名，与 frontmatter 短名一一对应，**一律以短名为准**：`research`↔`allow_research`、`analysis`↔`allow_analysis`、`writing`↔`allow_writing`、`audit`↔`allow_audit`、`review`↔`allow_review`。**不再新增第三种写法**；下表左列保留 `allow_*` 别名**仅为兼容旧引用**。
+> 🔤 **命名映射（消除双轨）**：本表与 [`dispatch-header.md`](_shared/真源/dispatch-header.md) 历史上用 `allow_*` 前缀名，与 frontmatter 短名一一对应，**一律以短名为准**：`research`↔`allow_research`、`analysis`↔`allow_analysis`、`writing`↔`allow_writing`、`audit`↔`allow_audit`、`review`↔`allow_review`。**不再新增第三种写法**；下表左列保留 `allow_*` 别名**仅为兼容旧引用**。
 
 | 档位 | 适用角色 | 工具集（最小权限声明） | 凭什么调网络/记忆 |
 |---|---|---|---|
@@ -60,7 +60,7 @@
 
 > 📄 **只读档落盘口径（v2.12.51 D-3 统一 —— 废 v2.12.32/v2.12.33「两径定义」）**：`allow_audit`（T6/T7）/ `allow_review`（T9/G14）的工具面 = **`read`（纯只读，本档无 write/edit）**：**上游产物一律只读**（`drafts/` / `final/` / `data/` / `literature/` / `cases/` / `analysis/` / `audits/` 一视同仁）；**报告正文随交接回传（final message），由主控 `write` 落盘**；本档**不得直写任何路径**——包括 `analysis/批判报告-vN.md` / `audits/*-vN.md` / `audits/审稿报告-vN.md` 等自有报告路径（旧口径「自有报告直写授权」已废止）。
 > **为何统一为「主控代写盘」**：① 只读档确无 `write` 工具 = 更强的权限姿态（与五档表一致）；② 与 10 处角色卡 / dispatch 的「报告随交接回传、由主控 write 落盘」口径一致；③ 与四节点 `verification_authority: 主控` 自洽（核验者不落盘则无从核验）。
-> ⚠️ **机械校验**：真源 = [`_shared/phase-order.yaml`](_shared/phase-order.yaml) 中 `t6_critique` / `t7_audit` / `g14_style_gate` / `t9_review` 四节点的 `write_authority: owner`；`scripts/flow-check.py` **规则 23** 检查（改回 `executor` 即构建期红）。
+> ⚠️ **机械校验**：真源 = [`_shared/真源/phase-order.yaml`](_shared/真源/phase-order.yaml) 中 `t6_critique` / `t7_audit` / `g14_style_gate` / `t9_review` 四节点的 `write_authority: owner`；`scripts/flow-check.py` **规则 23** 检查（改回 `executor` 即构建期红）。
 
 **约束的三层模型（v2.12.27 新增 —— 官方文档对齐）**：论衡的档位与禁令**不是只有"提示词"一层**。把三层分清，才知道"哪层能拦什么"：
 
@@ -78,7 +78,7 @@
 
 **能力自检**：五档白名单**不能被机械强制**（无 `toolsAllow`），因此本修订把它改成「**可观测 + 可阻断**」三件套：
 1. **主控侧（Phase 0 必走）**：核验自身可见工具是否**超出** documented 集；超限项逐条记入 `status.md`「能力自检」段，并在 Phase 0 **向主人披露**（不阻断——主控工具面由宿主决定）。
-2. **子代理侧（每次 spawn 首步）**：按 [`_shared/dispatch-header.md`](_shared/dispatch-header.md)「启动自检」核验自身工具面，**两级判据分开处置**（v2.12.32 修订：**工具面 ≠ 调用**）——**工具面超限 = 警告级**（平台工具面通常宽于本档声明，属常态：记录 + 披露 + **呈主人裁决**——敏感题材可要求主控接管该 worker，未裁决前仅继续手头已授权动作）；**实际调用越权工具 = 阻断级**（停止、不写盘、回报 `capability_excess`）；主控未给裁决 ⇒ 返回 `degraded` 并**继续手头已授权动作**（不调用越权工具）。
+2. **子代理侧（每次 spawn 首步）**：按 [`_shared/真源/dispatch-header.md`](_shared/真源/dispatch-header.md)「启动自检」核验自身工具面，**两级判据分开处置**（v2.12.32 修订：**工具面 ≠ 调用**）——**工具面超限 = 警告级**（平台工具面通常宽于本档声明，属常态：记录 + 披露 + **呈主人裁决**——敏感题材可要求主控接管该 worker，未裁决前仅继续手头已授权动作）；**实际调用越权工具 = 阻断级**（停止、不写盘、回报 `capability_excess`）；主控未给裁决 ⇒ 返回 `degraded` 并**继续手头已授权动作**（不调用越权工具）。
 3. **阻断规则**：主控收到 `capability_excess` → **不采纳该产物**；**实际调用** `exec`/`process`/`browser`/`terminal`/`sessions_*` ⇒ **该档停用**，改走主控接管该节点；**⚠️ 仅「工具面超限」不触发该档停用**（否则平台工具面偏宽时多 Agent 模式完全不可用 —— v2.12.32 实测 T2/T3 首轮自锁零产物）；**工具面超限 ≠ 调用许可**（超限＝平台给的面比本档声明宽，须登记 + 由主控决定是否接管该节点）；主控裁决「⚖️ 报告 + 自律继续」为**显式旁路——只放行「继续干活」，不放行任何越权工具调用**，子代理不得据此中止；全部记入 status.md 并告知主人。
 
 > 🧱 **`capability_excess` 四步具名硬动作（v2.12.43，缺一即视为漏处置）**：① **不采纳**该产物（不落盘、不当证据）；② **该档停用**（本档后续 spawn 一律改主控接管该节点）；③ `status.md` 记 `capability_excess`（角色 + 实际调用的工具名 + 时间）；④ 向主人**具名报告**并说明降级路径。**判据 = 子代理自报 `called` 列表**，不以产物是否可用反推。
@@ -87,7 +87,7 @@
 
 > 📊 **数据图表 SVG 能力不受影响（v2.12.39 说明）**：图件由主控用 `write` **本地手写矢量图**（零外发、不依赖任何视觉/生成工具）；校验走「SVG XML/结构检查 + 嵌入文本孤儿检查（T8）+ 主人目视」。本轮移除 `view_image` 仅取消「主控自查渲染截图」这一**可选**路径，**数据图表生成能力完整保留**。
 
-**Opt-in（v2.12.49 起已归零）**：论衡不调任何默认禁止的工具；**封面与图件去留均由主人手动操作**（T8 终检后提供「主人自行操作建议清单」）。**服务级外发类别（3 类，v2.12.49 由 4 类减去「封面」类）的唯一真源 = [`_shared/external-services.md` 逐类表](_shared/external-services.md)** —— 本节不重列服务级类别（重列必漂移）。
+**Opt-in（v2.12.49 起已归零）**：论衡不调任何默认禁止的工具；**封面与图件去留均由主人手动操作**（T8 终检后提供「主人自行操作建议清单」）。**服务级外发类别（3 类，v2.12.49 由 4 类减去「封面」类）的唯一真源 = [`_shared/真源/external-services.md` 逐类表](_shared/真源/external-services.md)** —— 本节不重列服务级类别（重列必漂移）。
 - ⚠️ **授权点同意约束（v2.12.43）**：`research_extra`（检索 4 工具）虽**默认启用**，但**每次调用前**仍须核对任务简报 §0 的结构化同意记录；其中**学术元数据（OpenAlex / Crossref）为 opt-in、默认关闭**，未勾选即不得调用（与 `SKILL.md` frontmatter `research_extra` 行注释**同源**，两处一起改）。
 
 **行为授权（非工具，Phase 0 预授权记录，默认全部关闭）**：
@@ -98,12 +98,12 @@
 **禁用（`metadata.tools.denied`）— 41 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**；是否在宿主侧额外收紧由宿主自行决定，**不属本 skill 的运行前提**。
 
 **Workspace 路径收口**：
-- **路径边界分两域**（v2.12.64 定案，回应 2026-09-19 审计 S-2）——原表述「read/write/edit 仅允许 `run/<项目名>/` 子树」与每张角色卡的必读要求**互斥**（role card 任务首句即要求读 `references/_shared/关键协议.md`）⇒ 字面遵守则流水线不可执行，实际执行则每次运行都违反自己的声明。现显式拆为两域：
+- **路径边界分两域**（v2.12.64 定案，回应 2026-09-19 审计 S-2）——原表述「read/write/edit 仅允许 `run/<项目名>/` 子树」与每张角色卡的必读要求**互斥**（role card 任务首句即要求读 `references/_shared/真源/关键协议.md`）⇒ 字面遵守则流水线不可执行，实际执行则每次运行都违反自己的声明。现显式拆为两域：
   - **① skill 资产域**：`references/**` + `SKILL.md` + `QUICKSTART.md` —— **只读**（`read`），**必需**（角色卡与共享协议属技能本体，不读无法执行）；**禁写**。
   - **② 项目数据域**：`run/<项目名>/` —— **读写**（`read/write/edit`），一律用**相对路径**收口到该子树。
   - **判据**：自检项从「read 是否越界」改为「**项目数据域外写入 0 命中**」——读动作允许落在域 ①（只读），违规以**写**为准。
 - **拒绝**：绝对路径（含任何指向宿主敏感位置的路径：系统账号/密码存储文件、SSH 密钥目录、云凭据文件等）、父路径穿越（`..`）、symlink 逃逸、主控工作区根目录外的访问
-- 默认 cwd = workspace 根（**不设 `cwd_default`**，否则 run/ 被解析到 skill 目录内，教训 #255）——主控在 spawn 时**必须显式传绝对路径 `cwd: <workspace>/run/<项目名>/`**；**相对路径会被解析到 skill 目录**（v2.12.28 实测，教训 #255），故一律用绝对路径。子代理任务首句必读 `references/_shared/关键协议.md` §workspace 路径收口（read/write/edit 边界）
+- 默认 cwd = workspace 根（**不设 `cwd_default`**，否则 run/ 被解析到 skill 目录内，教训 #255）——主控在 spawn 时**必须显式传绝对路径 `cwd: <workspace>/run/<项目名>/`**；**相对路径会被解析到 skill 目录**（v2.12.28 实测，教训 #255），故一律用绝对路径。子代理任务首句必读 `references/_shared/真源/关键协议.md` §workspace 路径收口（read/write/edit 边界）
 > ⚠️ **用户警示（本文件可见）**：本技能运行期间会创建 / 修改以下路径的文件，**需先经 Phase 0 显式同意**：`run/<项目名>/status.md`（主控独占写）、`run/<项目名>/.tmp/<两位角色号>-<角色名>-heartbeat.md`（**默认不写**——仅 Phase 0 勾选「Operational Telemetry」才写）、`run/<项目名>/drafts/<角色>-status.json`、`run/<项目名>/analysis/`、`run/<项目名>/audits/`、`run/<项目名>/final/`（交付说明 / 定稿 / 图件 / 证据包）。**全部限当前 workspace 的 `run/<项目名>/` 子树**——不写项目外、不写宿主配置。**标准架构 = 多 Agent 九角色**；worker 不可用时按节点主控接管并披露。
 
 - ⚠️ **两个 `cwd` 不是一回事，切勿混**：① **spawn 的平台参数 `cwd`** —— **必须绝对路径**（上条）；② **论衡自身的 read/write/edit 边界规则** —— 工具只接受 `run/<项目名>/` 子树内的**相对路径**，**拒绝绝对路径**。二者方向相反但互补：spawn 用绝对路径定位项目根，文件工具再用相对路径收口到子树内。
@@ -123,7 +123,7 @@
 > **论衡不读取、不修改宿主配置，也不对宿主的权限设定作任何前提假设。** 子代理工具面由宿主 OpenClaw 决定（见上「四层模型」）；需要收紧子代理权限时，参见 OpenClaw 官方文档的 subagents 配置说明（宿主职责）。**节点接管代价**：该节点失去独立复核（L1 自审），须在 `status.md` 与交付说明披露（G14 仍按目标语言客观适用）。
 - ℹ️  **M 门算法**：主控 LLM 通过 `read` 读取算法文档后**推理判定**，**不执行实际 shell 命令**——算法文档中的 bash 示例是给人类主人手动复核的参考命令，**不是 agent 执行代码**
 - ℹ️  **零 exec ≠ 零核验**：论衡所有「检查/计数/比对/核验」动作都由 agent 用 `read` 读取文件 + LLM 逐项判定完成；文档中出现的命令式短句（检查/计数/求差集/校验哈希等）是**检查规则的速记**，等价动作一律走 read/write/edit 工具，任何角色都不执行也不「模拟」shell 命令——宿主工具策略（config `tools.subagents` / profile / deny）才是真实权限边界
-- 🚫 **叶子纪律（角色卡不再委托，新增）**：论衡架构里角色卡 T1-T7/T9 = **叶子 worker**——子代理**不得**调用 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history` 派生或管理子代理；需要额外检索/额外人手 → 在交接报告写「需求回执」交主控，由主控决定是否 spawn（主控只认直接子级，孙辈结果不上传会导致产出丢失）。落地方式：本段 + 角色卡声明 + 主控每次 spawn 的任务书声明（三层冗余，见 [`_shared/关键协议.md`](_shared/关键协议.md) §叶子纪律）。平台可能默认开启有界递归委派，子代理因此**拿得到**上述工具——「拿得到」≠「被授权」，一律以本纪律为准。
+- 🚫 **叶子纪律（角色卡不再委托，新增）**：论衡架构里角色卡 T1-T7/T9 = **叶子 worker**——子代理**不得**调用 `sessions_spawn` / `subagents` / `sessions_list` / `sessions_history` 派生或管理子代理；需要额外检索/额外人手 → 在交接报告写「需求回执」交主控，由主控决定是否 spawn（主控只认直接子级，孙辈结果不上传会导致产出丢失）。落地方式：本段 + 角色卡声明 + 主控每次 spawn 的任务书声明（三层冗余，见 [`_shared/真源/关键协议.md`](_shared/真源/关键协议.md) §叶子纪律）。平台可能默认开启有界递归委派，子代理因此**拿得到**上述工具——「拿得到」≠「被授权」，一律以本纪律为准。
 - ℹ️  **建议运行环境**：禁用 exec 的 agent（保持论衡「零 exec」哲学）
 - ℹ️  **token 成本统计（精确机制）**：子代理 token 来自**完成事件（completion event）末尾的 Stats line**（`Token usage` input/output/total + `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`），主控 `sessions_yield` 收到 completion event 时提取记录（**sessions_spawn 返回值无 stats 字段**，教训 #256）；**主控自身** T8 终检前用 `session_status({sessionKey: "current"})` 拿主会话精确值（含 cost）。**成本统计是可观测性字段，不是交付闸门**；但 Stats line 缺失须标「Stats line 缺失」告警，禁止估算/静默跳过
 

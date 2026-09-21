@@ -66,8 +66,8 @@ echo ""
 SYNCS=(
   # 核心文档（顶部插入版本号）
   "@SKILL.md|body_header"
-  "_shared/glossary-full.md|header"
-  "_shared/glossary-core.md|header"
+  "_shared/真源/glossary-full.md|header"
+  "_shared/真源/glossary-core.md|header"
   "pipeline-readme.md|header"
   "设计文档.md|header"
   "设计文档-架构.md|header"
@@ -78,9 +78,9 @@ SYNCS=(
   "errors.md|header"
 
   # 共享协议（顶部插入版本号）
-  "_shared/M-Gate-Algorithm.md|header"
-  "_shared/M-Gate-Algorithm-appendix.md|header"
-  "_shared/audit-checklist-quickref.md|header"
+  "_shared/真源/M-Gate-Algorithm.md|header"
+  "_shared/真源/M-Gate-Algorithm-appendix.md|header"
+  "_shared/真源/audit-checklist-quickref.md|header"
 
   # 10 个角色卡（顶部插入版本号）
   "agents/00-主控-coordinator.md|header"
@@ -114,34 +114,34 @@ SYNCS=(
   "checkers/中文AI痕迹-checker.md|header"
 
   # 扩展 _shared 协议（实战反馈 + v2.5.0/v2.5.1 新增）
-  "_shared/执行韧化协议-exec.md|header"
-  "_shared/执行韧化协议-design.md|header"
-  "_shared/failure-modes.md|header"
-  "_shared/字数判定表.md|header"
-  "_shared/degraded-scenarios.md|header"
-  "_shared/期刊数据库.md|header"
-  "_shared/期刊匹配算法.md|header"
-  "_shared/中文数据源集成.md|header"
-  "_shared/format-export.md|header"
+  "_shared/真源/执行韧化协议-exec.md|header"
+  "_shared/真源/执行韧化协议-design.md|header"
+  "_shared/真源/failure-modes.md|header"
+  "_shared/真源/字数判定表.md|header"
+  "_shared/真源/degraded-scenarios.md|header"
+  "_shared/真源/期刊数据库.md|header"
+  "_shared/真源/期刊匹配算法.md|header"
+  "_shared/真源/中文数据源集成.md|header"
+  "_shared/真源/format-export.md|header"
 
   # _shared 协议（v2.5.6 第三方独立审查建议 #5，教训 #175 防漏改）
-  "_shared/工具能力边界.md|header"
-  "_shared/关键协议.md|header"
-  "_shared/教训索引.md|header"
-  "_shared/模型候选池.md|header"
-  "_shared/可发表性判定表.md|header"
+  "_shared/真源/工具能力边界.md|header"
+  "_shared/真源/关键协议.md|header"
+  "_shared/治理/教训索引.md|header"
+  "_shared/真源/模型候选池.md|header"
+  "_shared/真源/可发表性判定表.md|header"
   # v2.12.1 版本一致性盲区修复：project-archive-sop（v2.7.16 引入）+ 路径校验规范（v2.9.1 引入）补入清单
-  "_shared/project-archive-sop.md|header"
-  "_shared/路径校验规范.md|header"
+  "_shared/治理/project-archive-sop.md|header"
+  "_shared/真源/路径校验规范.md|header"
   # v2.12.14 SKILL.md 瘦身外移文件（批次 4.6/4B）
-  "_shared/pipeline-overview.md|header"
-  "_shared/asset-index.md|header"
-  "_shared/external-services.md|header"
+  "_shared/真源/pipeline-overview.md|header"
+  "_shared/真源/asset-index.md|header"
+  "_shared/真源/external-services.md|header"
   # v2.12.59：补上审计发现的悬空指针目标文件（原被 2 处活文档引用却从未存在）
-  "_shared/host-verify-recipe.md|header"
-  "_shared/反哺报告处理.md|header"
+  "_shared/真源/host-verify-recipe.md|header"
+  "_shared/治理/反哺报告处理.md|header"
   # v2.12.67：性能基准表（审计 P1-2：四维数据唯一登记模板）
-  "_shared/performance-benchmarks.md|header"
+  "_shared/真源/performance-benchmarks.md|header"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 + v2.6.4 补全，教训 #175 防漏改）
   "templates/任务简报-template.md|header"
@@ -164,11 +164,11 @@ SYNCS=(
   # v2.10.0 SKILL.md 外置文件（v2.10.0 P1-3 拆分新增，教训 #198 补入防漏改）
   "model-assignment.md|header"
   "permissions.md|header"
-  "_shared/phase-1-details.md|header"
-  "_shared/phase-2-details.md|header"
-  "_shared/phase-3-details.md|header"
-  "_shared/dispatch-header.md|header"
-  "_shared/skill-entry-appendix.md|header"
+  "_shared/真源/phase-1-details.md|header"
+  "_shared/真源/phase-2-details.md|header"
+  "_shared/真源/phase-3-details.md|header"
+  "_shared/真源/dispatch-header.md|header"
+  "_shared/真源/skill-entry-appendix.md|header"
   "templates/README-模板拆分方案.md|header"
   "templates/checkpoint-card-template.md|header"
   "templates/status-template-lite.md|header"
@@ -182,7 +182,7 @@ SYNCS=(
   # v2.12.12 版本一致性盲区修复：phase-order.yaml（阶段真源，头部自述「版本随 SKILL.md 同步」
   #   但既不在本清单、也不是 markdown 块引用格式，故长期停在旧版本戳 —— 净化包内随包分发的
   #   版本与 SKILL.md 不一致）。用 yarnversion 模式改专用 `version: X.Y.Z` 行。
-  "_shared/phase-order.yaml|yamlversion"
+  "_shared/真源/phase-order.yaml|yamlversion"
 )
 
 # v2.12.20（教训 #331）：header 模式改为「排队 + 末尾一次性归一化」，写入路径统一由

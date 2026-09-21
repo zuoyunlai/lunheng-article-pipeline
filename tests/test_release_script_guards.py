@@ -145,7 +145,7 @@ def test_cleanup_bundle_backup_precedes_destruction():
 
 # ---------------- v2.12.63：`_shared/` 白名单准入门 + 规则 3h-5 行级断言 ----------------
 # 背景（2026-09-19 第三批四线审计，主控实跑实证）：
-#   C-1（P0）：`references/_shared/论衡仓库内教训.md`（维护者工程内档，`#R001` 编号空间）
+#   C-1（P0）：`references/_shared/治理/论衡仓库内教训.md`（维护者工程内档，`#R001` 编号空间）
 #      自 v2.12.42 引入后**一直随发布包出厂**，同时绕过三道门（不在排除清单 / 不匹配
 #      `教训 #N` 模式 / 是 git 跟踪文件故反向断言也不拦）。
 #   C-2（P1）：规则 3h-5 的整行正则把 `00-主控-扩展职责.md` §〇 主控必读清单的**层 1 整行**删掉。
@@ -183,7 +183,8 @@ def test_shared_admitted_matches_source_tree():
     admitted = set(_shared_admitted())
     excluded = _shared_excluded_patterns()
     src_dir = ROOT / "references" / "_shared"
-    actual = {p.name for p in src_dir.iterdir() if p.is_file()}
+    # v2.12.70 A-治理瘦身：`_shared/` 分层为 真源/ + 治理/，递归收集相对路径
+    actual = {str(p.relative_to(src_dir)) for p in src_dir.rglob("*") if p.is_file()}
     unexplained = []
     for name in sorted(actual):
         if name in admitted:
@@ -260,9 +261,9 @@ def test_build_package_excludes_maintainer_internal_and_keeps_layer1(tmp_path):
     pkg = out_root / "clawhub-release" / "2.12.63"
 
     # ① C-1 泄漏
-    assert not (pkg / "references" / "_shared" / "论衡仓库内教训.md").exists(), \
+    assert not (pkg / "references" / "_shared" / "治理" / "论衡仓库内教训.md").exists(), \
         "维护者内档仍在发布包内"
-    shared = {p.name for p in (pkg / "references" / "_shared").iterdir()}
+    shared = {str(p.relative_to(pkg / "references" / "_shared")) for p in (pkg / "references" / "_shared").rglob("*") if p.is_file()}
     assert shared == set(_shared_admitted()), "包内 _shared 文件集与准入清单不符"
     leaked = []
     for p in pkg.rglob("*"):
@@ -400,7 +401,7 @@ def test_nonmd_positive_gate_detects_emptied_yaml(tmp_path):
     旧版正向门只覆盖 `*.md`，`phase-order.yaml` 被整篇删空也全绿（审计 C-5）。
     """
     dst = _mkcopy(tmp_path)
-    yml = dst / "references" / "_shared" / "phase-order.yaml"
+    yml = dst / "references" / "_shared" / "真源" / "phase-order.yaml"
     assert yml.is_file(), "fixture 前提失败：phase-order.yaml 不存在"
     yml.write_text("", encoding="utf-8")
     env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
