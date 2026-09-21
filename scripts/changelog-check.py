@@ -26,11 +26,15 @@ from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 CHANGELOG = SKILL_ROOT / "CHANGELOG.md"
+README_FILE = SKILL_ROOT / "README.md"
 # v2.12.47：主文件只保留最近 5 期，更早章节逐字迁入 CHANGELOG-archive.md。
 # 「每个版本 tag 都有章节」的校验口径跨两份文件生效（见 changelog_files）。
 CHANGELOG_ARCHIVE = SKILL_ROOT / "CHANGELOG-archive.md"
 # v2.12.47：主文件容量上限（主人定案「保留 5 期」）。超限即红——轮转 = 把最旧一章移入归档。
 CHANGELOG_KEEP = 5
+# v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法单行 >4000 字符，
+#   可读性崩坏且与 CHANGELOG 职责重叠）。新写法 = 摘要 + 链接；超限即红。
+README_PROSE_MAX = 500
 SKILL_MD = SKILL_ROOT / "SKILL.md"
 
 # 章节标题用方括号包裹版本号：Release 正文里也有「## v2.2.6 核心改进」这类同形行，
@@ -150,6 +154,22 @@ def split_changelog(text):
     return header, sections
 
 
+def readme_prose_gate(readme_text):
+    """v2.12.67 README「当前版本」块容量门（审计 P2-4）—— 返回错误信息或 None。
+
+    判据与 tests/test_audit_residuals.py 的版本一致性断言互补：那边锁「版本号对」，
+    这边锁「可读性」——堆叠式 changelog 复述曾把该行写到 >4000 字符，与 CHANGELOG
+    职责重叠且不可读。新写法 = 2-3 句摘要 + 指向 CHANGELOG 首节。
+    """
+    m = re.search(r"^\*\*v[0-9.]+\*\*（[^）]*当前版本[^\n]*$", readme_text, re.M)
+    if not m:
+        return "README 缺「当前版本」正文行（判据真源 = tests/test_audit_residuals.py）"
+    if len(m.group(0)) > README_PROSE_MAX:
+        return (f"README「当前版本」块 {len(m.group(0))} 字符 > 上限 {README_PROSE_MAX}："
+                f"改为 2-3 句摘要 + 指向 CHANGELOG 首节（审计 P2-4，堆叠式写法崩可读性）")
+    return None
+
+
 def cmd_check(online):
     expected = current_version()
     tags = version_tags()
@@ -187,6 +207,17 @@ def cmd_check(online):
         print(f"❌ {CHANGELOG.name} 保有 {len(_main_sections)} 期，超过上限 {CHANGELOG_KEEP} 期："
               f"把最旧的 {len(_main_sections) - CHANGELOG_KEEP} 章移入 {CHANGELOG_ARCHIVE.name}")
         fail = 1
+
+    # v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法曾单行 >4000 字符）。
+    #   判据与 test_audit_residuals 的版本一致性断言互补：那边锁「版本号对」，这边锁「可读性」。
+    # v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法曾单行 >4000 字符）。
+    #   判据与 test_audit_residuals 的版本一致性断言互补：那边锁「版本号对」，这边锁「可读性」。
+    #   README 缺失（e2e 迷你仓库等）不适用本门——真实仓库 README 存在性由 check-version.sh 管辖。
+    if README_FILE.exists():
+        _prose_err = readme_prose_gate(README_FILE.read_text(encoding="utf-8"))
+        if _prose_err:
+            print(f"❌ {_prose_err}")
+            fail = 1
 
     # 围栏闭合性：某章节里 ``` 为奇数会让其后**全部版本**渲染成代码块（不可见排版崩坏）
     # v2.12.47：主文件与归档文件都查（章节跨两份，漏一份即漏检）

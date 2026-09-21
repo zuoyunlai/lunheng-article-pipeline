@@ -150,6 +150,8 @@ VERSION_FILES=(
   # v2.12.59：补上审计发现的悬空指针目标文件（原被 2 处活文档引用却从未存在）
   "references/_shared/host-verify-recipe.md"
   "references/_shared/反哺报告处理.md"
+  # v2.12.67：性能基准表（审计 P1-2）——版本戳第三处载体登记（sync / check-version 已先行登记）
+  "references/_shared/performance-benchmarks.md"
 )
 VERSION_MISSING=""
 for f in "${VERSION_FILES[@]}"; do

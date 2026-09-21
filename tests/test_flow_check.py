@@ -1472,3 +1472,53 @@ def test_m13_command_drift_reverse_injection(tmp_path):
                            "--reference-doc=templates/word-reference.docx", 1)
 
     _inject_and_expect("references/dispatch/T8-终检.md", mutate, "规则 41", tmp_path)
+
+
+# ===== v2.12.67 只读档报告分片预申报接线（规则 42） =====
+
+RULE42_CARRIERS = (
+    "references/_shared/执行韧化协议-exec.md",
+    "references/dispatch/T6-批判.md",
+    "references/dispatch/T7-审计.md",
+    "references/dispatch/T9-同行评审.md",
+    "references/dispatch/G14-中文AI痕迹检测器.md",
+)
+
+
+def test_rule42_fragment_protocol_in_all_carriers():
+    """规则 42 正向：协议真源 + 四个只读档 dispatch 载体均含分片预申报口径。
+
+    背景（审计 P1-1）：completion 回传平台硬上限 4096 字符、超限静默截断不报错，
+    而 T6/T7/T9/G14 报告要求逐项完整 ⇒ 超长报告回传可能不完整且无截断信号。
+    分片预申报是事前设计（触发线 3500，数值真源在协议本体），display-cap 三角仍是事后兑底。
+    """
+    for rel in RULE42_CARRIERS:
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        for token in ("报告分片 N/M", "分片清单"):
+            assert token in text, f"{rel} 缺「{token}」（规则 42：分片预申报不得从载体静默消失）"
+    protocol = (ROOT / RULE42_CARRIERS[0]).read_text(encoding="utf-8")
+    assert "3500" in protocol, "协议真源缺触发线 3500（数值唯一真源 = 执行韧化协议-exec.md §6）"
+
+
+def test_rule42_t6_dispatch_reverse_injection(tmp_path):
+    """规则 42 反向注入：T6 dispatch 摘除「报告分片 N/M」口径 ⇒ 必须红（#427 同族）。"""
+    def mutate(src):
+        return src.replace("【报告分片 N/M】", "【分段 N/M】", 1)
+
+    _inject_and_expect("references/dispatch/T6-批判.md", mutate, "规则 42", tmp_path)
+
+
+def test_rule42_t9_dispatch_reverse_injection(tmp_path):
+    """规则 42 反向注入：T9 dispatch 摘除分片口径 ⇒ 必须红（T9 为盲审特殊节点，载体漂移风险最高）。"""
+    def mutate(src):
+        return src.replace("先交「【报告分片 N/M】分片清单」", "先交「分段摘要」", 1)
+
+    _inject_and_expect("references/dispatch/T9-同行评审.md", mutate, "规则 42", tmp_path)
+
+
+def test_rule42_protocol_truth_source_reverse_injection(tmp_path):
+    """规则 42 反向注入：协议真源摘除「分片清单」⇒ 必须红（真源本体不得静默消失）。"""
+    def mutate(src):
+        return src.replace("final message 首块 = 分片清单", "final message 首块 = 摘要头", 1)
+
+    _inject_and_expect("references/_shared/执行韧化协议-exec.md", mutate, "规则 42", tmp_path)

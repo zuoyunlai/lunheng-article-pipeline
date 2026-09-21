@@ -1,4 +1,4 @@
-> 版本：v2.12.66（自动同步 2026-09-20）
+> 版本：v2.12.67（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -50,6 +50,7 @@
 - 期刊数据库 + 匹配算法：[`期刊数据库.md`](期刊数据库.md) + [`期刊匹配算法.md`](期刊匹配算法.md)
 - 中文数据源集成（OpenAlex/Crossref 默认关闭、Phase 0 勾选，无需 Key）：[`中文数据源集成.md`](中文数据源集成.md)
 - 多格式导出（可选 `--format md/latex/docx/pdf`）：[`format-export.md`](format-export.md)
+- 性能基准（四维实测登记）：[`performance-benchmarks.md`](performance-benchmarks.md)
 - 设计文档 / 实战案例库：[`references/设计文档.md`](../设计文档.md) / [`references/case-studies.md`](../case-studies.md)
 - 方法论实时可见面板（6 字段：当前阶段/证据强度/已触发闸门/下一步预测/不确定性/模型健康度）：[`status-template.md`](../templates/status-template.md)「方法论足迹」段
 

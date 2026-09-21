@@ -13,6 +13,7 @@ references/_shared/format-export.md
 references/_shared/glossary-core.md
 references/_shared/glossary-full.md
 references/_shared/host-verify-recipe.md
+references/_shared/performance-benchmarks.md
 references/_shared/phase-1-details.md
 references/_shared/phase-2-details.md
 references/_shared/phase-3-details.md

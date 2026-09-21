@@ -288,6 +288,7 @@ SHARED_ADMITTED=(
   'glossary-core.md'
   'glossary-full.md'
   'host-verify-recipe.md'
+  'performance-benchmarks.md'
   'phase-1-details.md'
   'phase-2-details.md'
   'phase-3-details.md'

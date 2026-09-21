@@ -52,6 +52,9 @@
     + `--bibliography` / `--csl`）；禁 v2.12.60 已作废写法回潮（`templates/word-reference.docx` /
     「再嵌入定稿」—— 图位嵌入由 `final_assembly` 在流水线内完成，主人只做 SVG→PNG）。
     防「同一份清单两处承载、改 A 漏 B」（与 P1-1 轻量档口径 / P1-2 路径边界同族）。
+ 42 **只读档报告分片预申报接线（v2.12.67，审计 P1-1）**：`执行韧化协议-exec.md`（真源）与 T6/T7/T9/G14
+    四个 dispatch 载体必须同时含「分片清单」与「报告分片 N/M」口径——超长报告回传协议不得从任何
+    载体静默消失（#427 同族）；触发线 3500 的数值真源在协议本体，本规则只锁存在性（防双判据漂移）。
 
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import json, pathlib, re, sys, yaml
@@ -931,6 +934,24 @@ def main():
             if _need41 not in _txt41:
                 errs.append(f'{_lbl41} M-13 命令模板缺 {_need41}'
                             f'（规则 41：与真源 format-export.md §二 同源）')
+
+    # 42 只读档报告分片预申报接线（v2.12.67，审计 P1-1）：超长报告回传协议不得从载体静默消失。
+    #    真源 = 执行韧化协议-exec.md §6 分片预申报；四个只读档 dispatch 是同协议的派发载体，
+    #    均须含「分片清单」与「报告分片 N/M」口径。触发线 3500 的数值真源在协议本体（一条款一真源，
+    #    本规则只锁存在性，不复制数值 —— 防两套判据漂移）。
+    _C42_CARRIERS = (
+        ('协议真源', 'references/_shared/执行韧化协议-exec.md'),
+        ('T6 dispatch', 'references/dispatch/T6-批判.md'),
+        ('T7 dispatch', 'references/dispatch/T7-审计.md'),
+        ('T9 dispatch', 'references/dispatch/T9-同行评审.md'),
+        ('G14 dispatch', 'references/dispatch/G14-中文AI痕迹检测器.md'),
+    )
+    for _lbl42, _rel42 in _C42_CARRIERS:
+        _t42 = (_R / _rel42).read_text(encoding='utf-8')
+        for _need42 in ('报告分片 N/M', '分片清单'):
+            if _need42 not in _t42:
+                errs.append(f'{_lbl42} 缺「{_need42}」（规则 42：超长报告分片预申报不得从载体静默消失，'
+                            f'真源 = _shared/执行韧化协议-exec.md §6）')
 
     print(';'.join(errs))
     return 0 if not errs else 2

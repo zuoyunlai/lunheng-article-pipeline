@@ -14,6 +14,8 @@ test_changelog_fill_idempotent.py — changelog-check.py --fill 幂等性回归�
   - render_changelog()：render(render(x)) == render(x)，且每章节恰好一条分隔行
 """
 import importlib.util
+import inspect
+import re
 from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
@@ -103,3 +105,39 @@ def test_split_detects_all_sections():
     _, sections = cc.split_changelog(text)
     assert len(cc.HEADING_RE.findall(text)) == len(sections)
     assert all(v.startswith("v") for v, _ in sections)
+
+
+# --------------------------------------------------------------------------
+# 3. v2.12.67 README「当前版本」块容量门（审计 P2-4）
+# --------------------------------------------------------------------------
+
+def _readme_prose_line(text):
+    return re.search(r"^\*\*v[0-9.]+\*\*（[^）]*当前版本[^\n]*$", text, re.M)
+
+
+def test_readme_prose_capacity_positive():
+    """真实 README：当前版本行存在且 ≤ 上限（正向门，堆叠式写法已改写为摘要）。"""
+    text = (SKILL_ROOT / "README.md").read_text(encoding="utf-8")
+    assert cc.readme_prose_gate(text) is None
+
+
+def test_readme_prose_capacity_oversize_detected():
+    """反向：当前版本行膨胀超上限（堆叠式 changelog 复述回潮）⇒ 必须报上限。"""
+    text = (SKILL_ROOT / "README.md").read_text(encoding="utf-8")
+    line = _readme_prose_line(text).group(0)
+    bad = text.replace(line, line + "（" + "历史版本全文复述。" * 40 + "）", 1)
+    err = cc.readme_prose_gate(bad)
+    assert err and "上限" in err, f"超限未检出：{err}"
+
+
+def test_readme_prose_capacity_missing_line_detected():
+    """反向：当前版本行被删 ⇒ 必须报缺行（与版本一致性断言互补的判据面）。"""
+    text = (SKILL_ROOT / "README.md").read_text(encoding="utf-8")
+    line = _readme_prose_line(text).group(0)
+    err = cc.readme_prose_gate(text.replace(line + "\n", "", 1))
+    assert err and "缺" in err, f"缺行未检出：{err}"
+
+
+def test_readme_prose_capacity_gate_is_wired():
+    """接线：cmd_check 必须调用 readme_prose_gate（防门空转——函数在、没人调，教训 #421 同族）。"""
+    assert "readme_prose_gate" in inspect.getsource(cc.cmd_check)

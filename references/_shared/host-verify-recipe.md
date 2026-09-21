@@ -1,4 +1,4 @@
-> 版本：v2.12.66（自动同步 2026-09-20）
+> 版本：v2.12.67（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
@@ -59,3 +59,13 @@ sha256sum -c final/定稿.sha256
 ---
 
 > **维护提示**：本文件是「主人操作类」模板的**汇聚点**。新增任何「终检后由主人手动执行」的动作时，命令写进本文件或对应专文后在 [`asset-index.md`](asset-index.md) 登记，**不要**在角色卡里重列命令（防口径漂移）。
+
+## 六、平台升级冒烟检查（v2.12.67，审计 P2-1）
+
+> **背景**：`SKILL.md` frontmatter 的 `version` 置于 `metadata.openclaw` 下是**兼容性 workaround**（bundled 校验器拒顶层 `version`，官方文档未记载该子键语义）⇒ OpenClaw 升级可能改变校验/加载行为。**每次升级 OpenClaw 后**，维护者执行：
+
+1. `python3 ~/.npm-global/lib/node_modules/openclaw/skills/skill-creator/scripts/quick_validate.py SKILL.md`（存在则跑；路径变了以 `npm root -g` 定位）——通过/失败都记录；
+2. 重载本 skill 后目视确认版本头正常显示、角色卡可读（加载冒烟）；
+3. 跑一次 `scripts/self-audit-gate.sh`（含门 T 官方校验段），全绿才算升级兼容。
+
+> 本节属维护者操作（不随包消费面）；发现校验行为变化 ⇒ 按 v2.12.13 方案 3.6 的思路重新评估 frontmatter 结构并记教训。
