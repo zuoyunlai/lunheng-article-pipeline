@@ -953,6 +953,21 @@ def main():
                 errs.append(f'{_lbl42} 缺「{_need42}」（规则 42：超长报告分片预申报不得从载体静默消失，'
                             f'真源 = _shared/执行韧化协议-exec.md §6）')
 
+    # 43 G15/G16 写作质量门跨载体一致性（v2.12.68，借 writing-guard）：主张强度校准 + 上下文泄漏
+    #    两项写作质量门不得从真源（audit-checklist-quickref.md）或 T7 dispatch 载体静默消失。
+    #    真源 = _shared/audit-checklist-quickref.md；T7 dispatch 是派发载体（一条款一真源，
+    #    本规则只锁存在性，不复制判据全文 —— 防两套判据漂移）。
+    _C43_CARRIERS = (
+        ('G 门真源', 'references/_shared/audit-checklist-quickref.md'),
+        ('T7 dispatch', 'references/dispatch/T7-审计.md'),
+    )
+    for _lbl43, _rel43 in _C43_CARRIERS:
+        _t43 = (_R / _rel43).read_text(encoding='utf-8')
+        for _need43 in ('G15 主张强度', 'G16 上下文泄漏'):
+            if _need43 not in _t43:
+                errs.append(f'{_lbl43} 缺「{_need43}」（规则 43：G15/G16 写作质量门不得从载体静默消失，'
+                            f'真源 = _shared/audit-checklist-quickref.md）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

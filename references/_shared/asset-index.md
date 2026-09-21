@@ -1,4 +1,4 @@
-> 版本：v2.12.67（自动同步 2026-09-21）
+> 版本：v2.12.68（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -34,7 +34,7 @@
 | **T4** 分析 | 论点-论据映射 + 反方规划 + 三角验证 | `analysis/分析大纲.md` |
 | **T5** 写作 | 初稿 + 修订（引用标 [Lxx]、数字标 [Dxx]、案例标 [Cxx]） | `drafts/初稿-vN.md` |
 | **T6** 批判 | C1-C7 七维批判（攻击 v2 不是 v1） | `analysis/批判报告-vN.md` |
-| **T7** 审计 | G0-G14 独立审计（只审不改） | `audits/审计报告-vN.md` |
+| **T7** 审计 | G0-G16 独立审计（只审不改） | `audits/审计报告-vN.md` |
 | **T8** 终检 | 可发表性 48 项终检（主控亲完成，不 spawn） | `final/定稿.md` + 交付说明 |
 | **T9** 同行评审 | 6 维度评分（行业/学术默认开启，公众号可选） | `audits/审稿报告-vN.md` |
 
@@ -56,7 +56,7 @@
 
 **T9 同行评审**（行业/学术默认开启，公众号默认关闭）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject。详见 [`references/agents/09-审稿-peer-reviewer.md`](../agents/09-审稿-peer-reviewer.md) + [`references/templates/审稿报告-template.md`](../templates/审稿报告-template.md)。
 
-**G14 中文 AI 痕迹深度检测闸**：8 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌），**LLM 推理判定**（零 exec 依赖）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → `t5_style_revision`（仅风格层，不重跑 G14）。详见 [`references/gates/14-中文AI痕迹-gate.md`](../gates/14-中文AI痕迹-gate.md)。**目标语言含中文即必跑（非可选）；位置 = Phase 4.4 前置（`g14_style_gate`），全流程只审一次**。  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
+**G14 中文 AI 痕迹深度检测闸**：9 类检测维度（学术模板语 / 句式同质化 / 学术套话高频 / 破折号滥用 / 三项排比 / 人称错位 / 个人辨识度缺失 / 党报话语堆砌 / 防御性写作），**LLM 推理判定**（零 exec 依赖）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → `t5_style_revision`（仅风格层，不重跑 G14）。详见 [`references/gates/14-中文AI痕迹-gate.md`](../gates/14-中文AI痕迹-gate.md)。**目标语言含中文即必跑（非可选）；位置 = Phase 4.4 前置（`g14_style_gate`），全流程只审一次**。  <!-- G14 九类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列九类） -->
 
 ## 核心文档索引（按需加载）
 
@@ -72,7 +72,7 @@
 | 错误友好化（12 类常见错误）| [`errors.md`](../errors.md) | 出错时查 |
 | 配图 + 写手禁做 + 成本模型 | [`operations.md`](../operations.md) | Phase 4.4 |
 | 证据检索边界（能/不能主动采集，判断口诀「这是已发布证据吗」）| [`phase-1-details.md`](phase-1-details.md)「检索边界」| Phase 1 |
-| G0-G14 审计详解 | [`audit-checklist-quickref.md`](audit-checklist-quickref.md) | Phase 4 |
+| G0-G16 审计详解 | [`audit-checklist-quickref.md`](audit-checklist-quickref.md) | Phase 4 |
 | M 门算法完整规约 | [`M-Gate-Algorithm.md`](M-Gate-Algorithm.md)（🟠 分片必读：伪代码段必读 / 附录按需 → [`M-Gate-Algorithm-appendix.md`](M-Gate-Algorithm-appendix.md)）| 跑 M 门前 + T8 终检前 |
 | 实战案例库（商业热点 / 品牌一致性 / 原创性悖论）| [`case-studies.md`](../case-studies.md) | 参考 |
 

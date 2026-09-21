@@ -1,4 +1,4 @@
-> 版本：v2.12.67（自动同步 2026-09-21）
+> 版本：v2.12.68（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -79,7 +79,7 @@
 - **Phase 3.5 洞察补充**: ⬜ Inbox → 🔄 In Progress → ✅ Done（主人确认日期, 洞察内容或「无补充」决策）
 - **T6 批判伙伴**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, C1-C7 报告）
 - **Phase 1.5 定向回查**: ⬜ not_triggered（必须写未触发依据）→ 🔄 triggered → ✅ Done（YYYY-MM-DD HH:MM, T1b 回查报告 + T2.5 重跑）
-- **G14 中文 AI 痕迹闸**（Phase 4.4 前置，定稿前唯一一次）: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 8 类检测, Pass/Warning/Fail；纯外语 → n/a）  <!-- G14 八类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列八类） -->
+- **G14 中文 AI 痕迹闸**（Phase 4.4 前置，定稿前唯一一次）: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 9 类检测, Pass/Warning/Fail；纯外语 → n/a）  <!-- G14 九类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列九类） -->
 - **T7 审计**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 审计报告-vN.md + 反哺报告-vN.md）
 - **修订回环**（≤2 轮）: ⬜ Inbox → 🔄 第 1 轮 → ✅ Done / 🔄 第 2 轮 → ✅ Done / 🔒 Acknowledged Limitations 模式  <!-- 本行仅为 status 状态取值；轮次映射与各通道判定的真源 = _shared/pipeline-overview.md『修订回环仲裁规则』（本行不复述轮次定义） -->
 - **T7.5 完整性门**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 主控 checkpoint）
@@ -192,7 +192,7 @@
 - ▲ **T1 覆盖**：某主题文献可能偏窄（仅 X 篇核心），下一步计划补检
 - ▲ **T2 数据**：「某数据」最新数据待 G11 时效校验
 - ▲ **T3 案例**：某事件案例可能涉及未公开信息，需谨慎引用
-- ▲ **G14 痕迹**：8 类检测维度若有命中，按闸门规则触发修订
+- ▲ **G14 痕迹**：9 类检测维度若有命中，按闸门规则触发修订
 - ▲ **依赖外部**：论衡核心是 LLM 推理 + 文件读写 + Web 检索，若工具不可用自动降级
 
 ### 4.6 本轮模型分配（Phase 0 静态映射）

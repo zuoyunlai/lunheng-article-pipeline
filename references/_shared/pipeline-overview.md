@@ -1,4 +1,4 @@
-> 版本：v2.12.67（自动同步 2026-09-21）
+> 版本：v2.12.68（自动同步 2026-09-21）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -28,7 +28,7 @@
 | 9 | `current_draft_sync` | Phase 3.6 前置 | 主控（亲为） | `drafts/current_draft.md`（权威稿指针） |
 | 10 | `t6_critique` | Phase 3.6 | T6（轻量档必跳） | `analysis/批判报告-vN.md`（攻击**含主人洞察的 v2**） |
 | 11 | `t5_feedback_revision` | Phase 3.7 | T5（条件触发） | `drafts/初稿-v{N+1}.md` + `drafts/修订说明-v{N+1}.md` |
-| 12 | `t7_audit` | Phase 4 | T7 | `audits/审计报告-vN.md`（G0-G13；G14 已迁出） |
+| 12 | `t7_audit` | Phase 4 | T7 | `audits/审计报告-vN.md`（G0-G13 + G15-G16；G14 已迁出） |
 | 13 | `audit_revision` | Phase 4.2 | T5（有界回环） | 修订稿 + 修订说明；`max_rounds: 2`，耗尽走三选一 |
 | 14 | `t7_5_integrity` | T7.5 完整性门 | 主控 checkpoint | `final/M-Gate-Report-*.json`（**审完才放行 T9/T8**） |
 | 15 | `g14_style_gate` | Phase 4.4 前置（G14 风格闸） | G14（含中文必跑） | `audits/G14-检测报告-vN.md`（**全流程只审一次**） |

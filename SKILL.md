@@ -4,7 +4,7 @@ description: "学术论文/深度长文/行业分析流水线：含同行评审�
 metadata:
   openclaw:
     # v2.12.13（方案 3.6）：version 迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName；其下未知子键加载器忽略（无官方依据）。读版本脚本已支持缩进写法。
-    version: 2.12.67
+    version: 2.12.68
     requires:
       bins: []
   tools:
@@ -24,7 +24,7 @@ metadata:
     # T8 = [] 主控亲完成，不 spawn
   # 不设 cwd_default：设了会被解析到 skill 目录内（项目跑进技能文件夹）；spawn 的 cwd 必须绝对路径
 ---
-> 版本：v2.12.67（自动同步 2026-09-21）
+> 版本：v2.12.68（自动同步 2026-09-21）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
@@ -76,7 +76,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）+ [`glossary-full.md`](references/_shared/glossary-full.md)（核心概念单一真源）
 2. **目标语言确认**：只确认**产出语言**（写入任务简报「目标语言」字段，**不设默认**）；**明确不收集使用者身份 / 国籍 / 语种背景**
 3. **spawn 前必读对应派发话术**（`references/dispatch/` 10 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
-4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G14 必查项 + M 门算法）
+4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G16 必查项 + M 门算法）
 5. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
 6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1/T2/T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 15 分钟/**900s** · T7 12 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
 
@@ -119,9 +119,9 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 **角色速查**（10 角色卡 + G14）：T1 文献 · T2 数据 · T3 案例 · T4 分析 · T5 写手 · T6 批判 · T7 审计 · T8 终检 · T9 同行评审 · G14 中文 AI 痕迹检测闸（T8 = 主控亲为）。
 
 
-**审计必查项**（G0-G14）→ [`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + 速查 [`audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md)；G11/G12/M 门三层 → [`M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)（🟠 分片必读）。
+**审计必查项**（G0-G16）→ [`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + 速查 [`audit-checklist-quickref.md`](references/_shared/audit-checklist-quickref.md)；G11/G12/M 门三层 → [`M-Gate-Algorithm.md`](references/_shared/M-Gate-Algorithm.md)（🟠 分片必读）。
 
-**G14 中文 AI 痕迹闸**：8 类判定（真源 = [`gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二 + [`checkers/中文AI痕迹-checker.md`](references/checkers/中文AI痕迹-checker.md)，**判定分档与处置本节不重列**）；**LLM 推理判定**（零 exec）。适用性与位置见上「Phase 0 定案」段。
+**G14 中文 AI 痕迹闸**：9 类判定（真源 = [`gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二 + [`checkers/中文AI痕迹-checker.md`](references/checkers/中文AI痕迹-checker.md)，**判定分档与处置本节不重列**）；**LLM 推理判定**（零 exec）。适用性与位置见上「Phase 0 定案」段。
 
 **T8 终检可发表性判据**：48 项（6 维度）唯一真源 = [`可发表性判定表.md`](references/_shared/可发表性判定表.md)（各处只引用不罗列）。
 

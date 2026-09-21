@@ -5,14 +5,14 @@ test_rules_consistency.py — 论衡 T9 评分规则 + G14 检测规则一致性
 
 背景（第三方全量审计 P1-3）：
   论衡的 M 门已有 15 项格式测试（test_m_gate.py），但 T9 同行评审（6 维度评分）
-  与 G14 中文 AI 痕迹闸（8 类检测）这两个「规则型算法」零测试覆盖。
+  与 G14 中文 AI 痕迹闸（9 类检测）这两个「规则型算法」零测试覆盖。
   T9/G14 与 M 门一样是 LLM 推理判定，无法测「行为正确性」，但可以测
   「规则定义一致性」——即维度数、阈值档位在多文件间不漂移（防「改 A 漏 B」）。
 
 测试范围：
   - T9 6 维度（原创性/方法论/证据强度/论证结构/写作质量/引文规范）三处一致
   - T9 阈值 4 档（accept 26-30 / minor 21-25 / major 16-20 / reject <16）一致
-  - G14 8 类检测维度（学术模板语…党报话语堆砌）三处一致
+  - G14 9 类检测维度（学术模板语…防御性写作）三处一致
   - G14 阈值 3 档（0-2 Pass / 3-4 Warning / 5+ Fail）一致
 
 设计原则（对齐 test_m_gate.py 教训 #177）：
@@ -83,16 +83,17 @@ def test_T9_4_tiers_consistency():
 
 
 # =============================================================================
-# G14 中文 AI 痕迹闸：8 类检测维度一致性
+# G14 中文 AI 痕迹闸：9 类检测维度一致性
 # =============================================================================
 G14_CATEGORIES = [
     "学术模板语", "句式同质化", "学术套话高频", "破折号滥用",
     "三项排比", "人称错位", "个人辨识度缺失", "党报话语堆砌",
+    "防御性写作",
 ]
 
 
-def test_G14_8_categories_consistency():
-    """G14 的 8 类检测维度在 gate 文档 + 检测器 + SKILL.md 三处齐全（防漂移）"""
+def test_G14_9_categories_consistency():
+    """G14 的 9 类检测维度在 gate 文档 + 检测器 + SKILL.md 三处齐全（防漂移）"""
     gate = _read(G14_GATE)
     checker = _read(G14_CHECKER)
     skill = _read(SKILL)
@@ -100,13 +101,13 @@ def test_G14_8_categories_consistency():
     missing_gate = [c for c in G14_CATEGORIES if c not in gate]
     missing_checker = [c for c in G14_CATEGORIES if c not in checker]
 
-    # 真源（gate + 检测器）必须 8 类齐全
+    # 真源（gate + 检测器）必须 9 类齐全
     assert not missing_gate, f"G14 gate 文档缺维度: {missing_gate}"
     assert not missing_checker, f"G14 检测器缺维度: {missing_checker}"
     # SKILL.md（入口，受 10,000 字符棘轮约束）按单一真源纪律只留指针、不重列（v2.12.41 改）
-    assert "8 类判定" in skill, "SKILL.md 缺 G14「8 类判定」指针"
+    assert "9 类判定" in skill, "SKILL.md 缺 G14「9 类判定」指针"
     assert "gates/14-中文AI痕迹-gate.md" in skill, "SKILL.md 缺 G14 真源指针"
-    print(f"  ✓ G14-8类: gate/检测器真源齐全；SKILL.md 留指针（不重列，防漂移+保字符预算）")
+    print(f"  ✓ G14-9类: gate/检测器真源齐全；SKILL.md 留指针（不重列，防漂移+保字符预算）")
 
 
 # =============================================================================
@@ -211,6 +212,25 @@ def test_G14_selfcheck_threshold_consistency():
     bad = re.findall(r"(?:selfcheck|轻量档)[^）)\\n]{0,30}?≤\s*2000", gate)
     assert not bad, f"G14 gate 存在 ≤2000 字矛盾口径: {bad}"
     print("  ✓ G14 轻量档阈值: gate 与字数判定表一致（2000-3000 字，无 ≤2000 矛盾口径）")
+
+
+# =============================================================================
+# G15/G16 写作质量门一致性（v2.12.68 新增，借 writing-guard）
+# =============================================================================
+G15_G16_TERMS = ("G15 主张强度", "G16 上下文泄漏")
+
+
+def test_G15_G16_writing_quality_gates_consistency():
+    """G15 主张强度 + G16 上下文泄漏在真源 + T7 dispatch 两处齐全（防漂移）"""
+    quickref = _read(ROOT / "references" / "_shared" / "audit-checklist-quickref.md")
+    t7 = _read(ROOT / "references" / "dispatch" / "T7-审计.md")
+
+    missing_quickref = [t for t in G15_G16_TERMS if t not in quickref]
+    missing_t7 = [t for t in G15_G16_TERMS if t not in t7]
+
+    assert not missing_quickref, f"audit-checklist-quickref.md 缺 G15/G16: {missing_quickref}"
+    assert not missing_t7, f"T7 dispatch 缺 G15/G16: {missing_t7}"
+    print("  ✓ G15/G16: 真源 + T7 dispatch 两处齐全（写作质量门不漂移）")
 
 
 # =============================================================================

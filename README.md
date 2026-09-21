@@ -1,4 +1,4 @@
-> 版本：v2.12.67（自动同步 2026-09-21）
+> 版本：v2.12.68（自动同步 2026-09-21）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -14,7 +14,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.12.67**（2026-09-21，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**审计第七批整改（P1×3 + P2×5）**：只读档超长报告**分片预申报协议**（flow-check 规则 42）+ 性能基准四维登记表 + flow-check 规则集**元健康度门**；P2 五项：平台升级冒烟 / glossary 漂移清理 / 心跳归属标识 / README 版本块容量门 / G14 时点有效性诚实边界。详见 CHANGELOG §v2.12.67。
+**v2.12.68**（2026-09-21，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**写作质量三门（借 writing-guard，批次 0）**：G14-I 防御性写作（8→9 类）+ G15 主张强度校准（双轴）+ G16 上下文泄漏反向反查；G 门计数收口（G0-G14 → G0-G16）。详见 CHANGELOG §v2.12.68。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -128,7 +128,7 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.67  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.68  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 
