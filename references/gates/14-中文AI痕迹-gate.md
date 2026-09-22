@@ -7,10 +7,10 @@
 > **版本**：v2.6.3（2026-09-06）
 > **性质**：闸门（Gate），LLM 推理判定（规则硬性，非机器执行）
 > **位置**：`t7_5_integrity → g14_style_gate → phase4_4_figures`（别名「Phase 4.4 前置（G14 风格闸）」）—— **定稿前的最后一道闸**
-> **触发次数**：**全流程只审一次、不再复检**（`rerun_after_report: false`；`audit_revision.after_each` 的 `rerun_g14_if_enabled` 已删）
+> **触发次数**：**全流程只审一次；风格修订后例外复检一次**（`rerun_after_report: false`；`t5_style_revision` 后执行 `rerun_g14_style_recheck`）
 > **适用性（非可选）**：由 Phase 0「目标语言」字段**客观决定**（`condition: target_language_includes_zh`）——含中文 → 必跑；纯外语 → `n/a`（客观不适用，非「关闭」）
 > **执行前提**：`precondition: 已可定稿（前置修订已收敛）` —— 前置修订尚未收敛时**不执行**本闸
-> **失败后果**：**3-4 类 ⚠️ Warning → 主控暂停呈报（3 选 1，不默认自动继续）**；5+ 类 ❌ Fail → 触发 `t5_style_revision`（T5 最后一次**仅风格层**修订）→ 进 Phase 4.4（**不重跑 G14**）
+> **失败后果**：**3-4 类 ⚠️ Warning → 主控暂停呈报（3 选 1，不默认自动继续）**；5+ 类 ❌ Fail → 触发 `t5_style_revision`（T5 最后一次**仅风格层**修订）→ 执行一次轻量 `rerun_g14_style_recheck`（仅风格维度）→ 进 Phase 4.4
 
 ## 一、设计哲学
 
@@ -85,7 +85,9 @@ g14_report_header:
 
 **适用性**：G14 是**客观适用**、非可选的闸（详见 §一）。适用/不适用由 Phase 0「目标语言」字段决定 —— **含中文 → 必跑**；**纯外语 → `n/a`**（客观不适用，非「关闭」）。报告头须绑定 `draft_id` / `draft_version`。
 
-**触发次数与位置**：**全流程只审一次、不再复检**。位置 = `t7_5_integrity → g14_style_gate → phase4_4_figures`（别名「Phase 4.4 前置（G14 风格闸）」）—— **定稿前的最后一道闸**。`rerun_after_report: false`；`audit_revision.after_each` 中的 `rerun_g14_if_enabled` 已删除，任何一轮修订都不再触发 G14 重跑。
+**触发次数与位置**：**全流程只审一次；风格修订后例外复检一次**。位置 = `t7_5_integrity → g14_style_gate → phase4_4_figures`（别名「Phase 4.4 前置（G14 风格闸）」）—— **定稿前的最后一道闸**。`rerun_after_report: false`；`audit_revision.after_each` 中的 `rerun_g14_if_enabled` 已删除，任何一轮**内容修订**都不再触发 G14 重跑。
+
+**风格修订后复检（v2.12.70 收口，P1-3）**：`t5_style_revision` 完成风格修订后，必须**重跑一次轻量 G14 风格复检**（`rerun_g14_style_recheck`：仅风格维度判定、主控亲为 read 判定、不 spawn）—— 保证 G14 审计的是**最终定稿前版本**，指纹对齐，不回落到风格修订前的旧稿。复检不过 → 回 `t5_style_revision` 重改；复检过 → 才进 `phase4_4_figures`。
 
 **执行前提**：`precondition: 已可定稿（前置修订已收敛）` —— 前置修订尚未收敛（`audit_revision` 未退出 / 仍有未决 P0·P1 修订项 / 尚不能定稿）时**不执行本闸**，先完成修订；进入「可定稿」状态才开闸（业主原话：「T5 之前若有修订但还不能定稿，则 G14 还是不执行」）。
 

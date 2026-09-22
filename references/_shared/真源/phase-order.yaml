@@ -5,7 +5,7 @@
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
 # 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_critique；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.4 前置 = g14_style_gate**；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
 # ⚠️ v2.12.40（业主定案 A1/A2）：G14 由「Phase 3.6 与 T6 同批、且每轮修订后复检」迁至「**Phase 4.4 前置**」，语义变为
-#   「**定稿前的最后一道闸，全流程只审一次、不再复检**」；不再是可选项（按 Phase 0「目标语言」字段客观适用）。
+#   「**定稿前的最后一道闸；风格修订后例外复检一次**」；不再是可选项（按 Phase 0「目标语言」字段客观适用）。
 #   **执行前提 = 「已可定稿」**：前置修订尚未收敛（还不能定稿）时**不执行 G14**；G14 检查后由 T5 做**最后一次**（仅风格层）修订。
 #   详见 `g14_style_gate` / `t5_style_revision` 节点注，以及 references/gates/14-中文AI痕迹-gate.md §四。
 # ⚠️ v2.12.27：本映射表是**进度标签的唯一真源** —— 主控呈现 Phase 标签时必须取自此处，**不得自创**（实测教训：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计）
@@ -208,6 +208,13 @@ architecture:
   owner_nodes: [phase0_definition, phase2_5_outline, phase3_5_insight, pre_spawn_enforcement, t2_5_integrity, current_draft_sync, t7_5_integrity, phase4_4_figures, final_assembly, t8_technical_final, methodology_snapshot, phase5_acceptance]
   worker_failure_policy: owner_takeover_with_disclosure
   fallback_is_not_equivalent: true
+# ⚠️ P0-3：版本号 vN 只随闸门里程碑推进；minor 自修走 vN.m；风格修订走 vN-style。
+version_numbering:
+  milestone_rule: vN 整数位只由闸门节点推进（phase3_5_insight / t5_feedback_revision / audit_revision）
+  minor_patch: vN.m           # 字数/图位/AI味/M门/术语 → 只推进小数位，不推进整数位
+  style_revision: vN-style    # G14 风格修订 → 独立标识，不进 vN 序列
+  milestones: [v1|t5_draft_v1, v2|phase3_5_insight, v3|t5_feedback_revision, v4|audit_revision, v5|audit_revision]
+  detail: pipeline-overview.md『修订回环仲裁规则』   # 判定口径真源
 condition_definitions:
 # ⚠️ v2.12.54 R-4：每条条件定义必须登记生产方（producer + producer_marker），否则构建期红（规则 25）。
 #   实测：t9_review 依赖 owner_peer_review_consent 而全仓无生产方 ⇒ 节点静默不触发。
@@ -227,7 +234,7 @@ condition_definitions:
   T6_requires_revision:
     requires: [t6_report_p0_or_p1]
     producer: references/agents/06-批判-critical-companion.md
-    producer_marker: "P0"
+    producer_marker: "否决项清单"   # P1-1：高可攻击性/砍论点 ⇒ 视为 P0/P1 否决项
   T7_P0_or_P1:
     requires: [t7_report_p0_or_p1]
     producer: references/dispatch/T7-审计.md
@@ -420,10 +427,9 @@ pipeline:
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
     condition_undecidable: report_to_owner   # v2.12.54 R-6：T6 报告不可读/缺失 ⇒ 呈主人（不得静默按未触发跳过）
-    condition: T6_requires_revision   # 命中定义：T6 批判报告含任何 P0/P1 否决项（无 = 不命中）
-                                      # v2.12.40：G14 已迁出本节点（迁至 Phase 4.4 前置，且只审一次）
+    condition: T6_requires_revision   # 命中 = 报告头部「P0/P1 否决项清单」非空（高可攻击性/砍论点 ⇒ 否决项）
     on_not_triggered: record_not_triggered_in_status   # v2.12.28：未触发也必须在 status.md 留痕（防「未触发」与「漏跑」不可分）
-    after_each: [current_draft_sync]   # v2.12.37 审计 P0-2：Phase 3.7 产出 v{N+1} 后必须刷新 drafts/current_draft.md，否则 t7_audit 读旧稿 → 修订内容静默逃过 T7 审计（与 audit_revision 同型，原只修了后一分支）
+    after_each: [current_draft_sync]   # P2-1：本节点非 bounded_loop，`after_each` = 单次执行后刷新。产出 v{N+1} 后必须刷新 current_draft.md，否则 T7 读旧稿。
     next: t7_audit
   - id: t7_audit
     phase: "Phase 4"
@@ -455,7 +461,7 @@ pipeline:
     #   三项**无默认**；不得「按最保守项自动继续」；也不得「P2=1 ⇒ 自动接受」。
     rounds_exhausted_outlet:
       trigger: max_rounds_used AND has_unresolved_defects
-      unresolved_levels: [P0, P1, P2]
+      unresolved_levels: [P0, P1]   # P2 移除（归 T8 inline 亲修，不触发修订）
       owner_decision:
         - id: accept_with_limitations
           label: 接受现状 + Acknowledged Limitations
@@ -501,7 +507,7 @@ pipeline:
     write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
-    rerun_after_report: false   # v2.12.40 业主定案 A1：**全流程仅 1 次**；audit_revision.after_each 的 rerun_g14_if_enabled 已删
+    rerun_after_report: false   # 全流程仅 1 次（v2.12.40 A1）；例外 = t5_style_revision 后复检一次（P1-3）
     rerun_after_post_acceptance: true   # v2.12.49 M-2：终态后修改 final/ 或 drafts/current_draft.md ⇒ 必须重跑 G14（与「rerun_after_report」互不覆盖；「rerun_after_report」指报告落盘后激活，本字段指跨过终态后必重启）
     # 执行前提（业主定案 A2：「T5 之前若有修订但还不能定稿，则 G14 还是不执行」）：
     #   本闸是**定稿前最后一道闸**。前置修订尚未收敛（audit_revision 未退出 / 仍有未决 P0·P1 修订项 / 尚不能定稿）
@@ -536,7 +542,7 @@ pipeline:
     condition: G14_requires_style_revision   # 命中定义：G14 判定 5+ 类 Fail（其余档位 = 不命中）
     on_not_triggered: record_not_triggered_in_status
     boundary: 仅风格层改动（10 类 AI 痕迹清单）；不得改动论证结构、数据、引用、结论
-    after_each: [current_draft_sync]   # 修订后必须重刷 current_draft.md，供配图与定稿组装取用
+    after_each: [current_draft_sync, rerun_g14_style_recheck]   # P1-3：刷新后重跑轻量 G14 风格复检（动作名，同 rerun_t7；主控亲为、不 spawn）
     next: phase4_4_figures
   - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
     phase: "Phase 4.4"

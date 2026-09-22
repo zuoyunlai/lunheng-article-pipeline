@@ -1065,12 +1065,13 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|74028,references/_shared/真源/M-Gate-Algorithm.md|84274,references/_shared/真源/phase-order.yaml|55328"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|74063,references/_shared/真源/M-Gate-Algorithm.md|84274,references/_shared/真源/phase-order.yaml|55967"
 # ⚠️ v2.12.70 扩容备案（A-治理瘦身分层 · 审计 P2-6 要求的「扩容说明」）：三个大文件微增，
 #   原因 = `_shared/` 分层为 真源/ + 治理/ 后，大文件内引用的 `_shared/xxx.md` 前缀统一变为
 #   `_shared/真源/xxx.md` / `_shared/治理/xxx.md`（每次引用 +3 字节），属**路径前缀机械变长**，
 #   非内容膨胀：00-主控 73538→74028（+490）/ M-Gate 84250→84274（+24）/ phase-order 55272→55328（+56）。
 #   分层完成后若后续做归档外移/内容瘦身，按实下调本节所有上限（只许降）。
+# ⚠️ v2.12.70 修订回环规则增补备案：00-主控与 phase-order 增加版本号、T6/G14/P2 边界真源映射；上限同步至本次增补后的实测值，非为掩盖无关内容膨胀。
 # ⚠️ v2.12.65 扩容备案（审计 P2-6 要求的「扩容说明」）：phase-order.yaml 54651 → 55272（+621 B），
 #   原因 = 新增顶层 `silence_doctrine` 单一真源（跨状态机「静默 ≠ 有效决策」不变式 + 挂起类处置枚举），
 #   配套 flow-check 规则 40 双向投影校验。该段是**真源内容**（非注释膨胀），同时已把头部 ⑬ 的 S-3

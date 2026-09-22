@@ -362,36 +362,7 @@ sessions_yield 等待 T6 完成
 
 ### T6 处理（修订轮次判定）
 
-**主控收到 T6 批判报告后，判断修订轮次**：
-
-```python
-if T6_严重问题 > 0:
-    修订轮次 = 2
-elif T6_中等问题 > 3:
-    修订轮次 = 1
-else:
-    修订轮次 = 0  # 直接进入 Phase 4
-```
-
-**修订流程**：
-```
-if 修订轮次 > 0:
-    主控 spawn T5 写手 v3：
-        任务：回应 T6 反馈
-        输入：
-            - drafts/初稿-v2.md
-            - analysis/批判报告-v2.md
-        输出：
-            - drafts/初稿-v3.md
-            - drafts/修订说明-v3.md
-    
-    进入：Phase 4（T7 审计 v3）
-
-else:
-    进入：Phase 4（T7 审计 v2）
-```
-
-> ⚠️ G14 不参与本判定（已迁至 Phase 4.4 前置）；其失败出口见 `t5_style_revision`。
+> 📎 **T6 处理后是否触发修订、触发几轮 → 见 [`pipeline-overview.md`](pipeline-overview.md)「修订回环仲裁规则」+ [`phase-order.yaml`](phase-order.yaml) `t5_feedback_revision.condition`**（单一真源；旧「按严重问题数给 0/1/2 轮」算法已废弃，不复述）。
 
 ---
 
@@ -414,7 +385,7 @@ else:
 
 ## 修订回环仲裁（指针）
 
-> 📎 **轮次计数唯一真源 = [`pipeline-overview.md`](pipeline-overview.md)「修订回环仲裁规则」**（v2.12.54 主人裁定，2026-09-18）。**本文件不复述轮次映射**（复述即再漂一次）：轮次预算的覆盖范围、不计轮项、minor 修补通道与超限例外通道的**完整仲裁表一律以该节为准**。版本文件编号（vN）随每次修订递增，**轮次计数与之分离**。
+> 📎 **轮次计数唯一真源 = [`pipeline-overview.md`](pipeline-overview.md)「修订回环仲裁规则」**（v2.12.54 主人裁定，2026-09-18）。**本文件不复述轮次映射**（复述即再漂一次）：轮次预算的覆盖范围、不计轮项、minor 修补通道与超限例外通道的**完整仲裁表一律以该节为准**。版本文件编号 **vN 只随闸门里程碑推进**（v1 初稿 / v2 洞察 / v3 批判 / v4·v5 审计）；minor 自修订走 vN.m 子版本，不推进整数位；**轮次计数与 vN 分离**。
 
 ---
 
