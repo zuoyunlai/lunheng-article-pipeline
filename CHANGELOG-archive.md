@@ -6,6 +6,26 @@
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
 > 部分历史条目链接指向 `docs/` 或 `../outputs/` 中的当时产物，已随清理移除或归档——属史料，不影响当前使用。
 
+
+## [v2.12.68] — 2026-09-21
+
+- **写作质量三门（借 DSH writing-guard，批次 0）**，主人 2026-09-21 指令「依次开始修订」——对 2026-09-21 优化方案「H 类：写作质量守门」首批落地。A-G 七项优化聚焦「工程/治理/性能」，H 类补的恰是论衡作为写作技能**最该强、当前测试零覆盖**的维度——写作质量与学术规范的机械守门。借鉴对象 `github.com/xmutfyh/dsh-plugin-writing-guard`（五层 guard：STYLE/EVIDENCE/JOURNAL/DELIVERY/DOCUMENT），**只借鉴方法论、不引入其 exec 实现**（论衡零 exec 路线不变，全部 LLM 推理判定 + 判据真源 + 反向注入测试落进既有体系）。
+
+- **① H1 · G14-I「防御性写作」检测维度（8 类 → 9 类）**：借 STYLE 层「argument economy」——检测「写手怕被驳 → 堆防御句」的语义级症状（理由前置「为防止X我们采用Y」/ 元话语「值得注意的是」/ 自我辩护「本文并非要证明」/ 过度免责「本研究存在一定局限性」，任一 ≥3 处命中）。G14 原 8 类全是词袋级（模板语/句式/破折号/排比），**无语义级维度**；G14-I 补此空白。真源 = gates/14 §二 + checkers/中文AI痕迹-checker（8→9 类）；13 处派生载体同步（dispatch/agents/模板/设计文档/status/glossary/asset-index 等）；`test_rules_consistency.py` G14_CATEGORIES 加「防御性写作」、断言「8 类判定」→「9 类判定」。
+
+- **② H2 · G15「主张强度校准」（借 EVIDENCE 层「双轴主张模型」）**：对核心论点谓语动词做**双轴强度标记**（因果力 0-5：一致→相关→预示→贡献→影响→强因果；证据力 1-5：推测→相关→支持→直接→确立），修订/润色后**只能平移或变弱、禁止升档**（如「与…相关」→「导致」、或「可能」→「充分证明」= P1）。堵「润色时 correlated→caused 静默变强」的典型副作用。豁免窄口：修订说明记载新增证据支撑 + T7 核验证据真实 → 允许升档但须披露。落点：T7 审计 G 门（**内容语义审计归 G 门，非 M 门形式合规**——优化方案「M-Claim」命名按架构边界修正为 G15，避开 M 门 `==8/==3/==2` 机械静态锁）。
+
+- **③ H3 · G16「上下文泄漏反向反查」（借 DELIVERY 层「Context-to-Artifact Leakage」）**：反向反查四类「写作过程上下文」漏进成品——被否决方案 / 修订过程残留 / 来源 metadata 泄漏 / 防御性 hedge 泄漏，任一命中 = P1。G13 只声明 AI 身份、无反向反查机制，G16 补此空白。触发时机 = T7 审计 + T8 终检（两处覆盖，防 CAL 前漏后漏）。与 G14 风格净化、M-Form-4/5 元数据/过程语言互补。
+
+- **④ G 门计数收口（G0-G14 → G0-G16，17 → 19 项）**：G15/G16 入 T7 审计后，G 门总数 17 → 19 项（含 G0.5/G2.5 子项）。`audit-checklist-quickref.md`（真源）+ T7 dispatch + 07-审计 + 06-批判 + 09-审稿 + 08-终检 + 00-主控 + 设计文档 + glossary-full/core + asset-index + pipeline-overview + skill-entry-appendix + SKILL.md 共 14 文件同步计数（含「G0-G13；G14 已迁出」→「G0-G13 + G15-G16；G14 已迁出」）。
+
+- **⑤ 机械闭环**：flow-check **规则 43**（G15/G16 跨载体一致性，真源 + T7 dispatch 双 token 存在性）；`test_rules_consistency.py` 新增 `test_G15_G16_writing_quality_gates_consistency`（真源 + T7 dispatch 两处齐全，防漂移）。
+
+- **验收（实测回填 · 最终态）**：自审门 PASS 36 / FAIL 0；`python3 -m pytest tests/ -q` → **477 passed**（新增 1 条 G15/G16）；`python3 scripts/flow-check.py` RC=0（含新规则 43）；`python3 scripts/check-version.sh` 通过（v2.12.68）；`python3 scripts/changelog-check.py --check` RC=0。
+
+- **本批范围**：三个写作质量门（G14-I + G15 + G16）+ G 门计数收口 + flow-check 规则 43 + 1 条测试 + 记账。**无新增运行能力、无破坏性行为变更**（全部为判据/词表/计数层）。**未 tag、未 push**（发布动作等主人点头）。
+
+---
 ---
 
 ---
