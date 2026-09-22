@@ -1,4 +1,4 @@
-> 版本：v2.12.71（自动同步 2026-09-22）
+> 版本：v2.12.72（自动同步 2026-09-22）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -57,6 +57,24 @@
 **yield 超时** 3 分钟无事件 = 查 subagent 状态 + sessions_history；状态正常继续 yield，状态异常补 spawn。
 **超时取消（kill）** 子代理超硬卡阈值 → `subagents(action=cancel, taskId=<来自 list 的 taskId>)` 终止（零 exec 下唯一合法终止方式，不 exec kill 进程）；取消后再 `subagents(action=list)` 复核是否真停（取消可能不完整，未停则重试 cancel，幂等）。
 **完成事件幂等** 收到 Done 先查 status.md 是否已 Done，是 = duplicate 忽略。
+
+## 端到端活体冒烟协议（v2.12.72 批次 3-D）
+
+> **目的**：验证「构建期门全绿」之外的运行期链路：真实 spawn、落地、交接回传、审计链、M 门对账与 status.md 更新。冒烟**不进 CI**，每次升版或流程大改后由维护者/主人执行一次。
+
+### 两级范围
+
+- **L1 机制冒烟**：至少真实 spawn T1/T2 两个叶子 worker，核验 `spawn_landing`、心跳/产物落盘、completion 回传（含 Stats line 或如实记缺失）、主控交接复验；不自动通过任何 owner_checkpoint。
+- **L2 全流程冒烟**：约 3000 字轻量档，走 T1/T2 + T3 空卡协议 + T5 + T7 + T7.5 + G14 selfcheck + final assembly + T8；T6 必跳、T4 可省、T9 按轻量档决定。Phase 0/2.5/3.5/5 四个人在环节点仍须主人明确决策，测试模式不得把沉默当通过。
+
+### 通过判据与留痕
+
+1. 每个实际 spawn 均有 `spawn_landing: ok|missing|retry:<N>`，每个完成节点均通过「产物存在、数量对账、完成标记、新鲜度」复验。
+2. status.md 留 `smoke_level`、`smoke_run_id`、`smoke_started_at`、`smoke_finished_at`、`smoke_verdict`，并保留各节点 `spawn_landing` 与 M 门记录。
+3. L2 另核对 T2.5/T7.5、审计报告、最终交付说明和 status.md 的阶段状态互相对得上；任一缺失 = `fail`，不得用纸面门结果替代。
+4. 结果摘要回填 [`performance-benchmarks.md`](performance-benchmarks.md) §六；Stats line 缺失、worker 接管、owner 决策等待均如实登记。
+
+> ⚠️ **诚实边界**：冒烟消耗真实 token/子代理且受外部服务与主人决策影响；L1 不是内容质量验收，L2 也不等于每个主题的质量保证。冒烟只证明本次活体链路是否跑通，不得反推所有未来运行必然成功。
 
 ## 主控侧补充口径（原 `agents/00-主控-扩展职责.md` §二十三，v2.12.61 分层外移）
 

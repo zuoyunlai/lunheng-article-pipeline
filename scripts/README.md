@@ -6,7 +6,7 @@
 > 🔁 **派生视图**：本表由 `gen-scripts-index.py` 机械提取，**不承载新口径**。列源：**用途** = 脚本头部首个内容行；**用法** = 头部 `用法：` / `调用：` 行；**触发时机** = 头部 `触发：` 行；**make 入口** = `Makefile` recipe 中调用该脚本的目标。单元格里的「—」= 该脚本**未声明**该项（不是「不存在用法」；补口径请改脚本头，勿改本文件）。改了脚本头请跑 `make scripts-index` 刷新本文件；`tests/test_scripts_index.py` 会因本文件与 `scripts/` 不一致而报红（缺条目 / 残留已删条目 / 条目内容漂移）。
 > 📦 **本文件不进发布包**：`scripts/` 整目录由构建脚本排除，使用者侧不出现开发者工具链。
 
-共 **28** 个条目（`scripts/` 下除本索引自身以外的全部文件）。
+共 **30** 个条目（`scripts/` 下除本索引自身以外的全部文件）。
 
 | 脚本 | 用途 | 用法 | 触发时机（头部声明） | make 入口 |
 |---|---|---|---|---|
@@ -17,6 +17,8 @@
 | [`cleanup-skill-store.sh`](cleanup-skill-store.sh) | cleanup-skill-store.sh — 论衡技能库瘦身脚本 | — | 主人手动跑 / 每次发版前自动跑 | — |
 | [`create-github-release.sh`](create-github-release.sh) | create-github-release.sh — 从 CHANGELOG.md 建 / 同步 GitHub Release（一条命令） | bash scripts/create-github-release.sh [<tag>] [--dry-run\|--check] [--no-dispatch] | — | — |
 | [`flow-check.py`](flow-check.py) | 论衡流程图检查 | python3 scripts/flow-check.py → 无输出=通过；有输出=问题列表（分号分隔）。 | — | — |
+| [`flow-schema.lunheng.yaml`](flow-schema.lunheng.yaml) | flow-schema.lunheng.yaml — 论衡「跨载体一致性」规则的声明式演示实例（批次 4-B） | — | — | — |
+| [`flow-schema.py`](flow-schema.py) | flow-schema.py — 声明式「跨载体一致性」校验器（可复用治理引擎，批次 4-B） | python3 scripts/flow-schema.py [--schema scripts/flow-schema.lunheng.yaml] | — | — |
 | [`gen-scripts-index.py`](gen-scripts-index.py) | gen-scripts-index.py — 从各脚本头部注释生成 scripts/README.md 索引（纯派生视图） | python3 scripts/gen-scripts-index.py | — | `make scripts-index` |
 | [`incremental_m_gate.py`](incremental_m_gate.py) | 增量 M 门验证器 | — | — | — |
 | [`inject-lang-policy.py`](inject-lang-policy.py) | inject-lang-policy.py — 批量注入「语言政策」声明行（幂等） | python3 scripts/inject-lang-policy.py # 注入（幂等） | — | — |

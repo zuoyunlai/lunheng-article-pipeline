@@ -1,4 +1,4 @@
-> 版本：v2.12.71（自动同步 2026-09-22）
+> 版本：v2.12.72（自动同步 2026-09-22）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -25,6 +25,7 @@
 **架构**: 多 Agent 九角色流水线（固定，不设总开关）。**worker 接管记录**（每节点失败时填一行；无失败留空）：<角色 / 原因 timeout|failed|no_artifact / 接管者=主控 / L1 影响>。**不记录宿主配置明细、不记 deny 原文**——论衡不读取宿主配置，OpenClaw 平台负责多 Agent 运行与工具策略。
 **接管 L1 披露**: <无 worker 接管时填 `n/a`；有接管时必填：接管角色 / 原因 / 判定者=主控（L1）/ 交付说明须披露无法独立复核的残留风险>
 **运行性质**: 生产 / **测试模式**（测试模式 = phase2_5_outline / phase3_5_insight / phase5_acceptance 三个人在环节点自动通过；**必须在此 + 任务简报 + 交付说明三处同步披露**，v2.12.38；**v2.12.43：T8 终检机械核对三处一致，缺任一 = P1 并重跑终检**）
+**活体冒烟**: smoke_level=<n/a|L1|L2> / smoke_run_id=<n/a|唯一值> / smoke_started_at=<时间|n/a> / smoke_finished_at=<时间|n/a> / smoke_verdict=<pending|pass|fail>（L2 不得自动通过 owner_checkpoint）
 **M 门**: v2.2.12 / v2.5.x
 **数据信任档**: 全外发 / 混合 / 全人工（教训 #259，拓展，Phase 0 拍板）
   - 全外发：默认 web_search + tavily_search 检索，主人不投喂一手数据
@@ -142,6 +143,36 @@
   - sha256: unavailable            # v2.12.64：**主人侧量值**，host shell 补算后回填；未回填保持 unavailable，判定档 = pending_owner_verification（**禁止判通过**）
   - bytes: unavailable             # 同上（`wc -c` 可得；零 exec 下 agent 不可得）
   - 文本度量: <行数 / 字符数 / 首末行摘要>   # agent 侧可确知，`read` 后填
+
+### 4.8 主控上下文预算与余量检测（v2.12.72 E，防教训 #268）
+
+> 真源 = `phase-order.yaml` `pre_spawn_enforcement.context_budget_gate`；预算模型 = [`performance-benchmarks.md`](../_shared/真源/performance-benchmarks.md) §五。
+> **机械兜底边界**：窗口余量是运行期自观测，构建期无法机械校验；本段是纪律层 + 可追溯留痕，不宣称能机械拦截窗口压爆。
+
+**预算估算（Phase 0 后置）**: tier=<轻量|中段|重量> / 主控预算≈<N tokens> / 来源=performance-benchmarks.md §五 / 估算日期=<时间>
+**当前预算状态**: 已消耗≈<N tokens> / 余量=<百分比|unavailable> / 判定=<充足|偏低|危险|无法判定> / 超支=<否|overspend_alert>
+**阶段边界复核**（每个阶段追加一行，不覆盖历史）：
+- `<Phase/node>` | consumed≈<N> | margin=<百分比|unavailable> | verdict=<充足|偏低|危险|无法判定> | offload=<无|已指针化/局部读/停止非必要全文> | HH:MM
+
+### 4.9 status_json 机器可解析快照（v2.12.72 G）
+
+> **用途**：把本文件的人读留痕投影为可脚本化监控的 JSON 快照，供主人/维护者聚合性能指标并反哺 [`performance-benchmarks.md`](../_shared/真源/performance-benchmarks.md)。由主控在阶段边界整体重写；它是派生快照，不取代上方人读字段。
+> **诚实边界**：JSON 在运行期由主控写入，构建期只校验结构锚点；缺失值必须写 `null` / `unavailable`，禁止把未知伪装成 0 或通过。
+
+```json
+status_json: {
+  "project": "<项目名>",
+  "phase": "<phase-order.yaml node id>",
+  "updated_at": "YYYY-MM-DD HH:MM",
+  "spawn_landing": [{"node": "<id>", "role": "T1", "result": "ok|missing|retry:<N>"}],
+  "display_cap_truncated": [],
+  "g14": {"verdict": "pass|warning|fail|n/a|unavailable"},
+  "m_gate": [{"gate": "M-Integrity-1", "verdict": "pass|fail|undecidable|path_or_param_error"}],
+  "tokens": {"orchestrator_in": null, "orchestrator_out": null, "roles": []},
+  "revision_rounds": 0,
+  "smoke": {"level": "n/a|L1|L2", "run_id": "n/a", "verdict": "pending|pass|fail"}
+}
+```
 
 ---
 

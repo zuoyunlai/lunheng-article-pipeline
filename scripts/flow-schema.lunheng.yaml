@@ -1,0 +1,54 @@
+# flow-schema.lunheng.yaml — 论衡「跨载体一致性」规则的声明式演示实例（批次 4-B）
+# 用途：把 flow-check.py 里「协议/判据不得从载体静默消失」这一族规则（存在性校验），
+#       用通用引擎 flow-schema.py 的 schema 形式表达 —— 证明规则引擎与具体规则可解耦。
+# 定位：开发者侧演示实例，不进发布包，不接入 sync-version / self-audit 门；
+#       由 tests/test_flow_schema.py 锁「引擎在当前树上为绿 + 反向注入可红」，防漂移。
+version: 1
+carriers:
+  status: references/templates/status-template.md
+  bench: references/_shared/真源/performance-benchmarks.md
+  exec: references/_shared/真源/执行韧化协议-exec.md
+  coordinator: references/agents/00-主控-coordinator.md
+  audit_checklist: references/_shared/真源/audit-checklist-quickref.md
+  t7_dispatch: references/dispatch/T7-审计.md
+  t9_dispatch: references/dispatch/T9-同行评审.md
+  peer_reviewer: references/agents/09-审稿-peer-reviewer.md
+  task_brief: references/templates/任务简报-template.md
+  arch_doc: references/设计文档-架构.md
+
+assertions:
+  - id: core-carriers-present
+    kind: files_exist
+    carriers: [status, bench, exec, coordinator, audit_checklist]
+
+  - id: context-budget-protocol-in-carriers
+    kind: tokens_exist
+    carriers: [status, bench, task_brief]
+    tokens:
+      - 主控上下文预算
+
+  - id: smoke-protocol-in-carriers
+    kind: tokens_exist
+    carriers: [exec, status, bench, arch_doc]
+    tokens:
+      - 活体冒烟
+
+  - id: writing-quality-gates-in-carriers
+    kind: tokens_exist
+    carriers: [audit_checklist, t7_dispatch]
+    tokens:
+      - G15 主张强度
+      - G16 上下文泄漏
+      - G17 数据指纹
+
+  - id: journal-convention-check-in-carriers
+    kind: tokens_exist
+    carriers: [t9_dispatch, peer_reviewer]
+    tokens:
+      - 期刊约定校验
+
+  - id: coordinator-points-to-exec-truth
+    kind: tokens_exist
+    carriers: [coordinator]
+    tokens:
+      - 执行韧化协议-exec.md

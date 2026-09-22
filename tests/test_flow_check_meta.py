@@ -64,6 +64,10 @@ COVERED = {
     "40": "test_p22_provider_side_flip_reverse_injection",
     "41": "test_m13_stale_embedding_clause_reverse_injection",
     "42": "test_rule42_t6_dispatch_reverse_injection",
+    "46": "test_rule46_context_budget_reverse_injection",
+    "47": "test_rule47_smoke_protocol_reverse_injection",
+    "48": "test_rule48_status_json_reverse_injection",
+    "49": "test_rule49_english_layer_reverse_injection",
 }
 
 # DEBT：规则号 → 豁免理由（≥12 字符）。债务规则点名登记既有正向证据 + 补负例方向；
@@ -86,7 +90,7 @@ DEBT = {
 
 # 软棘轮下限：已覆盖（负例在位）规则数只许涨。把规则从 COVERED 挪回 DEBT 而不同步
 #   下调本值 = 红（防覆盖悄悄退坡）；确属规则删除时随迁移同批下调并给理由。
-COVERED_MIN = 33
+COVERED_MIN = 37
 
 # 抽取器下限护栏（区别于棘轮：这是抽取器自身健康度——docstring/注释格式被重构导致
 #   抽取面静默缩水时，这里先红，避免完整性对账给出「陈旧登记」的误导性报错）

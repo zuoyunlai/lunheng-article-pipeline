@@ -1065,7 +1065,12 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|74063,references/_shared/真源/M-Gate-Algorithm.md|84274,references/_shared/真源/phase-order.yaml|55967"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|75473,references/_shared/真源/M-Gate-Algorithm.md|84274,references/_shared/真源/phase-order.yaml|57371"
+# ⚠️ v2.12.72 扩容备案（批次 2-E 主控上下文预算门 · 审计 P2-6 要求的「扩容说明」）：两个大文件微增，
+#   原因 = 新增「主控上下文预算与落盘减负」真源段与运行协议（防教训 #268）：00-主控 74063→75473（+1410）/ phase-order 55967→57344（+1377）。
+#   属协议真源内容（非注释膨胀），已在 phase-order.yaml 挂 `pre_spawn_enforcement.context_budget_gate` 子门，并加 flow-check 规则 46 反向注入。
+#   v2.12.72 补充：去除随包 YAML 内部教训编号后的诚实边界表述增加 27 B（57344→57371），非规则膨胀。
+#   下次分层/瘦身时按实下调本节所有上限（只许降）。
 # ⚠️ v2.12.70 扩容备案（A-治理瘦身分层 · 审计 P2-6 要求的「扩容说明」）：三个大文件微增，
 #   原因 = `_shared/` 分层为 真源/ + 治理/ 后，大文件内引用的 `_shared/xxx.md` 前缀统一变为
 #   `_shared/真源/xxx.md` / `_shared/治理/xxx.md`（每次引用 +3 字节），属**路径前缀机械变长**，

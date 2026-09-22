@@ -998,6 +998,83 @@ def main():
                 errs.append(f'{_lbl45} 缺「{_need45}」（规则 45：期刊约定校验不得从载体静默消失，'
                             f'真源 = 09-审稿-peer-reviewer.md）')
 
+    # 46 主控上下文预算门跨载体一致性（v2.12.72 批次 2-E，防教训 #268 复发）
+    #    故障面 = 主控窗口被压爆 ⇒ 凭记忆复制 dispatch 话术（#268 同族）。token 统计此前只做事后
+    #    记账，不做事前预防。本规则锁「事前预算 + 余量检测 + 落盘减负」协议与留痕字段不得从
+    #    真源 / 主控运行协议 / status 模板 / 任务简报任一载体静默消失。
+    #    诚实边界（同规则 34）：窗口余量是运行期自观测，构建期无法机械校验 —— 不假装能拦压爆本身。
+    _cbg46 = (byid.get('pre_spawn_enforcement') or {}).get('context_budget_gate')
+    if not isinstance(_cbg46, dict):
+        errs.append('pre_spawn_enforcement 缺 context_budget_gate（规则 46：主控上下文预算门未入真源）')
+    else:
+        for _k46 in ('estimate_by_tier', 'margin_threshold_pct', 'overspend_alert_pct',
+                     'on_low_margin', 'offload_actions', 'recheck', 'record', 'doctrine'):
+            if _k46 not in _cbg46:
+                errs.append(f'context_budget_gate 缺 {_k46}'
+                            f'（规则 46：预算门字段不完整，落盘减负无判据）')
+    _C46_CARRIERS = (
+        ('status 留痕', 'references/templates/status-template.md', '主控上下文预算与余量检测'),
+        ('主控运行协议', 'references/agents/00-主控-扩展职责.md', '主控上下文预算与落盘减负'),
+        ('预算模型真源', 'references/_shared/真源/performance-benchmarks.md', '主控上下文预算模型'),
+        ('任务简报', 'references/templates/任务简报-template.md', 'token_budget'),
+    )
+    for _lbl46, _rel46, _need46 in _C46_CARRIERS:
+        _p46 = _root24 / _rel46
+        _t46 = _p46.read_text(encoding='utf-8') if _p46.exists() else ''
+        if _need46 not in _t46:
+            errs.append(f'{_lbl46} 缺「{_need46}」（规则 46：主控上下文预算协议不得从载体静默消失，'
+                        f'真源 = phase-order.yaml pre_spawn_enforcement.context_budget_gate）')
+
+    # 47 端到端活体冒烟跨载体一致性（v2.12.72 批次 3-D）
+    #    故障面 = 「构建期门全绿」被误读为「活体链路不断裂」（审计原话：476 项测试全为文档/脚本
+    #    判据一致性，无一条跑过 spawn → 交接 → 审计链 → 修订回环）。本规则锁冒烟协议、留痕字段、
+    #    登记表与发布钩子不得从任一载体静默消失。
+    #    诚实边界（同规则 34/46）：冒烟是运行期行为且耗真实 token，构建期无法代替，
+    #    不得把「协议在位」误读为「冒烟已跑」（未跑则登记 pending_owner_run）。
+    _sm47 = (_R / 'references/_shared/真源/执行韧化协议-exec.md').read_text(encoding='utf-8')
+    for _need47 in ('端到端活体冒烟协议', 'L1 机制冒烟', 'L2 全流程冒烟', '不进 CI'):
+        if _need47 not in _sm47:
+            errs.append(f'执行韧化协议-exec.md 缺「{_need47}」（规则 47：活体冒烟协议不得从真源静默消失）')
+    _C47_CARRIERS = (
+        ('status 留痕', 'references/templates/status-template.md', 'smoke_run_id'),
+        ('冒烟登记表', 'references/_shared/真源/performance-benchmarks.md', '端到端活体冒烟登记'),
+        ('发布 SOP', 'references/设计文档-架构.md', '发布前活体冒烟'),
+    )
+    for _lbl47, _rel47, _need47b in _C47_CARRIERS:
+        _p47 = _R / _rel47
+        _t47 = _p47.read_text(encoding='utf-8') if _p47.exists() else ''
+        if _need47b not in _t47:
+            errs.append(f'{_lbl47} 缺「{_need47b}」（规则 47：活体冒烟载体不得静默消失，'
+                        f'真源 = 执行韧化协议-exec.md「端到端活体冒烟协议」）')
+    if 'owner_checkpoint' not in _sm47:
+        errs.append('活体冒烟协议未声明 owner_checkpoint 口径（规则 47：L2 不得自动通过主人闸门）')
+
+    # 48 机器可解析状态快照（v2.12.72 批次 5-G）
+    #    status-template 的 status_json 快照与 performance-benchmarks 的聚合指针不得静默消失。
+    #    诚实边界（同 46/47）：快照由主控运行期写入，构建期只锁结构锚点，不伪造自动采集。
+    _st48 = (_R / 'references/templates/status-template.md').read_text(encoding='utf-8')
+    for _need48 in ('status_json', '机器可解析快照'):
+        if _need48 not in _st48:
+            errs.append(f'status-template 缺「{_need48}」（规则 48：status_json 快照不得静默消失）')
+    _bench48 = (_R / 'references/_shared/真源/performance-benchmarks.md').read_text(encoding='utf-8')
+    if 'status_json' not in _bench48:
+        errs.append('performance-benchmarks 缺 status_json 聚合指针（规则 48：G 可观测性反哺链断裂）')
+
+    # 49 英文参考层试点（v2.12.72 批次 5-F）
+    #    最小适配层（字段标签英文对照）须在两模板在位，且诚实声明「判据真源仍为中文 + 全量适配暂缓」。
+    _C49_CARRIERS = (
+        ('任务简报', 'references/templates/任务简报-template.md'),
+        ('交接报告', 'references/templates/交接报告-template.md'),
+    )
+    for _lbl49, _rel49 in _C49_CARRIERS:
+        _t49 = (_R / _rel49).read_text(encoding='utf-8')
+        for _need49 in ('英文参考层', '判据真源仍为中文'):
+            if _need49 not in _t49:
+                errs.append(f'{_lbl49} 缺「{_need49}」（规则 49：英文参考层或诚实边界不得静默消失）')
+    _arch49 = (_R / 'references/设计文档-架构.md').read_text(encoding='utf-8')
+    if '英文 AI 痕迹检测不在本批范围' not in _arch49:
+        errs.append('设计文档-架构 缺英文 AI 痕迹检测范围声明（规则 49：F 试点不得被静默扩为全量）')
+
     print(';'.join(errs))
     return 0 if not errs else 2
 

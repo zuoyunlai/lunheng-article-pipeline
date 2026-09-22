@@ -1134,10 +1134,13 @@ def test_b12_spawn_landing_three_point_wiring():
 
 
 def test_b12_status_field_reverse_injection(tmp_path):
-    """D-4 副本注入：删掉 status-template 的 spawn_landing 字段 ⇒ flow-check 必须红且点名。"""
+    """D-4 副本注入：删掉 status-template 的 spawn_landing 字段 ⇒ flow-check 必须红且点名。
+
+    注：v2.12.72 G 的 status_json 快照是 spawn_landing 的第二合法载体，故移除**全部**出现。
+    """
     def mutate(src):
         assert "spawn_landing" in src, "反向注入点未命中（spawn_landing 写法已变）"
-        return src.replace("spawn_landing", "spawnlanding", 1)
+        return src.replace("spawn_landing", "spawnlanding")
 
     _inject_and_expect("references/templates/status-template.md", mutate, "spawn_landing", tmp_path)
 
@@ -1522,3 +1525,103 @@ def test_rule42_protocol_truth_source_reverse_injection(tmp_path):
         return src.replace("final message 首块 = 分片清单", "final message 首块 = 摘要头", 1)
 
     _inject_and_expect("references/_shared/真源/执行韧化协议-exec.md", mutate, "规则 42", tmp_path)
+
+
+# ===== v2.12.72 主控上下文预算门（规则 46，批次 2-E，防 #268） =====
+
+RULE46_CARRIERS = (
+    ("references/templates/status-template.md", "主控上下文预算与余量检测"),
+    ("references/agents/00-主控-扩展职责.md", "主控上下文预算与落盘减负"),
+    ("references/_shared/真源/performance-benchmarks.md", "主控上下文预算模型"),
+    ("references/templates/任务简报-template.md", "token_budget"),
+)
+
+
+def test_rule46_context_budget_all_carriers():
+    """规则 46 正向：预算协议 + 留痕字段在真源/主控协议/status/简报四载体齐备。"""
+    for rel, need in RULE46_CARRIERS:
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        assert need in text, f"{rel} 缺「{need}」（规则 46：主控上下文预算协议不得从载体静默消失）"
+
+
+def test_rule46_context_budget_reverse_injection(tmp_path):
+    """规则 46 反向注入：摘除 phase-order 的 context_budget_gate 字段 ⇒ 必须红。"""
+    def mutate(src):
+        return src.replace("    context_budget_gate:                  # v2.12.72 E：主控上下文预算门，防窗口压缩导致的话术复制造成漂移",
+                           "    context_budget_gate_removed:           # v2.12.72 E", 1)
+
+    _inject_and_expect("references/_shared/真源/phase-order.yaml", mutate, "规则 46", tmp_path)
+
+
+def test_rule46_carrier_drift_reverse_injection(tmp_path):
+    """规则 46 反向注入：status-template 摘除留痕字段 ⇒ 必须红（运行期痕迹不得静默消失）。"""
+    def mutate(src):
+        return src.replace("### 4.8 主控上下文预算与余量检测（v2.12.72 E，防教训 #268）",
+                           "### 4.8 预算检测（v2.12.72 E）", 1)
+
+    _inject_and_expect("references/templates/status-template.md", mutate, "规则 46", tmp_path)
+
+
+# ===== v2.12.72 端到端活体冒烟（规则 47，批次 3-D） =====
+
+RULE47_CARRIERS = (
+    ("references/templates/status-template.md", "smoke_run_id"),
+    ("references/_shared/真源/performance-benchmarks.md", "端到端活体冒烟登记"),
+    ("references/设计文档-架构.md", "发布前活体冒烟"),
+)
+
+
+def test_rule47_smoke_protocol_all_carriers():
+    """规则 47 正向：冒烟协议 + 留痕字段 + 登记表 + 发布钩子四载体齐备。"""
+    protocol = (ROOT / "references/_shared/真源/执行韧化协议-exec.md").read_text(encoding="utf-8")
+    for token in ("端到端活体冒烟协议", "L1 机制冒烟", "L2 全流程冒烟", "不进 CI"):
+        assert token in protocol, f"执行韧化协议-exec.md 缺「{token}」（规则 47：冒烟协议不得静默消失）"
+    assert "owner_checkpoint" in protocol, "冒烟协议未声明 owner_checkpoint 口径（规则 47）"
+    for rel, need in RULE47_CARRIERS:
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        assert need in text, f"{rel} 缺「{need}」（规则 47：活体冒烟载体不得静默消失）"
+
+
+def test_rule47_smoke_protocol_reverse_injection(tmp_path):
+    """规则 47 反向注入：真源摘除 L2 全流程冒烟定义 ⇒ 必须红（协议本体不得静默消失）。"""
+    def mutate(src):
+        return src.replace("- **L2 全流程冒烟**", "- **L2 补充冒烟**", 1)
+
+    _inject_and_expect("references/_shared/真源/执行韧化协议-exec.md", mutate, "规则 47", tmp_path)
+
+
+def test_rule47_smoke_registry_drift_reverse_injection(tmp_path):
+    """规则 47 反向注入：摘除冒烟登记表标题 ⇒ 必须红（活体证据无处登记）。"""
+    def mutate(src):
+        return src.replace("## 六、端到端活体冒烟登记（v2.12.72 批次 3-D）",
+                           "## 六、冒烟情况（v2.12.72 批次 3-D）", 1)
+
+    _inject_and_expect("references/_shared/真源/performance-benchmarks.md", mutate, "规则 47", tmp_path)
+
+
+def test_rule47_smoke_status_field_drift_reverse_injection(tmp_path):
+    """规则 47 反向注入：status-template 摘除 smoke_run_id 留痕字段 ⇒ 必须红。"""
+    def mutate(src):
+        return src.replace("smoke_run_id=<n/a|唯一值>", "smoke_id=<n/a|唯一值>", 1)
+
+    _inject_and_expect("references/templates/status-template.md", mutate, "规则 47", tmp_path)
+
+
+# ===== v2.12.72 可观测性与英文参考层（规则 48/49，批次 5-G/F） =====
+
+
+def test_rule48_status_json_reverse_injection(tmp_path):
+    """规则 48 反向注入：摘除 status_json 快照标题 ⇒ 必须红。"""
+    def mutate(src):
+        return src.replace("### 4.9 status_json 机器可解析快照（v2.12.72 G）",
+                           "### 4.9 运行状态快照（v2.12.72 G）", 1)
+
+    _inject_and_expect("references/templates/status-template.md", mutate, "规则 48", tmp_path)
+
+
+def test_rule49_english_layer_reverse_injection(tmp_path):
+    """规则 49 反向注入：任务简报摘除英文参考层诚实声明 ⇒ 必须红。"""
+    def mutate(src):
+        return src.replace("判据真源仍为中文", "判据真源待定", 1)
+
+    _inject_and_expect("references/templates/任务简报-template.md", mutate, "规则 49", tmp_path)
