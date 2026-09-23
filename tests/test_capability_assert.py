@@ -33,9 +33,10 @@ CAS = _load()
 # P0-1 点名能力：这三项曾同时出现在 denied 与允许白名单
 REGRESSION_DENIED = ["memory_store", "memory_forget", "sessions_search"]
 
-# 合法能力抽样（每个角色类型一个）
-LEGIT = ["read", "write", "edit", "web_search", "tavily_search", "ask_user",
-         "ov_search", "ov_read", "sessions_spawn"]
+# 合法 worker 能力抽样；coordinator_only 与已 denied 的能力不属于 T5。
+LEGIT = ["read", "write", "edit", "web_search", "tavily_search"]
+
+COORDINATOR_LEGIT = ["ask_user", "sessions_spawn", "sessions_yield", "progress_card"]
 
 
 def test_declared_surface_disjoint_from_denied():
@@ -134,6 +135,18 @@ def test_legit_capabilities_still_pass():
     """合法能力仍可通过（防修过头把正常能力误杀）"""
     for cap in LEGIT:
         CAS.validate_capabilities("T5", ["read", cap])
+
+
+def test_coordinator_only_is_role_partitioned():
+    """coordinator_only 仅主控可用，worker 必须拒绝。"""
+    for cap in COORDINATOR_LEGIT:
+        CAS.validate_capabilities("T0", ["read", cap])
+        CAS.validate_capabilities("T8", ["read", cap])
+        try:
+            CAS.validate_capabilities("T5", ["read", cap])
+        except CAS.CapabilityAssertionError:
+            continue
+        raise AssertionError(f"coordinator_only 能力 {cap} 被 T5 放行")
 
 
 def test_hard_forbidden_extras():

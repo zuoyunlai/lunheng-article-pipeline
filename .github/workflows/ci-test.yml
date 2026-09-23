@@ -6,16 +6,16 @@ name: 论衡算法测试 CI（v2.5.6 新增，第三方独立审查建议 #1）
 on:
   pull_request:
     paths:
-      - 'references/_shared/M-Gate-Algorithm.md'
-      - 'references/_shared/audit-checklist-quickref.md'
-      - 'references/_shared/字数判定表.md'
+      - 'references/_shared/真源/M-Gate-Algorithm.md'
+      - 'references/_shared/真源/audit-checklist-quickref.md'
+      - 'references/_shared/真源/字数判定表.md'
       - 'references/gates/14-中文AI痕迹-gate.md'
       - 'references/agents/09-审稿-peer-reviewer.md'
       - 'references/checkers/中文AI痕迹-checker.md'
       - 'references/templates/审稿报告-template.md'
       - 'tests/**'
       - 'scripts/**'
-      - 'references/_shared/phase-order.yaml'
+      - 'references/_shared/真源/phase-order.yaml'
   push:
     branches: [master]
 

@@ -2,6 +2,14 @@
 
 ---
 
+## [v2.12.74] — 2026-09-23
+
+- **权限边界收敛**：补齐 runtime 实测漏出工具的 denied 声明至 104 项；移除 capability-assert 的宿主扩展硬编码，改以 SKILL.md frontmatter 为唯一权限真源。
+- **角色分区校验**：coordinator_only 工具仅对 T0/T8 放行，worker 请求即拒绝，并新增双向 selfcheck 与回归测试。
+- **流程与 CI 一致性**：修复 `t8_technical_final` 重复 `input/inputs` 字段、CI PR paths 的重组前旧路径，并新增 workflow 路径存在性测试。
+- **版本与入口瘦身**：统一 v2.12.74 版本戳，压缩 SKILL.md 至官方 10000 字符上限以内；更新体量棘轮和旧权限语义测试。
+- **验收基线**：权限 selfcheck、版本门、流程门与全量 pytest（494 项）通过；L1/L2 活体冒烟均已完成（结论 `pass_with_limits`：证据为离线预置/示例、引用真实性未联网核验，SHA256 已由宿主侧补算）；未 tag、未 push。
+
 ## [v2.12.73] — 2026-09-22
 
 - **安全边界修订**：修订 T5 字数估算失败恢复流程，删除 `exec` + Python、`cp` 和 shell 命令路径，改为仅使用已授权的 `read` / `write` / `edit` 工具。

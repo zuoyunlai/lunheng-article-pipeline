@@ -20,6 +20,9 @@
     $ python3 scripts/capability-assert.py T5 read write exec
     Error: Forbidden capability ['exec'] requested by role T5
 
+    $ python3 scripts/capability-assert.py T5 read sessions_yield
+    Error: Forbidden capability ['sessions_yield'] requested by worker role T5 (coordinator_only 仅限主控角色 ['T0', 'T8'])
+
 设计（教训 #210，审计响应）：
 - **单一真源**：允许面/禁用面**直接读 SKILL.md frontmatter**（metadata.tools.{base,coordinator_only,
   research_extra,opt_in} 为允许，metadata.tools.denied 为禁用）；
@@ -28,9 +31,13 @@
    曾被本脚本列入允许白名单）。本脚本现**不再维护第二份权限清单**。
 - **denied 优先**：任何同时出现在允许面与 denied 的能力，一律判定为禁用（denied 永不失效）。
 - **角色最小权限**：每个角色只声明实际需要的能力。
+- **角色分区（v2.12.74 F2，CARD-P1 问题 2）**：`coordinator_only` 仅对主控角色 T0/T8 放行；
+   worker 角色（T1-T7/T9/G14）请求任一项即拒绝——旧实现取全部允许档并集，导致
+   `T5 sessions_yield` 也 exit 0（声明、脚本、runtime 三处口径互相矛盾）。
 - **spawn 前校验**：主控在 spawn 前断言，失败 → 人在环介入。
 - 校验方式：`python3 scripts/capability-assert.py --selfcheck` 自检真源可读 + 声面真交集 + 逐项拒斥行为断言
-  （v2.12.50 重写为**能判红**的四路断言；原「denied ∩ 减法后允许面」恒空，属空转门，教训 #399）。
+  （v2.12.50 重写为**能判红**的四路断言；原「denied ∩ 减法后允许面」恒空，属空转门，教训 #399；
+  v2.12.74 增第⑥路角色分区断言：coordinator_only 逐项对 worker 真拒绝 + 对主控真接受）。
 """
 
 import sys
@@ -45,22 +52,18 @@ ROLES = {
     "G14"
 }
 
-# 论衡 agent 侧可用的**只读宿主工具**（OpenViking 检索家族；v2.12.38 起 sessions_list / ask_user
-# 已升入 frontmatter coordinator_only —— 本表不再重列，单一真源 = SKILL.md。
-# v2.12.39：view_image 因 SkillSpector「能力面 > 文本用途」发现移入 denied）：
-HOST_READONLY_EXTRAS = {
-    "ov_search", "ov_read", "ov_multi_read", "ov_list",
-    "ov_archive_search", "ov_archive_expand",
-    "openviking_tool_result_list", "openviking_tool_result_read",
-    "openviking_tool_result_search",
-}
+# v2.12.74：不再维护宿主工具的第二份允许清单。
+# 过去这里硬编码 OpenViking 只读扩展；R2 已将其纳入 frontmatter denied，
+# 且任何宿主扩展都必须以 SKILL.md 为唯一真源，否则会出现「声明禁用、脚本放行」漂移。
+# 保留空集合只是为了兼容测试与派生集表达；它不是额外授权面。
+HOST_READONLY_EXTRAS = set()
 
 # 绝对禁用（不在 SKILL.md frontmatter 五档内，但属宿主特权面，永久拒绝）
 HARD_FORBIDDEN = {"secrets", "gateway", "automations"}
 
 
 def load_permission_surface(skill_md: pathlib.Path = SKILL_MD):
-    """从 SKILL.md frontmatter 读取权限真源 → (denied, declared_allowed)
+    """从 SKILL.md frontmatter 读取权限真源 → (denied, declared_allowed, coordinator_only)
 
     frontmatter 结构（metadata.tools）：base / coordinator_only / research_extra / opt_in / denied
     """
@@ -71,16 +74,22 @@ def load_permission_surface(skill_md: pathlib.Path = SKILL_MD):
     fm = yaml.safe_load(parts[1]) or {}
     tools = ((fm.get('metadata') or {}).get('tools') or {})
     denied = {str(x) for x in (tools.get('denied') or [])}
+    coordinator_only = {str(x) for x in (tools.get('coordinator_only') or [])}
     declared = set()
     for key, val in tools.items():
         if key == 'denied':
             continue
         if isinstance(val, (list, tuple)):
             declared.update(str(x) for x in val)
-    return denied, declared
+    return denied, declared, coordinator_only
 
 
-SKILL_DENIED, SKILL_DECLARED = load_permission_surface()
+SKILL_DENIED, SKILL_DECLARED, COORDINATOR_ONLY = load_permission_surface()
+
+# 主控角色（v2.12.74 F2，CARD-P1 问题 2）：coordinator_only 仅对 T0（主控）与
+#   T8（主控亲完成的终检节点）放行；T1-T7/T9/G14 = worker 一律拒绝。
+#   角色编号是本脚本层概念（与 ROLES 同源），frontmatter 无载体，故在此定义。
+COORDINATOR_ROLES = {"T0", "T8"}
 
 # 禁用面 = frontmatter denied ∪ 永久硬禁用
 FORBIDDEN_CAPABILITIES = SKILL_DENIED | HARD_FORBIDDEN
@@ -114,6 +123,15 @@ def validate_capabilities(role, capabilities):
             f"Forbidden capability {sorted(forbidden)} requested by role {role}"
         )
 
+    # 角色分区（v2.12.74 F2）：coordinator_only 仅限主控角色，worker 请求即拒绝
+    if role not in COORDINATOR_ROLES:
+        coord_leak = requested & COORDINATOR_ONLY
+        if coord_leak:
+            raise CapabilityAssertionError(
+                f"Forbidden capability {sorted(coord_leak)} requested by worker role {role} "
+                f"(coordinator_only 仅限主控角色 {sorted(COORDINATOR_ROLES)})"
+            )
+
     # 检查未知能力
     unknown = requested - ALLOWED_CAPABILITIES
     if unknown:
@@ -138,6 +156,8 @@ def selfcheck() -> int:
       ③ 声面真交集：允许档与 denied **不做减法**直接取交 → 命中即冲突
       ④ 行为断言：禁用面真源每一项都必须被 validate_capabilities 真拒绝
       ⑤ 镜像断言：允许面抽一项必须被真接受（防「一律拒绝」的反向假绿灯）
+      ⑥ 角色分区（v2.12.74 F2）：coordinator_only 每一项对 worker 角色 T5 必须真拒绝、
+        对主控角色 T0/T8 必须真接受（双向镜像，防分区失效或修过头）
     """
     errors = []
 
@@ -150,6 +170,8 @@ def selfcheck() -> int:
         errors.append('denied 清单为空 —— frontmatter 解析失败或真源缺失')
     if not (SKILL_DECLARED or HOST_READONLY_EXTRAS):
         errors.append('允许面为空 —— frontmatter 解析失败或真源缺失')
+    if not COORDINATOR_ONLY:
+        errors.append('coordinator_only 清单为空 —— frontmatter 解析失败或真源缺失')
 
     # ② 派生一致性
     if FORBIDDEN_CAPABILITIES != expected_forbidden:
@@ -192,6 +214,23 @@ def selfcheck() -> int:
         except Exception as e:
             errors.append(f'允许能力 {sample[0]} 被误拒：{e}')
 
+    # ⑥ 角色分区行为断言（v2.12.74 F2，CARD-P1 问题 2 验收判据）：
+    #    worker 侧 T5 + sessions_yield 必须 exit 1；主控侧 T0/T8 必须真接受（镜像）
+    for cap in sorted(COORDINATOR_ONLY):
+        try:
+            validate_capabilities('T5', ['read', cap])
+        except CapabilityAssertionError:
+            pass
+        except Exception as e:  # 异常类型漂移也算失败
+            errors.append(f'coordinator_only 能力 {cap} worker 断言抛错类型异常：{type(e).__name__}: {e}')
+        else:
+            errors.append(f'coordinator_only 能力 {cap} 被 worker 角色 T5 放行（角色分区失效）')
+        for cr in sorted(COORDINATOR_ROLES):
+            try:
+                validate_capabilities(cr, ['read', cap])
+            except Exception as e:
+                errors.append(f'coordinator_only 能力 {cap} 被主控角色 {cr} 误拒：{e}')
+
     if errors:
         for e in errors:
             print(f'❌ 权限口径冲突：{e}', file=sys.stderr)
@@ -199,7 +238,8 @@ def selfcheck() -> int:
 
     print(
         f'✅ 权限口径一致：denied {len(expected_forbidden)} 项逐项被拒 / '
-        f'allowed {len(expected_allowed)} 项接受性抽查通过（派生一致 + 声面交集 0）'
+        f'allowed {len(expected_allowed)} 项接受性抽查通过（派生一致 + 声面交集 0）/ '
+        f'coordinator_only {len(COORDINATOR_ONLY)} 项角色分区双向断言通过（worker 拒绝 + 主控接受）'
     )
     return 0
 

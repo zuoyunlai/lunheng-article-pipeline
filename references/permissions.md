@@ -1,4 +1,4 @@
-> 版本：v2.12.73（自动同步 2026-09-22）
+> 版本：v2.12.74（自动同步 2026-09-23）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -58,7 +58,7 @@
 
 > ⚠️ **执行层真源**：OpenClaw 2026.9.x 的 `sessions_spawn` **无 toolsAllow 参数**（官方参数清单 + 本机工具 schema 双证），上表是**声明/部署建议**，不是可传参数。子代理实际工具面 = 平台**硬性剥除**（`gateway`/`agents_list`/`session_status`/`cron`/`message`/`sessions_send`/`conversations_*`；叶子另剥 `subagents`/`sessions_*`）− 主控有效工具策略快照 + 宿主 config `tools.subagents.tools.allow/deny`（全局，无法按 spawn 逐档）。档位间差异在工具层不可逐子表达时，以 prompt 约束 + 只读路径约束兜底。`session_status`/`progress_card` 是**主控侧**可观测性工具，不给子代理。
 
-> 📄 **只读档落盘口径（v2.12.51 D-3 统一 —— 废 v2.12.32/v2.12.33「两径定义」）**：`allow_audit`（T6/T7）/ `allow_review`（T9/G14）的工具面 = **`read`（纯只读，本档无 write/edit）**：**上游产物一律只读**（`drafts/` / `final/` / `data/` / `literature/` / `cases/` / `analysis/` / `audits/` 一视同仁）；**报告正文随交接回传（final message），由主控 `write` 落盘**；本档**不得直写任何路径**——包括 `analysis/批判报告-vN.md` / `audits/*-vN.md` / `audits/审稿报告-vN.md` 等自有报告路径（旧口径「自有报告直写授权」已废止）。
+> 📄 **只读档落盘口径（v2.12.51 D-3 统一，v2.12.74 按实测改口径 —— 废 v2.12.32/v2.12.33「两径定义」）**：`allow_audit`（T6/T7）/ `allow_review`（T9/G14）的**授权面** = **`read`（纯只读）**——平台实际下发的工具面**可能含 write/edit**（宿主 config 全局，无法逐档裁剪；2026-09-18/20 探针实测 audit 档可见 71 项含 write/edit），本档以**自律**遵守只读，**不据此声称平台级强制**：**上游产物一律只读**（`drafts/` / `final/` / `data/` / `literature/` / `cases/` / `analysis/` / `audits/` 一视同仁）；**报告正文随交接回传（final message），由主控 `write` 落盘**；本档**不得直写任何路径**——包括 `analysis/批判报告-vN.md` / `audits/*-vN.md` / `audits/审稿报告-vN.md` 等自有报告路径（旧口径「自有报告直写授权」已废止）。
 > **为何统一为「主控代写盘」**：① 只读档确无 `write` 工具 = 更强的权限姿态（与五档表一致）；② 与 10 处角色卡 / dispatch 的「报告随交接回传、由主控 write 落盘」口径一致；③ 与四节点 `verification_authority: 主控` 自洽（核验者不落盘则无从核验）。
 > ⚠️ **机械校验**：真源 = [`_shared/真源/phase-order.yaml`](_shared/真源/phase-order.yaml) 中 `t6_critique` / `t7_audit` / `g14_style_gate` / `t9_review` 四节点的 `write_authority: owner`；`scripts/flow-check.py` **规则 23** 检查（改回 `executor` 即构建期红）。
 
@@ -77,7 +77,7 @@
 > **⚠️ 为何不采纳「平台未收紧即拒跑」**：三条理由 —— ① 与纯 skill 定位冲突：「开箱可用」= 启动不被拒，不附带也不要求任何配置前提。② 实测反例：v2.12.32 严格口径曾致**并行层自锁零产物**（拒跑比接管更伤）。③ 替代方案已覆盖风险：本文件默认口径已含披露 + **节点级接管** + `status.md` 能力自检段 + 交付说明列遗留风险 —— 观测性与可控性都保留。OpenClaw 的平台边界与安全策略由平台负责；论衡只遵守自己的声明式调用边界，并在实际调用未声明工具时停止该节点、拒收产物、改走主控接管。
 
 **能力自检**：五档白名单**不能被机械强制**（无 `toolsAllow`），因此本修订把它改成「**可观测 + 可阻断**」三件套：
-1. **主控侧（Phase 0 必走）**：核验自身可见工具是否**超出** documented 集；超限项逐条记入 `status.md`「能力自检」段，并在 Phase 0 **向主人披露**（不阻断——主控工具面由宿主决定）。
+1. **主控侧（Phase 0 必走）**：核验自身可见工具是否**超出** documented 集；按「**计数 + 高危类别具名**」记入 `status.md`「能力自检」段——① 实际可见工具计数 ② 与声明面的差值计数 ③ 高危类别具名清单（执行类 / 外发类 / 写入类 / 会话类），**其余超限项计入差值计数、不逐条枚举**（v2.12.74 收窄，审计 CARD-P1 问题 3：实测超限可达 64 项，逐条登记必退化成形式留痕——仍**禁止只写「通过」**，必须给出计数 + 高危类别具名），并在 Phase 0 **向主人披露**（不阻断——主控工具面由宿主决定）。
 2. **子代理侧（每次 spawn 首步）**：按 [`_shared/真源/dispatch-header.md`](_shared/真源/dispatch-header.md)「启动自检」核验自身工具面，**两级判据分开处置**（v2.12.32 修订：**工具面 ≠ 调用**）——**工具面超限 = 警告级**（平台工具面通常宽于本档声明，属常态：记录 + 披露 + **呈主人裁决**——敏感题材可要求主控接管该 worker，未裁决前仅继续手头已授权动作）；**实际调用越权工具 = 阻断级**（停止、不写盘、回报 `capability_excess`）；主控未给裁决 ⇒ 返回 `degraded` 并**继续手头已授权动作**（不调用越权工具）。
 3. **阻断规则**：主控收到 `capability_excess` → **不采纳该产物**；**实际调用** `exec`/`process`/`browser`/`terminal`/`sessions_*` ⇒ **该档停用**，改走主控接管该节点；**⚠️ 仅「工具面超限」不触发该档停用**（否则平台工具面偏宽时多 Agent 模式完全不可用 —— v2.12.32 实测 T2/T3 首轮自锁零产物）；**工具面超限 ≠ 调用许可**（超限＝平台给的面比本档声明宽，须登记 + 由主控决定是否接管该节点）；主控裁决「⚖️ 报告 + 自律继续」为**显式旁路——只放行「继续干活」，不放行任何越权工具调用**，子代理不得据此中止；全部记入 status.md 并告知主人。
 
@@ -95,7 +95,7 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 41 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；类别分布见 frontmatter 注释）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**；是否在宿主侧额外收紧由宿主自行决定，**不属本 skill 的运行前提**。
+**禁用（`metadata.tools.denied`）— 104 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；v2.12.74 R2 按 2026-09-20 runtime 探针实测泄漏面从 41 项扩至 104 项：飞书协作写面 / Firecrawl 深度抓取 / 记忆与 OpenViking / wiki / 插件与技能安装 / 常驻意图 / 本地推理等族全量补声明）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**；是否在宿主侧额外收紧由宿主自行决定，**不属本 skill 的运行前提**。
 
 **Workspace 路径收口**：
 - **路径边界分两域**（v2.12.64 定案，回应 2026-09-19 审计 S-2）——原表述「read/write/edit 仅允许 `run/<项目名>/` 子树」与每张角色卡的必读要求**互斥**（role card 任务首句即要求读 `references/_shared/真源/关键协议.md`）⇒ 字面遵守则流水线不可执行，实际执行则每次运行都违反自己的声明。现显式拆为两域：

@@ -1,8 +1,8 @@
-> 版本：v2.12.73（自动同步 2026-09-22）
+> 版本：v2.12.74（自动同步 2026-09-23）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
-> 🏁 **收尾协议（v2.12.56 P-1/P-3）**：启动自检**必须逐项报告实际可见的工具清单**（**禁止只写「通过」**），档位不符 ⇒ 当场回报主控、不继续跑；收尾协议见 [`../_shared/真源/dispatch-header.md`](../_shared/真源/dispatch-header.md) §收尾协议 —— 以正常最终消息结束回合，禁用 `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history` 等等待原语。
+> 🏁 **收尾协议（v2.12.56 P-1/P-3；v2.12.74 判据收窄）**：启动自检**必须按「计数 + 高危类别具名」报告工具面**（① 可见计数 ② 差值计数 ③ 高危类别具名；**禁止只写「通过」**），档位不符 ⇒ 当场回报主控、不继续跑；收尾协议见 [`../_shared/真源/dispatch-header.md`](../_shared/真源/dispatch-header.md) §收尾协议 —— 以正常最终消息结束回合，禁用 `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history` 等等待原语。
 
 # 角色：数据检索员 Data Scout（T2）
 

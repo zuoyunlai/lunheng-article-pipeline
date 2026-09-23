@@ -95,7 +95,7 @@ def test_gate_y_covers_all_mandatory_files():
 
 
 def test_gate_y_ceilings_match_actual_sizes():
-    """棘轮语义：上限必须 = 最近一次分层后的实测值（只许降）——写小了会误报，写大了棘轮失效"""
+    """棘轮语义：上限必须 = 当前修订后的实测值（只许降）——写小了会误报，写大了棘轮失效"""
     ceils = _default_ceils()
     for path, ceil in ceils.items():
         actual = (ROOT / path).stat().st_size

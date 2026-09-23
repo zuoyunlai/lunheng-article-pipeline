@@ -84,14 +84,17 @@ def test_denied_tools_rejected_by_assert_script(cap):
 
 
 def test_ask_user_still_allowed():
-    """人在环依赖 ask_user —— 不得因收窄 denied 而误伤"""
+    """人在环依赖 ask_user —— 仅主控可用，worker 不得越过角色分区。"""
     sys.path.insert(0, str(ROOT / "scripts"))
     import importlib.util
     spec = importlib.util.spec_from_file_location(
         "cap_assert_ask", ROOT / "scripts" / "capability-assert.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    mod.validate_capabilities("T1", ["read", "ask_user"])  # 不抛异常即通过
+    mod.validate_capabilities("T0", ["read", "ask_user"])
+    mod.validate_capabilities("T8", ["read", "ask_user"])
+    with pytest.raises(mod.CapabilityAssertionError):
+        mod.validate_capabilities("T1", ["read", "ask_user"])
 
 
 # ---------------- P0-2：声明式口径 ----------------
@@ -105,8 +108,8 @@ def test_no_stale_19_count():
 
 
 def test_denied_count_matches_declared_number():
-    """正文声明的「41 项」必须等于 frontmatter 实际条数（防数字漂移）"""
-    assert len(_denied()) == 41, f"denied 实际 {len(_denied())} 项，与正文声明的 41 项不符"
+    """正文声明的「104 项」必须等于 frontmatter 实际条数（防数字漂移）"""
+    assert len(_denied()) == 104, f"denied 实际 {len(_denied())} 项，与正文声明的 104 项不符"
 
 
 def test_declarative_stance_declared():

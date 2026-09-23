@@ -41,7 +41,7 @@
 #      实测被读成「主控代写审稿报告并给出编造精度」。未接线 = 构建期 flow-check 失败（规则 30）。
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
-version: 2.12.73
+version: 2.12.74
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-Algorithm.md §判定结果分档）。
@@ -672,7 +672,6 @@ pipeline:
     fingerprint: required   # v2.12.49 M-1：交付说明头部必填 final/定稿.sha256，与 T7/G14/T9 三方一致 ⇒ 合格；不一致 ⇒ 不合格（审计对象漂移）
     audited_artifact_required: true   # v2.12.49 M-1/M-8：本节点报告必填 audited_artifact 三元组；与 T7/G14/T9 集合相等 ⇒ 合格
     # v2.12.13（方案 3.1）：显式声明输入含 SVG 图件——SVG 嵌入文本孤儿检查已从 T7 移交 T8
-    inputs: [final/图件/*.svg, final/定稿.md, final/交付说明.md]   # v2.12.41：原写 final/*.md 通配 → 改显式（通配使「被消费但无生产者」检查失明）
     output: final/交付说明.md
     output_chars_max: 10000
     # v2.12.49 M-10：final/局限性.md 入真源（仅 Acknowledged Limitations 模式存在）

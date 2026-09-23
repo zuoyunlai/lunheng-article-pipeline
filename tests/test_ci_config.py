@@ -20,6 +20,7 @@
   C. `ci-test.yml` 的安装步骤必须**两份全装**（与 quality.yml / 门 N 口径一致）。
   D. `ci-test.yml` 必须包含跑**全量** `tests/` 的步骤（子集不构成 CI 判据）。
   E. workflow 里引用的 `scripts/<name>` 必须真实存在（防「workflow 调已删脚本」）。
+F. workflow 的仓库内路径过滤器必须真实存在（防目录重组后 PR 不触发 CI）。
 """
 import re
 import sys
@@ -128,3 +129,31 @@ def test_e_workflow_script_references_exist():
             if not (ROOT / "scripts" / name).is_file():
                 missing.append(f"{wf.name} → scripts/{name}")
     assert not missing, f"workflow 引用了不存在的脚本：{missing}"
+
+
+def test_f_workflow_path_filters_exist():
+    """F：workflow 的 paths 过滤器不能引用目录重组前已删除的路径。"""
+    missing = []
+    for wf in sorted(WORKFLOWS.glob("*.yml")):
+        text = wf.read_text(encoding="utf-8")
+        # 只检查仓库内明确的相对路径；排除 glob 的尾部通配和 actions/ 等外部引用。
+        for raw in re.findall(r"^\s*-\s*['\"]([^'\"]+)['\"]\s*$", text, re.M):
+            path = raw.rstrip("*")
+            if not path or path.startswith(("http://", "https://", ".github/")):
+                continue
+            if "**" in raw or "*" in raw:
+                # 取第一个 glob 段之前的静态祖先目录，而不是对完整 glob
+                # 调 Path.exists()（例如 references/**/*.md 的 parent 不是 references）。
+                static_parts = []
+                for part in Path(raw).parts:
+                    if "*" in part or "?" in part or "[" in part:
+                        break
+                    static_parts.append(part)
+                parent = Path(*static_parts) if static_parts else Path(".")
+                if not (ROOT / parent).exists():
+                    missing.append(f"{wf.name} → {raw}")
+            elif (ROOT / path).exists() is False:
+                # 仅把看起来像仓库路径的条目纳入检查，避免误判 action 参数。
+                if "/" in path or path.endswith((".md", ".yml", ".yaml", ".py", ".sh")):
+                    missing.append(f"{wf.name} → {raw}")
+    assert not missing, f"workflow paths 引用了不存在的仓库路径：{missing}"

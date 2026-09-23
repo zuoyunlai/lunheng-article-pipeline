@@ -1,10 +1,10 @@
-> 版本：v2.12.73（自动同步 2026-09-22）
+> 版本：v2.12.74（自动同步 2026-09-23）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
 > 🇬🇧 **英文参考层（试点，v2.12.72 F）**：交接字段提供英文对照（做了什么=Work done / 产物在哪=Artifacts / 怎么验证=Verification / 已知问题=Known issues / 下一步=Next steps），**仅作参考，判据真源仍为中文**。完整英文角色卡/模板与英文 AI 痕迹检测暂缓，待真实需求验证后再投入。
 
-> 🏁 **收尾硬规则（v2.12.56 P-4，硬约束；与 P-1 同源）**：本交接报告**正文必须随最终消息一起结束回合** —— 该消息即交接摘要，会作为 completion event 送达主控。**不得**把摘要塞进 `acknowledgment` 字段（该字段不从子代理回合发出，实际不送达——实测导致主控「完成事件 + 摘要」双丢）。**禁用** `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history`（worker 自行 `sessions_yield` = 挂起 run 而非完成它）。详见 [`../_shared/真源/dispatch-header.md`](../_shared/真源/dispatch-header.md) §收尾协议。
+> 🏁 **收尾硬规则（v2.12.56 P-4，硬约束；与 P-1 同源）**：本交接报告**正文必须随最终消息一起结束回合** —— 该消息即交接摘要，会作为 completion event 送达主控。**不得**把摘要塞进 `acknowledgment` 字段（该字段不从子代理回合发出，实际不送达——实测导致主控「完成事件 + 摘要」双丢）。**禁用** `sessions_yield` / `agents_wait` / `next_check` / `subagents` / `sessions_list` / `sessions_history`（worker 自行 `sessions_yield` = 被拒或挂起 run，均不产生完成事件——详见 dispatch-header §收尾协议）。详见 [`../_shared/真源/dispatch-header.md`](../_shared/真源/dispatch-header.md) §收尾协议。
 
 # 交接报告模板
 
