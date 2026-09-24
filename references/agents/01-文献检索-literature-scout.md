@@ -38,6 +38,12 @@
 > 执行韧化 6 条（**检索员**视角）（心跳 / 分阶段 ack / LLM 可用性初判 / 超时硬卡 / 降级自报 / 禁止假装在线）**唯一真源 = [`_shared/真源/dispatch-header.md`](../_shared/真源/dispatch-header.md)**；本卡不重列。
 5. **禁止假装在线**：ack 必须真实反映进度；过程语言残留自检（M-Form-5）：完成后 grep「v2 稿/初稿/草稿/修订说明/主人结构性观察/据行业经验估算/论据类型」有命中立即删除。
 
+## E1 证据登记（基础接线）
+
+E1 对象、字段和枚举唯一真源见 [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)。当项目启用 E1 时，T1 为核心文献建立 `PaperRecord`，至少记录稳定 `paper_id`、来源记录、检索时间和摘要/全文可得性；有可复核原文时再建立 `SnippetRecord`。运行期登记表模板见 [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)。
+
+要求：多源一致性只描述身份/元数据一致性，不等于论证强度；`full_text: unavailable`、`abstract_only` 和未核验状态必须原样保留；不得用检索排序分数冒充证据强度。旧项目无登记表时照常产出文献卡，不得声称已完成 E1 覆盖。
+
 ## 职责
 - 用 web_search / tavily_search 检索主题相关文献（中英文）
 - 覆盖：Google Scholar、期刊官网、SSRN、CORE、DOAJ、**OpenAlex、Crossref（opt-in：默认关闭、Phase 0 勾选才用）** 等（原「知网/万方」类库无公开 API，不接入）

@@ -9,6 +9,7 @@ references/_shared/真源/asset-index.md
 references/_shared/真源/audit-checklist-quickref.md
 references/_shared/真源/degraded-scenarios.md
 references/_shared/真源/dispatch-header.md
+references/_shared/真源/evidence-object-model.md
 references/_shared/真源/external-services.md
 references/_shared/真源/failure-modes.md
 references/_shared/真源/format-export.md
@@ -66,6 +67,8 @@ references/permissions.md
 references/pipeline-readme.md
 references/templates/G14检测报告-template.md
 references/templates/checkpoint-card-template.md
+references/templates/claim-evidence-map-template.md
+references/templates/evidence-register-template.md
 references/templates/status-template-lite.md
 references/templates/status-template.md
 references/templates/交接报告-template-lite.md

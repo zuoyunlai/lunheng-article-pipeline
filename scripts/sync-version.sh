@@ -142,6 +142,8 @@ SYNCS=(
   "_shared/治理/反哺报告处理.md|header"
   # v2.12.67：性能基准表（审计 P1-2：四维数据唯一登记模板）
   "_shared/真源/performance-benchmarks.md|header"
+  # E1-0：证据对象与主张—证据链基础层
+  "_shared/真源/evidence-object-model.md|header"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 + v2.6.4 补全，教训 #175 防漏改）
   "templates/任务简报-template.md|header"
@@ -156,6 +158,9 @@ SYNCS=(
   "templates/先行者清单-template.md|header"
   "templates/交接报告-template.md|header"
   "templates/图表-SVG-template.md|header"
+  # E1-0：证据登记与主张—证据映射模板
+  "templates/evidence-register-template.md|header"
+  "templates/claim-evidence-map-template.md|header"
 
   # 顶层文档（入口，v2.3.6 起纳入；@ = 相对 ENTRY_DIR）
   "@README.md|header"

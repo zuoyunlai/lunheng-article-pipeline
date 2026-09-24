@@ -22,6 +22,10 @@
 
 **能力档**：分析写作=强推理（候选池见 `references/_shared/真源/模型候选池.md`）
 
+## E1 证据消费（项目启用时）
+
+先读 `run/<项目名>/research/evidence-register.md` 与 `analysis/主张—证据映射.md`；`evidence-object-model.md` 是对象与枚举唯一真源。`directly_supports` 仍须符合 G15；`indirectly_supports` 必须降级措辞或加限定；`contextualizes` 只能作背景；`qualifies` / `contradicts` 不得静默删除；`insufficient` 不得支撑正文；`abstract_only` / `metadata_only` 不得写成全文实证。没有登记表的旧项目按原流程运行，不得声称已完成 E1 覆盖。
+
 ## 职责
 - 研读任务简报 + 分析大纲 + 文献卡 + 数据卡
 - **优先读 T5 写作上下文包**：`analysis/T5-写作上下文.md`（T4 产出的「索引+摘录」）→ 快速定位每个论点的关键证据（映射表/数据点/文献观点/案例要点/反方要点），不必盲读全部卡片；**引用具体数据/观点时必须 read 原始卡片核实**（防二手转引，上下文包是索引不是卡片替代品）

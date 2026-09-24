@@ -40,7 +40,9 @@
 
 **流水线运行手册**（8 角色完整派发话术 + M 门 + F 模式 + AI 使用披露，T8 不 spawn）：`references/pipeline-readme.md`
 
-**模板**（类数以实际枚举为准，含 lite + full）：`references/templates/`（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单 + 审稿报告 / 修订说明 / 投稿就绪检查表 / checkpoint-card）
+**模板**（类数以实际枚举为准，含 lite + full）：`references/templates/`（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单 / **证据登记表 / 主张—证据映射** + 审稿报告 / 修订说明 / 投稿就绪检查表 / checkpoint-card）
+
+**E1 证据对象基础层（第一阶段）**：对象、字段、枚举和边界唯一真源 = [`evidence-object-model.md`](evidence-object-model.md)；运行期登记模板 = [`evidence-register-template.md`](../../templates/evidence-register-template.md)；T4 初始映射模板 = [`claim-evidence-map-template.md`](../../templates/claim-evidence-map-template.md)。E1-0 仅落基础资产，尚未接入角色、闸门或外部全文服务。
 
 
 **关键参考**：

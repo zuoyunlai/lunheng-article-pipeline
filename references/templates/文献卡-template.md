@@ -25,6 +25,10 @@
 - 实战 2（品牌一致性）：14 条 [Lxx] 在文末「参考文献」节缺失 → F8.4 信任级别遗漏 + G4-2 文末四节 diff 未跑 → M-Form-6 + T2.5 闸门可防
 - 实战 3（教师场域 outputs/）：公众号版无文献卡更新 → F8.2 公众号版不同步 → M-Exist-3 + **T7.5** 闸门可防
 
+## E1 证据登记（可选）
+
+项目启用 E1 时，核心文献另登记 `PaperRecord`，有可复核原文片段时登记 `SnippetRecord`；对象与字段唯一真源见 [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)，运行期模板见 [`evidence-register-template.md`](evidence-register-template.md)。文献卡仍是交付编号 `[Lxx]` 的人读卡，不替代证据登记表；旧项目未启用 E1 时不创建登记表。
+
 ## 基本信息
 
 - **主题**：
@@ -102,6 +106,10 @@
   - 查不到作者（如匿名预印本 / 机构发布）→ 填「机构名」+ 标记 `[匿名发布，非个人作者]`
   - 实在查不到 + 不可代替 → **不入库**（**T7** 之前该条作废，不进 [Lxx] 列表）
   - **质量缺口**：原设计“允许『待核』后补”导致 L08 作者名待核 → **T7** 才修（主人在 ECS 实战发现）
+
+## E1 证据登记指针（若项目启用）
+
+启用 E1 的项目，核心文献的结构化身份/访问状态登记在 `run/<项目名>/research/evidence-register.md`，对象与字段唯一真源 = [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)，模板 = [`evidence-register-template.md`](evidence-register-template.md)。本模板不新增结构化字段；未启用 E1 时照常使用，不影响 M-Form-6 / M-Exist-3 校验。
 
 ## 与 原创性保证的协同
 

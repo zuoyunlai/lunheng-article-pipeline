@@ -47,6 +47,10 @@
 - read `data/数据卡.md`：确认 `## [D` 条目 ≥ 10
 不满足 → 报告「输入不足」→ 主控决策
 
+## E1 证据登记（基础接线）
+
+当项目启用 E1 时，T4 在分析大纲之外填写 `analysis/主张—证据映射.md`，使用 [`../templates/claim-evidence-map-template.md`](../templates/claim-evidence-map-template.md)；项目级证据登记路径为 `run/<项目名>/research/evidence-register.md`，登记表模板见 [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)，对象与枚举唯一真源 = [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)。T4 只做初始映射，不替代 T7/T8 最终审计；必须区分直接、间接、主题相关、限定和反向证据，并复用 G15 双轴，不得另造强度门。旧项目无登记表时保持兼容。
+
 ## 职责
 - 研读任务简报 + 文献卡 + 数据卡
 - 产出 `analysis/分析大纲.md`：

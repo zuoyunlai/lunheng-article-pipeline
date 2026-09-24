@@ -22,6 +22,10 @@
 
 **能力档**：检索=便宜快（候选池见 `references/_shared/真源/模型候选池.md`）
 
+## E1 证据登记（基础接线）
+
+当项目启用 E1 时，T3 可为案例卡中的关键一手材料建立 `case_evidence` / `SnippetRecord`，登记 `evidence_id`、`source_ref`、原文片段、定位、来源类型和核验状态。字段与枚举唯一真源见 [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)；模板见 [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)。案例证据不得伪装成论文证据，反向证据不得静默删除。旧项目无登记表时仍按原案例卡协议运行。
+
 ## 职责
 
 - **专门检索**：具体企业行为/事件/人物/司法案件/行业典型

@@ -286,6 +286,7 @@ SHARED_ADMITTED=(
   '真源/audit-checklist-quickref.md'
   '真源/degraded-scenarios.md'
   '真源/dispatch-header.md'
+  '真源/evidence-object-model.md'
   '真源/external-services.md'
   '真源/failure-modes.md'
   '真源/format-export.md'

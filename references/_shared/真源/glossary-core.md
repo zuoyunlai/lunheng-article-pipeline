@@ -19,6 +19,10 @@
 | T8 | 终检（Final Inspector） | 主控亲完成，不 spawn；48 必查项（可发表性判据，见 `可发表性判定表.md`）+ 小幅修补权限 |
 | T9 | 同行评审（Peer Reviewer） | 6 维度评分 + 期刊匹配（Phase 4.5，可选） |
 
+## E1 证据对象基础层（可选能力）
+
+启用 E1 时，使用 `PaperRecord`、`SnippetRecord` 与 `ClaimEvidenceLink` 建立主张—证据链；对象、字段、枚举和边界的唯一真源见 [`evidence-object-model.md`](evidence-object-model.md)。E1 不新增质量门、不替代 G15，也不改变旧项目兼容性；没有登记表的旧项目不得声称已完成 E1 覆盖。
+
 ## 数据信任 3 档
 
 | 档 | 判定 | 典型 |
@@ -58,5 +62,6 @@
 ## 编号体系
 
 - **[Lx]** 文献 / **[Dx]** 数据 / **[Cx]** 案例——三角验证基础
+- **E1 证据对象**（若项目启用）：PaperRecord / SnippetRecord / ClaimEvidenceLink 三类对象与枚举唯一真源 = [`evidence-object-model.md`](evidence-object-model.md)；`E-xxx` 证据片段 / `C-xxx` 正文主张编号均属项目内登记，不取代 [Lxx]/[Dxx]/[Cxx] 交付编号
 - **D-基-xx-xx** 基线数据（资金 R / 阈值 T / 案例 C / 其他 E）必保留完整编号
 - **教训 #N** 引用：主真源在**维护者侧** `memory/lessons.md`（不随本技能分发），≥#115 才校验

@@ -47,6 +47,10 @@
 
 ---
 
+## E1 证据链终检扩展（暂不新增 M/G 项）
+
+若项目启用 E1，T8 在既有引用闭环之外核对：读取 `run/<项目名>/research/evidence-register.md` 与 `analysis/主张—证据映射.md`，检查核心正文主张是否都有 `ClaimEvidenceLink`，每个证据对象是否能回指 `[Lxx]` / `[Dxx]` / `[Cxx]`，证据关系与最终措辞是否一致，访问限制和证据缺口是否进入交付说明或局限性。未启用 E1 的旧项目保持兼容；空登记表不能被解释为证据链已完成。唯一真源见 [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)，登记模板 = [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)。
+
 ## 终检必查项
 
 > **判据单源化（教训 #252）**：T8 必查项的判据**全部下沉到单一真源** [`../_shared/真源/可发表性判定表.md`](../_shared/真源/可发表性判定表.md)，本卡不再重复罗列。

@@ -38,6 +38,8 @@
 ## 2. 产物在哪
 （精确文件路径，如 `run/数字鸿沟/literature/文献卡.md`）
 
+> 若项目启用 E1，另列 `run/<项目名>/research/evidence-register.md` 和/或 `analysis/主张—证据映射.md`；对象与字段唯一真源 = [`evidence-object-model.md`](../_shared/真源/evidence-object-model.md)；旧项目写明“E1 未启用”。
+
 ## 3. 怎么验证
 （验收标准/自查项：如"每条引用都带 URL，可随机抽 3 条搜索验证"）
 
