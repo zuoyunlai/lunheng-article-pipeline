@@ -1,4 +1,5 @@
 > 版本：v2.13.0（自动同步 2026-09-24）
+> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
 # 主张—证据初始映射表
 
@@ -29,15 +30,15 @@
 
 | Claim ID | 分析主张（原句或准确摘要） | Evidence ID | Source ref | 初判关系 | 证据类型 | 证据访问状态 | G15 causal_force | G15 evidence_force | 建议措辞/限定语 | 缺口 | T4 状态 |
 |---|---|---|---|---|---|---|---:|---:|---|---|---|
-| C-001 |  | E-001 | [L01] | indirectly_supports | abstract | abstract_only | 2 | 2 |  |  | needs_review |
-| C-002 |  | E-002 | [D01] | directly_supports | results | available |  |  |  |  | needs_review |
-| C-003 |  | E-C01 | [C01] | contradicts | body | available |  |  |  |  | needs_review |
+| C-001 | （示例）算法治理与个体选择空间相关 | E-001 | [L01] | indirectly_supports | abstract | abstract_only | 2 | 2 | 「与……相关」 | 缺直接原文 | needs_review |
+| C-002 | （示例）平台依赖度逐年上升 | E-002 | [D01] | directly_supports | results | available | 3 | 4 | 直接引用数据 | 需核对时间范围 | needs_review |
+| C-003 | （示例）存在反向案例 | E-C01 | [C01] | contradicts | body | available | 1 | 3 | 交 T6/T7 处理 | 反方未回应 | needs_review |
 
 ## 未绑定主张
 
 | Claim ID | 主张 | 是否核心主张 | 缺口 | 处置建议 |
 |---|---|---|---|---|
-| C- |  | 是/否 | 无证据/待检索/待核验 |  |
+| C-004 | （示例）尚无证据支撑的推断 | 是 | 无证据 | 建议降级措辞或补检索 |
 
 ## 映射完成前自查
 
