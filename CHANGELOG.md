@@ -2,6 +2,14 @@
 
 ---
 
+## [v2.13.1] — 2026-09-24
+
+- **E1 证据对象与主张—证据链基础层**：新增供应商无关的 `PaperRecord`、`SnippetRecord`、`ClaimEvidenceLink` 对象模型真源。
+- **证据登记与主张映射模板**：新增项目级 `research/evidence-register.md` 登记模板和 `analysis/主张—证据映射.md` 模板，保留 `[Lxx]` / `[Dxx]` / `[Cxx]` 交付编号体系。
+- **流水线最小接线**：T1/T3/T4/T7/T8 增加 E1 可选接线；复用 G15 主张强度双轴，不新增 G18、不新增外发类别、不接入 AI4Scholar API。
+- **机械验收**：新增 E1 一致性/反向注入测试；全量 pytest **524 passed**；链接门、版本头门和构建净化链通过。
+- **兼容与边界**：旧项目无 E1 登记表时保持兼容；`full_text: unavailable`、`abstract_only` 和反向证据披露边界明确。
+
 ## [v2.13.0] — 2026-09-24
 
 - **背景**：ECS 实战项目《否决权阴影下的制度对冲》（`lunheng-un-veto-russia-ukraine-2026`，12031 字重量档）暴露 8 项问题；主人拍板 P0 三项合并本版一次发版。
