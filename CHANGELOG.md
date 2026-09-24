@@ -47,17 +47,3 @@
 - **验收基线**：最终全量测试、构建净化链、flow-check、flow-schema、链接门、自审门和版本门全部通过后发布。
 
 ---
-
-## [v2.12.71] — 2026-09-22
-
-- **重量档实测数据回填（优化方案 C，P1）**：主人 2026-09-22 在另一对话跑完首个重量档实战项目《谁有权认定你自愿？——同意门槛的“认证政治”》（`consent-certification-politics-2026`，正文 12721 字），按 `performance-benchmarks.md` §一字段口径回填真实数据。
-
-- **① 性能基准表新增重量档实测行**：字数 12721（T8 `body_char_count`）/ 耗时约 2h40m（任务简报 11:06 → Phase 5 验收 13:46）/ token 286k in + 5.5k out（主控精确）/ 成本 ≥$0.31（主控）/ 引用 31 条 / 修订轮 2 / 子代理 15 个心跳留痕。重量档首次有实测记录。
-
-- **② 外推守则据实修订**：重量档由“尚无实测”改为“已有 1 例实测”，但尚不足 3 行不同档位实测，README/QUICKSTART 的耗时数字继续保持“估计”措辞；同步更新两处预计时间说明。
-
-- **③ 数据缺口如实登记**：子代理 completion event Stats line 未沿回传路径带回主控，因此 token/成本仅主控侧精确；`status.md` 阶段表时间戳与产物 mtime 也存在不一致，耗时采用可复算的任务简报创建时间至 Phase 5 验收时间。
-
-- **验收（实测回填 · 最终态）**：自审门 **PASS 37 / FAIL 0**；`python3 -m pytest tests/ -q` → **480 passed**；`python3 scripts/flow-check.py` RC=0；`bash scripts/check-version.sh` 通过；`python3 scripts/link-check.py` 全绿。
-
-- **本批范围**：1 行重量档实测数据 + README/QUICKSTART 口径更新 + 记账。**无新增运行能力、无判据变更**（纯数据/文档层）。
