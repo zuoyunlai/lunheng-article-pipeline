@@ -1,4 +1,4 @@
-> 版本：v2.12.74（自动同步 2026-09-23）
+> 版本：v2.13.0（自动同步 2026-09-24）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -14,7 +14,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.12.74**（2026-09-23，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**权限边界与流程一致性修订**：补齐 runtime 漏出工具的 denied 声明，增加 coordinator_only 角色分区校验，修复流程真源重复字段与 CI 路径过滤器。详见 CHANGELOG §v2.12.74。
+**v2.13.0**（2026-09-24，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**实战反馈 P0 三项修订**：新增 Phase 4.3 T1b 定向回查节点（「待人工核验」引用闭环）、G14 风格复检升级全文词表计数严格档（≤2 轮）、引用编号独立性与出处可验证性铁律（禁区间/合并引用，DOI 优先）。详见 CHANGELOG §v2.13.0。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。经验证：~9500 字深度文全流程约 2 小时。
 
@@ -122,13 +122,13 @@
 
 ## 全景与阶段顺序（指针）
 
-> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（24 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 ## 怎么用
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.74  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.13.0  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 
@@ -175,7 +175,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.12.74  # pin 审�
 | v2.12.11 | 2026-09-10 | — | **全仓四路专项审计（口径漂移 / 执行衔接 / 净化链内泄漏 / 交叉引用）真问题全修：加固口径 fail-closed 统一 + 人在环超时兜底 + status.md 写入者收口 + G14/T7/T9 时序校正 + 净化链规则补漏** |
 | v2.12.34 | 2026-09-13 | 规范合规 | 官方规范审计整改：SKILL.md 11,335→9,996 字符（棘轮 10,000）+ description 876→123 字节 + 门 H 改仓库内快照判据 + `outputs/` 迁出技能根（37MB→2.8MB）|
 | v2.12.46 | 2026-09-15 | 架构定案 | 九角色多 Agent 为唯一标准架构 + Phase 编号成为第一类真源字段（flow-check 规则 11）+ 角色产物写入边界 + 人在环 4 个 checkpoint 机械门 |
-| v2.12.54 | 2026-09-18 | 真源收敛 | 全景与阶段顺序收敛为唯一派生视图（`pipeline-overview.md` 23 节点全表，flow-check 机械守）+ R-2~R-6 构建期校验 + T9 改默认启用 |
+| v2.12.54 | 2026-09-18 | 真源收敛 | 全景与阶段顺序收敛为唯一派生视图（`pipeline-overview.md` 24 节点全表，flow-check 机械守）+ R-2~R-6 构建期校验 + T9 改默认启用 |
 | v2.12.58 | 2026-09-19 | 门扩围 | M 门文档围栏错位修复（教训 #426）+ 自审门 X 新增并**全仓扩围**（X.1-X.4，扩围即抓到第二例同类缺陷）+ 教训 #424-#428 |
 | v2.12.59 | 2026-09-19 | 判据面 | 全面审计第一批整改：悬空指针补建（`host-verify-recipe.md`）+ 门 U 扩第三类扫描面（活文档内联引用）+ §十六 分层指针 + 定稿图件口径显式化 |
 | v2.12.60 | 2026-09-19 | 机械锁 | 图件**嵌入式**图位机械锁（M-11 双计数 + flow-check 20b）+ 节点 `kind` 必填门（32）+ 补打 4 个缺失 tag |

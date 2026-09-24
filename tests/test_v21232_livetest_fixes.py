@@ -128,8 +128,8 @@ def test_p0_2_brief_template_requires_selfcheck():
 def test_p1_1_g14_single_pass_doctrine():
     """G14 全流程只审一次、不再复检；旧「复检收敛判据」作废须留痕"""
     g = read(G14)
-    assert "全流程只审一次" in g, "缺「只审一次」口径"
-    assert "不再复检" in g, "缺「不再复检」口径"
+    assert "首审全流程只一次" in g, "缺首审只审一次口径"
+    assert "风格修订后全文复检 ≤2 轮" in g, "缺修订后全文复检口径"
     assert "复检收敛判据" in g and "作废" in g, "旧判据作废须留痕（防无解释删除）"
 
 
@@ -144,7 +144,8 @@ def test_p1_1_phase_order_pins_single_run():
 def test_p1_1_no_polling_style_growth():
     """G14 触发次数硬上限 = 1 次，且位置钉死在 T7.5 之后（防回到「无限重跑」口径）"""
     g = read(G14)
-    assert "只审一次" in g, "缺触发次数硬上限（=1）"
+    assert "首审全流程只一次" in g, "缺首审触发次数硬上限（=1）"
+    assert "回环上限 ≤ 2 轮" in g, "缺修订后复检回环上限"
     assert "t7_5_integrity → g14_style_gate → phase4_4_figures" in g, "缺唯一触发位置链"
 
 

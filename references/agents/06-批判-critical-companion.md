@@ -1,4 +1,4 @@
-> 版本：v2.12.74（自动同步 2026-09-23）
+> 版本：v2.13.0（自动同步 2026-09-24）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -64,7 +64,7 @@
 **G14 已迁至 Phase 4.4 前置（`g14_style_gate`），不再与 T6 同批**（真源 = `../_shared/真源/phase-order.yaml`）；本卡只负责 Phase 3.6 的论证批判，G14 的触发/判定/落点一律以其真源为准，我不复述。
 
 - **T6 职责（本卡）**：Phase 3.6 对 `current_draft` 做 C1-C7 七维论证批判，攻击 v2（含主人洞察）；**主人跳过 Phase 3.5 时 → 攻击对象退化为 v1 实质内容**（见 [`../_shared/真源/degraded-scenarios.md`](../_shared/真源/degraded-scenarios.md)）
-- **G14 职责（不在本卡）**：9 类中文 AI 痕迹检测，Phase 4.4 前置定稿前只审一次；判定与落点真源 = [`../gates/14-中文AI痕迹-gate.md`](../gates/14-中文AI痕迹-gate.md) / [`../checkers/中文AI痕迹-checker.md`](../checkers/中文AI痕迹-checker.md) / [`../_shared/真源/phase-order.yaml`](../_shared/真源/phase-order.yaml)
+- **G14 职责（不在本卡）**：9 类中文 AI 痕迹检测，Phase 4.4 前置首审只一次（风格修订后全文复检 ≤2 轮）；判定与落点真源 = [`../gates/14-中文AI痕迹-gate.md`](../gates/14-中文AI痕迹-gate.md) / [`../checkers/中文AI痕迹-checker.md`](../checkers/中文AI痕迹-checker.md) / [`../_shared/真源/phase-order.yaml`](../_shared/真源/phase-order.yaml)
 - **互不替代**：T6 不抓 AI 痕迹（那是 G14 的活），G14 不攻击论证（那是 T6 的活）
 - **报告绑定**：本卡报告绑定 `draft_id` / `draft_version`（与 G14 报告同约定，便于主控对照）
 - 攻击对象不满足 → 在交接报告写「批判对象不完整，无法产出有效批判报告」，主控决定是否补

@@ -2,6 +2,16 @@
 
 ---
 
+## [v2.13.0] — 2026-09-24
+
+- **背景**：ECS 实战项目《否决权阴影下的制度对冲》（`lunheng-un-veto-russia-ukraine-2026`，12031 字重量档）暴露 8 项问题；主人拍板 P0 三项合并本版一次发版。
+- **P0-1 · Phase 4.3 T1b 定向回查节点（新节点，流水线 23→24 节点）**：T5 修订轮新增引用标「待人工核验」而 T1 已结束的系统性缺口 → 新增 `t1b_targeted_review`（`audit_revision` 后、`t7_5_integrity` 前），复用 T1 角色卡与 research 档（九角色架构不变）；≤2 轮，耗尽走主人三选一（接受 + Acknowledged Limitations / 主人自行核验 / 删除未核验引用）；新增 `dispatch/T1b-定向回查.md` 派发话术；Phase 1.5 触发面同步扩展文献级 [Lxx] 待复核。
+- **P0-2 · G14 风格复检严格度档（全文词表计数，≤2 轮）**：旧轻量复检只扫修订片段，实战「路径」残留 11 处 → `rerun_g14_style_recheck` 升级为全文 9 类词表逐类计数（禁只扫修订片段）；收敛判据 = 命中类数下降且无单类 ≥3x 阈值；`t5_style_revision.style_recheck_rounds_max: 2` 入真源；耗尽走主人三选一；v2.12.67「修订后不再复检、风险静默披露」口径作废；复检口径全仓 17 处同步（gate/dispatch/checker/报告模板/status 模板/主控卡/glossary/关键协议/quickref/asset-index/phase-3-details/全景）。
+- **P0-3 · 引用编号独立性 + 出处可验证性铁律**：实战 T9 P0 发现 [D21-D28] 合并引用 → 写手卡新增「修订轮新增引用核验纪律」（未经核验必标「待人工核验」触发 T1b；禁区间引用 [L21]-[L26] 连写、禁合并引用/内部材料指路）；T2 卡 + 派发话术新增「出处可验证性」（学术来源 DOI 优先，非学术三件套；一个 [Dxx] 一条出处）；T7 卡新增「引用编号独立性核验」（区间/合并引用 → P0 必改）。
+- **附带修复 · flow-check 两处机械缺口**：① PATH_RE 支持 `{N+1}` 版本占位（规则 6/9 此前对修订产出节点全程失效——产出路径从未被捕获）；② 规则 9 BFS 边序修正（`after_each` 先于 `next` 入队；原顺序提前命中 t7_audit 而 break，永远看不到同节点 after_each 里的 current_draft_sync）。均为本次新增 t1b 节点时被门暴露的既有缺陷。
+- **全景与计数同步**：流水线 23→24 节点（canary 增 t1b 行 + seq 14-23 重排）；8 个镜像文档节点计数同步；checkpoint-card 步骤 9 映射补 t1b；门 Y 体量棘轮按实测重锚（00-主控 77630 / phase-order 61552）。
+- **验收基线**：全仓版本统一 v2.13.0；新增 `tests/test_v2130_p0_fixes.py` 15 项回归锚（节点声明/三选一出口/生产方登记/漂移锚/G14 严格度/引用纪律/PATH_RE）；flow-check RC=0。
+
 ## [v2.12.74] — 2026-09-23
 
 - **权限边界收敛**：补齐 runtime 实测漏出工具的 denied 声明至 104 项；移除 capability-assert 的宿主扩展硬编码，改以 SKILL.md frontmatter 为唯一权限真源。
@@ -43,21 +53,3 @@
 - **验收（实测回填 · 最终态）**：自审门 **PASS 37 / FAIL 0**；`python3 -m pytest tests/ -q` → **480 passed**；`python3 scripts/flow-check.py` RC=0；`bash scripts/check-version.sh` 通过；`python3 scripts/link-check.py` 全绿。
 
 - **本批范围**：1 行重量档实测数据 + README/QUICKSTART 口径更新 + 记账。**无新增运行能力、无判据变更**（纯数据/文档层）。
-
----
-
-## [v2.12.70] — 2026-09-21
-
-- **治理瘦身（方案 A，P0 战略）**，主人 2026-09-21 指令「批次1 A 治理瘦身」——对 2026-09-21 优化方案「A. 治理复杂度瘦身」落地。方案 A 三步：① `_shared/` 分层 ② 治理叙事归档外移 ③ 规则软上限。本批完成 ① 分层 + ③ 规则软上限；② 归档核验后**无 30 天未引用对象**（治理/ 5 文件全有活跃引用，仓库历史仅 12 天），如实记录不做硬造归档。
-
-- **① `_shared/` 物理分层（真源/ 30 文件 + 治理/ 5 文件）**：方案 A 核心——`_shared/` 588K 里「治理叙事」（教训索引/审计链/变更考古/反哺报告）与「判据真源」（phase-order.yaml / M-Gate-Algorithm / 字数判定表 / 路径校验规范）长期混在同一目录，新人/新子代理分不清「哪些是必读真源、哪些是历史复盘」。本批拆为两个子目录：**真源/**（30 文件，判据真源，每次必读）+ **治理/**（5 文件，治理叙事，按需查证）。纯目录重组，不改判据内容。
-
-- **①-补 · 全仓引用修正（分层机械后果，本批最大工作量）**：35 文件下移一层后，全仓 74 文件 421 处 `_shared/<文件名>` 引用 + 真源/治理内部 32 处交叉引用 + 51 处 markdown 相对链接断链全部修正；`scripts/.pkg-manifest.txt` 32 条路径重排（LC_ALL=C 字节序）；`build-clawhub-release.sh` SHARED_ADMITTED 白名单带子目录前缀 + find 递归（-mindepth 1 -maxdepth 2）；`self-audit-gate.sh` 候选池 glob + 门 Y 上限；12 个测试文件 Path 分片写法；门 Y 体量棘轮上限按实上调（00-主控 73538→74028 / M-Gate 84250→84274 / phase-order 55272→55328，均为路径前缀机械变长，非内容膨胀）。
-
-- **③ 规则软上限（治「规则的规则」内卷）**：`tests/test_flow_check_meta.py` 新增 `RULE_COUNT_MAX=50`（当前 46 条，只许降）+ `test_rule_count_soft_ceiling`；`self-audit-gate.sh` 新增**门 Z**（自审门项数软上限 `GATE_COUNT_CEIL=40`，warn 级软门，不计 exit code）。逼「加规则前先合并/退役旧规则」。
-
-- **验收（实测回填 · 最终态）**：自审门 **PASS 37 / FAIL 0**（门 Z 使 PASS 36→37）；`python3 -m pytest tests/ -q` → **480 passed**（+1 条软上限测试）；`python3 scripts/flow-check.py` **RC=0**；`bash scripts/check-version.sh` 通过（v2.12.70）；`python3 scripts/link-check.py` 全绿（518 链接 + 281 内联）；`python3 scripts/changelog-check.py --check` RC=0。
-
-- **本批范围**：目录重组（35 文件）+ 全仓引用修正 + 2 处软上限机械门 + 1 条测试 + 记账。**无新增运行能力、无判据内容变更**（纯工程/治理层）。**未 tag、未 push**（发布动作等主人点头）。
-
----

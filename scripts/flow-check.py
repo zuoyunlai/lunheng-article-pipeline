@@ -69,7 +69,7 @@ EXEC_KINDS = (
 INPUT_KINDS = EXEC_KINDS + ('conditional_review_window',)
 
 # 路径 token：必须含目录分隔符，扩展名 ∈ md/svg/json/yaml（保守匹配，宁少勿误报）
-PATH_RE = re.compile(r'[A-Za-z0-9_\-\u4e00-\u9fff]+/[A-Za-z0-9_\-\u4e00-\u9fff/{}.*]+\.(?:md|svg|json|yaml)')
+PATH_RE = re.compile(r'[A-Za-z0-9_\-\u4e00-\u9fff]+/[A-Za-z0-9_\-\u4e00-\u9fff/{}.+*]+\.(?:md|svg|json|yaml)')
 # 目录型产物（如 final/图件/）：用于「目录产出覆盖其下通配消费」的前缀匹配（v2.12.41）
 DIR_RE = re.compile(r'\b(?:final|drafts|audits|analysis|literature|data|cases|run)/[A-Za-z0-9_\-\u4e00-\u9fff/]*/')
 
@@ -197,11 +197,14 @@ def main():
         if not n:
             return []
         out = []
-        for k in ('next', 'after_trigger', 'on_fail'):
-            v = n.get(k)
+        # v2.13.0：after_each 边先于 next/after_trigger/on_fail 入队 —— 执行语义上「单次执行后动作」
+        # 在阶段转移前发生；此前 next 排前会让 BFS 提前命中 t7_audit 而 break，
+        # 永远看不到同一节点 after_each 里的 current_draft_sync（规则 9 对 {N+1} 产出节点全程失效）。
+        for v in (n.get('after_each') or []):
             if isinstance(v, str) and v in byid:
                 out.append(v)
-        for v in (n.get('after_each') or []):
+        for k in ('next', 'after_trigger', 'on_fail'):
+            v = n.get(k)
             if isinstance(v, str) and v in byid:
                 out.append(v)
         return out

@@ -1,4 +1,4 @@
-> 版本：v2.12.74（自动同步 2026-09-23）
+> 版本：v2.13.0（自动同步 2026-09-24）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -177,7 +177,7 @@ v2.3.13 起模型不再硬编码，模型解析分**三层**（从唯一真源�
 
 ## 全景与阶段顺序（指针）
 
-> 📎 **流水线全景与阶段顺序** → [唯一派生视图](_shared/真源/pipeline-overview.md)（23 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](_shared/真源/pipeline-overview.md)（24 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order.yaml`。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 ### T9 评分必汇报（主人实测教训）
 
@@ -296,6 +296,7 @@ Phase 5 终检      **T8** 主控终检 → final/定稿.md + 图件/（如有�
 | T9 同行评审 | `references/dispatch/T9-同行评审.md` | Phase 4.5（可选）|
 | G14 中文 AI 痕迹检测 | `references/dispatch/G14-中文AI痕迹检测器.md` | Phase 4.4 前置（`g14_style_gate`）|
 | T1 文献检索 | `references/dispatch/T1-文献检索.md` | Phase 1（并行①）|
+| T1b 定向回查 | `references/dispatch/T1b-定向回查.md` | Phase 1.5 / Phase 4.3（条件触发，v2.13.0 P0-1）|
 | T2 数据检索 | `references/dispatch/T2-数据检索.md` | Phase 1（并行②）|
 | T3 案例检索 | `references/dispatch/T3-案例检索.md` | Phase 1（并行③）|
 | T4 分析 | `references/dispatch/T4-分析.md` | Phase 2 |

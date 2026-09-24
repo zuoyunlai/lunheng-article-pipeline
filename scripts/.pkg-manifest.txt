@@ -49,6 +49,7 @@ references/checkers/中文AI痕迹-checker.md
 references/deliverables.md
 references/dispatch/G14-中文AI痕迹检测器.md
 references/dispatch/T1-文献检索.md
+references/dispatch/T1b-定向回查.md
 references/dispatch/T2-数据检索.md
 references/dispatch/T3-案例检索.md
 references/dispatch/T4-分析.md

@@ -1,4 +1,4 @@
-> 版本：v2.12.74（自动同步 2026-09-23）
+> 版本：v2.13.0（自动同步 2026-09-24）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -10,7 +10,7 @@
 >
 > 📎 **与 [`pipeline-readme.md`](../../pipeline-readme.md) 的分工**（v2.12.40 起显式声明）：本文件 = **派生速查视图**（全景 + 修订回环仲裁）；`pipeline-readme.md` = **完整运行手册**（触发词 / 适用边界 / 模型配置 / 派发话术索引 / 模板加载策略等百科内容）。**两者不可互替、不可精简为对方。**
 
-## 流水线全景（Phase 0-5，真源共 23 节点）
+## 流水线全景（Phase 0-5，真源共 24 节点）
 
 > ⚠️ **节点 id 是主控呈现进度的唯一合法取值**（v2.12.27）：主控**不得自创**节点名或 Phase 标签。历史实况：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计。
 
@@ -30,15 +30,16 @@
 | 11 | `t5_feedback_revision` | Phase 3.7 | T5（条件触发） | `drafts/初稿-v{N+1}.md` + `drafts/修订说明-v{N+1}.md` |
 | 12 | `t7_audit` | Phase 4 | T7 | `audits/审计报告-vN.md`（G0-G13 + G15-G16；G14 已迁出） |
 | 13 | `audit_revision` | Phase 4.2 | T5（有界回环） | 修订稿 + 修订说明；`max_rounds: 2`，耗尽走三选一 |
-| 14 | `t7_5_integrity` | T7.5 完整性门 | 主控 checkpoint | `final/M-Gate-Report-*.json`（**审完才放行 T9/T8**） |
-| 15 | `g14_style_gate` | Phase 4.4 前置（G14 风格闸） | G14（含中文必跑） | `audits/G14-检测报告-vN.md`（**全流程只审一次**） |
-| 16 | `t5_style_revision` | Phase 4.4 前置·风格修订 | T5（G14 Fail 唯一出口） | 仅风格层修订稿（**不得动论证/数据/引用/结论**） |
-| 17 | `phase4_4_figures` | Phase 4.4 | 主控（亲为） | `final/图件/*.svg`（零外发、零 exec；有图位才触发） |
-| 18 | `final_assembly` | Phase 4.4 后置（定稿组装） | 主控（亲为） | `final/定稿.md`（**只产投稿版**，禁入工程元数据段） |
-| 19 | `t9_review` | Phase 4.5 | T9（盲审独立子代理） | `audits/审稿报告-vN.md`（6 维度 → accept/minor/major/reject） |
-| 20 | `t8_technical_final` | Phase 5 终检 | 主控（T8 亲为） | `final/交付说明.md`（+ Acknowledged Limitations 时 `final/局限性.md`） |
-| 21 | `methodology_snapshot` | Phase 5 终检后置（方法论留档） | 主控（亲为） | `audits/methodology-footprint-*.md`（**默认触发**，主人可 opt-out） |
-| 22 | `phase5_acceptance` | Phase 5 验收 | 主人 × 主控（**人在环**） | `accepted` / `revision_requested` / `restart_phase` / `deferred`（四个 owner_checkpoint 一律 fail-closed） |
+| 14 | `t1b_targeted_review` | Phase 4.3 定向回查（T1b） | T1b（条件触发，复用 T1） | `literature/回查报告-vN.md`（「待人工核验」引用定向回查；≤2 轮，未触发记 `not_triggered`） |
+| 15 | `t7_5_integrity` | T7.5 完整性门 | 主控 checkpoint | `final/M-Gate-Report-*.json`（**审完才放行 T9/T8**） |
+| 16 | `g14_style_gate` | Phase 4.4 前置（G14 风格闸） | G14（含中文必跑） | `audits/G14-检测报告-vN.md`（**全流程只审一次**；风格修订后全文复检 ≤2 轮） |
+| 17 | `t5_style_revision` | Phase 4.4 前置·风格修订 | T5（G14 Fail 唯一出口） | 仅风格层修订稿（**不得动论证/数据/引用/结论**） |
+| 18 | `phase4_4_figures` | Phase 4.4 | 主控（亲为） | `final/图件/*.svg`（零外发、零 exec；有图位才触发） |
+| 19 | `final_assembly` | Phase 4.4 后置（定稿组装） | 主控（亲为） | `final/定稿.md`（**只产投稿版**，禁入工程元数据段） |
+| 20 | `t9_review` | Phase 4.5 | T9（盲审独立子代理） | `audits/审稿报告-vN.md`（6 维度 → accept/minor/major/reject） |
+| 21 | `t8_technical_final` | Phase 5 终检 | 主控（T8 亲为） | `final/交付说明.md`（+ Acknowledged Limitations 时 `final/局限性.md`） |
+| 22 | `methodology_snapshot` | Phase 5 终检后置（方法论留档） | 主控（亲为） | `audits/methodology-footprint-*.md`（**默认触发**，主人可 opt-out） |
+| 23 | `phase5_acceptance` | Phase 5 验收 | 主人 × 主控（**人在环**） | `accepted` / `revision_requested` / `restart_phase` / `deferred`（四个 owner_checkpoint 一律 fail-closed） |
 
 > **Phase 详细操作按需加载**：[`phase-1-details.md`](phase-1-details.md)（检索边界 / 强相关性 / 三角验证 / 数据信任 3 档）、[`phase-2-details.md`](phase-2-details.md)（退化场景）、[`phase-3-details.md`](phase-3-details.md)（写作铁律 10 项 + 洞察补充 + T6/G14 + 修订回环）。
 
@@ -63,6 +64,6 @@
 
 > **字数核验收口（修订回环收口，P0-4）**：论衡字数 = **单点权威核验**（T8 终检实测，或主人 host shell 跑 `grep -oP '\p{Han}'` 回填 `body_char_count`），其余各阶段（T5 自报 / 修订净增）一律**估算 + 误差标注**，**主控不得每轮 read 全文数中文字符数**。修订净增用「估算 delta + 量级 sanity check」（差量级才回查），不用精确阈值。
 
-T7 / T9 报告头部显式写 `修订回环 = N/2`（**G14 不计入修订回环 —— v2.12.40 起只审一次、不复检**）；T8 终检按此表仲裁。T9 minor 默认 T8 inline 处置；T9 major / 扩写建议 → 呈主人拍板是否启 v4。
+T7 / T9 报告头部显式写 `修订回环 = N/2`（**G14 不计入修订回环 —— 首审只一次；风格修订后全文复检 ≤2 轮，v2.13.0 P0-2**）；T8 终检按此表仲裁。T9 minor 默认 T8 inline 处置；T9 major / 扩写建议 → 呈主人拍板是否启 v4。
 
 ---

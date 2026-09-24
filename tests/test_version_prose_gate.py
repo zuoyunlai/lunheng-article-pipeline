@@ -104,8 +104,12 @@ def _frontmatter_version(root):
 def _stale(ver):
     """落后一版的错版值（复刻实测形态：frontmatter 2.12.65 / 正文 2.12.64）。"""
     x, y, z = (int(p) for p in ver.split("."))
-    assert z >= 1, f"无法构造错版值：{ver}"
-    return f"{x}.{y}.{z - 1}"
+    if z >= 1:
+        return f"{x}.{y}.{z - 1}"
+    if y >= 1:
+        return f"{x}.{y - 1}.99"
+    assert x >= 1, f"无法构造错版值：{ver}"
+    return f"{x - 1}.99.99"
 
 
 def _break_readme_prose(root):

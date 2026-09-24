@@ -3,9 +3,9 @@
 # 这是流程顺序与阻断关系的唯一真源；运行时由主控使用 read/write/edit 执行。
 # agent 报告节点含 output_chars_max（**双上限**：`output_chars_max` = 报告**写盘**上限；**回传**上限恒为平台硬上限 4096 字符，见 执行韧化协议-exec.md § 报告长度上限与分块协议）
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
-# 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_critique；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.4 前置 = g14_style_gate**；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
+# 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_critique；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.3 = t1b_targeted_review**；**Phase 4.4 前置 = g14_style_gate**；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
 # ⚠️ v2.12.40（业主定案 A1/A2）：G14 由「Phase 3.6 与 T6 同批、且每轮修订后复检」迁至「**Phase 4.4 前置**」，语义变为
-#   「**定稿前的最后一道闸；风格修订后例外复检一次**」；不再是可选项（按 Phase 0「目标语言」字段客观适用）。
+#   「**定稿前的最后一道闸；风格修订后全文复检 ≤2 轮（v2.13.0 P0-2）**」；不再是可选项（按 Phase 0「目标语言」字段客观适用）。
 #   **执行前提 = 「已可定稿」**：前置修订尚未收敛（还不能定稿）时**不执行 G14**；G14 检查后由 T5 做**最后一次**（仅风格层）修订。
 #   详见 `g14_style_gate` / `t5_style_revision` 节点注，以及 references/gates/14-中文AI痕迹-gate.md §四。
 # ⚠️ v2.12.27：本映射表是**进度标签的唯一真源** —— 主控呈现 Phase 标签时必须取自此处，**不得自创**（实测教训：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计）
@@ -41,7 +41,7 @@
 #      实测被读成「主控代写审稿报告并给出编造精度」。未接线 = 构建期 flow-check 失败（规则 30）。
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
-version: 2.12.74
+version: 2.13.0
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-Algorithm.md §判定结果分档）。
@@ -192,15 +192,16 @@ phase_order:
   - {seq: 11, phase: "Phase 3.7",               node: t5_feedback_revision}
   - {seq: 12, phase: "Phase 4",                 node: t7_audit}
   - {seq: 13, phase: "Phase 4.2",               node: audit_revision}
-  - {seq: 14, phase: "T7.5 完整性门",         node: t7_5_integrity}
-  - {seq: 15, phase: "Phase 4.4 前置（G14 风格闸）", node: g14_style_gate}
-  - {seq: 16, phase: "Phase 4.4 前置·风格修订", node: t5_style_revision}
-  - {seq: 17, phase: "Phase 4.4",               node: phase4_4_figures}
-  - {seq: 18, phase: "Phase 4.4 后置（定稿组装）", node: final_assembly}
-  - {seq: 19, phase: "Phase 4.5",               node: t9_review}
-  - {seq: 20, phase: "Phase 5 终检",         node: t8_technical_final}
-  - {seq: 21, phase: "Phase 5 终检后置（方法论留档）", node: methodology_snapshot}
-  - {seq: 22, phase: "Phase 5 验收",         node: phase5_acceptance}
+  - {seq: 14, phase: "Phase 4.3 定向回查（T1b）", node: t1b_targeted_review}
+  - {seq: 15, phase: "T7.5 完整性门",         node: t7_5_integrity}
+  - {seq: 16, phase: "Phase 4.4 前置（G14 风格闸）", node: g14_style_gate}
+  - {seq: 17, phase: "Phase 4.4 前置·风格修订", node: t5_style_revision}
+  - {seq: 18, phase: "Phase 4.4",               node: phase4_4_figures}
+  - {seq: 19, phase: "Phase 4.4 后置（定稿组装）", node: final_assembly}
+  - {seq: 20, phase: "Phase 4.5",               node: t9_review}
+  - {seq: 21, phase: "Phase 5 终检",         node: t8_technical_final}
+  - {seq: 22, phase: "Phase 5 终检后置（方法论留档）", node: methodology_snapshot}
+  - {seq: 23, phase: "Phase 5 验收",         node: phase5_acceptance}
 architecture:
   standard: multi_agent_role_pipeline
   worker_roles: [T1, T2, T3, T4, T5, T6, T7, T9, G14]
@@ -231,6 +232,10 @@ condition_definitions:
     requires: [phase0_review_flags]
     producer: references/templates/任务简报-template.md
     producer_marker: "待复核关键 Dxx"
+  t5_t7_report_unverified_references:   # v2.13.0 P0-1（ECS 实战反馈）：T5 修订说明/初稿或 T7 审计报告出现「待人工核验」标记 ⇒ t1b_targeted_review 定向回查；T9 发现的引用问题走 Phase 5 主人拍板（时序在后，不回流）
+    requires: [t5_report_marker, t7_report_marker]
+    producer: references/agents/05-写作-writer.md
+    producer_marker: "待人工核验"
   T6_requires_revision:
     requires: [t6_report_p0_or_p1]
     producer: references/agents/06-批判-critical-companion.md
@@ -341,6 +346,7 @@ pipeline:
     blocking: false
     trigger_conditions:
       - brief_marked_Dxx_for_review       # 命中定义：任务简报「需找数据点」段任一条目标注 [Dxx 待复核]（未标 = 不命中）
+      - brief_marked_Lxx_for_review       # v2.13.0 P0-1：任务简报「待复核关键」段任一条目标注 [Lxx 待复核]（与 Dxx 同窗口；未标 = 不命中）
       - t2_5_red_data_unresolved          # 命中定义：t2_5_integrity 闸门报 🔴 二手转引未回溯到原始来源（M-Form-6 判定；未报红 = 不命中）
       # （已移除 t9_evidence_score_low：Phase 1.5 时点不可达，属占位条件 —— T9 评分低触发的回查在 Phase 4.5 后单独执行，见 phase-1-details.md）
     decisions: [triggered, not_triggered]
@@ -500,10 +506,47 @@ pipeline:
     # v2.12.40（业主定案 A1）：**删除 `rerun_g14_if_enabled`** —— G14 不再在每轮修订后复检，改为定稿前只审一次（见 g14_style_gate）。
     # 机械搬运合并（v2.12.32，实测 P2）：`current_draft_sync` 属纯复制，与相邻实质节点合并可少一个 spawn 失败面（实测 sync 3 次各 52-74k tokens；T2 回填子会话 Agent run failed 零产物）。
     after_each: [current_draft_sync, rerun_t7]
+    next: t1b_targeted_review   # v2.13.0 P0-1：审计修订退出后先过定向回查窗口，再进 T7.5
+  - id: t1b_targeted_review   # 别名：文档层「Phase 4.3 定向回查」（v2.13.0 P0-1，ECS 实战反馈新增）
+    phase: "Phase 4.3 定向回查（T1b）"
+    phase_seq: 14
+    kind: conditional_agent
+    verdict_scale: four_tier
+    rerun_after_report: true   # 前提 = T5 修订说明与 T7 审计报告均已落盘；必须在报告写入后取数（不得用修订进行中的中间态）
+    agent: T1b
+    role: T1                   # T1b = T1 文献检索员的定向回查子任务（口径同 T1 卡 T1b 段）——不新增独立角色，九角色架构不变；工具面 = research 档
+    write_authority: executor
+    verification_authority: 主控
+    on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
+    input: drafts/current_draft.md + drafts/修订说明-v{N}.md + audits/审计报告-vN.md
+    output: literature/回查报告-v{N}.md
+    output_chars_max: 8000
+    condition_undecidable: report_to_owner   # 修订说明/审计报告不可读或缺失 ⇒ 呈主人（不得静默按未触发跳过）
+    condition: t5_t7_report_unverified_references   # 命中定义：T5 修订说明或 T7 审计报告出现「待人工核验」标记（真源 = condition_definitions；无标记 = 不命中）
+    on_not_triggered: record_not_triggered_in_status   # 无未核验引用 → status 记 not_triggered（防「未触发」与「漏跑」不可分）
+    boundary: 仅核验引用存在性与元数据（标题/作者/年份/DOI/URL），不重写正文、不改论证；核验失败条目标注后呈主人处置
+    max_rounds: 2   # v2.13.0 P0-1：T1b 回查 ≤2 轮（每轮 = 一次定向检索 + 一份回查报告）
+    rounds_exhausted_outlet:   # 轮次耗尽仍有未核验引用 ⇒ 主控暂停 + 主人三选一（fail-closed 无默认；写法同 audit_revision M-6）
+      trigger: max_rounds_used AND has_unverified_references
+      unresolved_levels: [P0, P1]
+      owner_decision:
+        - id: accept_with_limitations
+          label: 接受现状 + Acknowledged Limitations
+          requires: deliverables.md 加局限性段 + status.md 记 accepted_under_owner_decision
+        - id: manual_verify
+          label: 主人自行核验
+          requires: 流水线挂起，主人线下核验后回填结论（status 记 pending_owner）
+        - id: remove_references
+          label: 删除未核验引用
+          requires: 主人授权 T5 移除对应引用条目 → 重走 current_draft_sync + t7_5_integrity
+      no_default_option: true
+      halt_pending_owner: true
+    after_each: [rerun_t7_5_integrity]   # 动作名（非节点 id，写法同 rerun_t7）：文献卡/数据卡被回查更新 ⇒ 重跑完整性门
+    note: "v2.13.0 P0-1（ECS 实战反馈）：T5 修订轮新增 [Lxx]/[Dxx]/[Cxx] 标「待人工核验」而 T1 已结束 ⇒ 本窗口 spawn T1b 定向回查（复用 01-文献检索 角色卡铁律与 research 档工具面）。输出逐条：原检索信息 / 回查原始来源 / 评级（成功|部分成功|失败）+ 提升后信任级别；卡片更新由主控 write。派发话术 = dispatch/T1b-定向回查.md。"
     next: t7_5_integrity
   - id: t7_5_integrity
     phase: "T7.5 完整性门"
-    phase_seq: 14
+    phase_seq: 15
     kind: mechanical_checkpoint
     verdict_scale: four_tier   # v2.12.40：结论落四档；审计报告缺失 = 路径或参数错误（不触发修订）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 审计报告 + 本轮 M 门记录已落盘；不得用预跑/上轮记录
@@ -515,7 +558,7 @@ pipeline:
     next: g14_style_gate   # v2.12.40：G14 风格闸迁至此处（定稿前唯一一次）；原直连 phase4_4_figures
   - id: g14_style_gate   # 别名：文档层「Phase 4.4 前置（G14 风格闸）」（非独立 Phase 标签，主控呈现时归入 Phase 4.4）
     phase: "Phase 4.4 前置（G14 风格闸）"
-    phase_seq: 15
+    phase_seq: 16
     kind: agent
     verdict_scale: four_tier
     agent: G14
@@ -523,7 +566,7 @@ pipeline:
     write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
-    rerun_after_report: false   # 全流程仅 1 次（v2.12.40 A1）；例外 = t5_style_revision 后复检一次（P1-3）
+    rerun_after_report: false   # 全流程仅 1 次（v2.12.40 A1）；例外 = t5_style_revision 后轻量复检（≤2 轮，v2.13.0 P0-2 收紧为全文词表计数严格度档）
     rerun_after_post_acceptance: true   # v2.12.49 M-2：终态后修改 final/ 或 drafts/current_draft.md ⇒ 必须重跑 G14（与「rerun_after_report」互不覆盖；「rerun_after_report」指报告落盘后激活，本字段指跨过终态后必重启）
     # 执行前提（业主定案 A2：「T5 之前若有修订但还不能定稿，则 G14 还是不执行」）：
     #   本闸是**定稿前最后一道闸**。前置修订尚未收敛（audit_revision 未退出 / 仍有未决 P0·P1 修订项 / 尚不能定稿）
@@ -543,7 +586,7 @@ pipeline:
     next: phase4_4_figures
   - id: t5_style_revision   # 别名：文档层「Phase 4.4 前置·风格修订」（G14 Fail 的唯一出口）
     phase: "Phase 4.4 前置·风格修订"
-    phase_seq: 16
+    phase_seq: 17
     kind: conditional_agent
     verdict_scale: four_tier
     rerun_after_report: true   # 前提 = G14 报告已落盘；必须在报告写入后取数
@@ -558,11 +601,12 @@ pipeline:
     condition: G14_requires_style_revision   # 命中定义：G14 判定 5+ 类 Fail（其余档位 = 不命中）
     on_not_triggered: record_not_triggered_in_status
     boundary: 仅风格层改动（10 类 AI 痕迹清单）；不得改动论证结构、数据、引用、结论
+    style_recheck_rounds_max: 2   # v2.13.0 P0-2：风格修订-复检回环 ≤2 轮（轻量复检 = 全文词表计数严格度档，真源 = gates/14-中文AI痕迹-gate.md §四）；耗尽 ⇒ 主控暂停 + 主人三选一（接受残留 + 交付说明披露 / 破例追加 1 轮 / 主人手工润色，无默认）
     after_each: [current_draft_sync, rerun_g14_style_recheck]   # P1-3：刷新后重跑轻量 G14 风格复检（动作名，同 rerun_t7；主控亲为、不 spawn）
     next: phase4_4_figures
   - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
     phase: "Phase 4.4"
-    phase_seq: 17
+    phase_seq: 18
     verdict_scale: four_tier   # v2.12.40：图位数拍板与图件核验结论落四档
     input: drafts/current_draft.md + data/数据卡.md（图上数据源）
     kind: owner_agent
@@ -584,7 +628,7 @@ pipeline:
     next: final_assembly
   - id: final_assembly   # 别名：文档层「Phase 4.4 后置」/ 定稿组装（非独立 Phase 标签，主控呈现时归入 Phase 4）
     phase: "Phase 4.4 后置（定稿组装）"
-    phase_seq: 18
+    phase_seq: 19
     input: drafts/current_draft.md + data/数据卡.md + final/图件/*.svg（图件存在时用于嵌入）
     kind: mechanical_checkpoint
     verdict_scale: four_tier   # v2.12.40：组装前置核验结论落四档（当前稿不存在 = 路径或参数错误）
@@ -597,7 +641,7 @@ pipeline:
     next: t9_review
   - id: methodology_snapshot
     phase: "Phase 5 终检后置（方法论留档）"
-    phase_seq: 21
+    phase_seq: 22
     kind: owner_agent
     owner: 主控
     write_authority: owner
@@ -612,7 +656,7 @@ pipeline:
     next: phase5_acceptance
   - id: t9_review   # 别名：文档层「Phase 4.5」
     phase: "Phase 4.5"
-    phase_seq: 19
+    phase_seq: 20
     kind: advisory_agent
     verdict_scale: four_tier   # v2.12.40：T9 报告判定落四档
     fingerprint: required   # v2.12.49 M-1：报告必填 audited_artifact.{path,bytes,sha256}
@@ -660,7 +704,7 @@ pipeline:
     next: t8_technical_final
   - id: t8_technical_final
     phase: "Phase 5 终检"
-    phase_seq: 20
+    phase_seq: 21
     verdict_scale: four_tier   # v2.12.40：终检结论落四档（通过/不通过/无法判定/路径或参数错误）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = M-Gate-Report + T9 审稿报告均已落盘；不得用缺位时的推断值
     input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json + audits/审稿报告-vN.md + audits/G14-检测报告-vN.md   # v2.12.37 审计 P1-2：T8 需读 T9 报告做「建议分流」；v2.12.41：G14 迁至 Phase 4.4 前置后，其报告核验职责由 T7 移交 T8
@@ -680,7 +724,7 @@ pipeline:
     next: methodology_snapshot
   - id: phase5_acceptance
     phase: "Phase 5 验收"
-    phase_seq: 22
+    phase_seq: 23
     kind: owner_checkpoint
     blocking: true        # v2.12.49：旧口径「不答 = 接受当前定稿」已删除 —— 静默不得记为 accepted
     owner_visible: true
