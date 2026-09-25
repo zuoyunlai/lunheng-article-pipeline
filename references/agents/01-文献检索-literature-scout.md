@@ -1,4 +1,4 @@
-> 版本：v2.13.1（自动同步 2026-09-24）
+> 版本：v2.13.2（自动同步 2026-09-25）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -43,6 +43,8 @@
 E1 对象、字段和枚举唯一真源见 [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)。当项目启用 E1 时，T1 为核心文献建立 `PaperRecord`，至少记录稳定 `paper_id`、来源记录、检索时间和摘要/全文可得性；有可复核原文时再建立 `SnippetRecord`。运行期登记表模板见 [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)。
 
 要求：多源一致性只描述身份/元数据一致性，不等于论证强度；`full_text: unavailable`、`abstract_only` 和未核验状态必须原样保留；不得用检索排序分数冒充证据强度。旧项目无登记表时照常产出文献卡，不得声称已完成 E1 覆盖。
+
+**分片纪律（v2.13.2，E1-3 实测 D-1）**：`run/<项目名>/research/evidence-register.md` 是**主表，唯一生产者 = 主控**。我与他角色并行 spawn（T1∥T2∥T3），故我的登记内容一律写入**本角色分片** `research/evidence-register-<我的角色号>.md`，**禁止**整文件覆盖主表——实测曾发生并行角色整段静默覆盖（文件非空且格式合法，事后无法从文件发现）。
 
 ## 职责
 - 用 web_search / tavily_search 检索主题相关文献（中英文）

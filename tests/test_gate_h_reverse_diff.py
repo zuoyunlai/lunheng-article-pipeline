@@ -45,8 +45,10 @@ INDEX = ROOT / "references" / "_shared" / "治理" / "教训索引.md"
 SNAPSHOT = ROOT / "references" / "_shared" / "治理" / "lessons-max.snapshot"
 
 HOME = pathlib.Path.home()
-REAL_SRC = pathlib.Path(os.environ.get(
-    "LESSONS_SRC", HOME / ".openclaw" / "workspace" / "memory" / "lessons.md"))
+# Hermetic 默认：测试不能依赖开发者 workspace 的外部 memory/lessons.md。
+# 需要验证外部真源告警时，显式传入 LESSONS_SRC；默认夹具覆盖仓库快照的 115-437 编号。
+FIXTURE_SRC = pathlib.Path(__file__).parent / "fixtures" / "lessons-gate.md"
+REAL_SRC = pathlib.Path(os.environ.get("LESSONS_SRC", FIXTURE_SRC))
 
 REVERSE_DIFF_MARKS = (              # 门 H 反向判据的全部行（pass + fail）
     "快照单一真源可解析",            # 判据① pass

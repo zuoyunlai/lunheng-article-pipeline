@@ -1,4 +1,4 @@
-> 版本：v2.13.1（自动同步 2026-09-24）
+> 版本：v2.13.2（自动同步 2026-09-25）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -49,7 +49,7 @@
 
 ## E1 证据链终检扩展（暂不新增 M/G 项）
 
-若项目启用 E1，T8 在既有引用闭环之外核对：读取 `run/<项目名>/research/evidence-register.md` 与 `analysis/主张—证据映射.md`，检查核心正文主张是否都有 `ClaimEvidenceLink`，每个证据对象是否能回指 `[Lxx]` / `[Dxx]` / `[Cxx]`，证据关系与最终措辞是否一致，访问限制和证据缺口是否进入交付说明或局限性。未启用 E1 的旧项目保持兼容；空登记表不能被解释为证据链已完成。唯一真源见 [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)，登记模板 = [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)。
+若项目启用 E1，T8 在既有引用闭环之外核对：读取 `run/<项目名>/research/evidence-register.md` 与 `analysis/主张—证据映射.md`，检查核心正文主张是否都有 `ClaimEvidenceLink`，每个证据对象是否能回指 `[Lxx]` / `[Dxx]` / `[Cxx]`，证据关系与最终措辞是否一致，访问限制和证据缺口是否进入交付说明或局限性。未启用 E1 的旧项目保持兼容；空登记表不能被解释为证据链已完成。**v2.13.2 新增两项否决项（E1-3 实测）**：① **分片齐全性** —— 各角色分片 `evidence-register-<角色号>.md` 缺失 ⇒ **P1**；② **主张关系回写** —— 登记表 `ClaimEvidenceLink` = 0 而映射表有条目 ⇒ **P1**，不得判「E1 已完成」。终检报告须逐项列出上述两项结论（不得只写「登记表在盘」）。唯一真源见 [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)，登记模板 = [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)。
 
 ## 终检必查项
 

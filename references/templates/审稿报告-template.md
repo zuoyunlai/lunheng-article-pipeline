@@ -1,4 +1,4 @@
-> 版本：v2.13.1（自动同步 2026-09-24）
+> 版本：v2.13.2（自动同步 2026-09-25）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -20,9 +20,17 @@
 ```
 ### audited_artifact（v2.12.49 必填）
 - path: final/定稿.md
-- bytes: <主控 read 后填>
+- bytes: <**文件系统字节数**（主人 host shell `wc -c`）—— 与 `read` 返回的**字符数不同**，禁混用（E1-3 实测 D-5）>
 - sha256: <主人在 host shell 跑 sha256sum 补算>
 ```
+
+### runtime_tool_surface（P1-B，T9 必填）
+- observation: `observed` / `unavailable`
+- visible_tool_count: <实际可见工具数，或 `unavailable`>
+- declared_surface_delta: <相对 `allow_review` 声明面的差值，或 `unavailable`>
+- high_risk_categories: <执行类 / 外发类 / 写入类 / 会话类；无则 `none`>
+- write_capability_observed: `yes` / `no` / `unavailable`
+- enforcement_boundary: `self-discipline`（不得写成 platform-enforced）
 
 ---
 

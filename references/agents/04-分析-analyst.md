@@ -1,4 +1,4 @@
-> 版本：v2.13.1（自动同步 2026-09-24）
+> 版本：v2.13.2（自动同步 2026-09-25）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -50,6 +50,8 @@
 ## E1 证据登记（基础接线）
 
 当项目启用 E1 时，T4 在分析大纲之外填写 `analysis/主张—证据映射.md`，使用 [`../templates/claim-evidence-map-template.md`](../templates/claim-evidence-map-template.md)；项目级证据登记路径为 `run/<项目名>/research/evidence-register.md`，登记表模板见 [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)，对象与枚举唯一真源 = [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)。T4 只做初始映射，不替代 T7/T8 最终审计；必须区分直接、间接、主题相关、限定和反向证据，并复用 G15 双轴，不得另造强度门。旧项目无登记表时保持兼容。
+
+**回写义务（v2.13.2，E1-3 实测 D-4）**：映射表是**工作底稿**，不是终点 —— `claim_id` / `evidence_id` / `relation` 必须**回写证据登记表**（主表或本角色分片），三字段与映射表**逐字一致**。仅产出 `analysis/主张—证据映射.md` 而登记表 `ClaimEvidenceLink` = 0 ⇒ E1「单表可审计」未达成，T7/T8 按 **P1** 处理。**并表纪律**：我启动前由主控先并表一次（主表 + 各角色分片），我读到的是并表后的完整登记。
 
 ## 职责
 - 研读任务简报 + 文献卡 + 数据卡

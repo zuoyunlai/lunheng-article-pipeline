@@ -169,6 +169,51 @@ def test_permissions_distinguishes_two_cwd_meanings():
         "permissions.md 未区分 spawn cwd（绝对）与文件工具边界（相对）")
 
 
+# ---------------- P1-B / P1-C / P2-A / P2-B：审计复核计划后续修订 ----------------
+
+
+def test_runtime_surface_is_observable_without_claiming_mechanical_readonly():
+    """只读档必须记录工具面观测，并明确自律而非平台机械只读。"""
+    handoff = (ROOT / "references/templates/交接报告-template.md").read_text(encoding="utf-8")
+    review = (ROOT / "references/templates/审稿报告-template.md").read_text(encoding="utf-8")
+    g14 = (ROOT / "references/templates/G14检测报告-template.md").read_text(encoding="utf-8")
+    for text in (handoff, review, g14):
+        assert "runtime_tool_surface" in text
+        assert "write_capability_observed" in text
+        assert "self-discipline" in text
+        assert "platform-enforced" in text
+
+
+def test_external_surface_has_three_distinct_boundaries():
+    """平台可见面、实际调用面、宿主 deny 不得重新混成一层。"""
+    text = EXT_SERVICES.read_text(encoding="utf-8")
+    assert "三层边界速查（P1-C）" in text
+    for marker in ("平台可见工具面", "论衡实际调用面", "宿主机械 deny"):
+        assert marker in text
+    assert "平台可见”写成“论衡已使用" in text
+
+
+def test_acknowledged_limitations_has_engineering_and_submission_landing():
+    """局限性必须同时声明工程版入口与投稿版是否合并。"""
+    deliverables = (ROOT / "references/deliverables.md").read_text(encoding="utf-8")
+    submission = (ROOT / "references/templates/投稿就绪检查表-template.md").read_text(encoding="utf-8")
+    assert "局限性双落点" in deliverables
+    assert "final/局限性.md" in submission
+    assert "投稿版" in submission and "未合并原因" in submission
+
+
+def test_linux_wsl_environment_and_performance_baseline_are_explicit():
+    """开发环境与性能优化前置基线必须明确，防止环境差异被误判为代码缺陷。"""
+    readme = README.read_text(encoding="utf-8")
+    quickstart = QUICKSTART.read_text(encoding="utf-8")
+    benchmarks = (ROOT / "references/_shared/真源/performance-benchmarks.md").read_text(encoding="utf-8")
+    for text in (readme, quickstart, benchmarks):
+        assert "Linux / WSL" in text
+        assert "Windows git-bash" in text or "Windows" in text
+        assert "cold/warm" in text or "cold" in text and "warm" in text
+    assert "不拆 fast-lane" in benchmarks
+
+
 # ---------------- P1-2：watchdog 事件驱动 ----------------
 
 def test_no_yield_polling_loop():

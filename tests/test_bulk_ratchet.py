@@ -21,6 +21,7 @@ import subprocess
 
 ROOT = pathlib.Path(__file__).parent.parent
 GATE = ROOT / "scripts" / "self-audit-gate.sh"
+LESSONS_FIXTURE = ROOT / "tests" / "fixtures" / "lessons-gate.md"
 
 BULK_FILES = (
     "references/agents/00-主控-扩展职责.md",
@@ -31,7 +32,10 @@ ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def _run_gate(extra_env=None):
+    # Hermetic by default: gate H's optional external memory source must not
+    # make unrelated gate-Y tests depend on the developer workspace state.
     env = os.environ.copy()
+    env.setdefault("LESSONS_SRC", str(LESSONS_FIXTURE))
     if extra_env:
         env.update(extra_env)
     r = subprocess.run(["bash", str(GATE)], capture_output=True, text=True,

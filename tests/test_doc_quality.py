@@ -5,8 +5,9 @@
 背景（2026-09-12 第三方全量审计，第三批 P2 文档质量）：
   - P2-1：CHANGELOG 10 处结构性断链（../outputs/* 指向 .gitignore 目录、docs/* 不存在、
           裸相对名不存在）——无机械门，只有人工点开才暴露。
-  - P2-2：SKILL.md 12,440 字符，超官方 skill-workshop 提案上限（10,000）
-          （docs/tools/skill-workshop.md）24%。
+  - P2-2：SKILL.md 入口体量曾达 12,440 字符，超过论衡自身设定的可读性/上下文预算棘轮（10,000）。
+          注意：10,000 字符仅是 autonomous proposal 的官方限制；本技能为 direct maintenance，
+          不把该数字表述为本技能的通用官方硬上限。
   - P2-3：跨文件重复规则。**关键更正**：其中一部分是**有意的漂移锚点** ——
           tests/test_rules_consistency.py 刻意以 SKILL.md 作为 T9 6 维度/4 档 + G14 8 类
           的第三处锚点（防「改 A 漏 B」）。故「重复」不等于缺陷，不得一概删除。
@@ -50,7 +51,7 @@ def test_skill_md_size_ratchet():
     chars = len(SKILL.read_text(encoding="utf-8"))
     assert chars <= SKILL_CHARS_CEIL, (
         f"SKILL.md {chars} 字符 > 棘轮上限 {SKILL_CHARS_CEIL}"
-        f"（官方上限 10000）—— 请外移长内容，勿放宽上限")
+        f"（论衡自身可读性/上下文预算棘轮；非本 direct-maintenance 技能的通用官方硬上限）—— 请外移长内容，勿放宽上限")
 
 
 def test_skill_md_ratchet_ceiling_matches_gate():

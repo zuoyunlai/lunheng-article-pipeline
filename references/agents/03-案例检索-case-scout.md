@@ -1,4 +1,4 @@
-> 版本：v2.13.1（自动同步 2026-09-24）
+> 版本：v2.13.2（自动同步 2026-09-25）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -25,6 +25,8 @@
 ## E1 证据登记（基础接线）
 
 当项目启用 E1 时，T3 可为案例卡中的关键一手材料建立 `case_evidence` / `SnippetRecord`，登记 `evidence_id`、`source_ref`、原文片段、定位、来源类型和核验状态。字段与枚举唯一真源见 [`../_shared/真源/evidence-object-model.md`](../_shared/真源/evidence-object-model.md)；模板见 [`../templates/evidence-register-template.md`](../templates/evidence-register-template.md)。案例证据不得伪装成论文证据，反向证据不得静默删除。旧项目无登记表时仍按原案例卡协议运行。
+
+**分片纪律（v2.13.2，E1-3 实测 D-1）**：`run/<项目名>/research/evidence-register.md` 是**主表，唯一生产者 = 主控**；我与他角色并行 spawn，故登记内容一律写入**本角色分片** `research/evidence-register-<我的角色号>.md`，**禁止**整文件覆盖主表。实测教训：T3 写完 11 条 `case_evidence` 后，被并行角色的整文件写盘**整段覆盖**，磁盘只剩对方内容。
 
 ## 职责
 

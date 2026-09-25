@@ -19,6 +19,7 @@
   （工作区不干净 ⇒ 发版前置闸红）。test_mutations_do_not_touch_truth_source 即该约束的护栏。
 """
 import hashlib
+import os
 import re
 import shutil
 import subprocess
@@ -37,11 +38,16 @@ COPY_IGNORE = shutil.ignore_patterns(
 )
 
 
+FIXTURE_LESSONS = Path(__file__).parent / "fixtures" / "lessons-gate.md"
+
+
 def run_gate(root: Path) -> tuple[int, str]:
-    """跑 root 下的 self-audit-gate.sh，返回 (rc, 输出)。"""
+    """跑 root 下的 self-audit-gate.sh，默认使用 hermetic lessons fixture。"""
+    env = dict(os.environ)
+    env.setdefault("LESSONS_SRC", str(FIXTURE_LESSONS))
     r = subprocess.run(
         ["bash", str(root / "scripts" / "self-audit-gate.sh")],
-        cwd=root, capture_output=True, text=True, timeout=300,
+        cwd=root, env=env, capture_output=True, text=True, timeout=300,
     )
     return r.returncode, r.stdout + r.stderr
 

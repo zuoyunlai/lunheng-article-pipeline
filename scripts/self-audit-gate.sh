@@ -245,10 +245,11 @@ fi
 #   真源不可达时 warn 不 fail（净化包/CI 环境不应因主工作区缺失而挂）。
 #   v2.12.40：新增硬门开关 LUNHENG_REQUIRE_LESSONS_SRC=1 —— 置 1 时「主真源不可达」
 #   升级为**硬失败**。缺省（不设）保持软门语义不变，本地开发不受影响。
-#   动机（2026-09-14 实测）：`LESSONS_SRC=/nonexistent bash self-audit-gate.sh` 仍
-#   `PASS: 25 / FAIL: 0` exit 0 ⇒ CI 的「门 H 通过」只覆盖半条判据（仅反向差集）。
+#   v2.13.1 hermetic 修订：不再默认探测仓库外 `$HOME/.openclaw/workspace/memory/lessons.md`。
+#   未显式传入 LESSONS_SRC 时，门 H 只运行仓库内快照判据；需要正向差集时由调用者
+#   显式传入外部真源。这样自审门/CI 不会随开发者工作区记忆增长或裁剪而漂移。
 # =============================================================================
-LESSONS_SRC="${LESSONS_SRC:-$HOME/.openclaw/workspace/memory/lessons.md}"
+LESSONS_SRC="${LESSONS_SRC:-}"
 LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341 355 374 375 376 380 382 383 385 392 393 394 395 396 397 398 402 403 404 405 410 411 412 413 414}"
 # v2.12.62（审计 P2-7）：**编号只在快照写一次**。索引三处旧副本已于本版改为派生指针；
 #   本门改为「索引**不得**出现硬编码最大编号」——把「5 处联动必然 off-by-one」的漂移面
@@ -1035,10 +1036,11 @@ fi
 
 # =============================================================================
 # 门 V：SKILL.md 体量棘轮（v2.12.30 新增，回应第三方审计 P2）
-#   background：SKILL.md 曾达 12,440 字符，超出官方 skill-workshop 提案上限
-#   （`docs/tools/skill-workshop.md`：SKILL.md ≤ 10,000 字符）24%。该文件是入口文档，
-#   膨胀会挤占模型预算、稀释触发判据。本门为**棘轮**：只许变小 —— 超过记录上限即失败；
-#   瘦身成功后必须**同步下调**本上限（记录在案，防回涨）。
+#   background：SKILL.md 曾达 12,440 字符，入口膨胀会挤占模型预算、稀释触发判据。
+#   10,000 字符是论衡自身的可读性/上下文预算棘轮，不是本 direct-maintenance
+#   技能的通用官方硬上限；官方 10,000 字符限制仅适用于 autonomous proposal，
+#   通用 maxSkillBytes 与运行模式另有口径，详见 references/_shared/真源/skill-entry-appendix.md。
+#   本门为**棘轮**：只许变小——超过项目记录上限即失败；瘦身成功后必须同步下调本上限。
 #   说明：内容受「机械门锚定」保护者（tests/test_rules_consistency.py 以 SKILL.md 为
 #   T9 6 维度 / 4 档 + G14 8 类的漂移锚点）与合规清单（外发同意）**不得为凑数而删**。
 # =============================================================================
@@ -1046,9 +1048,9 @@ SKILL_CHARS_CEIL=10000
 if [ -f SKILL.md ]; then
   SKILL_CHARS=$(wc -m < SKILL.md | tr -d '[:space:]')
   if [ "$SKILL_CHARS" -le "$SKILL_CHARS_CEIL" ]; then
-    pass "门 V: SKILL.md 体量棘轮（${SKILL_CHARS} ≤ ${SKILL_CHARS_CEIL} 字符；官方上限 10000，只许降）"
+    pass "门 V: SKILL.md 体量棘轮（${SKILL_CHARS} ≤ ${SKILL_CHARS_CEIL} 字符；项目可读性棘轮，只许降）"
   else
-    fail "门 V: SKILL.md 体量回涨" "${SKILL_CHARS} > ${SKILL_CHARS_CEIL} 上限（官方上限 10000）—— 请外移长内容而非放宽本上限"
+    fail "门 V: SKILL.md 体量回涨" "${SKILL_CHARS} > ${SKILL_CHARS_CEIL} 项目棘轮上限—— 请外移长内容而非放宽本上限"
   fi
 fi
 

@@ -1,4 +1,4 @@
-> 版本：v2.13.1（自动同步 2026-09-24）
+> 版本：v2.13.2（自动同步 2026-09-25）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -16,7 +16,7 @@
 论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.13.1  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.13.2  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -26,6 +26,10 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.13.1  # 建议 pin
 ---
 
 ## 🔧 宿主适配要点
+
+> **环境提示**：开发者自审与反向注入测试以 Linux / WSL 为正式支持环境。
+> Windows git-bash 的 MSYS 路径转换差异不等同于 Linux CI 缺陷；如需性能优化，先按
+> `references/_shared/真源/performance-benchmarks.md` 登记 cold/warm 基线。
 
 - 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）；**spawn 时 `cwd` 必须传绝对路径** `<workspace>/run/<项目名>/`（相对路径会被解析到 skill 目录，v2.12.28 实测）
 - token 统计走精确路径（子代理完成事件 `Stats:` 行 + `session_status`）；拿不到精确值 = 平台异常，不估算
