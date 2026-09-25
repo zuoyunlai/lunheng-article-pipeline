@@ -6,6 +6,14 @@
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
 > 部分历史条目链接指向 `docs/` 或 `../outputs/` 中的当时产物，已随清理移除或归档——属史料，不影响当前使用。
 
+## [v2.12.73] — 2026-09-22
+
+- **安全边界修订**：修订 T5 字数估算失败恢复流程，删除 `exec` + Python、`cp` 和 shell 命令路径，改为仅使用已授权的 `read` / `write` / `edit` 工具。
+- **越权防护**：明确恢复流程不得要求、暗示或调用 `exec`、`process`、`code_execution` 等执行类工具；无法可靠统计字数时必须暂停并请主人在本机自行统计，不得用估算冒充实测。
+- **同步修订**：更新 T5 派发卡、写作角色卡与执行韧化协议，统一采用 `read → write → edit → read` 的版本修订 SOP。
+- **验收基线**：自审门 **37 PASS / 0 FAIL**；正文版本一致性门 **2 passed**；`git diff --check` 通过。
+
+---
 ## [v2.12.72] — 2026-09-22
 
 - **批次 2-E：主控上下文预算管理**：在 `pre_spawn_enforcement` 接入声明式上下文预算门，按字数档位预估主控累计 token；阶段边界复核余量，低于阈值给出落盘减负建议，超过预算给出 `overspend_alert`。预算模型以 `performance-benchmarks.md` §五为校准真源，缺失值保持 `unavailable`，不臆测。
