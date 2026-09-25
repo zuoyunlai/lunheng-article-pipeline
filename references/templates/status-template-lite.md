@@ -20,6 +20,14 @@
 - 当前模型: deepseek-v4-pro
 - **架构**: 多 Agent 九角色（固定）；worker 接管记录见内
 
+## 人在环呈现留痕（四节点）
+
+- `checkpoint_id=<唯一值>` / `checkpoint_presented=true|false` / `checkpoint_presented_at=<时间>`
+- `checkpoint_status=<awaiting_owner|reminded|pending_owner|decided>` / `reminder_sent=<true|false>` / `pending_owner_at=<时间|n/a>`
+- `owner_response_received=true|false` / `owner_response_at=<时间|n/a>` / `owner_decision_normalized=<合法枚举值|n/a>`
+
+> 仅记录主控呈现与回填动作，不冒充主人已阅读；无应答只允许 `pending_owner`，不得自动接受。
+
 ## 执行韧化记录
 
 - 启动心跳: ✅

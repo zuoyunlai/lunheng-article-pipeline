@@ -1145,6 +1145,34 @@ def test_b12_status_field_reverse_injection(tmp_path):
     _inject_and_expect("references/templates/status-template.md", mutate, "spawn_landing", tmp_path)
 
 
+def test_hitl_runtime_trace_fields_and_recovery_protocol():
+    """v2.13.2：HITL 不能只有阻断声明，还必须具备可恢复呈现与运行期留痕协议。"""
+    card = (ROOT / "references/templates/checkpoint-card-template.md").read_text(encoding="utf-8")
+    status = (ROOT / "references/templates/status-template.md").read_text(encoding="utf-8")
+    lite = (ROOT / "references/templates/status-template-lite.md").read_text(encoding="utf-8")
+    coordinator = (ROOT / "references/agents/00-主控-扩展职责.md").read_text(encoding="utf-8")
+    for marker in ("🎯 先看这里（决策摘要）", "等待主人期间的交互协议",
+                   "轻提醒一次", "恢复文案（固定短版）", "checkpoint_presented=true"):
+        assert marker in card, f"Checkpoint 卡缺 HITL 交互标记：{marker}"
+    for marker in ("运行期呈现留痕", "checkpoint_id=", "checkpoint_status=",
+                   "reminder_sent=", "owner_response_received="):
+        assert marker in status, f"status 模板缺 HITL 留痕字段：{marker}"
+    assert "人在环呈现留痕" in lite and "checkpoint_id=" in lite
+    for marker in ("等待期体验与运行期留痕", "最多发一次固定短提醒", "pending_owner_at"):
+        assert marker in coordinator, f"主控协议缺 HITL 运行纪律：{marker}"
+
+
+def test_hitl_runtime_trace_reverse_injection(tmp_path):
+    """规则 40 反向注入：删掉呈现留痕协议后 flow-check 必须报红。"""
+    def mutate(src):
+        old = "> **运行期呈现留痕（四节点每次都填；仅记录主控动作，不冒充主人已阅读）**："
+        assert old in src
+        return src.replace(old, "> **运行期记录（已删减）**：", 1)
+
+    _inject_and_expect("references/templates/status-template.md", mutate,
+                       "HITL 呈现/恢复协议不得静默消失", tmp_path)
+
+
 def test_b12_honest_boundary_reverse_injection(tmp_path):
     """D-4 副本注入：删掉诚实边界声明 ⇒ flow-check 必须红（防「假装有机械门」）。"""
     def mutate(src):

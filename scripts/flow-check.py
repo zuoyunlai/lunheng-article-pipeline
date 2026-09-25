@@ -38,8 +38,8 @@
  31 **同 provider 连续静默升级**（v2.12.55 S-3）：顶层 `provider_silence_escalation` 必须存在且为
     「≥3 次 / `scope: same_provider` / 三选一无默认 / `halt_pending_owner: true`」，且主控角色卡
     必须承载同一协议（真源 ↔ 角色卡双向接线）—— 防「静默继续」与「只写在散文」。
- 40 **跨状态机「静默 ≠ 有效决策」一致性**（v2.12.65 修 P2-2）：顶层 `silence_doctrine` 是
-    「静默/无应答 ≠ 有效决策 ⇒ 挂起等主人 + 无默认继续」的**单一真源**
+ 40 **跨状态机「静默 ≠ 有效决策」与 HITL 留痕一致性**（v2.12.65 / v2.13.2）：顶层 `silence_doctrine` 是
+    「静默/无应答 ≠ 有效决策 ⇒ 挂起等主人 + 无默认继续」的**单一真源**，并锁定呈现后的可恢复留痕协议
     （`halt_kinds` 挂起类处置唯一枚举 / `forbidden_kinds` fail-open 枚举 / `applies_to` 覆盖面）。
     本规则做**双侧投影 + 双向对账**：`owner_timeout_policy` 的无应答处置必须全落 `halt_kinds`
     且 `default_fallback ∈ halt_kinds`、各 `owner_checkpoint.timeout_fallback ∈ halt_kinds`；
@@ -55,7 +55,6 @@
  42 **只读档报告分片预申报接线（v2.12.67，审计 P1-1）**：`执行韧化协议-exec.md`（真源）与 T6/T7/T9/G14
     四个 dispatch 载体必须同时含「分片清单」与「报告分片 N/M」口径——超长报告回传协议不得从任何
     载体静默消失（#427 同族）；触发线 3500 的数值真源在协议本体，本规则只锁存在性（防双判据漂移）。
-
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
 import json, pathlib, re, sys, yaml
 from collections import deque
@@ -838,7 +837,7 @@ def main():
         for _f39 in sorted(_decl39 - _hit39):
             errs.append(f'{_f39} 已登记危险操作但实际未命中（P2-3：陈旧登记，请销账或复核扫描口径）')
 
-    # 40 跨状态机「静默 ≠ 有效决策」一致性（v2.12.65 修 P2-2）：
+    # 40 跨状态机「静默 ≠ 有效决策」与 HITL 留痕一致性（v2.12.65 / v2.13.2）：
     #    `owner_timeout_policy`（主人无应答）与 `provider_silence_escalation`（同 provider 连续静默）
     #    共享同一不变式 —— 静默/无应答 ≠ 有效决策 ⇒ 挂起等主人 + 无默认继续。此前该不变式
     #    **只用散文声明**（「与 owner_timeout_policy 同侧」），任一侧改成自动继续另一侧不会报红。
@@ -1077,6 +1076,31 @@ def main():
     _arch49 = (_R / 'references/设计文档-架构.md').read_text(encoding='utf-8')
     if '英文 AI 痕迹检测不在本批范围' not in _arch49:
         errs.append('设计文档-架构 缺英文 AI 痕迹检测范围声明（规则 49：F 试点不得被静默扩为全量）')
+
+    # HITL-40 扩展：人在环运行期呈现留痕与等待体验跨载体一致性（并入规则 40）
+    #     规则 12/40 只锁「必须阻断」，不能防止主控呈现后没有可恢复提示、提醒上限
+    #     或 checkpoint 留痕字段从模板中静默消失。本规则只锁协议与载体存在性；
+    #     `checkpoint_presented=true` 的真实运行值仍由主控运行期填写，不能伪造为已发生。
+    _HITL50_CARRIERS = (
+        ('Checkpoint 卡模板', 'references/templates/checkpoint-card-template.md',
+         ('🎯 先看这里（决策摘要）', '回复 A/B/C/D', '等待主人期间的交互协议',
+          '轻提醒一次', '恢复文案（固定短版）', 'checkpoint_presented=true')),
+        ('完整 status 模板', 'references/templates/status-template.md',
+         ('运行期呈现留痕', 'checkpoint_id=', 'checkpoint_status=',
+          'reminder_sent=', 'owner_response_received=')),
+        ('精简 status 模板', 'references/templates/status-template-lite.md',
+         ('人在环呈现留痕', 'checkpoint_id=', 'checkpoint_status=',
+          'owner_response_received=')),
+        ('主控运行协议', 'references/agents/00-主控-扩展职责.md',
+         ('等待期体验与运行期留痕', 'checkpoint_presented=true',
+          '最多发一次固定短提醒', 'pending_owner_at')),
+    )
+    for _lbl50, _rel50, _needs50 in _HITL50_CARRIERS:
+        _p50 = _R / _rel50
+        _t50 = _p50.read_text(encoding='utf-8') if _p50.exists() else ''
+        for _need50 in _needs50:
+            if _need50 not in _t50:
+                errs.append(f'{_lbl50} 缺「{_need50}」（规则 40：HITL 呈现/恢复协议不得静默消失）')
 
     print(';'.join(errs))
     return 0 if not errs else 2

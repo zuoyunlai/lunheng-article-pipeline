@@ -61,13 +61,14 @@ COVERED = {
     "37": "test_p12_path_boundary_reverse_injection",
     "38": "test_p14_manifest_missing_file_reverse_injection",
     "39": "test_p23_unregistered_danger_reverse_injection",
-    "40": "test_p22_provider_side_flip_reverse_injection",
+    "40": "test_p22_provider_side_flip_reverse_injection",  # HITL 扩展负例另见 test_hitl_runtime_trace_reverse_injection
     "41": "test_m13_stale_embedding_clause_reverse_injection",
     "42": "test_rule42_t6_dispatch_reverse_injection",
     "46": "test_rule46_context_budget_reverse_injection",
     "47": "test_rule47_smoke_protocol_reverse_injection",
     "48": "test_rule48_status_json_reverse_injection",
     "49": "test_rule49_english_layer_reverse_injection",
+    "40": "test_hitl_runtime_trace_reverse_injection",
 }
 
 # DEBT：规则号 → 豁免理由（≥12 字符）。债务规则点名登记既有正向证据 + 补负例方向；

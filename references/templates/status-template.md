@@ -48,6 +48,11 @@
 - **Phase 3.5 洞察**: decision=<insight|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md
 - **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md
 
+> **运行期呈现留痕（四节点每次都填；仅记录主控动作，不冒充主人已阅读）**：
+> `checkpoint_id=<唯一值>` / `checkpoint_presented=true|false` / `checkpoint_presented_at=<时间>` / `checkpoint_materials=<路径列表>` / `checkpoint_status=<awaiting_owner|reminded|pending_owner|decided>` / `reminder_sent=<true|false>` / `pending_owner_at=<时间|n/a>` / `owner_response_received=<true|false>` / `owner_response_at=<时间|n/a>` / `owner_decision_normalized=<合法枚举值|n/a>`
+>
+> **留痕纪律**：进入节点先写 `checkpoint_presented=true`；发送轻提醒后才写 `reminder_sent=true`；超时只写 `checkpoint_status=pending_owner`，不得写 accepted。主人回复后核对同一 `checkpoint_id` 和材料版本，再写 `owner_response_received=true` 与规范化决策。
+
 > 仅有材料、主控代判、子代理声称已确认，均不构成决策；`no_insight` 是明确决策，不是跳过。
 >
 > **决策字面值禁自创（v2.12.61）**：四行 `decision=<...>` 的取值必须**逐字取自**对应节点的 `phase-order.yaml` `decisions`—— Phase 0 → `phase0_definition` / Phase 2.5 → `phase2_5_outline` / Phase 3.5 → `phase3_5_insight` / Phase 5 → `phase5_acceptance`。机械校验 = flow-check 规则 33（status ↔ yaml 双向点名；自创字面值 = 构建期红）。

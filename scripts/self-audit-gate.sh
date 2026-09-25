@@ -1067,7 +1067,11 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77629,references/_shared/真源/M-Gate-Algorithm.md|84273,references/_shared/真源/phase-order.yaml|61559"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77392,references/_shared/真源/M-Gate-Algorithm.md|84273,references/_shared/真源/phase-order.yaml|61559"
+# ⚠️ v2.13.2 缩容备案（HITL 呈现/恢复协议 · 主动下调，非扩容）：00-主控-扩展职责.md 77629→77392（−237 B）。
+#   本轮新增「等待期体验与运行期留痕」运行纪律（规则 50 载体），同时把 §二十一 的「无应答兜底」长句
+#   与概览行压缩为指针/短句（真源 = phase-order.yaml owner_timeout_policy，本卡不重列）。净值为**减少**，
+#   故按「只许降」同步下调上限；后续若再增内容请先分层/外移，不要放宽本值。
 # ⚠️ v2.12.72 扩容备案（批次 2-E 主控上下文预算门 · 审计 P2-6 要求的「扩容说明」）：两个大文件微增，
 #   原因 = 新增「主控上下文预算与落盘减负」真源段与运行协议（防教训 #268）：00-主控 74063→75473（+1410）/ phase-order 55967→57344（+1377）。
 #   属协议真源内容（非注释膨胀），已在 phase-order.yaml 挂 `pre_spawn_enforcement.context_budget_gate` 子门，并加 flow-check 规则 46 反向注入。
