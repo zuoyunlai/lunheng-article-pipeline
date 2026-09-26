@@ -842,7 +842,7 @@ panorama_sources:
     - references/_shared/真源/dispatch-header.md
   pointer_exempt:                                     # 不承载全景、但允许出现阶段枚举/步骤映射取值清单（免指针串 + id 计数上限，仍禁全景段）
     - references/templates/status-template.md
-    # v2.12.54 T-5：人环卡 = 「13 步 ↔ 23 节点」映射表（非全景）→ 归 exempt；
+    # v2.12.54 T-5：人环卡 = 「13 步 ↔ 25 节点」映射表（非全景）→ 归 exempt；
     #   其 id 合法性由 R-2（status 节点 id 取自 yaml / 禁自创）运行期目视守，卡内已声明「id 唯一真源 = phase-order.yaml」。
     - references/templates/checkpoint-card-template.md
     - references/_shared/真源/phase-1-details.md

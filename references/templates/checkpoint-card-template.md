@@ -197,9 +197,9 @@ progress_card 的 **plan** 字段承载流水线阶段清单——比在 markdow
 
 #### 13 步 ↔ 25 节点映射说明（v2.12.54 R-1）
 
-> ① **本卡 plan 清单按 Phase 列 13 步，是「人环可见节点」的简化呈现**，与真源 **24 节点不等价**：13 步 ≠ 流程只有 13 个节点。机械闸门、条件节点与主控亲为节点**不单独占 plan 步**，被折叠进相邻步的实施明细（它们仍为必经节点，「不在 plan 清单」不等于「不执行」）。
+> ① **本卡 plan 清单按 Phase 列 13 步，是「人环可见节点」的简化呈现**，与真源 **25 节点不等价**：13 步 ≠ 流程只有 13 个节点。机械闸门、条件节点与主控亲为节点**不单独占 plan 步**，被折叠进相邻步的实施明细（它们仍为必经节点，「不在 plan 清单」不等于「不执行」）。
 >
-> ② **节点 id 与全量节点集的唯一真源 = [`phase-order/`](../_shared/真源/phase-order/) 目录**（24 节点，seq 0–23）；[`phase-order.yaml`](../_shared/真源/phase-order.yaml) 是装配视图（生成物，禁手改）；**全景 = [`pipeline-overview.md`](../_shared/真源/pipeline-overview.md)**（全仓唯一派生视图）。本卡**不承载全景**，只做映射。
+> ② **节点 id 与全量节点集的唯一真源 = [`phase-order/`](../_shared/真源/phase-order/) 目录**（25 节点，seq 0–24）；[`phase-order.yaml`](../_shared/真源/phase-order.yaml) 是装配视图（生成物，禁手改）；**全景 = [`pipeline-overview.md`](../_shared/真源/pipeline-overview.md)**（全仓唯一派生视图）。本卡**不承载全景**，只做映射。
 >
 > ③ **逐条映射（13 步 → 节点 id）**：
 >    1. Phase 0 定题 → `phase0_definition`
@@ -216,7 +216,7 @@ progress_card 的 **plan** 字段承载流水线阶段清单——比在 markdow
 >    12. T8 终检 → `t8_technical_final`
 >    13. Phase 5 终稿验收 → `phase5_acceptance`
 >
-> ④ **自检**：plan 步骤数（13）≠ 真源节点数（24）是设计使然；若发现某节点既不属于上述映射、也不属第 ① 条「折叠」类，即为漂移，须按 `phase-order.yaml` 校正、不得在卡内自行增删步骤。
+> ④ **自检**：plan 步骤数（13）≠ 真源节点数（25）是设计使然；若发现某节点既不属于上述映射、也不属第 ① 条「折叠」类，即为漂移，须按 `phase-order.yaml` 校正、不得在卡内自行增删步骤。
 
 ### 双向同步
 
