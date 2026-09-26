@@ -40,9 +40,14 @@ echo
 
 # 合法能力集
 test_case "T1 valid capabilities" T1 read web_search tavily_search 0
-test_case "T5 writer capabilities" T5 read write edit ask_user 0
-test_case "T6 critic capabilities" T6 read ov_search ask_user 0
-test_case "T7 auditor capabilities" T7 read ov_read ask_user 0
+test_case "T5 writer capabilities" T5 read write edit 0
+test_case "T5 denied ask_user (coordinator_only 仅主控)" T5 read ask_user 1
+test_case "T6 critic capabilities" T6 read 0
+test_case "T6 denied ov_search (R-22 denied 真源)" T6 read ov_search 1
+test_case "T6 denied ask_user (coordinator_only 仅主控)" T6 read ask_user 1
+test_case "T7 auditor capabilities" T7 read 0
+test_case "T7 denied ov_read (R-22 denied 真源)" T7 read ov_read 1
+test_case "T7 denied ask_user (coordinator_only 仅主控)" T7 read ask_user 1
 test_case "T8 final check minimal" T8 read 0
 
 # 禁用能力
