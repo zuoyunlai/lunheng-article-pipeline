@@ -672,6 +672,7 @@ MD_SCAN_FILES=$(find "$SKILL_ROOT" -name '*.md' \
     -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
     -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
     -not -name '*.bak*' \
+    -not -path '*/reports/*' -not -path '*/memory/*' -not -path '*/.audit/*' \
     -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' 2>/dev/null)
 MD_SCAN_COUNT=$(echo "$MD_SCAN_FILES" | grep -c . || true)
 
@@ -684,23 +685,55 @@ MD_SCAN_COUNT=$(echo "$MD_SCAN_FILES" | grep -c . || true)
 # 含明确拒绝语境（禁止/不得/never/denied…）的行不算授权。
 GATE_M_FAIL=""
 
-# --- M.1：从 SKILL.md metadata.tools.denied 动态提取永久拒绝清单 ---
-DENIED_TOOLS=$(grep -m1 '^[[:space:]]*denied:' "$SKILL_ROOT/SKILL.md" 2>/dev/null | grep -oE '"[a-z_]+' | tr -d '"' | tr ' ' '\n' | sort -u)
-[ -z "$DENIED_TOOLS" ] && DENIED_TOOLS="exec process"
+# --- M.1：禁用面清单真源（v2.13.6 修订：读唯一真源 + fail-closed） ---
+#   发现①（覆盖假象，本轮修订）：R-22 把 denied 清单外移到权限文档后，SKILL.md 已无 `denied:` 行
+#     ⇒ 旧提取恒空 ⇒ 只剩回退值 `exec process` 两项被扫 —— 104 项禁用面**实际未被覆盖**。
+#   发现②（裸词误报，本轮修订）：旧判据是**子串**匹配（形如 `主控.{0,40}\`?ls\`?`）⇒ 命中
+#     `toolsAllow` / `tools.subagents` 里的 `ls`；清单一旦扩到 104 项，干净树必被误判为红。
+#   现口径：
+#     ① 清单 = permissions.md「禁用面唯一真源」块（经 capability-assert 的**唯一加载器**读取）；
+#        读不到（缺块 / 围栏异常 / python3 不可用）⇒ 判红，**不回退**旧两项清单。
+#     ② 工具名按**显式 ASCII 词边界** `[^A-Za-z0-9_]` 匹配 —— 排除词内命中（`toolsAllow`），
+#        且不像 `` 在 CJK 相邻处漏报（实测 `允许exec执行`：`` 0 命中 / 显式词类 1 命中）。
+#     ③ 单遍扫描（每个 md 文件 1 次 grep），命中行再归属到具体工具名 —— 104 项也保持秒级。
+DENIED_TOOLS=""
+if [ -f "$SKILL_ROOT/scripts/capability-assert.py" ] && command -v python3 >/dev/null 2>&1; then
+  DENIED_TOOLS="$(python3 "$SKILL_ROOT/scripts/capability-assert.py" --list-denied 2>/dev/null | grep . | sort -u)"
+fi
+DENIED_TOOL_COUNT=$(printf '%s
+' "$DENIED_TOOLS" | grep -c . || true)
 
-# --- M.2：逐工具扫描授权语句（排除拒绝语境） ---
-for tool in $DENIED_TOOLS; do
+if [ -z "$DENIED_TOOLS" ]; then
+  GATE_M_FAIL="$GATE_M_FAIL [禁用面真源不可读：capability-assert 的 TRUTH_DENIED 为空（permissions.md 真源块缺失 / 围栏异常 / python3 不可用）—— fail-closed，不回退旧两项清单]"
+else
+  # --- M.2：单遍扫描授权语句（显式 ASCII 词边界；排除拒绝语境） ---
+  M_LB='[^A-Za-z0-9_]'
+  M_LBL='[^A-Za-z0-9_-]'   # 左边界额外排除连字符：文件名片段（如 xxx-exec.md）不算工具引用
+  M_ALT="$(printf '%s
+' "$DENIED_TOOLS" | paste -sd'|' -)"
+  M_ATOM="(^|${M_LBL})(${M_ALT})(${M_LB}|\$)"
+  # 引用形态（v2.13.6 修订）：只在「工具引用」上判定授权语句 —— 排除两类词法误报（实测）：
+  #   ① 散文名词：主控并行 spawn T1 + T2 + T3 三个独立 sessions（sessions 是名词，不是工具）
+  #   ② 路径片段：_shared/真源/执行韧化协议-exec.md（exec 在文件名里）
+  # 形态 = ① 代码跨度恰为工具名 / ② 与动作·授权动词相邻（前 6 字符）/ ③ 工具名后接核验动作
+  M_REF="(\`(${M_ALT})\`|(用|使用|调用|可用|允许|直接|执行|授权|走).{0,6}(${M_LBL}|^)(${M_ALT})(${M_LB}|\$)|(${M_LBL}|^)(${M_ALT})(${M_LB}|\$).{0,6}(验证|核验|扫描|检查|列举|调用|执行|使用))"
   while IFS= read -r md_file; do
-    hits=$(grep -nE "主控.{0,40}(\\\`?${tool}\\\`?)|(\\\`?${tool}\\\`?.{0,12}兜底)|(同意后的.{0,12}\\\`?${tool})|子代理.{0,20}(使用|调用|可用).{0,8}${tool}" "$md_file" 2>/dev/null \
-      | grep -vE '禁止|不得|不能|永不|绝不|不调用|不使用|不执行|不碰|不自动|never|must not|deny|denied|永久拒绝|零 exec|zero-exec|不包含|无法|拒绝')
+    [ -n "$md_file" ] || continue
+    hits=$(grep -nE "主控.{0,40}${M_ATOM}|${M_ATOM}.{0,12}兜底|同意后的.{0,12}${M_ATOM}|子代理.{0,20}(使用|调用|可用).{0,8}${M_ATOM}" "$md_file" 2>/dev/null       | grep -vE '禁止|不得|不能|永不|绝不|不调用|不使用|不执行|不碰|不自动|never|must not|deny|denied|永久拒绝|零 exec|zero-exec|不包含|无法|拒绝' \
+      | grep -E "$M_REF")
     if [ -n "$hits" ]; then
-      GATE_M_FAIL="$GATE_M_FAIL [${md_file#$SKILL_ROOT/} 含 ${tool} 授权残留: $(echo "$hits" | head -1 | cut -c1-80)]"
+      M_TOOLS="$(printf '%s
+' "$hits" | grep -oE "$M_ATOM" | tr -cd 'A-Za-z0-9_
+' | sed '/^$/d' | sort -u | tr '
+' ',' | sed 's/,$//')"
+      GATE_M_FAIL="$GATE_M_FAIL [${md_file#$SKILL_ROOT/} 含 denied 工具授权残留（${M_TOOLS}）: $(printf '%s
+' "$hits" | head -1 | cut -c1-80)]"
     fi
-  done < <(echo "$MD_SCAN_FILES")
-done
-
+  done < <(printf '%s
+' "$MD_SCAN_FILES")
+fi
 if [ -z "$GATE_M_FAIL" ]; then
-  pass "门 M: denied 工具授权语句一致性（扫描 ${MD_SCAN_COUNT} 处文件 × $(echo "$DENIED_TOOLS" | wc -l) 项禁用面，零授权残留）"
+  pass "门 M: denied 工具授权语句一致性（扫描 ${MD_SCAN_COUNT} 处文件 × ${DENIED_TOOL_COUNT} 项禁用面，零授权残留）"
 else
   fail "门 M: 发现 denied 工具授权语句（禁用面真源 vs 正文矛盾 / 真源缺失）" "$GATE_M_FAIL"
 fi

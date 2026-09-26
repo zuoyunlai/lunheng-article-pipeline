@@ -287,12 +287,24 @@ def selfcheck() -> int:
 
 
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] == '--list-denied':
+        # v2.13.6（门 M 修订）：外部消费者（self-audit-gate.sh 门 M）读禁用面清单的**正式 CLI 口**。
+        # 加载器仍只有一处（load_denied_truth）；真源不可读 ⇒ 非零退出（fail-closed），
+        # 不打印部分清单、不回退旧两项。
+        try:
+            denied = load_denied_truth()
+        except Exception as e:  # noqa: BLE001 —— fail-closed：任何读取异常都不放行
+            print(f'Error: denied 真源不可读：{e}', file=sys.stderr)
+            sys.exit(1)
+        print('\n'.join(sorted(set(denied))))
+        sys.exit(0)
+
     if len(sys.argv) == 2 and sys.argv[1] == '--selfcheck':
         sys.exit(selfcheck())
 
     if len(sys.argv) < 3:
         print("Usage: capability-assert.py <role> <capability1> [capability2 ...]", file=sys.stderr)
-        print("       capability-assert.py --selfcheck", file=sys.stderr)
+        print("       capability-assert.py --selfcheck | --list-denied", file=sys.stderr)
         print(f"Allowed capabilities: {sorted(ALLOWED_CAPABILITIES)}", file=sys.stderr)
         sys.exit(1)
 
