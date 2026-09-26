@@ -191,12 +191,12 @@ echo ""
 if [ "$PURGE_GIT_HISTORY" != "true" ]; then
   echo "⏭️  步骤 2: 跳过 .git 历史清理（默认口径：不动可恢复历史）"
   echo "    如需清理 unreachable 对象，显式加 --purge-git-history（会先打 bundle 备份）"
-  UNREACHABLE_BEFORE=$(git fsck --no-reflogs --unreachable --no-progress 2>&1 | grep -c "^(不可达|悬空)" || echo 0)
+  UNREACHABLE_BEFORE=$(git fsck --no-reflogs --unreachable --no-progress 2>&1 | grep -c "^(不可达|悬空)" || true)
   echo "    （现存 unreachable 对象数：$UNREACHABLE_BEFORE，本次不清理）"
   echo ""
 else
   echo "🧹 步骤 2: .git/ 历史清理（reflog expire + gc --prune=now）—— 不可逆操作"
-  UNREACHABLE_BEFORE=$(git fsck --no-reflogs --unreachable --no-progress 2>&1 | grep -c "^(不可达|悬空)" || echo 0)
+  UNREACHABLE_BEFORE=$(git fsck --no-reflogs --unreachable --no-progress 2>&1 | grep -c "^(不可达|悬空)" || true)
   echo "  清理前 unreachable 对象数: $UNREACHABLE_BEFORE"
 
   # 强制全量 bundle 备份（可 git clone <bundle> 完整重建仓库）
@@ -218,7 +218,7 @@ else
   git reflog expire --expire=now --all
   git gc --prune=now
 
-  UNREACHABLE_AFTER=$(git fsck --no-reflogs --unreachable --no-progress 2>&1 | grep -c "^(不可达|悬空)" || echo 0)
+  UNREACHABLE_AFTER=$(git fsck --no-reflogs --unreachable --no-progress 2>&1 | grep -c "^(不可达|悬空)" || true)
   echo "  清理后 unreachable 对象数: $UNREACHABLE_AFTER"
   echo "  ✅ git gc 完成（回滚方式：git clone $BUNDLE_FILE <新目录>）"
   echo ""
@@ -267,7 +267,7 @@ while IFS= read -r f; do
     echo -e "  ${RED}❌ $f 残留${NC}"
     STALE=$((STALE+1))
   fi
-done < <(find $OUTPUTS_ROOT/clawhub-release -type f \( -name "*.md" -o -name "*.json" -o -name "*.yaml" \))
+done < <(find "$OUTPUTS_ROOT/clawhub-release" -type f \( -name "*.md" -o -name "*.json" -o -name "*.yaml" \))
 
 if [ "$STALE" -eq 0 ]; then
   echo "  ✅ 净化包残留扫 0"
