@@ -45,6 +45,10 @@ import pathlib
 import yaml
 
 SKILL_MD = pathlib.Path(__file__).resolve().parent.parent / 'SKILL.md'
+# v2.13.5（R-22，审计 D3）：**禁用面全表唯一真源外移** —— SKILL.md frontmatter 只留
+#   `denied_count` + `denied_high_risk`（高危摘录），完整清单落在权限文档的机器可读块。
+PERMISSIONS_MD = pathlib.Path(__file__).resolve().parent.parent / 'references' / 'permissions.md'
+DENIED_TRUTH_HEADING = '# 🔒 禁用面（denied）唯一真源'
 
 # 论衡角色定义
 ROLES = {
@@ -62,10 +66,39 @@ HOST_READONLY_EXTRAS = set()
 HARD_FORBIDDEN = {"secrets", "gateway", "automations"}
 
 
-def load_permission_surface(skill_md: pathlib.Path = SKILL_MD):
-    """从 SKILL.md frontmatter 读取权限真源 → (denied, declared_allowed, coordinator_only)
+def load_denied_truth(permissions_md: pathlib.Path = PERMISSIONS_MD):
+    """读**禁用面完整清单真源**（v2.13.5 R-22：外移到权限文档的机器可读块）。
 
-    frontmatter 结构（metadata.tools）：base / coordinator_only / research_extra / opt_in / denied
+    缺少标题 / 缺围栏 / 围栏未闭合 / 清单为空 —— 一律抛错（fail-closed）。
+    这里不做任何「回落默认清单」：真源读不到时必须判红，不得静默用旧快照顶替。
+    """
+    text = permissions_md.read_text(encoding='utf-8')
+    i = text.find(DENIED_TRUTH_HEADING)
+    if i < 0:
+        raise RuntimeError(f'{permissions_md.name} 缺「{DENIED_TRUTH_HEADING}」块标题 —— 禁用面真源缺失')
+    fence = text.find('```yaml', i)
+    if fence < 0:
+        raise RuntimeError('禁用面唯一真源块缺 yaml 围栏（真源不可解析）')
+    end = text.find('```', fence + 7)
+    if end < 0:
+        raise RuntimeError('禁用面唯一真源块围栏未闭合（真源不可解析）')
+    data = yaml.safe_load(text[fence + 7:end]) or {}
+    denied = [str(x) for x in (data.get('denied') or [])]
+    if not denied:
+        raise RuntimeError('禁用面唯一真源块为空 —— frontmatter 解析失败或真源缺失')
+    return denied
+
+
+def load_permission_surface(skill_md: pathlib.Path = SKILL_MD,
+                           permissions_md: pathlib.Path = PERMISSIONS_MD):
+    """读取权限真源 → (denied, declared_allowed, coordinator_only)
+
+    真源分工（v2.13.5 R-22）：
+      · **禁用面完整清单** = 权限文档「禁用面（denied）唯一真源」块（不再来自 frontmatter）
+      · **允许档 / coordinator_only** = SKILL.md frontmatter `metadata.tools`
+    并做 frontmatter ↔ 真源**对账**（计数相等 + 高危摘录 ⊆ 真源），防两处漂移：
+      · `denied_count` ≠ 真源项数 ⇒ 抛错
+      · `denied_high_risk` 含真源外工具 ⇒ 抛错
     """
     text = skill_md.read_text(encoding='utf-8')
     parts = text.split('---', 2)
@@ -73,26 +106,35 @@ def load_permission_surface(skill_md: pathlib.Path = SKILL_MD):
         raise RuntimeError(f'{skill_md} 缺 frontmatter（无法读取权限真源）')
     fm = yaml.safe_load(parts[1]) or {}
     tools = ((fm.get('metadata') or {}).get('tools') or {})
-    denied = {str(x) for x in (tools.get('denied') or [])}
+    denied = set(load_denied_truth(permissions_md))
+    count = tools.get('denied_count')
+    if count != len(denied):
+        raise RuntimeError(
+            f'frontmatter denied_count={count!r} ≠ 禁用面真源项数 {len(denied)}（计数漂移：改真源须同步计数）')
+    high = {str(x) for x in (tools.get('denied_high_risk') or [])}
+    if not high:
+        raise RuntimeError('frontmatter denied_high_risk 为空 —— 高危摘录缺失（R-22 要求摘录具名）')
+    if not high <= denied:
+        raise RuntimeError(f'frontmatter denied_high_risk 含真源外工具：{sorted(high - denied)}')
     coordinator_only = {str(x) for x in (tools.get('coordinator_only') or [])}
     declared = set()
     for key, val in tools.items():
-        if key == 'denied':
+        if key in ('denied', 'denied_count', 'denied_high_risk'):
             continue
         if isinstance(val, (list, tuple)):
             declared.update(str(x) for x in val)
     return denied, declared, coordinator_only
 
 
-SKILL_DENIED, SKILL_DECLARED, COORDINATOR_ONLY = load_permission_surface()
+TRUTH_DENIED, SKILL_DECLARED, COORDINATOR_ONLY = load_permission_surface()
 
 # 主控角色（v2.12.74 F2，CARD-P1 问题 2）：coordinator_only 仅对 T0（主控）与
 #   T8（主控亲完成的终检节点）放行；T1-T7/T9/G14 = worker 一律拒绝。
 #   角色编号是本脚本层概念（与 ROLES 同源），frontmatter 无载体，故在此定义。
 COORDINATOR_ROLES = {"T0", "T8"}
 
-# 禁用面 = frontmatter denied ∪ 永久硬禁用
-FORBIDDEN_CAPABILITIES = SKILL_DENIED | HARD_FORBIDDEN
+# 禁用面 = 权限文档真源清单 ∪ 永久硬禁用
+FORBIDDEN_CAPABILITIES = TRUTH_DENIED | HARD_FORBIDDEN
 
 # 允许面 = frontmatter 允许档 ∪ 只读宿主扩展，**再减去禁用面**（denied 优先，永不失效）
 ALLOWED_CAPABILITIES = (SKILL_DECLARED | HOST_READONLY_EXTRAS) - FORBIDDEN_CAPABILITIES
@@ -162,12 +204,12 @@ def selfcheck() -> int:
     errors = []
 
     # 真源现算（不依赖模块级派生集）
-    expected_forbidden = SKILL_DENIED | HARD_FORBIDDEN
+    expected_forbidden = TRUTH_DENIED | HARD_FORBIDDEN
     expected_allowed = (SKILL_DECLARED | HOST_READONLY_EXTRAS) - expected_forbidden
 
     # ① 解析守卫
-    if not SKILL_DENIED:
-        errors.append('denied 清单为空 —— frontmatter 解析失败或真源缺失')
+    if not TRUTH_DENIED:
+        errors.append('禁用面真源清单为空 —— 真源块解析失败或缺失')
     if not (SKILL_DECLARED or HOST_READONLY_EXTRAS):
         errors.append('允许面为空 —— frontmatter 解析失败或真源缺失')
     if not COORDINATOR_ONLY:
@@ -186,7 +228,7 @@ def selfcheck() -> int:
         )
 
     # ③ 声面真交集（不减法）
-    declared_overlap = SKILL_DECLARED & SKILL_DENIED
+    declared_overlap = SKILL_DECLARED & TRUTH_DENIED
     if declared_overlap:
         errors.append(f'允许档与 denied 同时声明：{sorted(declared_overlap)}')
     extras_overlap = HOST_READONLY_EXTRAS & expected_forbidden

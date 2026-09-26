@@ -58,7 +58,14 @@ def _fm_tools() -> dict:
 
 
 def _denied() -> set:
-    return {str(x) for x in (_fm_tools().get("denied") or [])}
+    """禁用面完整清单（v2.13.5 R-22：真源 = permissions.md 的「禁用面（denied）唯一真源」块；
+    frontmatter 只留 denied_count + denied_high_risk）。"""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "cap_assert", ROOT / "scripts" / "capability-assert.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return set(m.TRUTH_DENIED)
 
 
 # ---------------- P0-1 / P1-4：denied 遗漏修复 ----------------
@@ -67,7 +74,7 @@ def _denied() -> set:
 def test_audit_named_tools_are_denied(cap):
     """审计点名的遗漏工具必须出现在 frontmatter denied 中"""
     assert cap in _denied(), (
-        f"{cap} 不在 metadata.tools.denied —— 第三方审计 P0/P1 遗漏修复被回退？")
+        f"{cap} 不在禁用面真源中 —— 第三方审计 P0/P1 遗漏修复被回退？")
 
 
 @pytest.mark.parametrize("cap", AUDIT_P0_TOOLS)
@@ -109,7 +116,10 @@ def test_no_stale_19_count():
 
 def test_denied_count_matches_declared_number():
     """正文声明的「104 项」必须等于 frontmatter 实际条数（防数字漂移）"""
-    assert len(_denied()) == 104, f"denied 实际 {len(_denied())} 项，与正文声明的 104 项不符"
+    tools = _fm_tools()
+    assert tools.get("denied_count") == 104, (
+        "frontmatter denied_count 应为 104（R-22：计数在 frontmatter、清单在 permissions.md）")
+    assert len(_denied()) == 104, f"禁用面真源 {len(_denied())} 项 ≠ 104"
 
 
 def test_declarative_stance_declared():

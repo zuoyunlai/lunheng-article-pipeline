@@ -95,7 +95,121 @@
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
-**禁用（`metadata.tools.denied`）— 104 项**：**全表唯一真源 = `SKILL.md` frontmatter `metadata.tools.denied`**（**不在此重列** —— 重列即漂移风险；校验走门 T；v2.12.74 R2 按 2026-09-20 runtime 探针实测泄漏面从 41 项扩至 104 项：飞书协作写面 / Firecrawl 深度抓取 / 记忆与 OpenViking / wiki / 插件与技能安装 / 常驻意图 / 本地推理等族全量补声明）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**；是否在宿主侧额外收紧由宿主自行决定，**不属本 skill 的运行前提**。
+## 🔒 禁用面（denied）唯一真源（v2.13.5 R-22）
+
+> **本表 = 完整禁用面的唯一真源**；`SKILL.md` frontmatter 仅保留计数（`denied_count`）与高危摘录（`denied_high_risk`）。
+> 宿主若以 frontmatter 判断禁用面，**以本表为准**（R-22 外移前 frontmatter 承载全表，外移后不再承载）。
+> 机械校验 = 门 T（逐项拒绝 + 计数/摘录对账）+ 门 M（超限授权语句按本表全量扫描）。
+
+```yaml
+denied:
+  - exec
+  - process
+  - code_execution
+  - browser
+  - apply_patch
+  - terminal
+  - computer
+  - nodes
+  - cron
+  - automations
+  - gateway
+  - secrets
+  - sessions
+  - sessions_send
+  - sessions_search
+  - conversations_send
+  - conversations_turn
+  - message
+  - agents_wait
+  - image_generate
+  - video_generate
+  - music_generate
+  - tts
+  - portal
+  - dashboard
+  - screen
+  - canvas
+  - show_widget
+  - mobile_ui
+  - view_image
+  - skill_workshop
+  - agents_list
+  - get_goal
+  - create_goal
+  - update_goal
+  - suggest_task
+  - dismiss_task
+  - heartbeat_respond
+  - plugins
+  - add_skill
+  - intent
+  - node_inference
+  - x_search
+  - pdf
+  - ls
+  - memory_store
+  - memory_forget
+  - memory_get
+  - memory_search
+  - memory_recall
+  - ov_search
+  - ov_read
+  - ov_multi_read
+  - ov_list
+  - ov_recall_trace
+  - ov_archive_search
+  - ov_archive_expand
+  - openviking_tool_result_list
+  - openviking_tool_result_read
+  - openviking_tool_result_search
+  - wiki_get
+  - wiki_search
+  - wiki_lint
+  - wiki_status
+  - wiki_apply
+  - feishu_app_scopes
+  - feishu_bitable_create_app
+  - feishu_bitable_create_field
+  - feishu_bitable_create_record
+  - feishu_bitable_get_meta
+  - feishu_bitable_get_record
+  - feishu_bitable_list_fields
+  - feishu_bitable_list_records
+  - feishu_bitable_update_record
+  - feishu_doc
+  - feishu_drive
+  - feishu_wiki
+  - firecrawl_scrape
+  - firecrawl_search
+  - firecrawl__firecrawl_agent
+  - firecrawl__firecrawl_agent_status
+  - firecrawl__firecrawl_check_crawl_status
+  - firecrawl__firecrawl_crawl
+  - firecrawl__firecrawl_developer_search
+  - firecrawl__firecrawl_feedback
+  - firecrawl__firecrawl_interact
+  - firecrawl__firecrawl_interact_stop
+  - firecrawl__firecrawl_map
+  - firecrawl__firecrawl_monitor_check
+  - firecrawl__firecrawl_monitor_checks
+  - firecrawl__firecrawl_monitor_create
+  - firecrawl__firecrawl_monitor_delete
+  - firecrawl__firecrawl_monitor_get
+  - firecrawl__firecrawl_monitor_list
+  - firecrawl__firecrawl_monitor_run
+  - firecrawl__firecrawl_monitor_update
+  - firecrawl__firecrawl_parse
+  - firecrawl__firecrawl_research_inspect_paper
+  - firecrawl__firecrawl_research_read_paper
+  - firecrawl__firecrawl_research_related_papers
+  - firecrawl__firecrawl_research_search_papers
+  - firecrawl__firecrawl_scrape
+  - firecrawl__firecrawl_search
+  - firecrawl__firecrawl_search_feedback
+```
+
+**禁用面（`denied`）— 104 项**：**唯一真源 = 上方「禁用面（denied）唯一真源」块**（R-22 外移后 frontmatter 仅留计数 + 高危摘录；校验走门 T 与门 M）。**沿革（v2.12.74 R2 按 2026-09-20 runtime 探针实测泄漏面从 41 项扩至 104 项：飞书协作写面 / Firecrawl 深度抓取 / 记忆与 OpenViking / wiki / 插件与技能安装 / 常驻意图 / 本地推理等族全量补声明）。⚠️ **声明式，非宿主强制**：`metadata.tools` / `metadata.subagent_tiers` 是本技能的**自定义 `metadata` 子键**，**OpenClaw 加载器不据此限制工具**；bundled `skill-creator` 校验脚本（**非官方文档**；校验脚本路径 `openclaw/skills/skill-creator/scripts/quick_validate.py:103` 的白名单键 `allowed-tools`）只接受**平铺工具白名单** —— **该键在官方文档中 0 命中**（`docs/tools/skills.md`「Optional frontmatter keys」节未收录；全库 `grep -rn "allowed-tools" docs/**` 仅命中 `docs/nodes/media-understanding.md` 中无关的 gemini CLI 参数），无法表达按角色/按子代理档位的权限矩阵。且沙箱默认 `off`、未设 `tools.*` 时平台默认即**全权访问**（依据 `docs/gateway/sandboxing.md`、`docs/gateway/permission-modes.md`）——因此该「禁用」清单**不自动生效**；是否在宿主侧额外收紧由宿主自行决定，**不属本 skill 的运行前提**。
 
 **Workspace 路径收口**：
 - **路径边界分两域**（v2.12.64 定案，回应 2026-09-19 审计 S-2）——原表述「read/write/edit 仅允许 `run/<项目名>/` 子树」与每张角色卡的必读要求**互斥**（role card 任务首句即要求读 `references/_shared/真源/关键协议.md`）⇒ 字面遵守则流水线不可执行，实际执行则每次运行都违反自己的声明。现显式拆为两域：

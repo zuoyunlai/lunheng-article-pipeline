@@ -700,9 +700,9 @@ for tool in $DENIED_TOOLS; do
 done
 
 if [ -z "$GATE_M_FAIL" ]; then
-  pass "门 M: denied 工具授权语句一致性（扫描 ${MD_SCAN_COUNT} 处文件 x $(echo "$DENIED_TOOLS" | tr '\n' ' ')，零授权残留）"
+  pass "门 M: denied 工具授权语句一致性（扫描 ${MD_SCAN_COUNT} 处文件 × $(echo "$DENIED_TOOLS" | wc -l) 项禁用面，零授权残留）"
 else
-  fail "门 M: 发现 denied 工具授权语句（metadata.tools.denied vs 正文矛盾）" "$GATE_M_FAIL"
+  fail "门 M: 发现 denied 工具授权语句（禁用面真源 vs 正文矛盾 / 真源缺失）" "$GATE_M_FAIL"
 fi
 
 # --- M.3：跨项目状态写入强制语句（v2.6.9 新增，回应 T02 + Missing User Warnings）---
@@ -1048,6 +1048,7 @@ fi
 
 # =============================================================================
 # 门 T：权限口径一致性（v2.12.30 新增 —— 防「文档声明禁用、脚本实际放行」）
+#   v2.13.5（R-22）：禁面清单真源外移至权限文档块；本门改读该真源（经 capability-assert 的唯一加载器）。
 #   background：2026-09-12 第三方审计 P0-1 —— SKILL.md frontmatter denied 列了
 #   memory_store / memory_forget / sessions_search，但 capability-assert.py 把它们
 #   放进允许白名单（判定只查 FORBIDDEN_CAPABILITIES）→ 断言脚本错误放行，与声明冲突。
@@ -1055,15 +1056,16 @@ fi
 # =============================================================================
 if [ -f scripts/capability-assert.py ] && command -v python3 >/dev/null 2>&1; then
   GATE_T_FAIL=""
+  # v2.13.5（R-22）：真源外移后不再从 frontmatter 读清单 —— 直接复用 capability-assert 的真源加载器
+  #   （单一解析入口：口径守卫只此一份，门 T 与之永不漂移）
   DENIED_CAPS="$(python3 -c "
-import pathlib, yaml
-t = pathlib.Path('SKILL.md').read_text(encoding='utf-8')
-fm = yaml.safe_load(t.split('---', 2)[1]) or {}
-tools = ((fm.get('metadata') or {}).get('tools') or {})
-print(' '.join(sorted(str(x) for x in (tools.get('denied') or []))))
-")"
+import importlib.util
+spec = importlib.util.spec_from_file_location('cap_assert', 'scripts/capability-assert.py')
+m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+print(' '.join(sorted(m.TRUTH_DENIED)))
+" 2>/dev/null)"
   if [ -z "$DENIED_CAPS" ]; then
-    fail "门 T: 权限口径一致性" "未能从 SKILL.md frontmatter 读出 denied 清单"
+    fail "门 T: 权限口径一致性" "未能从权限文档真源块读出 denied 清单（R-22：真源 = permissions.md 的禁用面块）"
   else
     if ! python3 scripts/capability-assert.py --selfcheck >/dev/null 2>&1; then
       GATE_T_FAIL="$GATE_T_FAIL [selfcheck 失败：denied ∩ allowed ≠ ∅]"

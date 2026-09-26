@@ -45,13 +45,13 @@ def test_declared_surface_disjoint_from_denied():
     v2.12.50：原测试取 `SKILL_DENIED & ALLOWED_CAPABILITIES`，而 ALLOWED 定义时已减去
     FORBIDDEN（⊇ denied）⇒ 交集数学上恒空，属**空转断言**（教训 #399）。
     """
-    overlap = CAS.SKILL_DECLARED & CAS.SKILL_DENIED
+    overlap = CAS.SKILL_DECLARED & CAS.TRUTH_DENIED
     assert not overlap, f"同一能力同时出现在允许档与 denied: {sorted(overlap)}"
 
 
 def test_readonly_extras_disjoint_from_forbidden():
     """只读宿主扩展不得与禁用面冲突（否则会被静默减法吞掉，无从察觉）"""
-    forbidden = CAS.SKILL_DENIED | CAS.HARD_FORBIDDEN
+    forbidden = CAS.TRUTH_DENIED | CAS.HARD_FORBIDDEN
     overlap = CAS.HOST_READONLY_EXTRAS & forbidden
     assert not overlap, f"只读宿主扩展与禁用面冲突: {sorted(overlap)}"
 
@@ -61,7 +61,7 @@ def test_derived_sets_match_truth_source():
 
     防「派生集自身被改坏」⇒ 所有挂派生集的断言全部真空仍报绿。
     """
-    expected_forbidden = CAS.SKILL_DENIED | CAS.HARD_FORBIDDEN
+    expected_forbidden = CAS.TRUTH_DENIED | CAS.HARD_FORBIDDEN
     expected_allowed = (CAS.SKILL_DECLARED | CAS.HOST_READONLY_EXTRAS) - expected_forbidden
     assert CAS.FORBIDDEN_CAPABILITIES == expected_forbidden, "禁用面派生集与真源不一致"
     assert CAS.ALLOWED_CAPABILITIES == expected_allowed, "允许面派生集与真源不一致"
@@ -69,10 +69,10 @@ def test_derived_sets_match_truth_source():
 
 def test_selfcheck_goes_red_on_injection():
     """反向注入（教训 #399「机械门必须能红」）：三类破坏都必须让 selfcheck 变红"""
-    keys = ('SKILL_DENIED', 'SKILL_DECLARED', 'HOST_READONLY_EXTRAS',
+    keys = ('TRUTH_DENIED', 'SKILL_DECLARED', 'HOST_READONLY_EXTRAS',
             'FORBIDDEN_CAPABILITIES', 'ALLOWED_CAPABILITIES', 'validate_capabilities')
     saved = {k: getattr(CAS, k) for k in keys}
-    cap = sorted(CAS.SKILL_DENIED)[0]
+    cap = sorted(CAS.TRUTH_DENIED)[0]
 
     def run_injected(fn):
         try:
@@ -93,7 +93,7 @@ def test_selfcheck_goes_red_on_injection():
     assert run_injected(inj_forbidden_lost) != 0, 'selfcheck 未检出「禁用面派生集被清空」'
 
     def inj_denied_empty():
-        CAS.SKILL_DENIED = set()
+        CAS.TRUTH_DENIED = set()
         CAS.FORBIDDEN_CAPABILITIES = set(CAS.HARD_FORBIDDEN)
         CAS.ALLOWED_CAPABILITIES = saved['SKILL_DECLARED'] | saved['HOST_READONLY_EXTRAS']
     assert run_injected(inj_denied_empty) != 0, 'selfcheck 未检出「denied 清单为空」'
@@ -111,7 +111,7 @@ def test_selfcheck_goes_red_on_injection():
 def test_frontmatter_denied_all_rejected():
     """frontmatter denied 的每一项都必须被拒绝（逐项回归）"""
     accepted = []
-    for cap in sorted(CAS.SKILL_DENIED):
+    for cap in sorted(CAS.TRUTH_DENIED):
         try:
             CAS.validate_capabilities("T0", ["read", cap])
         except CAS.CapabilityAssertionError:
@@ -123,7 +123,7 @@ def test_frontmatter_denied_all_rejected():
 def test_p0_regression_three_capabilities_rejected():
     """P0-1 点名：memory_store / memory_forget / sessions_search 必须被拒"""
     for cap in REGRESSION_DENIED:
-        assert cap in CAS.SKILL_DENIED, f"{cap} 不在 frontmatter denied 中（真源被改？）"
+        assert cap in CAS.TRUTH_DENIED, f"{cap} 不在禁用面真源中（真源被改？）"
         try:
             CAS.validate_capabilities("T5", ["read", cap])
         except CAS.CapabilityAssertionError:

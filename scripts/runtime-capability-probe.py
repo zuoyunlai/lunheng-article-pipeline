@@ -58,6 +58,31 @@ TIERS = ("research", "analysis", "writing", "audit", "review")
 # --------------------------------------------------------------------------
 # A 面：SKILL.md frontmatter
 # --------------------------------------------------------------------------
+# v2.13.5（R-22）：禁用面完整清单真源 = 权限文档机器可读块（frontmatter 仅留计数 + 高危摘录）
+DENIED_TRUTH_HEADING = "# 🔒 禁用面（denied）唯一真源"
+
+
+def load_denied_truth(permissions_md=None):
+    """读禁用面完整清单真源（R-22 外移后不再来自 frontmatter）；读不到即抛错。"""
+    import yaml
+
+    p = permissions_md or (pathlib.Path(__file__).resolve().parent.parent
+                           / "references" / "permissions.md")
+    text = p.read_text(encoding="utf-8")
+    i = text.find(DENIED_TRUTH_HEADING)
+    if i < 0:
+        raise RuntimeError(f"{p.name} 缺禁用面唯一真源块标题 —— 真源缺失")
+    fence = text.find("```yaml", i)
+    end = text.find("```", fence + 7) if fence >= 0 else -1
+    if fence < 0 or end < 0:
+        raise RuntimeError("禁用面唯一真源块围栏缺失/未闭合（真源不可解析）")
+    data = yaml.safe_load(text[fence + 7:end]) or {}
+    denied = {str(x) for x in (data.get("denied") or [])}
+    if not denied:
+        raise RuntimeError("禁用面唯一真源块为空")
+    return denied
+
+
 def load_skill_surfaces(skill_md: pathlib.Path = SKILL_MD):
     import yaml
 
@@ -68,10 +93,10 @@ def load_skill_surfaces(skill_md: pathlib.Path = SKILL_MD):
     fm = yaml.safe_load(parts[1]) or {}
     meta = fm.get("metadata") or {}
     tools = meta.get("tools") or {}
-    denied = {str(x) for x in (tools.get("denied") or [])}
+    denied = load_denied_truth()          # v2.13.5 R-22：完整清单真源 = 权限文档块
     declared: set[str] = set()
     for key, val in tools.items():
-        if key == "denied":
+        if key in ("denied", "denied_count", "denied_high_risk"):
             continue
         if isinstance(val, (list, tuple)):
             declared.update(str(x) for x in val)

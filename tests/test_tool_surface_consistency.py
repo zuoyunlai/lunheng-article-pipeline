@@ -11,12 +11,22 @@ SKILL = ROOT / "SKILL.md"
 BOUNDARY = ROOT / "references/_shared/真源/工具能力边界.md"
 
 
+def _denied_truth() -> set:
+    """禁用面完整清单真源（v2.13.5 R-22 外移后不再在 frontmatter）。"""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "cap_assert", ROOT / "scripts" / "capability-assert.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return set(m.TRUTH_DENIED)
+
+
 def _frontmatter_tools():
     text = SKILL.read_text(encoding="utf-8")
     fm = yaml.safe_load(text.split("---", 2)[1])
     tools = fm["metadata"]["tools"]
     allowed = set(tools.get("base", [])) | set(tools.get("coordinator_only", [])) | set(tools.get("research_extra", []))
-    denied = set(tools.get("denied", []))
+    denied = _denied_truth()   # R-22：完整清单已外移，frontmatter 不再承载
     return allowed, denied
 
 
