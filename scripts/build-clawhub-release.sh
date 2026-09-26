@@ -321,6 +321,7 @@ SHARED_ADMITTED=(
   '真源/M-Gate-Algorithm.md'
   '真源/asset-index.md'
   '真源/audit-checklist-quickref.md'
+  '真源/counts.yaml'
   '真源/degraded-scenarios.md'
   '真源/dispatch-header.md'
   '真源/evidence-object-model.md'
@@ -461,7 +462,8 @@ fi
 
 # C-5（2026-09-19 审计）：正向完整性门原**只覆盖 `*.md`** —— 非 md 随包文本（`.yaml`/`.json`/
 #   `.txt`/`.toml`）净化后即使被整体删空也无人发现（负向扫描只报「违规命中数 ≠ 0」）。
-#   实测包内非 md 文本资产仅 1 个：`references/_shared/真源/phase-order.yaml`（其余随包文件均为 .md
+#   实测包内非 md 文本资产 2 个：`references/_shared/真源/phase-order.yaml` +
+#   `references/_shared/真源/counts.yaml`（v2.13.x 审计修订 R-19 新增；其余随包文件均为 .md
 #   或无扩展名的静态文件 LICENSE）。范围与 §扫描面 `SCAN_INCLUDES` 同口径，日后新增自动纳入。
 PKG_SNAPSHOT_NONMD="$(mktemp -t lunheng-pkgsnap-nonmd.XXXXXX)"
 python3 - "$OUT_DIR" "$PKG_SNAPSHOT_NONMD" <<'PYEOF'

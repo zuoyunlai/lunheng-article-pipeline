@@ -30,10 +30,38 @@ NC='\033[0m'
 
 FAILED=()
 PASSED=()
+SKIPPED=()
 
-pass() { PASSED+=("$1"); echo -e "${GREEN}✓${NC} $1"; }
-fail() { FAILED+=("$1: $2"); echo -e "${RED}✗${NC} $1: $2"; }
+# v2.13.x 审计修订（R-20）：门自身健康对账。
+#   背景：门 S/T/U 曾因「条件注册且无 else」而**整门静默消失**（PASS 从 36 静默降到 31，
+#   报告上看不出任何异常）；门 C 曾因 `grep -qF ""` 恒真而**空转绿灯**。两者同源——
+#   **门的自身健康无人检查**。现口径：每个声明的门必须落在 PASS / FAIL / SKIP 三态之一，
+#   SKIP 需带原因并计入配额（有 SKIP 即 warn：覆盖缩小 ≠ 全绿）。
+SEEN_GATE_IDS=""
+
+# 从消息前缀提取门标识（`门 X.4: ...` → `X`；子门归入父门）
+_gate_id_of() {
+  printf '%s' "$1" | grep -oE '门 [A-Za-z0-9]+' | head -1 | awk '{print $2}'
+}
+
+_record_gate_id() {
+  local _id
+  _id="$(_gate_id_of "$1")"
+  [ -z "$_id" ] && return 0
+  case " $SEEN_GATE_IDS " in
+    *" $_id "*) ;;
+    *) SEEN_GATE_IDS="${SEEN_GATE_IDS} ${_id}" ;;
+  esac
+}
+
+pass() { PASSED+=("$1"); _record_gate_id "$1"; echo -e "${GREEN}✓${NC} $1"; }
+fail() { FAILED+=("$1: $2"); _record_gate_id "$1"; echo -e "${RED}✗${NC} $1: $2"; }
+# SKIP = 环境不满足致本门本轮不可执行（**不是** PASS，也**不是**静默消失）
+skip() { SKIPPED+=("$1: $2"); _record_gate_id "$1"; echo -e "${YELLOW}⊘${NC} $1: SKIP — $2"; }
 warn() { echo -e "${YELLOW}⚠${NC} $1"; }
+
+# 声明的门清单（顶层门：M.3/M.4 归 M，X.1-X.4 归 X）——门 0 以此对账，缺一即红
+DECLARED_GATES=(A B C D E F G H I J K L M N O P Q R S T U V W X Y)
 
 cd "$SKILL_ROOT" || exit
 
@@ -349,7 +377,7 @@ else
     # 硬门：要求正向差集必须真实执行（CI / 发版前置链用）
     fail "门 H: 主真源不可达" "$LESSONS_SRC —— LUNHENG_REQUIRE_LESSONS_SRC=1 要求正向差集必须执行，缺主真源即硬失败"
   else
-    warn "门 H: 主真源不可达（$LESSONS_SRC）——正向差集未执行（本门覆盖缩小，非全绿；严格场景请设 LUNHENG_REQUIRE_LESSONS_SRC=1）"
+    skip "门 H: 主真源不可达" "$LESSONS_SRC —— 正向差集未执行（本门覆盖缩小，非全绿；严格场景请设 LUNHENG_REQUIRE_LESSONS_SRC=1）"
   fi
 fi
 
@@ -1187,7 +1215,7 @@ if [ -z "$QUICK_VALIDATE" ]; then
   if [ "${LUNHENG_REQUIRE_QUICK_VALIDATE:-0}" = "1" ]; then
     fail "门 W: 官方 quick_validate.py 未找到" "LUNHENG_REQUIRE_QUICK_VALIDATE=1 但校验器缺失"
   else
-    warn "门 W: 未找到官方 quick_validate.py（本轮跳过；CI 请设 LUNHENG_REQUIRE_QUICK_VALIDATE=1）"
+    skip "门 W: 官方 quick_validate.py 不可达" "本轮未执行（CI 请设 LUNHENG_REQUIRE_QUICK_VALIDATE=1；本门覆盖缩小，非全绿）"
   fi
 elif GATE_W_OUT="$(python3 "$QUICK_VALIDATE" . 2>&1)"; then
   pass "门 W: 官方 SKILL.md 校验器通过（quick_validate.py）"
@@ -1220,7 +1248,7 @@ if [ -f "$MGATE" ]; then
   fi
 
 else
-  warn "门 X.1: M-Gate-Algorithm.md 不存在，跳过 X.1"
+  skip "门 X.1: 围栏总数偶数" "M-Gate-Algorithm.md 不存在，本轮未执行"
 fi
 
 # X.2：声明式语义锚点表（v2.12.58 起；教训 #427）
@@ -1326,6 +1354,25 @@ fi
 # 门 Z：自审门项数软上限（v2.12.70 方案 A 第③步「规则软上限」）
 #   语义：软门（warn 级，不计 exit code）；项数只许降 —— 加门前先合并/退役旧门，
 #   治「规则的规则」内卷。检查的是门 A-X 的项数（不含门 Z 自身）。
+# 门 0：门清单对账（v2.13.x 审计修订 R-20）
+#   判据：DECLARED_GATES 中每个门都必须在本轮给出结论（PASS/FAIL/SKIP）。
+#   任一门无结论 = 门静默消失（曾实际发生：门 S/T/U 缺依赖时整行不输出）。
+GATE_NO_VERDICT=""
+for _dg in "${DECLARED_GATES[@]}"; do
+  case " $SEEN_GATE_IDS " in
+    *" $_dg "*) ;;
+    *) GATE_NO_VERDICT="${GATE_NO_VERDICT} ${_dg}" ;;
+  esac
+done
+if [ -n "$GATE_NO_VERDICT" ]; then
+  fail "门 0: 门清单对账（声明的门必须都有 PASS/FAIL/SKIP 结论）" "无结论:${GATE_NO_VERDICT}（门静默消失 = 门的自身健康无人检查）"
+else
+  pass "门 0: 门清单对账（${#DECLARED_GATES[@]} 门全部有 PASS/FAIL/SKIP 结论）"
+fi
+if [ ${#SKIPPED[@]} -gt 0 ]; then
+  warn "门 0: SKIP 配额 ${#SKIPPED[@]} —— 覆盖缩小（非全绿）：$(printf '%s | ' "${SKIPPED[@]}")"
+fi
+
 GATE_COUNT_CEIL=40
 # v2.13.x 审计修订（R-08）：项数口径改为 **PASS + FAIL**。原写 `${#PASSED[@]}` ⇒ 一旦有门失败，
 #   分母反而变小，「只许降」的软上限在失败时变松（失败越多越容易「合规」）。软门语义（warn，

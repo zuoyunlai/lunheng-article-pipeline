@@ -7,6 +7,7 @@ references/_shared/真源/M-Gate-Algorithm-appendix.md
 references/_shared/真源/M-Gate-Algorithm.md
 references/_shared/真源/asset-index.md
 references/_shared/真源/audit-checklist-quickref.md
+references/_shared/真源/counts.yaml
 references/_shared/真源/degraded-scenarios.md
 references/_shared/真源/dispatch-header.md
 references/_shared/真源/evidence-object-model.md

@@ -35,9 +35,10 @@ GUARDED = {
 }
 
 
-def run_gate(root: pathlib.Path) -> tuple[int, str]:
+def run_gate(root: pathlib.Path, **env_over) -> tuple[int, str]:
     env = dict(os.environ)
     env.setdefault("LESSONS_SRC", str(FIXTURE_LESSONS))
+    env.update({k: str(v) for k, v in env_over.items()})
     r = subprocess.run(
         ["bash", str(root / "scripts" / "self-audit-gate.sh")],
         cwd=root, env=env, capture_output=True, text=True, timeout=300,
@@ -150,3 +151,53 @@ def test_gate_z_source_uses_pass_plus_fail() -> None:
     assert "#PASSED[@]" in expr and "#FAILED[@]" in expr, (
         f"门 Z 项数口径缺少 PASSED/FAILED 之一：{expr}"
     )
+
+
+# ------------------------------------------------------- R-20 门清单自证（门 0）
+
+def test_gate_zero_reconciles_declared_gates(repo_copy: pathlib.Path) -> None:
+    """基线下门 0 必须为 ✓：声明的每个门都有 PASS/FAIL/SKIP 结论。"""
+    rc, out = run_gate(repo_copy)
+    line = gate_line(out, "0:")
+    assert line.startswith("✓"), f"基线下门 0 应为 ✓：{line}\n{out[-1500:]}"
+    assert "25 门" in line, f"门 0 未覆盖声明的 25 个门：{line}"
+
+
+def test_declared_gates_cover_every_gate_in_script() -> None:
+    """DECLARED_GATES 不得漏掉脚本里实际存在的顶层门（漏声明 ⇒ 对账形同虚设）。"""
+    src = GATE.read_text(encoding="utf-8")
+    m = re.search(r"DECLARED_GATES=\(([^)]+)\)", src)
+    assert m, "未找到 DECLARED_GATES 声明"
+    declared = set(m.group(1).split())
+    emitted = {e.split(".")[0] for e in
+               re.findall(r'"(?:pass|fail|skip) "门 ([A-Za-z0-9]+)', src)}
+    emitted.discard("0")   # 门 0 即对账门自身
+    emitted.discard("Z")   # 门 Z 是计数门自身，不计入 A-X 对账面
+    missing = sorted(emitted - declared)
+    assert not missing, f"脚本里有门未进 DECLARED_GATES（对账将漏掉它）：{missing}"
+
+
+def test_gate_zero_fails_when_a_gate_goes_silent(repo_copy: pathlib.Path) -> None:
+    """把门 V 的结论行改成 no-op ⇒ 门 0 必须 FAIL 并点名 V（门静默消失回归）。"""
+    target = repo_copy / "scripts" / "self-audit-gate.sh"
+    text = target.read_text(encoding="utf-8")
+    mutated, n = re.subn(r'(?m)^(\s*)(?:pass|fail) ("门 V:)', r'\1: \2', text)
+    assert n >= 1, "变异未生效：未找到门 V 的结论行"
+    target.write_text(mutated, encoding="utf-8")
+
+    rc, out = run_gate(repo_copy)
+    line = gate_line(out, "0:")
+    assert line.startswith("✗"), (
+        f"门 V 无结论时门 0 竟仍为 ✓ —— 门清单对账未生效\n门 0 行：{line}\n{out[-2000:]}"
+    )
+    assert "V" in line, f"门 0 未点名缺失结论的门：{line}"
+    assert rc != 0, "门 0 失败后自审门退出码应为非 0"
+
+
+def test_skip_state_is_reported_and_counted(repo_copy: pathlib.Path) -> None:
+    """主真源不可达 ⇒ 门 H 记 SKIP（既非 PASS 也非静默消失），且 SKIP 配额被点名。"""
+    _, out = run_gate(repo_copy, LESSONS_SRC=str(repo_copy / "不存在的教训源.md"))
+    clean = ANSI.sub("", out)
+    assert "SKIP" in clean, f"未输出 SKIP 态（覆盖缩小被掩盖）：\n{clean[-1500:]}"
+    assert "SKIP 配额" in clean, "SKIP 未被计入配额（覆盖缩小被静默）"
+    assert gate_line(out, "0:").startswith("✓"), "有 SKIP 时门 0 的对账结论不应判红"
