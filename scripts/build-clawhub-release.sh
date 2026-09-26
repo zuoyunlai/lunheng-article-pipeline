@@ -167,7 +167,7 @@ DEV_TOOL_FILES=(
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --exclude '.git' --exclude 'outputs' --exclude '*.bak.*' \
     --exclude '.bak-*' --exclude 'docs' --exclude '.gitignore' \
-    --exclude 'audits' --exclude 'scripts' --exclude 'scripts/verify-package.sh' --exclude '.github' \
+    --exclude 'audits' --exclude 'scripts' --exclude 'scripts/verify-package.sh' --exclude '.gitattributes' --exclude '.github' \
     --exclude 'references/_shared/archive' --exclude 'references/design' \
     --exclude 'references/_shared/治理/lessons-max.snapshot' \
     --exclude 'references/_shared/通用韧化块-v2.1.0.md' \
@@ -232,7 +232,7 @@ else
   # ② v2.12.12：维护者扫描器豁免清单（非 md，消费者无用）不再随包分发
   rm -f "$OUT_DIR/.safe-pattern-manifest.json"
   rm -f "$OUT_DIR/references/_shared/通用韧化块-v2.1.0.md"
-  rm -f "$OUT_DIR/.gitignore"
+  rm -f "$OUT_DIR/.gitignore" "$OUT_DIR/.gitattributes"
   rm -f "$OUT_DIR/references/templates/README-模板拆分方案.md"
   rm -f "$OUT_DIR/README.md"
   rm -f "$OUT_DIR/CHANGELOG.md"

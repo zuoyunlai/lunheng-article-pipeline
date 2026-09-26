@@ -16,6 +16,8 @@ on:
       - 'tests/**'
       - 'scripts/**'
       - 'references/_shared/真源/phase-order.yaml'
+      - 'references/**'
+      - 'SKILL.md'
   push:
     branches: [master]
 
@@ -82,6 +84,9 @@ jobs:
           python -m pytest tests/ -q
         env:
           PYTHONPATH: ${{ github.workspace }}
+
+      - name: 跑 path-canonical 边界测试
+        run: bash scripts/test-path-canonical.sh
 
       - name: 测试结果汇总
         if: always()

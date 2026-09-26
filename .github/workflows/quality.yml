@@ -51,3 +51,9 @@ jobs:
       - name: Validate Python syntax
         run: |
           python -m py_compile scripts/*.py tests/*.py
+
+      - name: Check changelog completeness
+        run: python3 scripts/changelog-check.py --check
+
+      - name: Run path-canonical boundary tests
+        run: bash scripts/test-path-canonical.sh

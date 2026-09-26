@@ -39,4 +39,4 @@
 | [`strip-shell-commands.py`](strip-shell-commands.py) | 论衡 ClawHub 净化包 —— shell 命令剥离脚本 | — | — | — |
 | [`sync-version.sh`](sync-version.sh) | 论衡版本号同步脚本（P1-3 版本号自动化 - 层 2） | ./scripts/sync-version.sh [--dry-run] | — | `make sync-version` |
 | [`test-capability-assert.sh`](test-capability-assert.sh) | test-capability-assert.sh — capability-assert.py 测试套件（v2.9.1） | — | — | `make test` |
-| [`test-path-canonical.sh`](test-path-canonical.sh) | test-path-canonical.sh — path-canonical.py 测试套件（v2.9.1） | — | — | — |
+| [`test-path-canonical.sh`](test-path-canonical.sh) | test-path-canonical.sh — path-canonical.py 测试套件（v2.9.1） | — | — | `make path-canonical`、`make test` |

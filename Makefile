@@ -1,6 +1,6 @@
 # 论衡开发工具 Makefile（P1-5 修订 2026-09-08）
 
-.PHONY: help test lint format audit changelog-check scripts-index clean install
+.PHONY: help test lint format audit changelog-check path-canonical scripts-index clean install
 
 help:
 	@echo "论衡开发工具"
@@ -24,11 +24,18 @@ install:
 
 test:
 	@echo "运行测试套件..."
-	cd tests && pytest -v --tb=short
+	pytest -v --tb=short
 	@echo ""
 	@echo "运行 capability-assert 测试..."
 	bash scripts/test-capability-assert.sh
+	@echo ""
+	@echo "运行 path-canonical 测试..."
+	bash scripts/test-path-canonical.sh
 	@echo "✓ 测试完成"
+
+path-canonical:
+	@echo "运行 path-canonical 测试..."
+	bash scripts/test-path-canonical.sh
 
 lint:
 	@command -v shellcheck >/dev/null 2>&1 || { echo "❌ 未找到 shellcheck（Debian/Ubuntu: sudo apt install shellcheck）；缺工具会静默跳过全部 Shell 检查，故此处 fail-loud" >&2; exit 1; }
@@ -67,7 +74,15 @@ scripts-index:
 # 本链自身会话 key 用 LUNHENG_PREFLIGHT_SELF_SESSION 传入，否则本链会被闸算作在飞链（失败关闭）。
 # 指定目标编号：make preflight PREFLIGHT_TAG=v2.12.21（默认取 SKILL.md frontmatter 版本）
 preflight:
-	@bash scripts/release-preflight.sh $(PREFLIGHT_TAG)
+	@OPENCLAW_BIN="$${LUNHENG_OPENCLAW_BIN:-$$(command -v openclaw 2>/dev/null || true)}"; \
+	if [ -z "$$OPENCLAW_BIN" ] && [ -z "$${PREFLIGHT_SESSIONS_FILE:-}" ]; then \
+		echo "❌ 未找到 openclaw。请设置 LUNHENG_OPENCLAW_BIN，或提供 PREFLIGHT_SESSIONS_FILE 快照。" >&2; exit 2; \
+	fi; \
+	if [ -n "$$PREFLIGHT_SESSIONS_FILE" ]; then \
+		bash scripts/release-preflight.sh $(PREFLIGHT_TAG) --sessions-file "$$PREFLIGHT_SESSIONS_FILE"; \
+	else \
+		LUNHENG_PREFLIGHT_SESSIONS_CMD="$$OPENCLAW_BIN sessions list --json --all-agents --limit all" bash scripts/release-preflight.sh $(PREFLIGHT_TAG); \
+	fi
 
 clean:
 	@echo "清理临时文件..."

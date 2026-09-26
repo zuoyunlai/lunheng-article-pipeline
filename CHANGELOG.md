@@ -9,7 +9,8 @@
 - **运行期可审计留痕**：status 模板新增 `checkpoint_id`、呈现时间、状态、提醒、挂起及主人决策归一化字段。
 - **机械门**：将 HITL 呈现留痕检查接入 flow-check 规则 40，并补充反向注入测试，防止协议静默消失。
 - **全面审计修订（本地累积，不升版本）**：收口 G14 9 类与复检口径、门 C 空转/版本边界、门 S/T/U 静默跳过、门 X.4 围栏状态机、门 Z 失败计数、发版半成品清理与 preflight fail-closed；补齐 T1b 版本清单、tracked-only 测试沙箱、M fixture fail-loud、工具/计数文档漂移。
-- **验收（本批）**：全量 pytest 546/546、自审门 36/36、版本一致性 89/89、关键反向注入测试 11/11；未升版本、未打 tag、未 push、未发布。
+- **第二批结构性修订（本地累积，不升版本）**：工具能力边界与 frontmatter 集合对齐（补 `ask_user` / `sessions_list`，新增集合一致性测试）；`path-canonical` 纳入 `make test` 与 CI；CI 触发面与步骤对齐（`references/**` / `SKILL.md`、quality 增 changelog 检查、changelog workflow 监听 `references/**`）；新增 `.gitattributes` 统一换行；计数与指针漂移收口（期刊 36、硬卡补 T9、T1b 版本登记、方法论足迹字段口径）。
+- **验收（本批）**：全量 pytest 551/551、自审门 36/36、版本一致性 89/89、path-canonical 12/12；未升版本、未打 tag、未 push、未发布。
 - **验收基线**：全量 pytest 535/535、自审门 36/36、flow-check RC=0、版本一致性通过。
 
 

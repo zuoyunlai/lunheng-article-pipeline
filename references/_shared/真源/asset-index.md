@@ -38,7 +38,7 @@
 | **T8** 终检 | 可发表性 48 项终检（主控亲完成，不 spawn） | `final/定稿.md` + 交付说明 |
 | **T9** 同行评审 | 6 维度评分（行业/学术默认开启，公众号可选） | `audits/审稿报告-vN.md` |
 
-**流水线运行手册**（8 角色完整派发话术 + M 门 + F 模式 + AI 使用披露，T8 不 spawn）：`references/pipeline-readme.md`
+**流水线运行手册**（派发话术索引 + 模型配置 / 模板加载策略等百科内容；派发话术正文见 `references/dispatch/`，T8 不 spawn）：`references/pipeline-readme.md`
 
 **模板**（类数以实际枚举为准，含 lite + full）：`references/templates/`（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单 / **证据登记表 / 主张—证据映射** + 审稿报告 / 修订说明 / 投稿就绪检查表 / checkpoint-card）
 

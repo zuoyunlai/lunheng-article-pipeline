@@ -118,6 +118,24 @@ def test_d_ci_test_runs_full_suite():
         "ci-test.yml 未跑全量 tests/ —— 新增测试永不进 CI 判据（教训 #430 根因之二）")
 
 
+def test_g_ci_runs_path_canonical_suite():
+    """G：路径边界判据必须被 CI 执行，而不是仅靠手动脚本。"""
+    text = CI_TEST.read_text(encoding="utf-8")
+    assert "scripts/test-path-canonical.sh" in text
+
+
+def test_h_quality_runs_changelog_check():
+    """H：quality workflow 与 make all 同样执行 changelog 完整性检查。"""
+    text = (WORKFLOWS / "quality.yml").read_text(encoding="utf-8")
+    assert "scripts/changelog-check.py --check" in text
+
+
+def test_i_changelog_workflow_watches_references():
+    """I：引用真源变更必须触发 changelog 相关检查。"""
+    text = (WORKFLOWS / "changelog-check.yml").read_text(encoding="utf-8")
+    assert "'references/**'" in text
+
+
 def test_e_workflow_script_references_exist():
     """E：workflow 里引用的 scripts/<name> 必须真实存在（防静默调用已删脚本）。"""
     missing = []

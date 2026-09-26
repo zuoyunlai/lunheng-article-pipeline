@@ -13,6 +13,7 @@ on:
       - 'CHANGELOG.md'
       - 'CHANGELOG-archive.md'
       - 'SKILL.md'
+      - 'references/**'
       - 'scripts/changelog-check.py'
       - '.github/workflows/changelog-check.yml'
   pull_request:
@@ -21,6 +22,7 @@ on:
       - 'CHANGELOG.md'
       - 'CHANGELOG-archive.md'
       - 'SKILL.md'
+      - 'references/**'
       - 'scripts/changelog-check.py'
       - '.github/workflows/changelog-check.yml'
   schedule:
