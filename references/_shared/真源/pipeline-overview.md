@@ -6,7 +6,8 @@
 
 > 🔴 **本文件是全仓唯一承载「流水线全景」的派生视图**（v2.12.54 R-1 收敛）。SKILL.md、README、QUICKSTART、pipeline-readme、设计文档、checkpoint-card、glossary 等文档**已删除全景段，只留指向本文件的指针**——重列即构建期红（flow-check 规则 24；登记真源 = `phase-order.yaml` `panorama_sources`）。
 >
-> 🔴 **流程顺序与阻断关系的唯一真源仍是 [`phase-order.yaml`](phase-order.yaml)**。本文件与 yaml 冲突时**以 yaml 为准**；主控每进入一个节点前**必读 yaml 该节点完整定义**（含 `kind` / `condition` / `next` / `after_each` / `output_chars_max` / `independence_rules`），**不凭本段文字记忆推进**。
+> 🔴 **流程顺序与阻断关系的唯一真源仍是 [`phase-order.yaml`](phase-order.yaml)**。本文件与 yaml 冲突时**以 yaml 为准**。
+> **节点读法（v2.13.5 R-21 起）**：主控每进入一个节点前读 **①[派生索引](phase-order/index.yaml)**（跨阶段共用契约 + 节点路由）+ **②该节点切片** `phase-order/<node-id>.yaml`（含 `kind` / `condition` / `next` / `after_each` / `output_chars_max` / `independence_rules` 等全部字段），**不必读全量真源**（实测读取量约 −70%）。切片为派生视图、**禁止手改**，与真源逐字节一致性由门 AA（切片生成器 --check）兜底；**不凭本段文字记忆推进**。
 >
 > 📎 **与 [`pipeline-readme.md`](../../pipeline-readme.md) 的分工**（v2.12.40 起显式声明）：本文件 = **派生速查视图**（全景 + 修订回环仲裁）；`pipeline-readme.md` = **完整运行手册**（触发词 / 适用边界 / 模型配置 / 派发话术索引 / 模板加载策略等百科内容）。**两者不可互替、不可精简为对方。**
 

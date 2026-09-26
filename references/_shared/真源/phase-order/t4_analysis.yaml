@@ -1,0 +1,19 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 t4_analysis（Phase 2）的完整定义，读它即可推进该节点。
+id: t4_analysis
+phase: Phase 2
+phase_seq: 5
+input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
+kind: agent
+agent: T4
+role: T4
+write_authority: executor
+verification_authority: 主控
+on_worker_failure:
+  executor: 主控
+  disclosure: degraded_executor
+  retry_limit: 1
+output: analysis/分析大纲.md + analysis/T5-写作上下文.md
+output_chars_max: 12000
+next: phase2_5_outline

@@ -1,0 +1,25 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 t5_feedback_revision（Phase 3.7）的完整定义，读它即可推进该节点。
+id: t5_feedback_revision
+phase: Phase 3.7
+phase_seq: 11
+input: drafts/初稿-v{N}.md + analysis/批判报告-v{N}.md
+kind: conditional_agent
+verdict_scale: four_tier
+rerun_after_report: true
+agent: T5
+role: T5
+write_authority: executor
+verification_authority: 主控
+on_worker_failure:
+  executor: 主控
+  disclosure: degraded_executor
+  retry_limit: 1
+output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
+condition_undecidable: report_to_owner
+condition: T6_requires_revision
+on_not_triggered: record_not_triggered_in_status
+after_each:
+- current_draft_sync
+next: t7_audit

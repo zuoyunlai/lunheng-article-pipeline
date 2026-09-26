@@ -11,7 +11,7 @@
 本文件锁死四件事：
   ① 正向：干净树跑门 → 三条棘轮 pass、无「体量 ... > 上限」告警、余量 pass、RC=0
   ② 红样本：把阈值压到 1（LUNHENG_BULK_RATCHET 覆盖）→ 必出告警，但 **RC 仍为 0**（软门语义）
-  ③ 清单完整性：门 Y 清单必须含全部三个「每次必读」大文件
+  ③ 清单完整性：门 Y 清单必须含全部四个「每次必读」文件（v2.13.5 R-21 起含派生索引）
   ④ 缺失文件：清单指向不存在的文件时必须告警（防清单失效后静默通过）
 """
 import os
@@ -27,6 +27,8 @@ BULK_FILES = (
     "references/agents/00-主控-扩展职责.md",
     "references/_shared/真源/M-Gate-Algorithm.md",
     "references/_shared/真源/phase-order.yaml",
+    # v2.13.5（R-21）：派生索引随读法改造成为「每进一个 Phase 前必读」，纳入棘轮
+    "references/_shared/真源/phase-order/index.yaml",
 )
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
@@ -93,7 +95,7 @@ def test_gate_y_missing_target_warns():
 
 
 def test_gate_y_covers_all_mandatory_files():
-    """③ 清单完整性：三个「每次必读」大文件必须都在（漏一个 = 该文件重新失去约束）"""
+    """③ 清单完整性：四个「每次必读」文件必须都在（漏一个 = 该文件重新失去约束）"""
     ceils = _default_ceils()
     assert set(ceils) == set(BULK_FILES), f"门 Y 清单与必读大文件集不一致：{set(ceils)}"
 

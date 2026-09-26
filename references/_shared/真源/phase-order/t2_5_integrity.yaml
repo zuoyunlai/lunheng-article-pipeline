@@ -1,0 +1,13 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 t2_5_integrity（T2.5 完整性门）的完整定义，读它即可推进该节点。
+id: t2_5_integrity
+phase: T2.5 完整性门
+phase_seq: 4
+kind: mechanical_checkpoint
+verdict_scale: four_tier
+rerun_after_report: true
+owner: 主控
+write_authority: owner
+input: data/数据卡.md + cases/案例卡.md + literature/文献卡.md
+next: t4_analysis

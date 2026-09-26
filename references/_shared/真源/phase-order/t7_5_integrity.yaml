@@ -1,0 +1,15 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 t7_5_integrity（T7.5 完整性门）的完整定义，读它即可推进该节点。
+id: t7_5_integrity
+phase: T7.5 完整性门
+phase_seq: 15
+kind: mechanical_checkpoint
+verdict_scale: four_tier
+rerun_after_report: true
+audited_artifact_required: true
+owner: 主控
+write_authority: owner
+input: audits/审计报告-vN.md
+output: final/M-Gate-Report-*.json
+next: g14_style_gate

@@ -1,0 +1,333 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 读法：本文件（含跨阶段共用契约）+ 当前节点切片 = 该节点所需的全部判据；
+#      不必读全量真源。节点切片见同目录 <node>.yaml。
+truth_source: ../phase-order.yaml
+truth_sha256: 3787cb2f169de70d4303fd0aeee339aaa589eba790bd46081a6f3d5e735a34a8
+node_count: 24
+version: 2.13.4
+architecture:
+  standard: multi_agent_role_pipeline
+  worker_roles:
+  - T1
+  - T2
+  - T3
+  - T4
+  - T5
+  - T6
+  - T7
+  - T9
+  - G14
+  owner_roles:
+  - T0
+  - T8
+  owner_nodes:
+  - phase0_definition
+  - phase2_5_outline
+  - phase3_5_insight
+  - pre_spawn_enforcement
+  - t2_5_integrity
+  - current_draft_sync
+  - t7_5_integrity
+  - phase4_4_figures
+  - final_assembly
+  - t8_technical_final
+  - methodology_snapshot
+  - phase5_acceptance
+  worker_failure_policy: owner_takeover_with_disclosure
+  fallback_is_not_equivalent: true
+version_numbering:
+  milestone_rule: vN 整数位只由闸门节点推进（phase3_5_insight / t5_feedback_revision / audit_revision）
+  minor_patch: vN.m
+  style_revision: vN-style
+  milestones:
+  - v1|t5_draft_v1
+  - v2|phase3_5_insight
+  - v3|t5_feedback_revision
+  - v4|audit_revision
+  - v5|audit_revision
+  detail: pipeline-overview.md『修订回环仲裁规则』
+verdict_scale:
+  four_tier:
+    tiers:
+    - id: pass
+      label: 通过
+      blocks_pipeline: false
+      triggers_revision: false
+      action: 放行至下一节点
+    - id: fail
+      label: 不通过
+      blocks_pipeline: true
+      triggers_revision: true
+      action: 触发对应修订（T5/T7 独立写手）或补检索
+    - id: undecidable
+      label: 无法判定
+      blocks_pipeline: true
+      triggers_revision: false
+      action: 补证据或在人环裁决后重跑同一判定
+    - id: path_or_param_error
+      label: 路径或参数错误
+      blocks_pipeline: true
+      triggers_revision: false
+      not_content_defect: true
+      action: 修正路径/参数/前置产物后重跑同一判定；不得当作内容缺陷
+    default_handling:
+      pass: continue_to_next
+      fail: halt_then_revision_outlet
+      undecidable: halt_pending_evidence_or_owner_ruling
+      path_or_param_error: halt_fix_inputs_then_rerun_same_node
+  report_after_rerun_doctrine: '凡 condition 依赖他角色报告、或 mechanical_checkpoint 前置为「相关报告/产物已落盘」者， 必须在报告落盘后重跑；主控预跑的结果不得直接当作闸门输入。节点级标注 = rerun_after_report: true。
+
+    '
+silence_doctrine:
+  invariant: silence_is_not_valid_decision
+  halt_kinds:
+  - pending_owner_halt
+  forbidden_kinds:
+  - auto_continue
+  - silent_proceed
+  - degrade_and_continue
+  applies_to:
+  - owner_timeout_policy
+  - provider_silence_escalation
+owner_timeout_policy:
+  no_answer_minutes: 60
+  fallback_kinds:
+    pending_owner_halt: 写 status.md `pending_owner` + 告警挂起，不静默推进（四节点统一，无例外）
+  default_fallback: pending_owner_halt
+  doctrine: '无明确决策 = 未通过。主人 N 分钟（no_answer_minutes）无应答 → 主控写 status.md `pending_owner` 并告警挂起，不静默推进。任何「主人未回复」「主控代为判断」「子代理说已确认」「产物文件已存在」 都不是有效决策，不得据此推进下一节点，也不得记为 accepted。
+
+    '
+provider_silence_escalation:
+  trigger: consecutive_silent_runs
+  scope: same_provider
+  threshold: 3
+  on_threshold: pause_owner_three_choice
+  owner_choices:
+  - id: switch_provider_family
+    label: 换 provider 族
+    requires: 停下当前节点，改派不同 provider 族的模型（族级独立性真源 = 模型候选池.md §三）
+  - id: switch_capability_tier
+    label: 换能力档
+    requires: 在候选池内换能力档（顶配档不可用 ⇒ 显式降档并披露审计/批判深度影响）
+  - id: accept_same_source_with_disclosure
+    label: 接受同源并披露
+    requires: 主人接受同源继续 ⇒ final/交付说明.md 必须披露「审稿独立性与模型同源」局限
+  no_default_option: true
+  halt_pending_owner: true
+  reset_condition: switch_then_successful_output
+  record: status.md 模型分配表（含「静默计数」列）
+  doctrine: '同 provider 连续静默 ≥3 次 ⇒ 强制呈现主人三选，不再静默继续。本规则与 `top_tier_liveness_gate` 互补： 后者管 spawn **前**探活（attempts / min_interval / staleness），本规则管 **accepted 之后不产出**。 回传口径：主控在 status.md 记静默计数，并在 Phase 0 后置与每轮派发后更新；达阈即暂停。
+
+    '
+terminal_freeze:
+  protected_paths:
+  - final/
+  - drafts/current_draft.md
+  freeze_state: accepted
+  reopen_required_gates:
+  - g14_style_gate
+  - t9_review
+  rerun_after_post_acceptance: true
+  enforcement: flow_check_rule_15 + t8_assertion
+  doctrine: '终态后任何写入受保护路径 ⇒ 主控必须 (1) 状态机 status.md 记 post_acceptance_reopen + 原因， (2) 依次重跑 g14_style_gate / t9_review / final_assembly / t8_technical_final， (3) 重新取主人在 phase5_acceptance 拍板（仍走 owner_checkpoint，不得默认保留旧 accepted）。
+
+    '
+condition_definitions:
+  owner_peer_review_opt_out:
+    requires:
+    - owner_peer_review_opt_out
+    producer: references/templates/任务简报-template.md
+    producer_marker: 同行评审
+  methodology_snapshot_opt_out:
+    requires:
+    - owner_methodology_snapshot_opt_out
+    producer: references/templates/任务简报-template.md
+    producer_marker: 方法论留档
+  phase1_5_targeted_review_any_trigger_hit:
+    requires:
+    - phase0_review_flags
+    producer: references/templates/任务简报-template.md
+    producer_marker: 待复核关键 Dxx
+  t5_t7_report_unverified_references:
+    requires:
+    - t5_report_marker
+    - t7_report_marker
+    producer: references/agents/05-写作-writer.md
+    producer_marker: 待人工核验
+  T6_requires_revision:
+    requires:
+    - t6_report_p0_or_p1
+    producer: references/agents/06-批判-critical-companion.md
+    producer_marker: 否决项清单
+  T7_P0_or_P1:
+    requires:
+    - t7_report_p0_or_p1
+    producer: references/dispatch/T7-审计.md
+    producer_marker: P0
+  target_language_includes_zh:
+    requires:
+    - owner_target_language
+    producer: references/templates/任务简报-template.md
+    producer_marker: 目标语言
+  G14_requires_style_revision:
+    requires:
+    - g14_report_style_fail
+    producer: references/gates/14-中文AI痕迹-gate.md
+    producer_marker: Fail
+  figures_approved_by_owner:
+    requires:
+    - owner_figure_decision
+    producer: references/templates/任务简报-template.md
+    producer_marker: figure_decision
+m_gate_criterion_fields:
+  data_requirements_in_brief:
+    producer: references/templates/任务简报-template.md
+    producer_marker: 需找数据点
+owner_checkpoints:
+- phase0_definition
+- phase2_5_outline
+- phase3_5_insight
+- phase5_acceptance
+panorama_sources:
+  canary: references/_shared/真源/pipeline-overview.md
+  section_marker: '## 流水线全景'
+  pointer_target: _shared/真源/pipeline-overview.md
+  mirrors:
+  - README.md
+  - QUICKSTART.md
+  - references/pipeline-readme.md
+  - references/设计文档-架构.md
+  - references/设计文档-哲学.md
+  - references/_shared/真源/glossary-full.md
+  - SKILL.md
+  - references/_shared/真源/dispatch-header.md
+  pointer_exempt:
+  - references/templates/status-template.md
+  - references/templates/checkpoint-card-template.md
+  - references/_shared/真源/phase-1-details.md
+  - references/_shared/真源/phase-2-details.md
+  - references/_shared/真源/phase-3-details.md
+nodes:
+- seq: 0
+  phase: Phase 0
+  node: phase0_definition
+  slice: phase0_definition.yaml
+  purpose: ''
+- seq: 1
+  phase: Phase 0 后置（spawn 前核验）
+  node: pre_spawn_enforcement
+  slice: pre_spawn_enforcement.yaml
+  purpose: 标准架构 = 多 Agent 九角色流水线（无需勾选、不设总开关）。本节点只做 spawn 前前置核验（同意记录 / 目标语言 / 项目名 / 派发角色清单）*
+- seq: 2
+  phase: Phase 1
+  node: retrieval
+  slice: retrieval.yaml
+  purpose: ''
+- seq: 3
+  phase: Phase 1.5
+  node: phase1_5_targeted_review
+  slice: phase1_5_targeted_review.yaml
+  purpose: ''
+- seq: 4
+  phase: T2.5 完整性门
+  node: t2_5_integrity
+  slice: t2_5_integrity.yaml
+  purpose: ''
+- seq: 5
+  phase: Phase 2
+  node: t4_analysis
+  slice: t4_analysis.yaml
+  purpose: ''
+- seq: 6
+  phase: Phase 2.5
+  node: phase2_5_outline
+  slice: phase2_5_outline.yaml
+  purpose: ''
+- seq: 7
+  phase: Phase 3
+  node: t5_draft_v1
+  slice: t5_draft_v1.yaml
+  purpose: ''
+- seq: 8
+  phase: Phase 3.5
+  node: phase3_5_insight
+  slice: phase3_5_insight.yaml
+  purpose: ''
+- seq: 9
+  phase: Phase 3.6 前置
+  node: current_draft_sync
+  slice: current_draft_sync.yaml
+  purpose: 主控亲为（不 spawn）：把**当前权威版本**（v2/v3/修订稿）write 复制为 drafts/current_draft.md，保留 draft_i
+- seq: 10
+  phase: Phase 3.6
+  node: t6_critique
+  slice: t6_critique.yaml
+  purpose: ''
+- seq: 11
+  phase: Phase 3.7
+  node: t5_feedback_revision
+  slice: t5_feedback_revision.yaml
+  purpose: ''
+- seq: 12
+  phase: Phase 4
+  node: t7_audit
+  slice: t7_audit.yaml
+  purpose: ''
+- seq: 13
+  phase: Phase 4.2
+  node: audit_revision
+  slice: audit_revision.yaml
+  purpose: ''
+- seq: 14
+  phase: Phase 4.3 定向回查（T1b）
+  node: t1b_targeted_review
+  slice: t1b_targeted_review.yaml
+  purpose: v2.13.0 P0-1（ECS 实战反馈）：T5 修订轮新增 [Lxx]/[Dxx]/[Cxx] 标「待人工核验」而 T1 已结束 ⇒ 本窗口 spawn T
+- seq: 15
+  phase: T7.5 完整性门
+  node: t7_5_integrity
+  slice: t7_5_integrity.yaml
+  purpose: ''
+- seq: 16
+  phase: Phase 4.4 前置（G14 风格闸）
+  node: g14_style_gate
+  slice: g14_style_gate.yaml
+  purpose: ''
+- seq: 17
+  phase: Phase 4.4 前置·风格修订
+  node: t5_style_revision
+  slice: t5_style_revision.yaml
+  purpose: ''
+- seq: 18
+  phase: Phase 4.4
+  node: phase4_4_figures
+  slice: phase4_4_figures.yaml
+  purpose: '主控亲为（不 spawn）：按 Phase 2.5 拍板数手写 SVG（templates/图表-SVG-template.md），零外发。
+
+    **v2.12.4'
+- seq: 19
+  phase: Phase 4.4 后置（定稿组装）
+  node: final_assembly
+  slice: final_assembly.yaml
+  purpose: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。**v2.12.60 图件嵌入**：图件存在时（`
+- seq: 22
+  phase: Phase 5 终检后置（方法论留档）
+  node: methodology_snapshot
+  slice: methodology_snapshot.yaml
+  purpose: v2.12.49 T-6：**默认触发**（简版 ≤2 节）—— 采纳项目自身建议，由 opt-in 改为 opt-out；主人在 Phase 0 显式 opt
+- seq: 20
+  phase: Phase 4.5
+  node: t9_review
+  slice: t9_review.yaml
+  purpose: ''
+- seq: 21
+  phase: Phase 5 终检
+  node: t8_technical_final
+  slice: t8_technical_final.yaml
+  purpose: ''
+- seq: 23
+  phase: Phase 5 验收
+  node: phase5_acceptance
+  slice: phase5_acceptance.yaml
+  purpose: ''

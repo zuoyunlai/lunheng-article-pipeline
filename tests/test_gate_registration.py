@@ -182,7 +182,9 @@ def test_gate_zero_reconciles_declared_gates(repo_copy: pathlib.Path) -> None:
     rc, out = run_gate(repo_copy)
     line = gate_line(out, "0:")
     assert line.startswith("✓"), f"基线下门 0 应为 ✓：{line}\n{out[-1500:]}"
-    assert "25 门" in line, f"门 0 未覆盖声明的 25 个门：{line}"
+    # 门数从脚本派生（v2.13.5：加门 AA 后项数变化曾让写死的「25 门」失效 —— 硬编码副本必然腐烂）
+    declared = re.search(r"DECLARED_GATES=\(([^)]+)\)", GATE.read_text(encoding="utf-8")).group(1).split()
+    assert f"{len(declared)} 门" in line, f"门 0 未覆盖声明的 {len(declared)} 个门：{line}"
 
 
 def test_declared_gates_cover_every_gate_in_script() -> None:

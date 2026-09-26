@@ -1,0 +1,42 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 t9_review（Phase 4.5）的完整定义，读它即可推进该节点。
+id: t9_review
+phase: Phase 4.5
+phase_seq: 20
+kind: advisory_agent
+verdict_scale: four_tier
+fingerprint: required
+audited_artifact_required: true
+input: final/定稿.md
+default: triggered
+opt_out: owner_peer_review_opt_out
+on_opt_out: record_opt_out_in_status
+condition_undecidable: report_to_owner
+blocking: false
+role: T9
+write_authority: owner
+verification_authority: 主控
+independence: blind_review
+independence_rules:
+- 必须 spawn 为**独立子代理**（禁主控代笔；主控只做派发、收报告、落盘拼装）
+- 输入白名单**仅两项**：final/定稿.md + 任务简报「投稿信息」子集（目标期刊 / 栏目 / 字数上限）
+- 禁止读取内部过程材料（读取即独立性违反）：literature/文献卡.md、data/数据卡.md、cases/案例卡.md、 analysis/分析大纲.md、analysis/批判报告-vN.md、audits/G14-检测报告-vN.md、audits/审计报告-vN.md、final/M-Gate-Report-*.json
+- 报告必须含必填字段「独立性声明」（声明未读上述任何材料 + 声明本文为盲审）
+- 评分与判定**不得引用任何内部报告**（引用即报告降为无效，必须重跑）
+- 不得以「参考 T7 的 G1 核验产物」为名回读内部报告（v2.12.40 删除了该旧口径）
+required_report_field: 独立性声明
+independence_failure_policy:
+  on_spawn_failure: retry_spawn_only
+  retry_limit: 2
+  executor_takeover: forbidden
+  forbidden_recovery:
+  - owner_ghostwriting
+  - owner_synthesized_report
+  - digest_existing_internal_reports
+  on_exhausted: record_missing_and_notify_owner
+  status_record: missing_blind_review
+  downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
+output: audits/审稿报告-vN.md
+output_chars_max: 15000
+next: t8_technical_final

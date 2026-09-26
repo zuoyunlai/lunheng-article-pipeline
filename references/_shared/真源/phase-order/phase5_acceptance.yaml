@@ -1,0 +1,16 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 phase5_acceptance（Phase 5 验收）的完整定义，读它即可推进该节点。
+id: phase5_acceptance
+phase: Phase 5 验收
+phase_seq: 23
+kind: owner_checkpoint
+blocking: true
+owner_visible: true
+decisions:
+- accepted
+- revision_requested
+- restart_phase
+- deferred
+timeout_fallback: pending_owner_halt
+terminal: accepted

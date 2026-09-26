@@ -1,0 +1,26 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 phase1_5_targeted_review（Phase 1.5）的完整定义，读它即可推进该节点。
+id: phase1_5_targeted_review
+phase: Phase 1.5
+phase_seq: 3
+kind: conditional_review_window
+verdict_scale: four_tier
+rerun_after_report: true
+input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
+condition_undecidable: report_to_owner
+condition: phase1_5_targeted_review_any_trigger_hit
+on_not_triggered: record_not_triggered_in_status
+owner_visible: true
+blocking: false
+trigger_conditions:
+- brief_marked_Dxx_for_review
+- brief_marked_Lxx_for_review
+- t2_5_red_data_unresolved
+decisions:
+- triggered
+- not_triggered
+output_if_triggered: literature/回查报告-vN.md
+required_record: status.md
+after_trigger: rerun_t2_5_integrity
+next: t2_5_integrity

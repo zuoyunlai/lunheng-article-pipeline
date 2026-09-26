@@ -1,0 +1,29 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 g14_style_gate（Phase 4.4 前置（G14 风格闸））的完整定义，读它即可推进该节点。
+id: g14_style_gate
+phase: Phase 4.4 前置（G14 风格闸）
+phase_seq: 16
+kind: agent
+verdict_scale: four_tier
+agent: G14
+role: G14
+write_authority: owner
+verification_authority: 主控
+on_worker_failure:
+  executor: 主控
+  disclosure: degraded_executor
+  retry_limit: 1
+rerun_after_report: false
+rerun_after_post_acceptance: true
+precondition: 已可定稿（前置修订已收敛：audit_revision 已退出且无未决 P0/P1 修订项）
+condition_undecidable: report_to_owner
+condition: target_language_includes_zh
+on_not_triggered: record_not_triggered_in_status
+degrade: selfcheck_in_lite_tier
+exempt: owner_exempted_requires_disclosure
+input: drafts/current_draft.md
+output: audits/G14-检测报告-vN.md
+output_chars_max: 6000
+on_fail: t5_style_revision
+next: phase4_4_figures

@@ -1,0 +1,15 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 phase0_definition（Phase 0）的完整定义，读它即可推进该节点。
+id: phase0_definition
+phase: Phase 0
+phase_seq: 0
+kind: owner_checkpoint
+blocking: true
+owner_visible: true
+decisions:
+- approved
+- revision_requested
+timeout_fallback: pending_owner_halt
+output: 01-任务简报.md
+next: pre_spawn_enforcement

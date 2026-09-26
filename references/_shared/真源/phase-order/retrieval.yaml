@@ -1,0 +1,24 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 retrieval（Phase 1）的完整定义，读它即可推进该节点。
+id: retrieval
+phase: Phase 1
+phase_seq: 2
+input: 01-任务简报.md（+ owner 已确认的语言/同意记录）
+kind: parallel_agents
+role: T1/T2/T3
+agents:
+- T1
+- T2
+- T3
+write_authority: executor
+verification_authority: 主控
+on_worker_failure:
+  executor: 主控
+  disclosure: degraded_executor
+  retry_limit: 1
+output:
+  T1: literature/文献卡.md
+  T2: data/数据卡.md
+  T3: cases/案例卡.md
+next: phase1_5_targeted_review

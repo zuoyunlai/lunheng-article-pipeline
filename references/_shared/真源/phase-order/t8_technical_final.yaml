@@ -1,0 +1,21 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 t8_technical_final（Phase 5 终检）的完整定义，读它即可推进该节点。
+id: t8_technical_final
+phase: Phase 5 终检
+phase_seq: 21
+verdict_scale: four_tier
+rerun_after_report: true
+input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json + audits/审稿报告-vN.md + audits/G14-检测报告-vN.md
+kind: owner_agent
+agent: T8
+role: T8
+write_authority: owner
+verification_authority: 主控
+fingerprint: required
+audited_artifact_required: true
+output: final/交付说明.md
+output_chars_max: 10000
+output_conditional:
+  acknowledged_limitations_mode: final/局限性.md
+next: methodology_snapshot

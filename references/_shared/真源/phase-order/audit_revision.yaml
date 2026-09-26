@@ -1,0 +1,36 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 audit_revision（Phase 4.2）的完整定义，读它即可推进该节点。
+id: audit_revision
+phase: Phase 4.2
+phase_seq: 13
+kind: bounded_loop
+verdict_scale: four_tier
+rerun_after_report: true
+max_rounds: 2
+rounds_exhausted_outlet:
+  trigger: max_rounds_used AND has_unresolved_defects
+  unresolved_levels:
+  - P0
+  - P1
+  owner_decision:
+  - id: accept_with_limitations
+    label: 接受现状 + Acknowledged Limitations
+    requires: deliverables.md 加局限性段 + status.md 记 accepted_under_owner_decision
+  - id: extend_one_round
+    label: 破例追加 1 轮
+    requires: 主人在 phase4 节点拍板「授权追加」，不计 max_rounds 上限
+  - id: manual_polish
+    label: 主人手工润色
+    requires: 流水线暂停，退出论衡 agent，主人手动改稿
+  no_default_option: true
+  halt_pending_owner: true
+input: audits/审计报告-vN.md + drafts/current_draft.md
+output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
+condition_undecidable: report_to_owner
+condition: T7_P0_or_P1
+on_not_triggered: record_not_triggered_in_status
+after_each:
+- current_draft_sync
+- rerun_t7
+next: t1b_targeted_review

@@ -1,0 +1,21 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 t6_critique（Phase 3.6）的完整定义，读它即可推进该节点。
+id: t6_critique
+phase: Phase 3.6
+phase_seq: 10
+kind: agent
+verdict_scale: four_tier
+agent: T6
+role: T6
+write_authority: owner
+verification_authority: 主控
+on_worker_failure:
+  executor: 主控
+  disclosure: degraded_executor
+  retry_limit: 1
+degrade: skip_in_lite_tier
+input: drafts/current_draft.md
+output: analysis/批判报告-vN.md
+output_chars_max: 12000
+next: t5_feedback_revision

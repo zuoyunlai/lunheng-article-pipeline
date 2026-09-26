@@ -1,0 +1,15 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 phase2_5_outline（Phase 2.5）的完整定义，读它即可推进该节点。
+id: phase2_5_outline
+phase: Phase 2.5
+phase_seq: 6
+kind: owner_checkpoint
+blocking: true
+owner_visible: true
+decisions:
+- approved
+- revision_requested
+- restart_phase
+timeout_fallback: pending_owner_halt
+next: t5_draft_v1

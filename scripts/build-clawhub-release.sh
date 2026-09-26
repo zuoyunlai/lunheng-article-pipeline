@@ -313,7 +313,9 @@ done
 #   即「新文件默认入包」→「新文件默认被拦」的方向反转（不是再补一个黑名单条目）。
 # 维护：本表按 `LC_ALL=C sort` 排序（下方有机械自检）；增删条目请保持 ASCII-优先排序。
 # v2.12.70 A-治理瘦身：`_shared/` 分层为 真源/（判据）+ 治理/（叙事），本表项带子目录前缀；
-#   下方 find 用 -mindepth 1 -maxdepth 2 + %P 输出相对路径，与带前缀清单精确对表。
+#   下方 find 用 -mindepth 1 -maxdepth 3 + %P 输出相对路径，与带前缀清单精确对表。
+#   ⚠️ v2.13.5（R-21）：maxdepth 由 2 提到 3 —— 真源新增派生切片目录 真源/phase-order/；
+#     若不同步提深度，新目录对本准入闸**结构性不可见**（正是 C-1「新文件默认入包」的同款盲区）。
 SHARED_ADMITTED=(
   '治理/project-archive-sop.md'
   '治理/反哺报告处理.md'
@@ -336,6 +338,31 @@ SHARED_ADMITTED=(
   '真源/phase-2-details.md'
   '真源/phase-3-details.md'
   '真源/phase-order.yaml'
+  '真源/phase-order/audit_revision.yaml'
+  '真源/phase-order/current_draft_sync.yaml'
+  '真源/phase-order/final_assembly.yaml'
+  '真源/phase-order/g14_style_gate.yaml'
+  '真源/phase-order/index.yaml'
+  '真源/phase-order/methodology_snapshot.yaml'
+  '真源/phase-order/phase0_definition.yaml'
+  '真源/phase-order/phase1_5_targeted_review.yaml'
+  '真源/phase-order/phase2_5_outline.yaml'
+  '真源/phase-order/phase3_5_insight.yaml'
+  '真源/phase-order/phase4_4_figures.yaml'
+  '真源/phase-order/phase5_acceptance.yaml'
+  '真源/phase-order/pre_spawn_enforcement.yaml'
+  '真源/phase-order/retrieval.yaml'
+  '真源/phase-order/t1b_targeted_review.yaml'
+  '真源/phase-order/t2_5_integrity.yaml'
+  '真源/phase-order/t4_analysis.yaml'
+  '真源/phase-order/t5_draft_v1.yaml'
+  '真源/phase-order/t5_feedback_revision.yaml'
+  '真源/phase-order/t5_style_revision.yaml'
+  '真源/phase-order/t6_critique.yaml'
+  '真源/phase-order/t7_5_integrity.yaml'
+  '真源/phase-order/t7_audit.yaml'
+  '真源/phase-order/t8_technical_final.yaml'
+  '真源/phase-order/t9_review.yaml'
   '真源/pipeline-overview.md'
   '真源/skill-entry-appendix.md'
   '真源/中文数据源集成.md'
@@ -350,7 +377,7 @@ SHARED_ADMITTED=(
   '真源/模型候选池.md'
   '真源/路径校验规范.md'
 )
-_SA_ACTUAL=$(find "$OUT_DIR/references/_shared" -mindepth 1 -maxdepth 2 -type f -printf '%P\n' 2>/dev/null | LC_ALL=C sort)
+_SA_ACTUAL=$(find "$OUT_DIR/references/_shared" -mindepth 1 -maxdepth 3 -type f -printf '%P\n' 2>/dev/null | LC_ALL=C sort)
 _SA_EXPECT=$(printf '%s\n' "${SHARED_ADMITTED[@]}" | LC_ALL=C sort)
 if [[ "$(printf '%s\n' "${SHARED_ADMITTED[@]}" | LC_ALL=C sort)" != "$(printf '%s\n' "${SHARED_ADMITTED[@]}")" ]]; then
   echo "❌ SHARED_ADMITTED 未按 LC_ALL=C sort 排序（维护性自检）—— 请重排后再提交" >&2
@@ -462,8 +489,9 @@ fi
 
 # C-5（2026-09-19 审计）：正向完整性门原**只覆盖 `*.md`** —— 非 md 随包文本（`.yaml`/`.json`/
 #   `.txt`/`.toml`）净化后即使被整体删空也无人发现（负向扫描只报「违规命中数 ≠ 0」）。
-#   实测包内非 md 文本资产 2 个：`references/_shared/真源/phase-order.yaml` +
-#   `references/_shared/真源/counts.yaml`（v2.13.x 审计修订 R-19 新增；其余随包文件均为 .md
+#   实测包内非 md 文本资产 27 个：`references/_shared/真源/phase-order.yaml` +
+#   `references/_shared/真源/counts.yaml`（v2.13.x 审计修订 R-19 新增）+
+#   `references/_shared/真源/phase-order/` 下 25 个派生切片（R-21 新增；其余随包文件均为 .md
 #   或无扩展名的静态文件 LICENSE）。范围与 §扫描面 `SCAN_INCLUDES` 同口径，日后新增自动纳入。
 PKG_SNAPSHOT_NONMD="$(mktemp -t lunheng-pkgsnap-nonmd.XXXXXX)"
 python3 - "$OUT_DIR" "$PKG_SNAPSHOT_NONMD" <<'PYEOF'

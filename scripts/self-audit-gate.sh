@@ -61,7 +61,7 @@ skip() { SKIPPED+=("$1: $2"); _record_gate_id "$1"; echo -e "${YELLOW}⊘${NC} $
 warn() { echo -e "${YELLOW}⚠${NC} $1"; }
 
 # 声明的门清单（顶层门：M.3/M.4 归 M，X.1-X.4 归 X）——门 0 以此对账，缺一即红
-DECLARED_GATES=(A B C D E F G H I J K L M N O P Q R S T U V W X Y)
+DECLARED_GATES=(A B C D E F G H I J K L M N O P Q R S T U V W X Y AA)
 
 cd "$SKILL_ROOT" || exit
 
@@ -1148,7 +1148,7 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77392,references/_shared/真源/M-Gate-Algorithm.md|84273,references/_shared/真源/phase-order.yaml|61559"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77389,references/_shared/真源/M-Gate-Algorithm.md|84273,references/_shared/真源/phase-order.yaml|61559,references/_shared/真源/phase-order/index.yaml|11196"   # v2.13.5：本文件随 R-21 引入，基线 = 引入时实测值（不是放宽既有上限）
 # ⚠️ v2.13.2 缩容备案（HITL 呈现/恢复协议 · 主动下调，非扩容）：00-主控-扩展职责.md 77629→77392（−237 B）。
 #   本轮新增「等待期体验与运行期留痕」运行纪律（规则 50 载体），同时把 §二十一 的「无应答兜底」长句
 #   与概览行压缩为指针/短句（真源 = phase-order.yaml owner_timeout_policy，本卡不重列）。净值为**减少**，
@@ -1359,6 +1359,27 @@ fi
 # 门 Z：自审门项数软上限（v2.12.70 方案 A 第③步「规则软上限」）
 #   语义：软门（warn 级，不计 exit code）；项数只许降 —— 加门前先合并/退役旧门，
 #   治「规则的规则」内卷。检查的是门 A-X 的项数（不含门 Z 自身）。
+# =============================================================================
+# 门 AA：phase-order 派生切片 vs 真源一致性（v2.13.5，审计修订 R-21）
+#   背景：主控读法由「每进一个 Phase 必读真源全文（41,262 字符）」改为「派生索引 +
+#     当前节点切片」（≈ −70% 读取量）。代价是引入派生视图 —— 而**漂移的切片比没有切片
+#     更危险**（主控会照着一份过时判据推进）。故用逐字节校验把派生视图钉死在真源上。
+#   判据：scripts/phase-order-slice.py --check；任何差异 / 缺失 / 多余即红。
+# =============================================================================
+if [ -f scripts/phase-order-slice.py ] && command -v python3 >/dev/null 2>&1; then
+  if GATE_AA_OUT="$(python3 scripts/phase-order-slice.py --check 2>&1)"; then
+    pass "门 AA: phase-order 切片与真源逐字节一致"
+  else
+    fail "门 AA: phase-order 切片漂移" "$(printf '%s' "$GATE_AA_OUT" | tail -3 | tr '\n' '|')"
+  fi
+else
+  if [ ! -f scripts/phase-order-slice.py ]; then
+    fail "门 AA: 未执行（切片生成器缺失）" "scripts/phase-order-slice.py 不存在 ⇒ 本门不可判定（不允许静默跳过）"
+  else
+    fail "门 AA: 未执行（缺 python3）" "本门不可判定（不允许静默跳过）"
+  fi
+fi
+
 # 门 0：门清单对账（v2.13.x 审计修订 R-20）
 #   判据：DECLARED_GATES 中每个门都必须在本轮给出结论（PASS/FAIL/SKIP）。
 #   任一门无结论 = 门静默消失（曾实际发生：门 S/T/U 缺依赖时整行不输出）。

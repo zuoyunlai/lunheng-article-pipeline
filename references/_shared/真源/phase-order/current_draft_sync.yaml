@@ -1,0 +1,15 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 current_draft_sync（Phase 3.6 前置）的完整定义，读它即可推进该节点。
+id: current_draft_sync
+phase: Phase 3.6 前置
+phase_seq: 9
+kind: mechanical_checkpoint
+verdict_scale: four_tier
+rerun_after_report: true
+owner: 主控
+write_authority: owner
+output: drafts/current_draft.md
+note: 主控亲为（不 spawn）：把**当前权威版本**（v2/v3/修订稿）write 复制为 drafts/current_draft.md，保留 draft_id / draft_version 绑定
+precondition: 上游最新稿（drafts/初稿-vN.md 或修订稿）+ Phase 3.5 洞察记录已在磁盘
+next: t6_critique

@@ -1,0 +1,14 @@
+# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
+# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
+# 本切片 = 节点 phase3_5_insight（Phase 3.5）的完整定义，读它即可推进该节点。
+id: phase3_5_insight
+phase: Phase 3.5
+phase_seq: 8
+kind: owner_checkpoint
+blocking: true
+owner_visible: true
+decisions:
+- insight
+- no_insight
+timeout_fallback: pending_owner_halt
+next: current_draft_sync
