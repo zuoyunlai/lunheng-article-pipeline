@@ -28,6 +28,8 @@ import subprocess
 
 import pytest
 
+from conftest import tracked_tree
+
 ROOT = pathlib.Path(__file__).parent.parent
 BUILD = ROOT / "scripts" / "build-clawhub-release.sh"
 MANIFEST = ROOT / "scripts" / ".pkg-manifest.txt"
@@ -49,7 +51,7 @@ def _manifest_entries():
 def _copy_repo(tmp_path):
     """复制仓库到临时目录并建立 git（构建的非 git 门是 fail-closed，必须有 .git）。"""
     dst = tmp_path / "copy"
-    shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns(".git", "outputs", "__pycache__"))
+    tracked_tree(ROOT, dst)
     env = {**os.environ, **GIT_ENV}
     for cmd in (["git", "init", "-q"], ["git", "add", "-A"],
                 ["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "base"]):

@@ -80,6 +80,7 @@ CHECKS=(
 
   # 派发话术（v2.5.6 拆分新增，教训 #183 补入三层清单）
   "dispatch/T1-文献检索.md|v$EXPECTED|1"
+  "dispatch/T1b-定向回查.md|v$EXPECTED|1"
   "dispatch/T2-数据检索.md|v$EXPECTED|1"
   "dispatch/T3-案例检索.md|v$EXPECTED|1"
   "dispatch/T4-分析.md|v$EXPECTED|1"
@@ -181,7 +182,12 @@ for check in "${CHECKS[@]}"; do
     continue
   fi
 
-  actual_count=$(grep -cE "$pattern" "$full_path" || true)
+  # 版本 token 采用边界匹配，避免 v2.13.30 被当作 v2.13.3 通过。
+  if [[ "$pattern" == "v$EXPECTED" ]]; then
+    actual_count=$(grep -cE "v?${EXPECTED}([^0-9]|$)" "$full_path" || true)
+  else
+    actual_count=$(grep -cE "$pattern" "$full_path" || true)
+  fi
 
   if [ "$actual_count" -ge "$min_count" ]; then
     printf "%-50s %-15s %-10s %s\n" "$file" "v$EXPECTED" "$actual_count 处" "✅"
@@ -226,7 +232,7 @@ for check in "${CHECKS[@]}"; do
     continue
   fi
 
-  header_has_version=$(head -5 "$full_path" | grep -cE "v$EXPECTED" || true)
+  header_has_version=$(head -5 "$full_path" | grep -cE "v?${EXPECTED}([^0-9]|$)" || true)
 
   if [ "$header_has_version" -ge 1 ]; then
     HEADER_PASS=$((HEADER_PASS+1))

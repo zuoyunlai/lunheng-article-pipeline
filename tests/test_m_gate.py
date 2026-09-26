@@ -79,11 +79,14 @@ def test_unified_extraction_and_verdict_tiers_in_doc():
 
 
 def load_fixture(name):
-    """加载 fixture 文件"""
+    """加载 fixture 文件；缺失时 fail-loud，禁止 M 门在空输入上假绿。"""
     path = FIXTURES_DIR / name
     if not path.exists():
-        return ""
-    return path.read_text()
+        pytest.fail(f"fixture 缺失：{path}（M 门用例不允许在空输入上自证）")
+    text = path.read_text(encoding="utf-8")
+    if not text.strip():
+        pytest.fail(f"fixture 为空：{path}（M 门用例不允许在空输入上自证）")
+    return text
 
 
 # =============================================================================

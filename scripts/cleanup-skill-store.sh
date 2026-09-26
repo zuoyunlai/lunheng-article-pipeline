@@ -76,8 +76,9 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "❌ 未知参数：$1"
-      exit 1
+      echo "❌ 未知参数：$1" >&2
+      echo "   用法：$0 [--keep=N] [--bak-parent=DIR] [--no-backup] [--purge-git-history] [--bundle-dir=DIR] [--dry-run]" >&2
+      exit 2
       ;;
   esac
 done
@@ -104,7 +105,7 @@ NC='\033[0m'
 # =============================================================================
 echo "📊 步骤 0: 基线测量"
 BEFORE_GIT=$(du -sh .git 2>/dev/null | awk '{print $1}')
-BEFORE_OUT=$(du -sh $OUTPUTS_ROOT 2>/dev/null | awk '{print $1}')
+BEFORE_OUT=$(du -sh "$OUTPUTS_ROOT" 2>/dev/null | awk '{print $1}')
 BEFORE_TOTAL=$(du -sh . 2>/dev/null | awk '{print $1}')
 echo "  .git = $BEFORE_GIT"
 echo "  $OUTPUTS_ROOT/ = $BEFORE_OUT"
@@ -122,8 +123,8 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
   mkdir -p "$BAK_DIR"
 
   # 1a. 备份 $OUTPUTS_ROOT/archive/
-  if [ -d $OUTPUTS_ROOT/archive ]; then
-    mv $OUTPUTS_ROOT/archive "$BAK_DIR/archive"
+  if [ -d "$OUTPUTS_ROOT/archive" ]; then
+    mv "$OUTPUTS_ROOT/archive" "$BAK_DIR/archive"
     echo "  ✅ archive/ 已备份"
   else
     echo "  ⏭️  archive/ 不存在，跳过"
@@ -133,7 +134,7 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
   if [ -d $OUTPUTS_ROOT/clawhub-release ]; then
     mkdir -p "$BAK_DIR/clawhub-release"
     KEEP_VERSIONS=$({
-      for entry in $OUTPUTS_ROOT/clawhub-release/*/; do
+      for entry in "$OUTPUTS_ROOT"/clawhub-release/*/; do
         [ -d "$entry" ] || continue
         ename=$(basename "$entry")
         [ "$ename" = "--dry-run" ] && continue
@@ -141,7 +142,7 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
       done
     } | sort -V | tail -n "$KEEP")
     DELETED=0
-    for v in $OUTPUTS_ROOT/clawhub-release/*/; do
+    for v in "$OUTPUTS_ROOT"/clawhub-release/*/; do
       vname=$(basename "$v")
       if [ "$vname" != "--dry-run" ] && ! echo "$KEEP_VERSIONS" | grep -qFx "$vname"; then
         mv "$v" "$BAK_DIR/clawhub-release/"
@@ -153,8 +154,8 @@ if [ "$NO_BACKUP" != "true" ] && [ "$DRY_RUN" != "true" ]; then
     echo "  ✅ 待删: $DELETED 个老版本"
 
     # 1c. 删 --dry-run 测试产物
-    if [ -d $OUTPUTS_ROOT/clawhub-release/--dry-run ]; then
-      rm -rf $OUTPUTS_ROOT/clawhub-release/--dry-run
+    if [ -d "$OUTPUTS_ROOT/clawhub-release/--dry-run" ]; then
+      rm -rf "$OUTPUTS_ROOT/clawhub-release/--dry-run"
       echo "  ✅ 删 --dry-run 测试产物"
     fi
   fi
@@ -162,7 +163,7 @@ elif [ "$DRY_RUN" == "true" ]; then
   echo "🔍 DRY_RUN 模式：列出待删目录（不实际删除）"
   echo "  $OUTPUTS_ROOT/archive/（如存在）"
   {
-    for entry in $OUTPUTS_ROOT/clawhub-release/*/; do
+    for entry in "$OUTPUTS_ROOT"/clawhub-release/*/; do
       [ -d "$entry" ] || continue
       ename=$(basename "$entry")
       [ "$ename" = "--dry-run" ] && continue

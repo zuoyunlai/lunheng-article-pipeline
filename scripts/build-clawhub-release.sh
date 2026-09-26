@@ -40,6 +40,13 @@ OUT_ROOT="${OUTPUTS_ROOT:-$HOME/lunheng-build/lunheng-outputs}/clawhub-release"
 
 # ---- 版本号 ----
 VERSION="${1:-}"
+KEEP_PARTIAL=0
+if [[ "${2:-}" == "--keep-partial" ]]; then
+  KEEP_PARTIAL=1
+elif [[ -n "${2:-}" ]]; then
+  echo "❌ 未知参数：${2}（仅支持 --keep-partial）" >&2
+  exit 2
+fi
 if [[ -z "$VERSION" ]]; then
   VERSION="$(grep -m1 -E '^[[:space:]]*version:' "$SKILL_ROOT/SKILL.md" | sed 's/^[[:space:]]*version:[[:space:]]*//' | tr -d '"')"
 fi
@@ -112,7 +119,35 @@ fi
 
 # ---- 1. 清空旧输出 ----
 rm -rf "$OUT_DIR"
+on_exit() {
+  local rc=$?
+  if [[ "$rc" -ne 0 && "$KEEP_PARTIAL" -ne 1 ]]; then
+    rm -rf "$OUT_DIR"
+    echo "🧹 构建失败，已清理半成品输出：$OUT_DIR" >&2
+  elif [[ "$rc" -ne 0 ]]; then
+    echo "⚠️ 构建失败，按 --keep-partial 保留半成品输出：$OUT_DIR" >&2
+  fi
+  return "$rc"
+}
+trap on_exit EXIT
 mkdir -p "$OUT_DIR"
+
+# ---- 1a. 未跟踪源文件前置守卫（R-04 / F3）----
+# 复制前先检查工作树；否则 IDEA.md 等未跟踪文件已进入包后才失败，失败构建会留下半成品。
+if git -C "$SKILL_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+  _PF_SOURCE_UNTRACKED="$(git -C "$SKILL_ROOT" status --porcelain=v1 --untracked-files=all | awk '
+    substr($0,1,3)!="?? " {next}
+    { p=substr($0,4); n=split(p,a,"/"); b=a[n]
+      if (b ~ /^\.coverage(\..*)?$/ || b == ".DS_Store" || b ~ /\.sw[po]$/ || p ~ /(^|\/)htmlcov\//) next
+      print p
+    }')"
+  if [[ -n "$_PF_SOURCE_UNTRACKED" ]]; then
+    echo "❌ 源工作树含未跟踪文件，拒绝构建（失败零输出）：" >&2
+    printf '%s\n' "$_PF_SOURCE_UNTRACKED" | sed 's/^/   - /' >&2
+    echo "   修法：移出/跟踪/忽略该文件；仅人工排查可加 --keep-partial（不改变守卫结果）。" >&2
+    exit 1
+  fi
+fi
 
 # ---- 2. 复制真源（用 rsync 若可用，否则 cp -a）----
 # 开发者工具文件清单（v2.9.0 起净化包必剥离，教训 #212）：
@@ -132,7 +167,7 @@ DEV_TOOL_FILES=(
 if command -v rsync >/dev/null 2>&1; then
   rsync -a --exclude '.git' --exclude 'outputs' --exclude '*.bak.*' \
     --exclude '.bak-*' --exclude 'docs' --exclude '.gitignore' \
-    --exclude 'audits' --exclude 'scripts' --exclude '.github' \
+    --exclude 'audits' --exclude 'scripts' --exclude 'scripts/verify-package.sh' --exclude '.github' \
     --exclude 'references/_shared/archive' --exclude 'references/design' \
     --exclude 'references/_shared/治理/lessons-max.snapshot' \
     --exclude 'references/_shared/通用韧化块-v2.1.0.md' \
@@ -210,6 +245,8 @@ else
   for f in "${DEV_TOOL_FILES[@]}"; do
     rm -f "$OUT_DIR/$f"
   done
+  # verify-package.sh 是维护者发布前工具，显式双重排除（与 rsync 侧保持同口径）
+  rm -f "$OUT_DIR/scripts/verify-package.sh"
 fi
 
 # ---- 2a. 工作区私有文件剔除（v2.12.23，教训 #333）----

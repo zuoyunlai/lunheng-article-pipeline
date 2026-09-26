@@ -27,6 +27,8 @@ import shutil
 import subprocess
 import sys
 
+from conftest import tracked_tree
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SYNC = ROOT / "scripts" / "sync-version.sh"
 SELF_AUDIT = ROOT / "scripts" / "self-audit-gate.sh"
@@ -72,7 +74,7 @@ def _sandbox(tmp_path):
     dst = pathlib.Path(tmp_path) / "repo"
     if dst.exists():
         shutil.rmtree(dst)
-    shutil.copytree(ROOT, dst, ignore=COPY_IGNORE)
+    tracked_tree(ROOT, dst)
     return dst
 
 

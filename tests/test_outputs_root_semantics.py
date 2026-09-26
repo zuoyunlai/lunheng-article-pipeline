@@ -30,6 +30,8 @@ import re
 import shutil
 import subprocess
 
+from conftest import tracked_tree
+
 ROOT = pathlib.Path(__file__).parent.parent
 BUILD = ROOT / "scripts" / "build-clawhub-release.sh"
 PUBLISH = ROOT / "scripts" / "publish-clawhub.sh"
@@ -167,8 +169,7 @@ def test_strip_probe_visible_when_root_missing(tmp_path):
 
 def test_build_output_lands_in_total_root(tmp_path):
     dst = tmp_path / "copy"
-    shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns(
-        ".git", "outputs", "__pycache__", ".pytest_cache"))
+    tracked_tree(ROOT, dst)
     out_root = tmp_path / "iso"
 
     r = subprocess.run(["bash", str(dst / "scripts" / "build-clawhub-release.sh"), VER],

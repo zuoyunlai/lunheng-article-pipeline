@@ -40,7 +40,10 @@ cd "$SKILL_ROOT" || exit
 # =============================================================================
 # 门 A：角色卡完整性（v2.7.0 实测 11 文件 = 10 角色：主控 2 文件 + T1-T9 九卡。
 # 概念口径「10 张角色卡」= T0 主控 + T1-T7 + T8 终检 + T9 同行评审；物理 11 文件因主控拆 coordinator + 扩展职责两张）
-# =============================================================================
+# 2026-09-25 审计修订（R-24-2）：原判据**只查缺席不查多出** —— 目录里多出一个未被登记的角色卡
+#   （如 `0A-临时卡.md`）本门照过，而门 C 的 VERSION_FILES 与 sync/check-version 清单都是白名单，
+#   同样不报 ⇒ 「新增角色卡」这一动作当时无任何机械门覆盖。现补**反向差集**。
+# =========================================================================
 EXPECTED_AGENTS=("00-主控-coordinator.md" "00-主控-扩展职责.md" "01-文献检索-literature-scout.md" "02-数据检索-data-scout.md" "03-案例检索-case-scout.md" "04-分析-analyst.md" "05-写作-writer.md" "06-批判-critical-companion.md" "07-审计-auditor.md" "08-终检-final-inspector.md" "09-审稿-peer-reviewer.md")
 ACTUAL_AGENTS=""
 for f in references/agents/0[0-9]-*; do
@@ -53,10 +56,23 @@ for exp in "${EXPECTED_AGENTS[@]}"; do
     MISSING+=("$exp")
   fi
 done
-if [ ${#MISSING[@]} -eq 0 ]; then
-  pass "门 A: 角色卡完整性（11 文件 / 10 角色）"
-else
+EXTRA=()
+while IFS= read -r act; do
+  [ -z "$act" ] && continue
+  found=0
+  for exp in "${EXPECTED_AGENTS[@]}"; do
+    if [ "$exp" = "$act" ]; then found=1; break; fi
+  done
+  [ "$found" -eq 0 ] && EXTRA+=("$act")
+done <<EOF
+$ACTUAL_AGENTS
+EOF
+if [ ${#MISSING[@]} -eq 0 ] && [ ${#EXTRA[@]} -eq 0 ]; then
+  pass "门 A: 角色卡完整性（11 文件 / 10 角色，无未登记多出）"
+elif [ ${#MISSING[@]} -gt 0 ]; then
   fail "门 A: 角色卡完整性" "缺失: ${MISSING[*]}"
+else
+  fail "门 A: 角色卡完整性" "多出未登记角色卡: ${EXTRA[*]}（新增角色卡须同步本清单 + 门 C 的 VERSION_FILES + sync/check-version 清单）"
 fi
 
 # =============================================================================
@@ -97,6 +113,14 @@ fi
 # 门 C：版本号一致性（36 文件清单 = SKILL.md + 8 角色卡 + 闸门 + 检测器 + 共享协议 + 模板 + README + QUICKSTART）
 # =============================================================================
 EXPECTED_VERSION=$(grep -m1 -E '^[[:space:]]*version:' SKILL.md | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')
+# v2.13.x 审计修订（R-05）：**空转守卫**。原实现下，一旦 SKILL.md frontmatter 的 `version:` 键被删/改名
+#   （或被写成无值），EXPECTED_VERSION 为空串，而下方判据用的是 `grep -qF "$EXPECTED_VERSION"` ——
+#   `grep -qF ""` **恒真**（空模式匹配任意行）⇒ 本门输出「✓ 门 C: 56 文件版本号 v 一致」并 PASS。
+#   即：唯一真源损坏时，专门守护该真源的门变成 no-op（2026-09-25 审计探针实测复现）。
+#   现口径：读不到版本号 = **本门不可判定** ⇒ fail（不是 pass，也不是静默跳过）。
+if [ -z "$EXPECTED_VERSION" ]; then
+  fail "门 C: 版本号一致性" "SKILL.md frontmatter 无 version（读版本为空 ⇒ 本门不可判定，不允许空转绿灯）；修法：恢复 metadata.openclaw.version，或修正缩进读法"
+fi
 VERSION_FILES=(
   "SKILL.md" "README.md" "QUICKSTART.md"
   "references/_shared/真源/glossary-full.md" "references/pipeline-readme.md"
@@ -159,12 +183,16 @@ for f in "${VERSION_FILES[@]}"; do
     VERSION_MISSING="$VERSION_MISSING [missing:$f]"
     continue
   fi
-  if ! head -10 "$f" | grep -qF "$EXPECTED_VERSION"; then
+  # 边界匹配（R-05-2）：原 `grep -qF v2.13.3` 是**子串**匹配，版本戳 `v2.13.30` / `v2.13.31` 会被当作
+  # `v2.13.3` 通过（前缀吞噬）。改为要求版本串后紧跟非数字字符或行尾。
+  if ! head -10 "$f" | grep -qE "v?${EXPECTED_VERSION}([^0-9]|$)"; then
     VERSION_MISSING="$VERSION_MISSING [$f]"
   fi
 done
-if [ -z "$VERSION_MISSING" ]; then
+if [ -n "$EXPECTED_VERSION" ] && [ -z "$VERSION_MISSING" ]; then
   pass "门 C: ${#VERSION_FILES[@]} 文件版本号 v$EXPECTED_VERSION 一致"
+elif [ -z "$EXPECTED_VERSION" ]; then
+  : # 上方空转守卫已 fail，此处不重复计数
 else
   fail "门 C: 版本号不一致" "期望 v$EXPECTED_VERSION, 不一致:$VERSION_MISSING"
 fi
@@ -975,6 +1003,14 @@ if command -v python3 >/dev/null 2>&1 && [ -f references/_shared/真源/phase-or
   else
     fail "门 S: 流程图断链/孤立节点" "$FLOW_ERR"
   fi
+else
+  # v2.13.x 审计修订（R-06）：原实现**无 else** —— 缺 python3 或真源被改名时，本门整行不输出、
+  #   门数默默从 36 降到 35，报告上看不出任何异常（2026-09-25 审计实测复现）。
+  #   「检查器缺失 / 真源被改名」恰恰是最该报警的场景，不得以静默消失呈现。
+  _GATE_S_WHY=""
+  command -v python3 >/dev/null 2>&1 || _GATE_S_WHY="缺 python3；"
+  [ -f references/_shared/真源/phase-order.yaml ] || _GATE_S_WHY="${_GATE_S_WHY}缺 references/_shared/真源/phase-order.yaml；"
+  fail "门 S: 未执行（流程图可达性与入参链）" "${_GATE_S_WHY}⇒ 本门不可判定（不允许静默跳过）；修法：装 python3 / 恢复真源文件"
 fi
 
 # =============================================================================
@@ -1010,6 +1046,12 @@ print(' '.join(sorted(str(x) for x in (tools.get('denied') or []))))
       fail "门 T: denied 能力被能力断言脚本放行" "$GATE_T_FAIL"
     fi
   fi
+else
+  # v2.13.x 审计修订（R-06）：同门 S —— 原实现无 else，门 T 在缺 python3/缺断言脚本时静默消失。
+  _GATE_T_WHY=""
+  [ -f scripts/capability-assert.py ] || _GATE_T_WHY="缺 scripts/capability-assert.py；"
+  command -v python3 >/dev/null 2>&1 || _GATE_T_WHY="${_GATE_T_WHY}缺 python3；"
+  fail "门 T: 未执行（权限口径一致性）" "${_GATE_T_WHY}⇒ 本门不可判定（不允许静默跳过）"
 fi
 
 # =============================================================================
@@ -1032,6 +1074,12 @@ if [ -f scripts/link-check.py ] && command -v python3 >/dev/null 2>&1; then
     GATE_U_BAD="$(printf '%s' "$GATE_U_OUT" | grep -E '→' | head -5 | tr '\n' ' ')"
     fail "门 U: 相对链接断链" "$GATE_U_BAD"
   fi
+else
+  # v2.13.x 审计修订（R-06）：同门 S/T —— 原实现无 else，门 U 静默消失。
+  _GATE_U_WHY=""
+  [ -f scripts/link-check.py ] || _GATE_U_WHY="缺 scripts/link-check.py；"
+  command -v python3 >/dev/null 2>&1 || _GATE_U_WHY="${_GATE_U_WHY}缺 python3；"
+  fail "门 U: 未执行（相对链接可解析性）" "${_GATE_U_WHY}⇒ 本门不可判定（不允许静默跳过）"
 fi
 
 # =============================================================================
@@ -1250,16 +1298,23 @@ else
   fail "门 X.3: 围栏外存在紧跟围栏的 # 伪 H1" "$(echo "$FAKE_H1" | head -5 | tr '\n' '|')"
 fi
 
-# X.4：全仓「围栏总数偶数」——未闭合围栏 = 文件尾部被整块吞进代码块。
+# X.4：全仓「围栏相位」——未闭合围栏 = 文件尾部被整块吞进代码块。
 #   实测（教训 #427）：references/pipeline-readme.md 7 个围栏 ⇒ 尾部 57 行被吞，
 #   由 v2.12.54 全景收敛的删除残留引入（删了开围栏、留下闭围栏）。
-#   排除产物/归档目录；备份文件名形如 *.md.bak.*，不匹配 '*.md' 故无需额外排除。
+#   ⚠️ v2.13.x 审计修订（R-07）：原判据只算 `n % 2`（总数奇偶）——「两个开围栏 + 零个闭围栏」
+#     这类**双开**形态总数仍为偶数，本门照过（2026-09-25 审计构造 zzz-probe.md 实测复现）。
+#     而「双开围栏」恰是尾部被吞这一故障的最常见形态。现改为**状态机**：逐行翻转 inside，
+#     收尾仍在围栏内即判红（与门 X.2 的 awk 范式同源）。
 ODD_FENCES=$(find . -type f -name '*.md' \
   -not -path './outputs/*' -not -path './reports/*' -not -path './memory/*' \
   -not -path './node_modules/*' -not -path './.git/*' \
-  -exec awk '/^[[:space:]]*(`{3,}|~{3,})/{n++} END{ if (n % 2) print FILENAME "(" n " 个围栏)" }' {} \; 2>/dev/null)
+  -exec awk '
+    function is_fence(s){ return s ~ /^[[:space:]]*(`{3,}|~{3,})/ }
+    { if (is_fence($0)) { inside = !inside; opened++ } }
+    END { if (inside) print FILENAME "(未闭合：末行仍在代码块内，共 " opened " 个围栏行)" }
+  ' {} \; 2>/dev/null)
 if [ -z "$ODD_FENCES" ]; then
-  pass "门 X.4: 全仓 .md 围栏总数均为偶数（无未闭合围栏）"
+  pass "门 X.4: 全仓 .md 围栏相位收尾闭合（状态机判定，无未闭合围栏）"
 else
   fail "门 X.4: 存在未闭合围栏（其尾部内容会被吞进代码块）" "$(echo "$ODD_FENCES" | head -5 | tr '\n' '|')"
 fi
@@ -1272,9 +1327,12 @@ fi
 #   语义：软门（warn 级，不计 exit code）；项数只许降 —— 加门前先合并/退役旧门，
 #   治「规则的规则」内卷。检查的是门 A-X 的项数（不含门 Z 自身）。
 GATE_COUNT_CEIL=40
-_GATE_AX_COUNT=${#PASSED[@]}
+# v2.13.x 审计修订（R-08）：项数口径改为 **PASS + FAIL**。原写 `${#PASSED[@]}` ⇒ 一旦有门失败，
+#   分母反而变小，「只许降」的软上限在失败时变松（失败越多越容易「合规」）。软门语义（warn，
+#   不计 exit code）保持不变，只修正计数。
+_GATE_AX_COUNT=$(( ${#PASSED[@]} + ${#FAILED[@]} ))
 if [ "$_GATE_AX_COUNT" -le "$GATE_COUNT_CEIL" ]; then
-  pass "门 Z: 自审门项数 ${_GATE_AX_COUNT} ≤ ${GATE_COUNT_CEIL}（软上限，只许降）"
+  pass "门 Z: 自审门项数 ${_GATE_AX_COUNT}（PASS ${#PASSED[@]} + FAIL ${#FAILED[@]}） ≤ ${GATE_COUNT_CEIL}（软上限，只许降）"
 else
   warn "门 Z: 自审门项数 ${_GATE_AX_COUNT} > 软上限 ${GATE_COUNT_CEIL} —— 加门前先合并/退役旧门，不要放宽本上限"
 fi

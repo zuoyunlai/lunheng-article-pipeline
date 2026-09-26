@@ -16,6 +16,8 @@ import pathlib
 import re
 import subprocess
 
+from conftest import tracked_tree
+
 ROOT = pathlib.Path(__file__).parent.parent
 BUILD = ROOT / "scripts" / "build-clawhub-release.sh"
 PUBLISH = ROOT / "scripts" / "publish-clawhub.sh"
@@ -89,7 +91,7 @@ def test_build_nongit_guard_is_functional(tmp_path):
     """
     import shutil
     dst = tmp_path / "copy"
-    shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns(".git", "outputs", "__pycache__"))
+    tracked_tree(ROOT, dst)
     out_root = tmp_path / "outputs"
     r = subprocess.run(["bash", str(dst / "scripts" / "build-clawhub-release.sh"), "9.9.9"],
                        capture_output=True, text=True, cwd=str(dst),
@@ -227,7 +229,7 @@ def test_build_admission_gate_blocks_unregistered_file(tmp_path):
     """功能验证：未登记文件进包 ⇒ 构建必须失败并点名（模拟 C-1 的成因）。"""
     import shutil
     dst = tmp_path / "copy"
-    shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns(".git", "outputs", "__pycache__"))
+    tracked_tree(ROOT, dst)
     env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
            "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
     for cmd in (["git", "init", "-q"], ["git", "add", "-A"],
@@ -309,7 +311,7 @@ def _mkcopy(tmp_path, name="copy"):
     """复制仓库到临时目录并建 git 仓库（构建的 0/2a′ 前置门要求 git 跟踪）。"""
     import shutil
     dst = tmp_path / name
-    shutil.copytree(ROOT, dst, ignore=shutil.ignore_patterns(".git", "outputs", "__pycache__"))
+    tracked_tree(ROOT, dst)
     env = {**os.environ, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
            "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
     for cmd in (["git", "init", "-q"], ["git", "add", "-A"],

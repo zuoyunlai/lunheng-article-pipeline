@@ -38,7 +38,7 @@ metadata:
 
 **适用场景**：涉及事实/数据/多方观点、需要证据底座与人在环把关，且主人愿等待 1-3 小时。定位为中文学术/深度长文流水线；中文特化是设计定位，非 locale 限制。
 
-> 🌐 **语言边界**：产出语言由 Phase 0「目标语言」显式选择，不设默认；T8 按该字段核验。详见 [`glossary-full.md`](references/_shared/真源/glossary-full.md) §十二。
+> 🌐 **语言边界**：产出语言由 Phase 0「目标语言」显式选择，不设默认；T8 按该字段核验。详见 [`glossary-full.md`](references/_shared/真源/glossary-full.md) 顶部「🌐 语言政策」块。
 
 **字数分层**：≥3000 推荐全量；2000-3000 可走轻量档；<2000 建议主控+写手直写。完整表见 [`字数判定表.md`](references/_shared/真源/字数判定表.md) §五。命中后不得直接 spawn/写盘，须经 Phase 0 与主人明确「开始」。
 
@@ -65,7 +65,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）+ [`glossary-full.md`](references/_shared/真源/glossary-full.md)（核心概念单一真源）
 2. **目标语言确认**：只确认**产出语言**（写入任务简报「目标语言」字段，**不设默认**）；**明确不收集使用者身份 / 国籍 / 语种背景**
-3. **spawn 前必读对应派发话术**（`references/dispatch/` 10 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
+3. **spawn 前必读对应派发话术**（`references/dispatch/` 11 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
 4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G17 必查项 + M 门算法）
 5. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
 6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1/T2/T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 15 分钟/**900s** · T7 12 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
@@ -107,7 +107,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 | **角色卡 / 模板 / 项目目录 / 完整文档索引（路由总表真源）** | [`asset-index.md`](references/_shared/真源/asset-index.md) |
 | 安全外发 / 字数分层 / M 门算法 / 交付边界 / 模型 5 档 / 其余条目 | [`asset-index.md`](references/_shared/真源/asset-index.md) 全表 + [`skill-entry-appendix.md`](references/_shared/真源/skill-entry-appendix.md) §五 |
 
-**派发话术**（教训 #268，spawn 哪角色读哪文件，勿凭记忆复制）：T1-T9 + G14 共 10 文件 → [`references/dispatch/`](references/dispatch/)。
+**派发话术**（教训 #268，spawn 哪角色读哪文件，勿凭记忆复制）：T1-T9 + G14 + T1b 共 11 文件 → [`references/dispatch/`](references/dispatch/)。
 **角色速查**（10 角色卡 + G14）：T1 文献 · T2 数据 · T3 案例 · T4 分析 · T5 写手 · T6 批判 · T7 审计 · T8 终检 · T9 同行评审 · G14 中文 AI 痕迹检测闸（T8 = 主控亲为）。
 
 

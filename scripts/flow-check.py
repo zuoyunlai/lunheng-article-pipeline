@@ -113,7 +113,7 @@ def _paths(decl):
 
 
 def main():
-    p = pathlib.Path('references/_shared/真源/phase-order.yaml')
+    p = pathlib.Path(__file__).resolve().parent.parent / 'references/_shared/真源/phase-order.yaml'
     try:
         d = yaml.load(p.read_text(encoding='utf-8'), Loader=UniqueKeyLoader)
         P = d['pipeline']

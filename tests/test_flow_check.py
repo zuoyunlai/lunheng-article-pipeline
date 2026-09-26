@@ -20,6 +20,8 @@ import sys
 
 import yaml
 
+from conftest import tracked_tree
+
 ROOT = pathlib.Path(__file__).parent.parent
 YAML_PATH = ROOT / "references" / "_shared" / "真源" / "phase-order.yaml"
 
@@ -43,7 +45,7 @@ def _sandbox(tmp_path):
     dst = pathlib.Path(tmp_path) / "repo"
     if dst.exists():
         shutil.rmtree(dst)
-    shutil.copytree(ROOT, dst, ignore=COPY_IGNORE)
+    tracked_tree(ROOT, dst)
     return dst
 
 

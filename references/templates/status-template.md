@@ -336,7 +336,7 @@ status_json: {
 - **G14 触发记录**（Phase 4.4 前置，**首审仅 1 次；风格修订后全文复检 ≤2 轮**）：
   - 判定 = Pass（0-2 类）→ 进 Phase 4.4
   - 判定 = Warning（3-4 类）→ 主控呈报 3 选 1（默认暂停；选 B 则 `t5_style_revision` 风格修订 1 次）
-  - 判定 = Fail（5+ 类）→ `t5_style_revision`（仅风格层）→ 进 Phase 4.4；**不重跑 G14**
+  - 判定 = Fail（5+ 类）→ `t5_style_revision`（仅风格层）→ 按全文复检严格度 ≤2 轮复检后进 Phase 4.4
 
 ### 5.8 项目历史记录归档
 

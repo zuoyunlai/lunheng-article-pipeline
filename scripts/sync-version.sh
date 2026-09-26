@@ -99,6 +99,7 @@ SYNCS=(
 
   # 派发话术（v2.5.6 拆分新增，教训 #183 补入三层清单）
   "dispatch/T1-文献检索.md|header"
+  "dispatch/T1b-定向回查.md|header"
   "dispatch/T2-数据检索.md|header"
   "dispatch/T3-案例检索.md|header"
   "dispatch/T4-分析.md|header"

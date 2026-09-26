@@ -58,7 +58,7 @@
 
 **Phase 0 强同意关卡**：所有外发项在流水线启动前需主人明示同意（4 选 1：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝）。**未同意前不可跳到 Phase 1**。
 
-完整说明 + 错误信息友好化（12 类常见错误）：详见 [`SKILL.md`](SKILL.md) + [`references/errors.md`](references/errors.md)。
+完整说明 + 错误信息友好化（13 类常见错误）：详见 [`SKILL.md`](SKILL.md) + [`references/errors.md`](references/errors.md)。
 
 ---
 
@@ -89,7 +89,7 @@
 
 **T9 同行评审**：论文投稿前的「预演审稿人」，6 维度（原创性/方法论/证据强度/论证结构/写作质量/引文规范，总分 30）→ accept / minor / major / reject 建议。**期刊匹配助手**：基于 T9 评分 + 主题关键词，从 24 中文 CSSCI/北大核心 + 12 英文 SSCI 数据库输出 Top 3 + 综合匹配度（主题契合 50% + 风格匹配 30% + T9 评分 20%）。**行业分析/学术论文默认开启**，公众号默认关闭（主人可选）。详见 [`09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md)。
 
-**G14 中文 AI 痕迹深度检测闸**：**Phase 4.4 前置**（`g14_style_gate`）—— **定稿前最后一道闸，全流程只审一次、不再复检**；适用性由 Phase 0「目标语言」**客观决定**（含中文必跑 / 纯外语记 `n/a`）。8 类判定（真源 = [`14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二，**本节不重列**），LLM 推理判定（**零 exec**）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → T5 最后一次风格层修订（`t5_style_revision`）。
+**G14 中文 AI 痕迹深度检测闸**：**Phase 4.4 前置**（`g14_style_gate`）—— **定稿前最后一道闸，首审只一次；风格修订后全文复检 ≤2 轮**；适用性由 Phase 0「目标语言」**客观决定**（含中文必跑 / 纯外语记 `n/a`）。9 类判定（真源 = [`14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二，**本节不重列**），LLM 推理判定（**零 exec**）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → T5 最后一次风格层修订（`t5_style_revision`）。
 
 ### 三角验证（证据底座）
 

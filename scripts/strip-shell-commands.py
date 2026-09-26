@@ -275,6 +275,9 @@ def process_inline(line: str) -> str:
 
 
 if __name__ == '__main__':
+    if not sys.argv[1:]:
+        print('用法：strip-shell-commands.py <文件> [文件...]', file=sys.stderr)
+        raise SystemExit(2)
     for path in sys.argv[1:]:
         with open(path, encoding='utf-8') as f:
             orig = f.read()

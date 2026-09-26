@@ -151,12 +151,20 @@ echo "   仓库：$SKILL_ROOT"
 echo "   本闸只读：不 push / 不打 tag / 不建 Release / 不改 ref"
 echo ""
 
+# ---- 来源披露（R-09/F7）：快照与实盘必须可区分 ----
+# 背景：① ② 原先静默使用 --sessions-file / --remote-file 快照，报告行与实盘通行**不可区分**；
+#   一行 `{"sessions":[]}` 即可静音在飞链检查。现给两者打上来源标记，报告中可见。
+SESSIONS_SOURCE="openclaw sessions list（实盘）"
+REMOTE_SOURCE="git ls-remote（实盘）"
+
 # =============================================================================
 # 查 ① 在飞链（同项目 status=running 的会话 / 子会话）
 # =============================================================================
 if [ -n "$SESSIONS_FILE" ]; then
   [ -f "$SESSIONS_FILE" ] || { echo "❌ --sessions-file 不存在：$SESSIONS_FILE" >&2; exit "$EXIT_USAGE"; }
   cp -- "$SESSIONS_FILE" "$TMP_PF/sessions.json"
+  _SNAP_MTIME="$(date -r "$SESSIONS_FILE" '+%Y-%m-%d %H:%M' 2>/dev/null || echo '未知')"
+  SESSIONS_SOURCE="--sessions-file $SESSIONS_FILE（快照，mtime $_SNAP_MTIME）"
 else
   if ! bash -c "$SESSIONS_CMD" > "$TMP_PF/sessions.json" 2> "$TMP_PF/sessions.err"; then
     echo "❌ 无法获取在飞链清单（命令失败）：$SESSIONS_CMD" >&2
@@ -223,7 +231,7 @@ then
 fi
 
 INFLIGHT_COUNT="$(wc -l < "$TMP_PF/inflight.tsv" | tr -d ' ')"
-echo "[1/4] 在飞链检查（同项目 status=${INFLIGHT_STATUSES}）"
+echo "[1/4] 在飞链检查（同项目 status=${INFLIGHT_STATUSES}；来源 $SESSIONS_SOURCE）"
 if [ "$INFLIGHT_COUNT" -eq 0 ]; then
   echo "      ✅ 0 条"
   [ -n "$SELF_SESSION" ] && echo "      （本链自身已排除：$SELF_SESSION）"
@@ -253,6 +261,8 @@ FAIL_INFLIGHT=1
 if [ -n "$REMOTE_FILE" ]; then
   [ -f "$REMOTE_FILE" ] || { echo "❌ --remote-file 不存在：$REMOTE_FILE" >&2; exit "$EXIT_USAGE"; }
   REMOTE_OUT="$(< "$REMOTE_FILE")"
+  _REM_MTIME="$(date -r "$REMOTE_FILE" '+%Y-%m-%d %H:%M' 2>/dev/null || echo '未知')"
+  REMOTE_SOURCE="--remote-file $REMOTE_FILE（快照，mtime $_REM_MTIME）"
 else
   if ! REMOTE_OUT="$(bash -c "$REMOTE_CMD" 2> "$TMP_PF/remote.err")"; then
     echo "❌ 无法查询远端 tag（离线或 origin 不可达）：$REMOTE_CMD" >&2
@@ -266,6 +276,19 @@ fi
 printf '%s\n' "$REMOTE_OUT" \
   | awk '$2 ~ /^refs\/tags\// { n=$2; sub(/^refs\/tags\//, "", n); sub(/\^\{\}$/, "", n); if (n != "") print n }' \
   | sort -u > "$TMP_PF/remote_tags.txt"
+# ---- 空输出 fail-closed（R-09/F6）----
+# 背景：原实现只判**退出码**。`bash -c "$REMOTE_CMD"` 只要求命令成功，不要求有输出；
+#   代理 / 包装器 / git 中间层返回**空输出**时，占用结论完全由该输出派生 ⇒ 已占用编号被判
+#   「未占用」，直接走向覆盖已发布编号（即教训 #332 事故本身）。2026-09-25 审计探针实测：
+#   `--remote-cmd true` ⇒ exit 0 且报「✅ 四查均过」。
+#   现口径：可解析行数 < 1（既无 tag 也无分支）= 不可核验 ⇒ 拒绝，与命令失败同款处置。
+_REMOTE_LINES="$(printf '%s\n' "$REMOTE_OUT" | grep -cE '^[0-9a-f]{4,40}[[:space:]]+refs/' || true)"
+if [ "${_REMOTE_LINES:-0}" -lt 1 ]; then
+  echo "❌ 远端查询返回**空输出 / 无可解析 ref 行**（来源 $REMOTE_SOURCE）" >&2
+  echo "   → 不可核验 ⇒ 拒绝发版（失败关闭）：编号占用无法确认，不得按「未占用」放行。" >&2
+  echo "     修法：确认 origin 可达且 ls-remote 有输出；包装器/代理场景请改用 --remote-file 提供真实快照。" >&2
+  exit "$EXIT_USAGE"
+fi
 # 远端 tag → sha 映射（annotated tag 用 `^{}` 解引用行 = commit；轻量 tag 的 sha 即 commit）
 # 格式：<tag>\t<sha>\t<commit|tagobj>——放松模式要比对「远端同号是否同对象」
 printf '%s\n' "$REMOTE_OUT" \
@@ -276,7 +299,7 @@ git tag -l | sort > "$TMP_PF/local_tags.txt"
 LOCAL_HIT="$(grep -Fx -- "$TAG" "$TMP_PF/local_tags.txt" || true)"
 REMOTE_HIT="$(grep -Fx -- "$TAG" "$TMP_PF/remote_tags.txt" || true)"
 
-echo "[2/4] 编号占用检查（目标 $TAG）"
+echo "[2/4] 编号占用检查（目标 $TAG；来源 $REMOTE_SOURCE）"
 if [ "$ALLOW_EXISTING_TAG" = true ]; then
   echo "      ⚠️  --allow-existing-tag 已生效（教训 #334）：② 口径 = 「编号是否被本链之外的人占用」"
   echo "         放行条件（须同时满足）：(a) 该 tag 指向的 commit 属本链历史（待发布提交或其祖先）"
@@ -483,6 +506,7 @@ echo "   ② 本地 HEAD   : $HEAD_SHA（最近 tag $HEAD_TAG）$HEAD_REL_LINE"
 echo "   ③ tag 区间    : 本地最近 $HEAD_TAG / 远端最近 ${R_TAG:-（无）}；本地独有 $L_ONLY_N 个（未推）${L_ONLY_PREVIEW:+［$L_ONLY_PREVIEW］} / 远端独有 $R_ONLY_N 个（未取）"
 echo "   ④ 在飞链      : 0 条（同项目 status=${INFLIGHT_STATUSES} 会话）"
 echo "   ⑤ CI 结论     : ${CI_VERDICT}（待发布提交 ${HEAD_FULL:0:7}；来源 $CI_SOURCE）$CI_DETAIL"
+echo "   数据来源      : 在飞链 = $SESSIONS_SOURCE / 远端 = $REMOTE_SOURCE"
 if [ "$ALLOW_EXISTING_TAG" = true ] && { [ -n "$LOCAL_HIT" ] || [ -n "$REMOTE_HIT" ]; }; then
   echo "   目标编号 $TAG：已存在（--allow-existing-tag 已证属本链历史；远端同号同对象或未推）；工作区干净"
 else

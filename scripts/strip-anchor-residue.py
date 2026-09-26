@@ -230,6 +230,9 @@ def process(path: pathlib.Path) -> int:
 
 
 if __name__ == '__main__':
+    if not sys.argv[1:]:
+        print('用法：strip-anchor-residue.py <目录>', file=sys.stderr)
+        raise SystemExit(2)
     root = pathlib.Path(sys.argv[1])
     total = 0
     for f in sorted(root.rglob('*.md')):

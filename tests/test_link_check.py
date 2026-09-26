@@ -25,6 +25,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import tracked_tree
+
 REPO = Path(__file__).resolve().parents[1]
 LINK_CHECK = REPO / "scripts" / "link-check.py"
 # 变异落点：选一个既在扫描面内、又不在净化白名单排除项里的活文档
@@ -47,7 +49,7 @@ def run_link_check(root: Path) -> tuple[int, str]:
 def repo_copy(tmp_path: Path) -> Path:
     """整仓临时副本（真源零写入）"""
     dst = tmp_path / "repo"
-    shutil.copytree(REPO, dst, ignore=COPY_IGNORE, symlinks=False)
+    tracked_tree(REPO, dst)
     return dst
 
 

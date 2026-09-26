@@ -27,6 +27,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import tracked_tree
+
 REPO = Path(__file__).resolve().parents[1]
 GATE = REPO / "scripts" / "self-audit-gate.sh"
 MGATE = REPO / "references" / "_shared" / "真源" / "M-Gate-Algorithm.md"
@@ -72,7 +74,7 @@ def gate_x_results(out: str) -> dict[str, bool]:
 def make_copy(tmp_path: Path) -> Path:
     """整仓副本（排除 .git / 产物 / 备份）—— 变异只注入副本（教训 #333 口径）。"""
     dst = tmp_path / "repo"
-    shutil.copytree(REPO, dst, ignore=COPY_IGNORE)
+    tracked_tree(REPO, dst)
     return dst
 
 
