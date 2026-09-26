@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t8_technical_final
   phase: "Phase 5 终检"
-  phase_seq: 21
+  phase_seq: 22
   verdict_scale: four_tier   # v2.12.40：终检结论落四档（通过/不通过/无法判定/路径或参数错误）
   rerun_after_report: true   # v2.12.40「报告后激活」：前提 = M-Gate-Report + T9 审稿报告均已落盘；不得用缺位时的推断值
   input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json + audits/审稿报告-vN.md + audits/G14-检测报告-vN.md   # v2.12.37 审计 P1-2：T8 需读 T9 报告做「建议分流」；v2.12.41：G14 迁至 Phase 4.4 前置后，其报告核验职责由 T7 移交 T8

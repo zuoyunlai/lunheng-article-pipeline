@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: phase5_acceptance
   phase: "Phase 5 验收"
-  phase_seq: 23
+  phase_seq: 24
   kind: owner_checkpoint
   blocking: true        # v2.12.49：旧口径「不答 = 接受当前定稿」已删除 —— 静默不得记为 accepted
   owner_visible: true

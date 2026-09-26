@@ -12,4 +12,9 @@
   write_authority: owner
   input: audits/审计报告-vN.md   # v2.12.41 修依赖倒置：本闸**不得**读 final/M-Gate-Report（那是本闸的**产出**；v2.12.33 已定「T7.5 不 check T8 产物」），改读本轮章节级 M 门记录（status.md）
   output: final/M-Gate-Report-*.json   # v2.12.41 补生产者：M 门报告由本闸汇总产出，供 T8 读（原全库无生产者 → 孤儿输入）
+  output_schema:
+    paragraph_density_map: "段号 -> {paragraph_chars, hit_count, density_per_10000, hit_classes}"
+    paragraph_density_top5: "按 density_per_10000 降序的前五段，含段号、预览和原文位置"
+    paragraph_density_weighted_score: "Σ(段密度 × 段字数) / 总字数"
+    note: "v2.14.0 C3：G14 段落级密度是定位工具，不替代 9 类总判定；纯外语或 G14 n/a 时记录 paragraph_density_map: n/a。"
   next: g14_style_gate   # v2.12.40：G14 风格闸迁至此处（定稿前唯一一次）；原直连 phase4_4_figures

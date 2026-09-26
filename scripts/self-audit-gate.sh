@@ -72,7 +72,7 @@ cd "$SKILL_ROOT" || exit
 #   （如 `0A-临时卡.md`）本门照过，而门 C 的 VERSION_FILES 与 sync/check-version 清单都是白名单，
 #   同样不报 ⇒ 「新增角色卡」这一动作当时无任何机械门覆盖。现补**反向差集**。
 # =========================================================================
-EXPECTED_AGENTS=("00-主控-coordinator.md" "00-主控-扩展职责.md" "01-文献检索-literature-scout.md" "02-数据检索-data-scout.md" "03-案例检索-case-scout.md" "04-分析-analyst.md" "05-写作-writer.md" "06-批判-critical-companion.md" "07-审计-auditor.md" "08-终检-final-inspector.md" "09-审稿-peer-reviewer.md")
+EXPECTED_AGENTS=("00-主控-coordinator.md" "00-主控-扩展职责.md" "01-文献检索-literature-scout.md" "02-数据检索-data-scout.md" "03-案例检索-case-scout.md" "04-分析-analyst.md" "05-写作-writer.md" "06-批判-critical-companion.md" "07-审计-auditor.md" "08-终检-final-inspector.md" "09-审稿-peer-reviewer.md" "09b-压力测试-owner.md")
 ACTUAL_AGENTS=""
 # v2.13.4：glob 改为 `0*-*.md` —— 原 glob（`0[0-9]-*`）会把 sync-version.sh 留在同目录的
 # gitignore 备份 `.bak.<ts>` 当「多出未登记角色卡」判红（实测 2026-09-26 发版时踩到）。
@@ -101,7 +101,7 @@ done <<EOF
 $ACTUAL_AGENTS
 EOF
 if [ ${#MISSING[@]} -eq 0 ] && [ ${#EXTRA[@]} -eq 0 ]; then
-  pass "门 A: 角色卡完整性（11 文件 / 10 角色，无未登记多出）"
+  pass "门 A: 角色卡完整性（12 文件 / 11 角色，无未登记多出）"
 elif [ ${#MISSING[@]} -gt 0 ]; then
   fail "门 A: 角色卡完整性" "缺失: ${MISSING[*]}"
 else
@@ -170,6 +170,7 @@ VERSION_FILES=(
   "references/agents/07-审计-auditor.md"
   "references/agents/08-终检-final-inspector.md"
   "references/agents/09-审稿-peer-reviewer.md"
+  "references/agents/09b-压力测试-owner.md"
   "references/_shared/真源/M-Gate-Algorithm.md"
   "references/_shared/真源/M-Gate-Algorithm-appendix.md"
   "references/_shared/真源/audit-checklist-quickref.md"
@@ -1204,7 +1205,7 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77353,references/_shared/真源/M-Gate-Algorithm.md|84270,references/_shared/真源/phase-order.yaml|61520,references/_shared/真源/phase-order/index.yaml|24212"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|78065,references/_shared/真源/M-Gate-Algorithm.md|84270,references/_shared/真源/phase-order.yaml|63269,references/_shared/真源/phase-order/index.yaml|24553"
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：
 #     · 增量 2 把装配从「YAML 重打」改为「原文逐字拼接」—— 重打会丢行尾注释与作者引号，
 #       实测会静默废掉文本型机械门（D-3 注释 4 处断言 + 5 条按文本注入的反向测试）。

@@ -584,7 +584,7 @@ def main():
     # 29 进度卡映射 + 失效指针锁（v2.12.54 T-5 / T-3）
     cpk_text = (_root24 / 'references/templates/checkpoint-card-template.md').read_text(encoding='utf-8')
     if '13 步' not in cpk_text or 'phase-order.yaml' not in cpk_text or 'pipeline-overview.md' not in cpk_text:
-        errs.append('checkpoint-card 缺「13 步 ↔ 24 节点」映射说明（T-5）')
+        errs.append('checkpoint-card 缺「13 步 ↔ 25 节点」映射说明（T-5）')
     qs_text = (_root24 / 'QUICKSTART.md').read_text(encoding='utf-8')
     if 'pipeline-overview.md' not in qs_text:
         errs.append('QUICKSTART 缺修订回环仲裁表指针（T-3：原指针指向已外移的 SKILL.md 章节）')

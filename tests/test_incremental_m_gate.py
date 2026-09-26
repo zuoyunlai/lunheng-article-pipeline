@@ -243,18 +243,33 @@ class TestIncrementalMGateValidator(unittest.TestCase):
         self.assertFalse(result_file.exists())
     
     def test_results_persistence(self):
-        """测试验证结果持久化"""
+        """结果持久化 = 落盘留痕，但**不得**被新实例复活为结论（v2.12.50 口径）
+
+        v2.12.50 明确本工具只做变更定位：`_load_last_results()` 恒返回 {}，
+        任何历史缓存（含外部手写的 status=verified）都不得绕过本轮机械验证。
+        故新实例在「无文件变更」时必须返回空集，而不是复用磁盘上的旧结论。
+        """
         # 首次验证
         results1 = self.validator.validate_incremental('phase_4')
         
-        # 创建新验证器
+        # 创建新验证器（模拟新进程：内存态为空，只能读磁盘缓存）
         validator2 = IncrementalMGateValidator(self.temp_dir)
-        
-        # 无变更验证，应该复用结果
+
+        # 落盘 = 审计留痕（持久化只保「定位事实」，不作结论复用）
+        result_file = self.temp_dir / ".m_gate_results.json"
+        self.assertTrue(result_file.exists(), "验证结果应落盘供审计")
+        on_disk = json.loads(result_file.read_text(encoding='utf-8'))
+        self.assertTrue(on_disk, "落盘结果不应为空")
+        self.assertEqual(sorted(on_disk), sorted(results1))
+
+        # 无文件变更：v2.12.50 起 _load_last_results() 恒返回 {}
+        #   —— 新实例不得复活磁盘旧结论（防外部手写 status=verified 绕过本轮机械验证）
         results2 = validator2.validate_incremental('phase_4')
-        
-        # 结果应该一致
-        self.assertEqual(results1, results2)
+        self.assertEqual(results2, {}, "新实例不得把历史缓存当结论复用")
+        self.assertFalse(
+            any(r.get('status') == IncrementalMGateValidator.VERIFIED for r in results2.values()),
+            "不得出现未经本轮机械验证的 verified 结论",
+        )
 
 
 class TestSectionChangeDetector(unittest.TestCase):

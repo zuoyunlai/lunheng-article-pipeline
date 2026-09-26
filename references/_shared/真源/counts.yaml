@@ -29,8 +29,8 @@ journals:
 dispatch_files: 11
 
 # 角色
-role_cards: 10        # 概念口径：T0 主控 + T1-T7 + T8 终检 + T9 同行评审
-role_card_files: 11   # 物理文件数：主控拆 coordinator + 扩展职责两张卡
+role_cards: 11        # 概念口径：T0 主控 + T1-T7 + T8 终检 + T9 同行评审 + T9b 压力测试
+role_card_files: 12   # 物理文件数：主控拆 coordinator + 扩展职责两张卡，另含 T9b
 
 # T8 终检可发表性判据（真源：references/_shared/真源/可发表性判定表.md）
 t8_items: 48

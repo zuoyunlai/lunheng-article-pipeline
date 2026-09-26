@@ -48,4 +48,4 @@
     downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
   output: audits/审稿报告-vN.md
   output_chars_max: 15000
-  next: t8_technical_final
+  next: t9b_stress_test

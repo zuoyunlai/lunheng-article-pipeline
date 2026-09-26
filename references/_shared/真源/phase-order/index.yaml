@@ -1,5 +1,5 @@
 # 论衡流程真源 · 第一部分：跨阶段契约（逐字保留原文本）+ 节点路由（**顺序唯一真源**）
-# 真源第二部分 = 同目录 <node>.yaml；装配视图 = ../phase-order.yaml（生成物，禁手改）。
+# 真源第二部分 = 同目录 <node>.yaml；装配视图 = ../phase-order.yaml（生成物，禁手改）。当前节点切片共 25 个（v2.14.0 新增 t9b_stress_test）。
 # 校验 = 维护者侧生成器 --check（门 AA）。
 
 # 论衡阶段真源（版本随 SKILL.md 同步）
@@ -46,7 +46,7 @@
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 
-version: 2.13.4
+version: 2.14.0
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-Algorithm.md §判定结果分档）。
@@ -187,7 +187,7 @@ architecture:
   standard: multi_agent_role_pipeline
   worker_roles: [T1, T2, T3, T4, T5, T6, T7, T9, G14]
   owner_roles: [T0, T8]
-  owner_nodes: [phase0_definition, phase2_5_outline, phase3_5_insight, pre_spawn_enforcement, t2_5_integrity, current_draft_sync, t7_5_integrity, phase4_4_figures, final_assembly, t8_technical_final, methodology_snapshot, phase5_acceptance]
+  owner_nodes: [phase0_definition, phase2_5_outline, phase3_5_insight, pre_spawn_enforcement, t2_5_integrity, current_draft_sync, t7_5_integrity, phase4_4_figures, final_assembly, t9b_stress_test, t8_technical_final, methodology_snapshot, phase5_acceptance]
   worker_failure_policy: owner_takeover_with_disclosure
   fallback_is_not_equivalent: true
 # ⚠️ P0-3：版本号 vN 只随闸门里程碑推进；minor 自修走 vN.m；风格修订走 vN-style。
@@ -237,6 +237,10 @@ condition_definitions:
     requires: [owner_figure_decision]
     producer: references/templates/任务简报-template.md
     producer_marker: "figure_decision"
+  owner_stress_test_opt_out:
+    requires: [owner_stress_test_opt_out]
+    producer: references/templates/任务简报-template.md
+    producer_marker: "压力测试轮"
 
 m_gate_criterion_fields:
 # v2.12.65 P0-1：M 门判据字段须登记生产方（同 R-4 断链治理）
@@ -334,15 +338,18 @@ nodes:
   - seq: 19
     phase: Phase 4.4 后置（定稿组装）
     node: final_assembly
-  - seq: 22
-    phase: Phase 5 终检后置（方法论留档）
-    node: methodology_snapshot
   - seq: 20
     phase: Phase 4.5
     node: t9_review
   - seq: 21
+    phase: Phase 4.5 后置（压力测试轮）
+    node: t9b_stress_test
+  - seq: 22
     phase: Phase 5 终检
     node: t8_technical_final
   - seq: 23
+    phase: Phase 5 终检后置（方法论留档）
+    node: methodology_snapshot
+  - seq: 24
     phase: Phase 5 验收
     node: phase5_acceptance

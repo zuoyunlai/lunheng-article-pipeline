@@ -74,7 +74,7 @@ def check_line(line: str, counts: dict):
         neq(m.group(3), counts["m_gate_items"]["integrity"], "M-Integrity 项数")
 
     if "T9" in line:
-        for m in re.finditer(r"(\d+)\s*维度", line):
+        for m in re.finditer(r"(?<![A-Za-z0-9])(\d+)\s*维度", line):
             neq(m.group(1), counts["t9_dimensions"], "T9 维度数")
 
     if "T8" in line:

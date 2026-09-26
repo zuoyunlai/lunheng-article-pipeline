@@ -86,10 +86,10 @@ def test_t1b_role_reuse_t1_card_and_dispatch():
 
 
 def test_canary_has_t1b_row():
-    """全景唯一派生视图承载 t1b 行 + 节点计数 24。"""
+    """全景唯一派生视图承载 t1b 行 + 节点计数 25。"""
     t = _read("references/_shared/真源/pipeline-overview.md")
     assert "t1b_targeted_review" in t, "全景缺 t1b 行（R-1 漂移）"
-    assert "共 24 节点" in t
+    assert "共 25 节点" in t
 
 
 def test_mirrors_no_stale_node_count():

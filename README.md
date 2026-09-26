@@ -1,4 +1,4 @@
-> 版本：v2.13.6（自动同步 2026-09-26）
+> 版本：v2.14.0（自动同步 2026-09-26）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -14,7 +14,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.13.5**（2026-09-26，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**真源外移与预算回收**：104 项 `denied` 清单外移出 SKILL.md 常驻预算（9,690 → 7,887 字符），门 T 覆盖 104 项逐项拒绝（禁用面完整清单见 `references/permissions.md` 真源块）；相位序真源切为逐节点切片 + 字节级漂移门；发版链残余（cleanup-skill-store 计数与引号）收口。
+**v2.14.0**（2026-09-26，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**真源外移与预算回收**：104 项 `denied` 清单外移出 SKILL.md 常驻预算（9,690 → 7,887 字符），门 T 覆盖 104 项逐项拒绝（禁用面完整清单见 `references/permissions.md` 真源块）；相位序真源切为逐节点切片 + 字节级漂移门；发版链残余（cleanup-skill-store 计数与引号）收口。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
 
@@ -126,13 +126,13 @@
 
 ## 全景与阶段顺序（指针）
 
-> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（24 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order/` 目录。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（25 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order/` 目录。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 ## 怎么用
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.13.6  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.14.0  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

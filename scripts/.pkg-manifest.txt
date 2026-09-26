@@ -47,7 +47,9 @@ references/_shared/真源/phase-order/t7_5_integrity.yaml
 references/_shared/真源/phase-order/t7_audit.yaml
 references/_shared/真源/phase-order/t8_technical_final.yaml
 references/_shared/真源/phase-order/t9_review.yaml
+references/_shared/真源/phase-order/t9b_stress_test.yaml
 references/_shared/真源/pipeline-overview.md
+references/_shared/真源/pressure-test-protocol.md
 references/_shared/真源/skill-entry-appendix.md
 references/_shared/真源/中文数据源集成.md
 references/_shared/真源/关键协议.md
@@ -56,9 +58,12 @@ references/_shared/真源/字数判定表.md
 references/_shared/真源/工具能力边界.md
 references/_shared/真源/执行韧化协议-design.md
 references/_shared/真源/执行韧化协议-exec.md
+references/_shared/真源/方法论-审计清单.md
+references/_shared/真源/方法论-落地示例.md
 references/_shared/真源/期刊匹配算法.md
 references/_shared/真源/期刊数据库.md
 references/_shared/真源/模型候选池.md
+references/_shared/真源/理论贡献-protocol.md
 references/_shared/真源/路径校验规范.md
 references/agents/00-主控-coordinator.md
 references/agents/00-主控-扩展职责.md
@@ -71,6 +76,7 @@ references/agents/06-批判-critical-companion.md
 references/agents/07-审计-auditor.md
 references/agents/08-终检-final-inspector.md
 references/agents/09-审稿-peer-reviewer.md
+references/agents/09b-压力测试-owner.md
 references/case-studies.md
 references/checkers/中文AI痕迹-checker.md
 references/deliverables.md
@@ -104,6 +110,7 @@ references/templates/任务简报-template.md
 references/templates/修订说明-template-full.md
 references/templates/先行者清单-template-lite.md
 references/templates/先行者清单-template.md
+references/templates/压力测试报告-template.md
 references/templates/图表-SVG-template.md
 references/templates/审稿报告-template.md
 references/templates/投稿就绪检查表-template.md
@@ -111,5 +118,7 @@ references/templates/数据卡-template-lite.md
 references/templates/数据卡-template.md
 references/templates/文献卡-template-lite.md
 references/templates/文献卡-template.md
+references/templates/方法论章节-template.md
 references/templates/案例卡-template-lite.md
 references/templates/案例卡-template.md
+references/templates/理论贡献声明-template.md

@@ -12,7 +12,7 @@
      与 `analysis/主张—证据映射.md`，并指回唯一真源（防各文件自造路径）；
   ③ 注册完整：三份新资产必须同时进 sync-version.sh 受管清单与净化包 manifest；
   ④ 边界保留：`full_text: unavailable` / `abstract_only` 示例必须原样保留；
-     反向证据不得静默删除（模板含反向证据字段）；不得新增 G18 门编号。
+     反向证据不得静默删除（模板含反向证据字段）；G18 机制须有真源与角色卡登记。
 
   反向注入：在 tmp 副本上注入非法枚举值 / direct↔thematic 错配 ⇒ 校验器必须红
   （真源零写入，镜像 test_link_check 的副本变异风格，教训 #333 同族）。
@@ -219,22 +219,14 @@ def test_counter_evidence_survives_in_templates():
     assert "counter_evidence" in reg or "反向证据" in reg, "登记模板必须保留反向证据位"
 
 
-def test_no_new_g18_gate_added():
-    """方案明确：第一阶段不新增 G 门编号（复用 G15，T7 抽验不建 G18）。
-    否定语境（「不新增 G18」「禁新增 G18」）是合规声明，不计入。"""
-    hits = []
-    negation = re.compile(r"不新增|禁新增|禁止新增|不立即新增")
-    for p in ROOT.rglob("*.md"):
-        rel = p.relative_to(ROOT)
-        if any(part in (".git", "outputs", "reports", "memory", "__pycache__",
-                        ".pytest_cache", "archive") for part in rel.parts):
-            continue
-        if ".bak." in p.name:
-            continue
-        for line in p.read_text(encoding="utf-8").splitlines():
-            if re.search(r"G\s*18", line) and not negation.search(line):
-                hits.append(f"{rel}: {line.strip()}")
-    assert not hits, f"出现 G18 字样（第一阶段禁新增 G 门）：{hits}"
+def test_g18_is_registered_consistently():
+    """v2.14.0：G18 已正式启用，关键承载面必须完成登记。"""
+    skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    auditor = (ROOT / "references/agents/07-审计-auditor.md").read_text(encoding="utf-8")
+    truth = (ROOT / "references/_shared/真源/方法论-审计清单.md").read_text(encoding="utf-8")
+    assert "G18 方法论审计" in skill
+    assert "G18 方法论审计" in auditor
+    assert "# 方法论-审计清单（G18 真源）" in truth
 
 
 # --------------------------------------------------------------------------

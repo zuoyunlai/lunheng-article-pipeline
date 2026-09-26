@@ -1,0 +1,20 @@
+# 论衡流程真源 · 第二部分：节点 t9b_stress_test
+# 装配视图 = ../phase-order.yaml（生成物）；校验 = 生成器 --check（门 AA）
+# ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
+- id: t9b_stress_test
+  phase: "Phase 4.5 后置（压力测试轮）"
+  phase_seq: 21
+  kind: owner_agent
+  owner: 主控
+  write_authority: owner
+  verification_authority: 主控
+  input: final/定稿.md + audits/审稿报告-vN.md
+  output: audits/压力测试报告-vN.md
+  default: triggered
+  opt_out: owner_stress_test_opt_out
+  condition_undecidable: report_to_owner
+  on_opt_out: record_opt_out_in_status
+  verdict_scale: four_tier
+  independence: bounded_owner_pressure_test
+  note: "T9b 是主控亲完成的文本压力测试，不是 T9 盲审，不读取 T7/证据卡/过程稿，不参与修订回环。"
+  next: t8_technical_final

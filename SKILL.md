@@ -1,35 +1,25 @@
 ---
 name: lunheng-article-pipeline
-description: "学术论文/深度长文/行业分析流水线：含同行评审与期刊/发布渠道匹配建议（advisory）。不调用执行类工具（exec/process/code_execution，声明式）；主控持有会话编排与状态类工具（多 Agent 派发/收报告的设计内必需面）。标准架构 = 多 Agent 九角色；worker 不可用按节点接管并披露（详正文）。Routine 写盘（status.md / audits/）已声明；心跳为 opt-in「Operational Telemetry」。"
+description: "学术论文/深度长文/行业分析流水线：含同行评审与期刊/发布渠道匹配建议（advisory）。不调用执行类工具（exec/process/code_execution，声明式）；主控持有会话编排与状态类工具（多 Agent 派发/收报告的设计内必需面）。标准架构 = 多 Agent 九角色；worker 不可用按节点接管并披露（详正文）。Routine 写盘（status.md / audits/）已声明；心跳为 opt-in「Operational Telemetry」。v2.14.0 起新增 G18 方法论审计（12 项清单 + D2 评分）。"
 metadata:
   openclaw:
-    # v2.12.13（方案 3.6）：version 迁入 metadata.openclaw——官方 quick_validate.py 硬拒顶层 version/displayName；其下未知子键加载器忽略（无官方依据）。读版本脚本已支持缩进写法。
-    version: 2.13.6
+    version: 2.14.0
     requires:
       bins: []
   tools:
-    # v2.9.0 精简重构（P1-3）：引用式声明，分层清晰
     base: ["read", "write", "edit"]
     coordinator_only: ["sessions_spawn", "sessions_yield", "sessions_history", "sessions_list", "subagents", "session_status", "progress_card", "ask_user"]
-    # ⚠️ 授权点同意约束：本行工具调用前须核 Phase 0 同意记录；学术元数据（OpenAlex/Crossref）= opt-in
     research_extra: ["web_search", "web_fetch", "tavily_search", "tavily_extract"]
-    # 工具级 opt-in 已归零；服务级类别真源 = references/_shared/真源/external-services.md
-    # v2.12.74（R2，审计 F1）：按 2026-09-20 runtime 探针实测泄漏面全量补声明（41 → 104 项）。
-    # v2.13.5（R-22，审计 D3 定案）：**完整清单外移** —— 唯一真源 = references/permissions.md
-    #   的「禁用面（denied）唯一真源」块；此处只留**计数** + **高危摘录**（常驻预算 2,050 → 约 130 字符）。
-    #   ⚠️ 声明式自律边界（加载器不执行）；强制力在宿主 tools.subagents.tools.deny（宿主职责）。
     denied_count: 104
     denied_high_risk: ["exec", "process", "code_execution", "browser", "terminal", "apply_patch", "computer", "secrets"]
   subagent_tiers:
-    research:   ["base", "research_extra"]   # T1-T3
-    analysis:   ["base"]                      # T4
-    writing:    ["base"]                      # T5
-    audit:      ["read"]                      # T6-T7
-    review:     ["read"]                      # T9+G14
-    # T8 = [] 主控亲完成，不 spawn
-  # 不设 cwd_default：设了会被解析到 skill 目录内（项目跑进技能文件夹）；spawn 的 cwd 必须绝对路径
+    research:   ["base", "research_extra"]
+    analysis:   ["base"]
+    writing:    ["base"]
+    fmt:        ["read"]
+    review:     ["read"]
 ---
-> 版本：v2.13.6（自动同步 2026-09-26）
+> 版本：v2.14.0（自动同步 2026-09-26）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
@@ -67,7 +57,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 1. 读 `references/pipeline-readme.md`（启动清单 / 模型配置 / 派发话术索引）+ [`glossary-full.md`](references/_shared/真源/glossary-full.md)（核心概念单一真源）
 2. **目标语言确认**：只确认**产出语言**（写入任务简报「目标语言」字段，**不设默认**）；**明确不收集使用者身份 / 国籍 / 语种背景**
 3. **spawn 前必读对应派发话术**（`references/dispatch/` 11 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
-4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G17 必查项 + M 门算法）
+4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G18 必查项 + M 门算法；v2.14.0 起 G18 方法论审计必跑）
 5. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
 6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1/T2/T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 15 分钟/**900s** · T7 12 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
 
@@ -75,7 +65,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 **Phase 0 的「默认项」「显式勾选项」与「可选项」（定案）**：
 
-- **默认启用（无开关）**：**方法论足迹面板**（`status.md` 每阶段自动更新，按档裁剪字段；边际成本≈0 且承载「方法论透明」卖点）。
+- **默认启用（无开关）**：**方法论足迹面板**（`status.md` 每阶段自动更新，按档裁剪字段；边际成本≈0 且承载「方法论透明」卖点）；**G18 方法论审计**（v2.14.0 起，与 G14 同档零成本质量门）。
 - **由条件决定（无开关）**：**G14 中文 AI 痕迹闸** —— 目标语言含中文即**必跑**（纯外语记 `n/a`）；位置 = **Phase 4.4 前置**，**全流程只审一次**；轻量档走内置自检；主人显式关闭须走「豁免 + 披露」窄口。
 - **真正可选的**：外发同意（3 类逐项，含学术元数据 opt-in）、期刊匹配 / 中文数据源（2 项）、Phase 5「方法论附录」。
 - **可选项准入判据**：只留给「**有真实成本或真实取舍**」者（外发 / 花钱 API / 额外产物）；**零成本质量门由条件决定**。
@@ -112,13 +102,15 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 **角色速查**（10 角色卡 + G14）：T1 文献 · T2 数据 · T3 案例 · T4 分析 · T5 写手 · T6 批判 · T7 审计 · T8 终检 · T9 同行评审 · G14 中文 AI 痕迹检测闸（T8 = 主控亲为）。
 
 
-**审计必查项**（G0-G17）→ [`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + 速查 [`audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md)；G11/G12/M 门三层 → [`M-Gate-Algorithm.md`](references/_shared/真源/M-Gate-Algorithm.md)（🟠 分片必读）。
+**审计必查项**（G0-G18）→ [`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + 速查 [`audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md)；G11/G12/M 门三层 → [`M-Gate-Algorithm.md`](references/_shared/真源/M-Gate-Algorithm.md)（🟠 分片必读）；**G18 方法论审计**（v2.14.0 起）→ [`方法论-审计清单.md`](references/_shared/真源/方法论-审计清单.md)；**方法论留档模板**（v2.14.0 起）→ [`方法论章节-template.md`](references/templates/方法论章节-template.md) + [`方法论-落地示例.md`](references/_shared/真源/方法论-落地示例.md)。
 
 **G14 中文 AI 痕迹闸**：9 类判定（真源 = [`gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二 + [`checkers/中文AI痕迹-checker.md`](references/checkers/中文AI痕迹-checker.md)，**判定分档与处置本节不重列**）；**LLM 推理判定**（零 exec）。适用性与位置见上「Phase 0 定案」段。
 
+**G18 方法论审计**（v2.14.0 起新增）：12 项方法论检查清单（研究问题可证伪 / 因果识别 / 数据抽样 / 变量操作化 / 分析单位 / 模型设定 / 内生性 / 外部效度 / 伦理声明 / 局限性自评 / 复现性 / 理论框架对照），真源 = [`方法论-审计清单.md`](references/_shared/真源/方法论-审计清单.md)；与 G14 同档（条件决定 = 必跑；轻量档豁免前 6 项）；与 T9 D2 方法论评分 10 分制对齐（见 §五）。
+
 **T8 终检可发表性判据**：48 项（6 维度）唯一真源 = [`可发表性判定表.md`](references/_shared/真源/可发表性判定表.md)（各处只引用不罗列）。
 
-**T9 同行评审**（行业/学术默认开）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject；真源 = [`dispatch/T9-同行评审.md`](references/dispatch/T9-同行评审.md)。
+**T9 同行评审**（行业/学术默认开）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject；真源 = [`dispatch/T9-同行评审.md`](references/dispatch/T9-同行评审.md)；**v2.14.0 起新增 D2 方法论评分**（10 分制，真源 = [`方法论-审计清单.md` §五](references/_shared/真源/方法论-审计清单.md)）。
 
 ---
 

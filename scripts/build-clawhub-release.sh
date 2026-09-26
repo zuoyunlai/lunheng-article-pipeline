@@ -363,7 +363,9 @@ SHARED_ADMITTED=(
   '真源/phase-order/t7_audit.yaml'
   '真源/phase-order/t8_technical_final.yaml'
   '真源/phase-order/t9_review.yaml'
+  '真源/phase-order/t9b_stress_test.yaml'
   '真源/pipeline-overview.md'
+  '真源/pressure-test-protocol.md'
   '真源/skill-entry-appendix.md'
   '真源/中文数据源集成.md'
   '真源/关键协议.md'
@@ -372,9 +374,12 @@ SHARED_ADMITTED=(
   '真源/工具能力边界.md'
   '真源/执行韧化协议-design.md'
   '真源/执行韧化协议-exec.md'
+  '真源/方法论-审计清单.md'
+  '真源/方法论-落地示例.md'
   '真源/期刊匹配算法.md'
   '真源/期刊数据库.md'
   '真源/模型候选池.md'
+  '真源/理论贡献-protocol.md'
   '真源/路径校验规范.md'
 )
 _SA_ACTUAL=$(find "$OUT_DIR/references/_shared" -mindepth 1 -maxdepth 3 -type f -printf '%P\n' 2>/dev/null | LC_ALL=C sort)

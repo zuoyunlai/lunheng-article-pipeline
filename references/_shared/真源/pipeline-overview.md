@@ -1,18 +1,20 @@
-> 版本：v2.13.6（自动同步 2026-09-26）
+> 版本：v2.14.0（自动同步 2026-09-26）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
 # 流水线全景与修订回环仲裁（**唯一派生视图**）
 
+> **v2.14.0**：新增 Phase 4.5 后置压力测试轮；全景节点数由 24 调整为 25。
+
 > 🔴 **本文件是全仓唯一承载「流水线全景」的派生视图**（v2.12.54 R-1 收敛）。SKILL.md、README、QUICKSTART、pipeline-readme、设计文档、checkpoint-card、glossary 等文档**已删除全景段，只留指向本文件的指针**——重列即构建期红（flow-check 规则 24；登记真源 = `phase-order.yaml` `panorama_sources`）。
 >
 > **流程顺序与阻断关系的唯一真源是 [`phase-order/`](phase-order/) 目录**；[`phase-order.yaml`](phase-order.yaml) 是装配视图（生成物，禁手改）。本文件是派生视图，与真源冲突时以真源为准。
-> **真源与读法（v2.13.5 R-21 增量 2：真源已倒置）**：流程真源 = **`phase-order/` 目录**——[`index.yaml`](phase-order/index.yaml)（跨阶段共用契约 + 别名映射 + **节点路由/顺序**）与 `phase-order/<node-id>.yaml`（24 个节点切片，含 `kind` / `condition` / `next` / `after_each` / `output_chars_max` / `independence_rules` 等全部字段）**共同构成唯一真源**；[`phase-order.yaml`](phase-order.yaml) 是它们的**装配视图（生成物，禁手改）**，保留原路径供 flow-check / 门 S / 既有引用读取。
+> **真源与读法（v2.13.5 R-21 增量 2：真源已倒置）**：流程真源 = **`phase-order/` 目录**——[`index.yaml`](phase-order/index.yaml)（跨阶段共用契约 + 别名映射 + **节点路由/顺序**）与 `phase-order/<node-id>.yaml`（25 个节点切片，含 `kind` / `condition` / `next` / `after_each` / `output_chars_max` / `independence_rules` 等全部字段）**共同构成唯一真源**；[`phase-order.yaml`](phase-order.yaml) 是它们的**装配视图（生成物，禁手改）**，保留原路径供 flow-check / 门 S / 既有引用读取。
 > **主控读法**：每进入一个节点前读 **①[索引](phase-order/index.yaml)** + **②该节点切片**，**不必读装配视图全文**（单次运行读取量约 −95%）。装配视图被手改、或改了真源未重生成，均由门 AA（维护者侧生成器 --check）当场判红；**不凭本段文字记忆推进**。
 >
 > 📎 **与 [`pipeline-readme.md`](../../pipeline-readme.md) 的分工**（v2.12.40 起显式声明）：本文件 = **派生速查视图**（全景 + 修订回环仲裁）；`pipeline-readme.md` = **完整运行手册**（触发词 / 适用边界 / 模型配置 / 派发话术索引 / 模板加载策略等百科内容）。**两者不可互替、不可精简为对方。**
 
-## 流水线全景（Phase 0-5，真源共 24 节点）
+## 流水线全景（Phase 0-5，真源共 25 节点）
 
 > ⚠️ **节点 id 是主控呈现进度的唯一合法取值**（v2.12.27）：主控**不得自创**节点名或 Phase 标签。历史实况：无编号节点曾被误标为「Phase 4.2」，导致整段跳过 T7 审计。
 
@@ -38,10 +40,11 @@
 | 17 | `t5_style_revision` | Phase 4.4 前置·风格修订 | T5（G14 Fail 唯一出口） | 仅风格层修订稿（**不得动论证/数据/引用/结论**） |
 | 18 | `phase4_4_figures` | Phase 4.4 | 主控（亲为） | `final/图件/*.svg`（零外发、零 exec；有图位才触发） |
 | 19 | `final_assembly` | Phase 4.4 后置（定稿组装） | 主控（亲为） | `final/定稿.md`（**只产投稿版**，禁入工程元数据段） |
-| 20 | `t9_review` | Phase 4.5 | T9（盲审独立子代理） | `audits/审稿报告-vN.md`（6 维度 → accept/minor/major/reject） |
-| 21 | `t8_technical_final` | Phase 5 终检 | 主控（T8 亲为） | `final/交付说明.md`（+ Acknowledged Limitations 时 `final/局限性.md`） |
-| 22 | `methodology_snapshot` | Phase 5 终检后置（方法论留档） | 主控（亲为） | `audits/methodology-footprint-*.md`（**默认触发**，主人可 opt-out） |
-| 23 | `phase5_acceptance` | Phase 5 验收 | 主人 × 主控（**人在环**） | `accepted` / `revision_requested` / `restart_phase` / `deferred`（四个 owner_checkpoint 一律 fail-closed） |
+| 20 | `t9_review` | Phase 4.5 | T9（盲审独立子代理） | `audits/审稿报告-vN.md`（6 维度 + D1/D2 → accept/minor/major/reject） |
+| 21 | `t9b_stress_test` | Phase 4.5 后置（压力测试轮） | 主控（亲为） | `audits/压力测试报告-vN.md`（三剧本、建议性） |
+| 22 | `t8_technical_final` | Phase 5 终检 | 主控（T8 亲为） | `final/交付说明.md`（+ Acknowledged Limitations 时 `final/局限性.md`） |
+| 23 | `methodology_snapshot` | Phase 5 终检后置（方法论留档） | 主控（亲为） | `audits/methodology-footprint-*.md`（**默认触发**，主人可 opt-out） |
+| 24 | `phase5_acceptance` | Phase 5 验收 | 主人 × 主控（**人在环**） | `accepted` / `revision_requested` / `restart_phase` / `deferred`（四个 owner_checkpoint 一律 fail-closed） |
 
 > **Phase 详细操作按需加载**：[`phase-1-details.md`](phase-1-details.md)（检索边界 / 强相关性 / 三角验证 / 数据信任 3 档）、[`phase-2-details.md`](phase-2-details.md)（退化场景）、[`phase-3-details.md`](phase-3-details.md)（写作铁律 10 项 + 洞察补充 + T6/G14 + 修订回环）。
 

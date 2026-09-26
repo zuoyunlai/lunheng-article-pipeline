@@ -45,7 +45,7 @@
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 
-version: 2.13.4
+version: 2.14.0
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-Algorithm.md §判定结果分档）。
@@ -247,12 +247,15 @@ phase_order:
     phase: Phase 4.5
     node: t9_review
   - seq: 21
+    phase: Phase 4.5 后置（压力测试轮）
+    node: t9b_stress_test
+  - seq: 22
     phase: Phase 5 终检
     node: t8_technical_final
-  - seq: 22
+  - seq: 23
     phase: Phase 5 终检后置（方法论留档）
     node: methodology_snapshot
-  - seq: 23
+  - seq: 24
     phase: Phase 5 验收
     node: phase5_acceptance
 
@@ -260,7 +263,7 @@ architecture:
   standard: multi_agent_role_pipeline
   worker_roles: [T1, T2, T3, T4, T5, T6, T7, T9, G14]
   owner_roles: [T0, T8]
-  owner_nodes: [phase0_definition, phase2_5_outline, phase3_5_insight, pre_spawn_enforcement, t2_5_integrity, current_draft_sync, t7_5_integrity, phase4_4_figures, final_assembly, t8_technical_final, methodology_snapshot, phase5_acceptance]
+  owner_nodes: [phase0_definition, phase2_5_outline, phase3_5_insight, pre_spawn_enforcement, t2_5_integrity, current_draft_sync, t7_5_integrity, phase4_4_figures, final_assembly, t9b_stress_test, t8_technical_final, methodology_snapshot, phase5_acceptance]
   worker_failure_policy: owner_takeover_with_disclosure
   fallback_is_not_equivalent: true
 # ⚠️ P0-3：版本号 vN 只随闸门里程碑推进；minor 自修走 vN.m；风格修订走 vN-style。
@@ -310,6 +313,10 @@ condition_definitions:
     requires: [owner_figure_decision]
     producer: references/templates/任务简报-template.md
     producer_marker: "figure_decision"
+  owner_stress_test_opt_out:
+    requires: [owner_stress_test_opt_out]
+    producer: references/templates/任务简报-template.md
+    producer_marker: "压力测试轮"
 
 m_gate_criterion_fields:
 # v2.12.65 P0-1：M 门判据字段须登记生产方（同 R-4 断链治理）
@@ -610,6 +617,11 @@ pipeline:
     write_authority: owner
     input: audits/审计报告-vN.md   # v2.12.41 修依赖倒置：本闸**不得**读 final/M-Gate-Report（那是本闸的**产出**；v2.12.33 已定「T7.5 不 check T8 产物」），改读本轮章节级 M 门记录（status.md）
     output: final/M-Gate-Report-*.json   # v2.12.41 补生产者：M 门报告由本闸汇总产出，供 T8 读（原全库无生产者 → 孤儿输入）
+    output_schema:
+      paragraph_density_map: "段号 -> {paragraph_chars, hit_count, density_per_10000, hit_classes}"
+      paragraph_density_top5: "按 density_per_10000 降序的前五段，含段号、预览和原文位置"
+      paragraph_density_weighted_score: "Σ(段密度 × 段字数) / 总字数"
+      note: "v2.14.0 C3：G14 段落级密度是定位工具，不替代 9 类总判定；纯外语或 G14 n/a 时记录 paragraph_density_map: n/a。"
     next: g14_style_gate   # v2.12.40：G14 风格闸迁至此处（定稿前唯一一次）；原直连 phase4_4_figures
   - id: g14_style_gate   # 别名：文档层「Phase 4.4 前置（G14 风格闸）」（非独立 Phase 标签，主控呈现时归入 Phase 4.4）
     phase: "Phase 4.4 前置（G14 风格闸）"
@@ -694,21 +706,6 @@ pipeline:
     fingerprint: required   # v2.12.49 M-1：产出后必须写 final/定稿.sha256（主控 read + 主人 host shell 补算 sha256sum 写入）；指纹真源
     note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。**v2.12.60 图件嵌入**：图件存在时（`input` 含 SVG）必须把每个图位替换为可渲染的 `![图N：标题](图件/图N_标题.svg)`（与定稿同目录相对路径），使**嵌入计数 = 拍板 N**；只留纯文本 `[图N：标题]` = 不合格（口径真源 = deliverables.md「定稿图件口径」）。**v2.12.49 M-1**：产出同步写 `final/定稿.sha256`，下游 T7/T9/G14/T8 报告必填 `audited_artifact.{path,bytes,sha256}` 三元组；T8 终检做 sha256 集合相等断言（与 T7/G14/T9 一致 ⇒ 合格）。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿。**v2.12.43 投稿域 vs 工程域**：本节点**只产投稿版**（纯学术结构），**禁**写入头部工程元数据段与「## 投稿就绪附录」段；工程信息一律由 t8_technical_final 写入 final/交付说明.md。禁入清单真源 = deliverables.md「投稿域 vs 工程域」
     next: t9_review
-  - id: methodology_snapshot
-    phase: "Phase 5 终检后置（方法论留档）"
-    phase_seq: 22
-    kind: owner_agent
-    owner: 主控
-    write_authority: owner
-    input: status.md + final/交付说明.md
-    output: run/<项目名>/audits/methodology-footprint-{项目名}.md
-    verdict_scale: four_tier
-    default: triggered                      # v2.12.49 T-6：默认触发（输出简版 ≤2 节），不再要求 Phase 0 opt-in
-    opt_out: methodology_snapshot_opt_out   # 主人显式 opt-out 的条件键（真源 = condition_definitions）
-    on_opt_out: record_opt_out_in_status
-    condition_undecidable: report_to_owner   # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认触发继续 + 呈主人
-    note: "v2.12.49 T-6：**默认触发**（简版 ≤2 节）—— 采纳项目自身建议，由 opt-in 改为 opt-out；主人在 Phase 0 显式 opt-out ⇒ 不创建且记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）。"
-    next: phase5_acceptance
   - id: t9_review   # 别名：文档层「Phase 4.5」
     phase: "Phase 4.5"
     phase_seq: 20
@@ -756,10 +753,27 @@ pipeline:
       downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
     output: audits/审稿报告-vN.md
     output_chars_max: 15000
+    next: t9b_stress_test
+  - id: t9b_stress_test
+    phase: "Phase 4.5 后置（压力测试轮）"
+    phase_seq: 21
+    kind: owner_agent
+    owner: 主控
+    write_authority: owner
+    verification_authority: 主控
+    input: final/定稿.md + audits/审稿报告-vN.md
+    output: audits/压力测试报告-vN.md
+    default: triggered
+    opt_out: owner_stress_test_opt_out
+    condition_undecidable: report_to_owner
+    on_opt_out: record_opt_out_in_status
+    verdict_scale: four_tier
+    independence: bounded_owner_pressure_test
+    note: "T9b 是主控亲完成的文本压力测试，不是 T9 盲审，不读取 T7/证据卡/过程稿，不参与修订回环。"
     next: t8_technical_final
   - id: t8_technical_final
     phase: "Phase 5 终检"
-    phase_seq: 21
+    phase_seq: 22
     verdict_scale: four_tier   # v2.12.40：终检结论落四档（通过/不通过/无法判定/路径或参数错误）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = M-Gate-Report + T9 审稿报告均已落盘；不得用缺位时的推断值
     input: final/定稿.md + final/图件/*.svg + final/M-Gate-Report-*.json + audits/审稿报告-vN.md + audits/G14-检测报告-vN.md   # v2.12.37 审计 P1-2：T8 需读 T9 报告做「建议分流」；v2.12.41：G14 迁至 Phase 4.4 前置后，其报告核验职责由 T7 移交 T8
@@ -777,9 +791,24 @@ pipeline:
     output_conditional:
       acknowledged_limitations_mode: final/局限性.md
     next: methodology_snapshot
+  - id: methodology_snapshot
+    phase: "Phase 5 终检后置（方法论留档）"
+    phase_seq: 23
+    kind: owner_agent
+    owner: 主控
+    write_authority: owner
+    input: status.md + final/交付说明.md
+    output: run/<项目名>/audits/methodology-footprint-{项目名}.md
+    verdict_scale: four_tier
+    default: triggered                      # v2.14.0 升级：默认触发（输出 4 节标准结构：研究设计 / 数据来源 / 分析方法 / 局限性），不再要求 Phase 0 opt-in
+    opt_out: methodology_snapshot_opt_out   # 主人显式 opt-out 的条件键（真源 = condition_definitions）
+    on_opt_out: record_opt_out_in_status
+    condition_undecidable: report_to_owner   # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认触发继续 + 呈主人
+    note: "v2.14.0 升级：**默认触发**（含 4 节标准结构：研究设计 / 数据来源 / 分析方法 / 局限性）—— 替代 v2.12.49 T-6 的「≤2 节简版」。真源对照：[方法论-审计清单.md](../_shared/真源/方法论-审计清单.md) G18 12 项；模板：templates/方法论章节-template.md + walkthrough references/_shared/真源/方法论-落地示例.md。主人在 Phase 0 显式 opt-out ⇒ 不创建且记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）。"
+    next: phase5_acceptance
   - id: phase5_acceptance
     phase: "Phase 5 验收"
-    phase_seq: 23
+    phase_seq: 24
     kind: owner_checkpoint
     blocking: true        # v2.12.49：旧口径「不答 = 接受当前定稿」已删除 —— 静默不得记为 accepted
     owner_visible: true

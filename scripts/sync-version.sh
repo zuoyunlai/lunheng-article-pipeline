@@ -93,6 +93,7 @@ SYNCS=(
   "agents/07-审计-auditor.md|header"
   "agents/08-终检-final-inspector.md|header"
   "agents/09-审稿-peer-reviewer.md|header"
+  "agents/09b-压力测试-owner.md|header"
 
   # 主控扩展职责（v2.5.0 主控卡拆分后新增）
   "agents/00-主控-扩展职责.md|header"
