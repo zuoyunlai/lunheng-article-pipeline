@@ -194,20 +194,12 @@ class IncrementalMGateValidator:
         return yaml.safe_load(dep_file.read_text(encoding='utf-8'))
 
     def _load_last_results(self) -> Dict:
-        """加载上次验证结果
+        """加载上次验证结果。
 
-        v2.12.50：缓存里的 `passed: True` 若来自占位实现（无 `status == 'verified'`），
-        **不得继承为「已验证」** —— 否则旧缓存会把假绿灯一直传下去。
+        本工具只做变更定位，不产出 M 门的 verified 结论；任何历史缓存
+        （包括外部手写的 status=verified）都不得绕过本轮机械验证。
         """
-        result_file = self.project_dir / '.m_gate_results.json'
-        if not result_file.exists():
-            return {}
-        data = json.loads(result_file.read_text(encoding='utf-8'))
-        for res in data.values():
-            if isinstance(res, dict) and res.get('status') != self.VERIFIED:
-                res['passed'] = False
-                res['status'] = self.UNVERIFIED
-        return data
+        return {}
 
     def _save_results(self, results: Dict):
         """保存验证结果"""
@@ -421,7 +413,8 @@ def main():
     # 检查是否清除缓存
     if '--clear-cache' in sys.argv:
         validator.clear_cache()
-        return
+        # 清缓存只是准备动作，不构成任何 M 门通过结论；调用者必须继续验证。
+        sys.exit(1)
 
     # 获取阶段参数
     phase = 'phase_4'  # 默认阶段

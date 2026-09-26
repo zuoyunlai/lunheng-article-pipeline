@@ -4,30 +4,35 @@
     {
       "file": "references/permissions.md",
       "reason": "doc-example",
+      "match": "拒绝",
       "lines": "42",
       "note": "「拒绝访问清单」文本中的路径示例，语境为「拒绝」，非访问意图"
     },
     {
       "file": "scripts/strip-anchor-residue.py",
       "reason": "regex-engine-call",
+      "match": "re\\.compile",
       "lines": "21-45,49-87,148-154",
       "note": "`re.compile(...)` 正则编译；通用扫描器 code_execution 模式把正则引擎调用误判为动态代码执行（P1-4 误报，已逐条核对）"
     },
     {
       "file": "scripts/test-path-canonical.sh",
       "reason": "defensive-test-sample",
+      "match": "\\.\\./etc/passwd",
       "lines": "56-58,61",
       "note": "路径遍历防御性测试样本（`../etc/passwd` 等输入）；命中扫描器 RISKY_PATHS `/etc/`，用途是断言「拒绝」，非访问意图"
     },
     {
       "file": "scripts/build-clawhub-release.sh",
       "reason": "guarded-cleanup",
+      "match": "rm -rf",
       "lines": "114,179,184,188,221",
       "note": "构建产物目录清理；受 §输出路径逃逸防护（校验先于删除，含 `/` / `..` / 空值一律 exit 2）保护，删除目标恒为 $OUT_ROOT/$VERSION 之内"
     },
     {
       "file": "scripts/release-preflight.sh",
       "reason": "internal-variable-exec",
+      "match": "bash -c",
       "lines": "161,257",
       "note": "`bash -c \"$SESSIONS_CMD\"` / `bash -c \"$REMOTE_CMD\"` 动态执行；变量来源为脚本内固定字面量默认值，非外部用户输入，且属维护者工具不进净化包"
     }

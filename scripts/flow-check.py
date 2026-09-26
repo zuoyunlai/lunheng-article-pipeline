@@ -584,7 +584,7 @@ def main():
     # 29 进度卡映射 + 失效指针锁（v2.12.54 T-5 / T-3）
     cpk_text = (_root24 / 'references/templates/checkpoint-card-template.md').read_text(encoding='utf-8')
     if '13 步' not in cpk_text or 'phase-order.yaml' not in cpk_text or 'pipeline-overview.md' not in cpk_text:
-        errs.append('checkpoint-card 缺「13 步 ↔ 23 节点」映射说明（T-5）')
+        errs.append('checkpoint-card 缺「13 步 ↔ 24 节点」映射说明（T-5）')
     qs_text = (_root24 / 'QUICKSTART.md').read_text(encoding='utf-8')
     if 'pipeline-overview.md' not in qs_text:
         errs.append('QUICKSTART 缺修订回环仲裁表指针（T-3：原指针指向已外移的 SKILL.md 章节）')
@@ -780,9 +780,10 @@ def main():
                         errs.append(f'manifest 豁免项不是映射（P1-4）: {_e38!r}')
                         continue
                     _f38, _r38 = _e38.get('file'), _e38.get('reason')
+                    _m38 = _e38.get('match')
                     _l38, _n38 = _e38.get('lines'), _e38.get('note')
-                    if not (_f38 and _r38 and _l38 and _n38):
-                        errs.append(f'manifest 豁免项缺 file/reason/lines/note（P1-4）: {_e38!r}')
+                    if not (_f38 and _r38 and _m38 and _l38 and _n38):
+                        errs.append(f'manifest 豁免项缺 file/reason/match/lines/note（P1-4）: {_e38!r}')
                         continue
                     if _f38 in _seen38:
                         errs.append(f'manifest 豁免项重复登记同一文件: {_f38}（P1-4）')
@@ -798,6 +799,12 @@ def main():
                         errs.append(f'manifest 豁免项文件不存在: {_f38}（P1-4：白名单已成假账）')
                         continue
                     _tot38 = len(_pf38.read_text(encoding='utf-8', errors='ignore').splitlines())
+                    _txt38 = _pf38.read_text(encoding='utf-8', errors='ignore')
+                    try:
+                        if not re.search(str(_m38), _txt38):
+                            errs.append(f'manifest 豁免项 match 未命中：{_f38} / {_m38}（P1-4：内容已漂移）')
+                    except re.error as _re38:
+                        errs.append(f'manifest 豁免项 match 正则非法：{_f38} / {_re38}（P1-4）')
                     for _seg38 in str(_l38).split(','):
                         for _num38 in _seg38.split('-') if isinstance(_seg38, str) else []:
                             if not str(_num38).isdigit():

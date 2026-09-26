@@ -64,15 +64,18 @@ class ProjectLock:
         except IOError as e:
             return False, f"无法创建锁文件: {e}"
     
-    def release(self):
-        """释放项目锁"""
+    def release(self, force: bool = False) -> Tuple[bool, Optional[str]]:
+        """释放项目锁；非本进程持有时拒绝，force 才允许夺锁。"""
         try:
-            if self.lock_file.exists():
-                content = self.lock_file.read_text().strip()
-                if content == str(self.pid):
-                    self.lock_file.unlink()
-        except:
-            pass
+            if not self.lock_file.exists():
+                return False, "锁文件不存在"
+            content = self.lock_file.read_text().strip()
+            if content != str(self.pid) and not force:
+                return False, f"锁不属于本进程（owner PID {content}），未释放"
+            self.lock_file.unlink()
+            return True, None
+        except (OSError, ValueError) as e:
+            return False, f"释放项目锁失败: {e}"
     
     def _is_process_running(self, pid: int) -> bool:
         """
@@ -166,10 +169,16 @@ if __name__ == "__main__":
             sys.exit(1)
     
     elif command == "release":
+        force = len(sys.argv) > 3 and sys.argv[3] == "--force"
+        if force:
+            workspace_root = sys.argv[4] if len(sys.argv) > 4 else os.getcwd()
         lock = ProjectLock(project_name, workspace_root)
-        lock.release()
-        print(f"✓ 已释放项目锁: {project_name}")
-        sys.exit(0)
+        ok, error = lock.release(force=force)
+        if ok:
+            print(f"✓ 已释放项目锁: {project_name}" + ("（强制）" if force else ""))
+            sys.exit(0)
+        print(f"✗ 释放项目锁失败: {error}", file=sys.stderr)
+        sys.exit(1)
     
     elif command == "check":
         running = check_concurrent_projects(workspace_root)

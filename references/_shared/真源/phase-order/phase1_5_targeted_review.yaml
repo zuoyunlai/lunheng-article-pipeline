@@ -9,7 +9,7 @@
   rerun_after_report: true   # v2.12.40「报告后激活」：依赖 t2_5_integrity 闸门结果 → 必须在该判定重跑后取数
   input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
   condition_undecidable: report_to_owner   # v2.12.54 R-6：条件证据不可判定 ⇒ 呈主人 + 按安全侧（触发）继续，禁止静默按 on_not_triggered 吞掉
-  condition: phase1_5_targeted_review_any_trigger_hit   # 激活逻辑：下方 trigger_conditions 列表中「任一」命中即触发本复核窗口；全部未命中 → 走 on_not_triggered（v2.12.28 对齐；v2.12.49 改名自 any_listed_trigger_condition_met，平台审核判 SQP-1 通用名）
+  condition: phase1_5_targeted_review_any_trigger_hit   # 激活逻辑：下方 trigger_conditions 列表中「任一」命中即触发本复核窗口；全部未命中 → 走 on_not_triggered（v2.12.28 对齐；v2.12.49 改名自 any_listed_trigger_condition_met）
   on_not_triggered: record_not_triggered_in_status
   owner_visible: true
   blocking: false

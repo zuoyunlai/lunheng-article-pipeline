@@ -209,7 +209,7 @@ condition_definitions:
     requires: [owner_methodology_snapshot_opt_out]
     producer: references/templates/任务简报-template.md
     producer_marker: "方法论留档"
-  phase1_5_targeted_review_any_trigger_hit:    # v2.12.49 改名（原 any_listed_trigger_condition_met，名字太空，平台审核判 SQP-1 通用名）：Phase 1.5 复核窗口「列表任一命中」即触发；含义 = trigger_conditions 中 ① 简报标注 [Dxx 待复核] 或 ② t2_5 红数据未回溯 任一为真
+  phase1_5_targeted_review_any_trigger_hit:    # v2.12.49 改名（原 any_listed_trigger_condition_met）：Phase 1.5 复核窗口「列表任一命中」即触发；含义 = trigger_conditions 中 ① 简报标注 [Dxx 待复核] 或 ② t2_5 红数据未回溯 任一为真
     requires: [phase0_review_flags]
     producer: references/templates/任务简报-template.md
     producer_marker: "待复核关键 Dxx"

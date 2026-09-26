@@ -2,6 +2,13 @@
 
 ---
 
+## [v2.13.6] — 2026-09-26
+
+- **深挖审计修订（R-26～R-42）**：收口发布包平台审计叙事泄漏、manifest 豁免内容漂移、checkbox 剥离损伤、unreachable 计数、项目锁释放假成功、增量 M 门缓存继承、paper-ready-check 附录/字数/CWD 判据，以及 phase-order 真源指针族。
+- **门与净化链加固**：门 Q 扩展文本扫描面，门 G 增加随包清单对账，门 P 增加 checkbox 保真不变量，门 R 增加 RULE_CHECKS 基线，净化链保留 Markdown checkbox。
+- **工具与文档收口**：统一 24 节点 seq 0–23 与 `phase-order/` 真源指针；补充 `.safe-pattern-manifest.json` 内容绑定；`project_lock.py release --force` 仅作显式夺锁。
+- **验收**：针对性回归 **142 passed**；自审门 **39 PASS / 0 FAIL**；隔离发布包 v2.13.6 构建成功（115 文件）。
+
 ## [v2.13.5] — 2026-09-26
 
 - **否认面真源外移（R-22）**：104 项 `denied` 完整清单从 SKILL.md frontmatter 迁入 `references/permissions.md` 的「禁用面唯一真源」块，frontmatter 只留 `denied_count: 104` + 8 项高危具名；门 T 与 `capability-assert.py` 统一从真源块读（缺块 / 计数漂移 / 高危越界一律 fail-closed）。SKILL.md 常驻预算 9,690 → **7,887 字符**（余量 2,113），门 T 覆盖 104 项逐项拒绝（原 41 项）。

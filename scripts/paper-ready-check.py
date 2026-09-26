@@ -102,7 +102,7 @@ def check_citation_ordering(final_md_path: str) -> tuple:
     appendix_start = -1
     for marker in ['## 引用来源', '## 参考文献', '## 先行者文献']:
         idx = text.find(marker)
-        if idx > appendix_start:
+        if idx >= 0 and (appendix_start < 0 or idx < appendix_start):
             appendix_start = idx
 
     if appendix_start < 0:
@@ -203,7 +203,10 @@ def check_word_count(final_md_path: str, project_dir: str) -> tuple:
     body = text[:m.start()] if m else text
     han_chars = len(re.findall(r'[\u4e00-\u9fff]', body))
     total_chars = len(body)
-    return (True, {'正文字数(纯汉字)': han_chars, '正文字符': total_chars})
+    # 判定表 C1 指向 `字数判定表.md` §五 分层：2000 字是论衡适用下限。
+    # 本项仅在低于该下限时判 FAIL，具体档位评级留给 T8/人工核验（判定表 C1-C4 口径）。
+    return (han_chars >= 2000, {'正文字数(纯汉字)': han_chars, '正文字符': total_chars,
+                                '分层下限(纯汉字)': 2000})
 
 
 def check_m_gate(project_dir: str) -> tuple:
@@ -272,7 +275,8 @@ def main():
         sys.exit(2)
 
     project = sys.argv[1]
-    project_dir = os.path.join('run', project)
+    repo_root = Path(__file__).resolve().parent.parent
+    project_dir = str(repo_root / 'run' / project)
     final_md = os.path.join(project_dir, 'final', '定稿.md')
 
     if not os.path.exists(final_md):
@@ -280,7 +284,7 @@ def main():
         sys.exit(1)
 
     print(f'🔍 论衡 v2.12.0 可发表性 48 项检查 · 项目: {project}')
-    print(f'   定稿: {final_md}')
+    print(f'   定稿: {Path(final_md).resolve()}')
     print('=' * 70)
 
     groups = [

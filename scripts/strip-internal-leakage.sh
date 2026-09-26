@@ -202,7 +202,8 @@ for line in lines:
     #   `metadata.openclaw.requires.bins: []` → `bins:`。故对「纯 `key: []` 行」豁免。
     #   注：单跑本脚本用「文件」当参数是空转（它只接目录），排查时必须让它在目录上跑，
     #   否则会得出「本脚本无问题」的错误结论（本次就为此绕了一圈）。
-    if not re.match(r'^\s*[A-Za-z_.-]+:\s*\[\s*\]\s*$', line):
+    if (not re.match(r'^\s*[A-Za-z_.-]+:\s*\[\s*\]\s*$', line)
+            and not re.match(r'^\s*[-*]\s*\[[ xX]?\]', line)):
         line = re.sub(r'\[\s*[·・，,]?\s*\]', '', line)
 
     # 形态 7: 裸 #N 编号（教训引用上下文中）
@@ -262,7 +263,8 @@ for line in lines:
     # v2.12.23（教训 #335 同族）：YAML 值位置的空数组 `key: []` 是**有效结构**（含义＝空集合），
     #   不是「清理残迹」——旧规则一律删除，把 `metadata.openclaw.requires.bins: []` 变成
     #   `bins:`（null）。故对「纯 `key: []` 行」豁免。
-    if not re.match(r'^\s*[A-Za-z_.-]+:\s*\[\s*\]\s*$', line):
+    if (not re.match(r'^\s*[A-Za-z_.-]+:\s*\[\s*\]\s*$', line)
+            and not re.match(r'^\s*[-*]\s*\[[ xX]?\]', line)):
         line = re.sub(r'\[\s*\]', '', line)   # 完全空的方括号
     line = re.sub(r'。。+', '。', line)   # 双重句号
     # v2.12.23（教训 #335）：只塌缩**句中**的连续空格，保留行首缩进。

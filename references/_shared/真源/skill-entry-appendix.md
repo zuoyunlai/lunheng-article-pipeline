@@ -1,4 +1,4 @@
-> 版本：v2.13.5（自动同步 2026-09-26）
+> 版本：v2.13.6（自动同步 2026-09-26）
 
 # SKILL.md 外移附录（入口文档瘦身用）
 
@@ -37,7 +37,7 @@
 | 1 | `SKILL.md`（入口）| 🔴 |
 | 1 | `references/pipeline-readme.md`（入口）| 🔴 |
 | 1 | `references/_shared/真源/glossary-full.md`（入口）| 🔴 |
-| 2 | `references/_shared/真源/phase-order.yaml`（流程顺序与阻断关系**唯一真源**，冲突以 yaml 为准）| 🔴 |
+| 2 | `references/_shared/真源/phase-order/` 目录（流程顺序与阻断关系**唯一真源**，含 `index.yaml` + 24 节点切片；`phase-order.yaml` 为装配视图）| 🔴 |
 | 2 | `references/_shared/真源/M-Gate-Algorithm.md`（M-Form/M-Exist/M-Integrity 伪代码段**逐段必读**；「分片」只为省 token，**不表示跳读**）| 🟠 |
 
 ---

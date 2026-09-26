@@ -1278,7 +1278,7 @@ def test_p14_safe_pattern_manifest_shape():
     assert isinstance(ex, list) and ex, "manifest exemptions 缺失或为空（P1-4）"
     seen = set()
     for e in ex:
-        for k in ("file", "reason", "lines", "note"):
+        for k in ("file", "reason", "match", "lines", "note"):
             assert e.get(k), f"豁免项缺 {k}（P1-4）: {e}"
         f = e["file"]
         assert f not in seen, f"重复登记同一文件（P1-4）: {f}"
@@ -1288,6 +1288,7 @@ def test_p14_safe_pattern_manifest_shape():
         assert len(str(e["note"])) >= 10, f"note 过短（未写理由）（P1-4）: {f}"
         p = ROOT / f
         assert p.exists(), f"豁免项文件不存在（P1-4）: {f}"
+        assert re.search(str(e["match"]), p.read_text(encoding="utf-8", errors="ignore")), f"豁免内容已漂移（P1-4）: {f}"
         total = len(p.read_text(encoding="utf-8", errors="ignore").splitlines())
         for seg in e["lines"].split(","):
             for num in seg.split("-"):
@@ -1298,6 +1299,14 @@ def test_p14_manifest_missing_file_reverse_injection(tmp_path):
     """P1-4 反向注入：豁免项指向不存在的文件 ⇒ flow-check 必须红（白名单成假账）。"""
     def mutate(src):
         return src.replace('"scripts/release-preflight.sh"', '"scripts/no-such-file-xyz.sh"', 1)
+
+    _inject_and_expect(".safe-pattern-manifest.json", mutate, "P1-4", tmp_path)
+
+
+def test_p14_manifest_content_drift_reverse_injection(tmp_path):
+    """P1-4 反向注入：行号仍界内但匹配内容消失 ⇒ flow-check 必须红。"""
+    def mutate(src):
+        return src.replace('"match": "拒绝"', '"match": "不存在的豁免内容"', 1)
 
     _inject_and_expect(".safe-pattern-manifest.json", mutate, "P1-4", tmp_path)
 

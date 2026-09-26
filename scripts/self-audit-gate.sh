@@ -865,8 +865,11 @@ PROBE_OUT=$(cat "$PROBE_DIR/probe/probe.md" 2>/dev/null)
 mkdir -p "$PROBE_DIR/leak"
 printf '%s\n' '（含 AI 使用声明/致谢），教训 #'"${PROBE_N}"'；口径真源 = 字数判定表.md' \
   > "$PROBE_DIR/leak/leak-delim.md"
+printf '%s\n' '- [ ] checkbox 不得被剥离' >> "$PROBE_DIR/leak/leak-delim.md"
+CHECKBOX_BEFORE=$(grep -cE '^[[:space:]]*[-*][[:space:]]*\[[ xX]?\]' "$PROBE_DIR/leak/leak-delim.md" || true)
 bash "$SKILL_ROOT/scripts/strip-internal-leakage.sh" "$PROBE_DIR/leak" >/dev/null 2>&1 || true
 LEAK_OUT=$(cat "$PROBE_DIR/leak/leak-delim.md" 2>/dev/null)
+CHECKBOX_AFTER=$(printf '%s\n' "$LEAK_OUT" | grep -cE '^[[:space:]]*[-*][[:space:]]*\[[ xX]?\]' || true)
 
 rm -rf "$PROBE_DIR"
 GATE_P_FAIL=""
@@ -879,6 +882,9 @@ done
 case "$PROBE_OUT" in
   *"status.md（）"*) GATE_P_FAIL="$GATE_P_FAIL [锚点残留空括号未清]" ;;
 esac
+if [ "$CHECKBOX_AFTER" -lt "$CHECKBOX_BEFORE" ]; then
+  GATE_P_FAIL="$GATE_P_FAIL [checkbox 行被剥离:$CHECKBOX_BEFORE->$CHECKBOX_AFTER]"
+fi
 case "$LEAK_OUT" in
   *"教训 #"*) GATE_P_FAIL="$GATE_P_FAIL [分隔符夹持引用未剥除]" ;;
 esac
@@ -924,6 +930,17 @@ if [ -d "$PURIFY_DIR" ]; then
   if find "$PURIFY_DIR" \( -name '*.sh' -o -path '*/scripts/*' \) -print -quit 2>/dev/null | grep -q .; then
     GATE_G_FAIL="$GATE_G_FAIL [包内含开发者脚本]"
   fi
+  # 硬校验 3：包内文件集必须与构建白名单精确相等。
+  PKG_MANIFEST="$SKILL_ROOT/scripts/.pkg-manifest.txt"
+  if [ ! -f "$PKG_MANIFEST" ]; then
+    GATE_G_FAIL="$GATE_G_FAIL [缺少随包清单 scripts/.pkg-manifest.txt]"
+  else
+    PKG_ACTUAL=$(cd "$PURIFY_DIR" && find . -type f | sed 's|^./||' | LC_ALL=C sort)
+    PKG_EXPECT=$(LC_ALL=C sort "$PKG_MANIFEST")
+    if [ "$PKG_ACTUAL" != "$PKG_EXPECT" ]; then
+      GATE_G_FAIL="$GATE_G_FAIL [包内文件集与 scripts/.pkg-manifest.txt 不一致]"
+    fi
+  fi
   # informational：关键文件 md5 差异（净化链替换导致，属预期，不计 PASS/FAIL）
   KEY_FILES=("SKILL.md" "QUICKSTART.md" "references/_shared/真源/glossary-full.md")
   MD5_MISMATCH=""
@@ -957,11 +974,11 @@ GATE_Q_FAIL=""
 Q_FILES=()
 while IFS= read -r -d '' f; do
   case "${f#"$SKILL_ROOT"/}" in
-    references/_shared/治理/教训索引.md|references/设计文档*.md|references/design/*|references/_shared/archive/*) continue ;;
+    references/_shared/治理/教训索引.md|references/设计文档*.md|references/design/*|references/_shared/archive/*|.safe-pattern-manifest.json) continue ;;
     reports/*|memory/*) continue ;;   # v2.12.57：主人 2026-09-19 裁定「工程过程产物不进版本库」（.gitignore 已拦）⇒ 同 build 可见面，不纳入本门扫描
   esac
   Q_FILES+=("$f")
-done < <(find "$SKILL_ROOT" -name '*.md' -not -path '*/.git/*' -not -path '*/outputs/*' \
+done < <(find "$SKILL_ROOT" \( -name '*.md' -o -name '*.json' -o -name '*.yaml' -o -name '*.yml' -o -name '*.txt' -o -name '*.toml' \) -not -path '*/.git/*' -not -path '*/outputs/*' \
   -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
   -not -path '*/reports/*' -not -path '*/memory/*' \
   -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' -not -name 'README.md' -print0)
@@ -976,6 +993,7 @@ Q_PATTERNS=(
   'Remediation'
   'T0[0-9]'
   '92% finding|#89% finding'
+  '平台审核'
 )
 if [ ${#Q_FILES[@]} -gt 0 ]; then
   for pat in "${Q_PATTERNS[@]}"; do
@@ -986,7 +1004,7 @@ if [ ${#Q_FILES[@]} -gt 0 ]; then
   done
 fi
 if [ -z "$GATE_Q_FAIL" ]; then
-  pass "门 Q: 净化可见面无审计归因语（${#Q_FILES[@]} md，10 类 token）"
+  pass "门 Q: 净化可见面无审计归因语（${#Q_FILES[@]} 文本文件，11 类 token）"
 else
   fail "门 Q: 净化可见面残留审计归因语" "$GATE_Q_FAIL"
 fi
@@ -1045,6 +1063,9 @@ if [ -f "$BUILD_SH" ]; then
   fi
   if [ "$R_FINAL_TOTAL" -eq 0 ]; then
     GATE_R_FAIL="$GATE_R_FAIL [构建脚本 FINAL_PATTERNS 为空（残留扫描门已失效）]"
+  fi
+  if [ "$R_RULE_TOTAL" -lt 44 ]; then
+    GATE_R_FAIL="$GATE_R_FAIL [构建脚本 RULE_CHECKS 数量 $R_RULE_TOTAL < 基线 44（规则被删除或失效）]"
   fi
 else
   GATE_R_FAIL="$GATE_R_FAIL [构建脚本缺失：scripts/build-clawhub-release.sh]"
@@ -1183,7 +1204,7 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77380,references/_shared/真源/M-Gate-Algorithm.md|84270,references/_shared/真源/phase-order.yaml|61603,references/_shared/真源/phase-order/index.yaml|24261"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77353,references/_shared/真源/M-Gate-Algorithm.md|84270,references/_shared/真源/phase-order.yaml|61520,references/_shared/真源/phase-order/index.yaml|24212"
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：
 #     · 增量 2 把装配从「YAML 重打」改为「原文逐字拼接」—— 重打会丢行尾注释与作者引号，
 #       实测会静默废掉文本型机械门（D-3 注释 4 处断言 + 5 条按文本注入的反向测试）。
@@ -1191,7 +1212,7 @@ BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77380,ref
 #       而是把上游本就存在的文本还原回来。index.yaml 24,267 B 则承载契约段原文（含 144 行注释）。
 #     · 家族合计 85,893 B > 倒置前 61,559 B：真源被拆成「索引 + 装配」两份共存；代价换来的收益是
 #       运行期读取量 —— 旧协议每进一个 Phase 重读全量（≈61.6 KB × 24），新协议 index 读一次 + 逐节点切片。
-# ⚠️ v2.13.2 缩容备案（HITL 呈现/恢复协议 · 主动下调，非扩容）：00-主控-扩展职责.md 77629→77392（−237 B）。
+# ⚠️ v2.13.6 缩容备案（R-38 指针收口 · 主动下调，非扩容）：00-主控-扩展职责.md 77380→77353（−27 B）；phase-order.yaml 61603→61520（−83 B）；index.yaml 24261→24212（−49 B）。
 #   本轮新增「等待期体验与运行期留痕」运行纪律（规则 50 载体），同时把 §二十一 的「无应答兜底」长句
 #   与概览行压缩为指针/短句（真源 = phase-order.yaml owner_timeout_policy，本卡不重列）。净值为**减少**，
 #   故按「只许降」同步下调上限；后续若再增内容请先分层/外移，不要放宽本值。

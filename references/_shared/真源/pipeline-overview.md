@@ -1,4 +1,4 @@
-> 版本：v2.13.5（自动同步 2026-09-26）
+> 版本：v2.13.6（自动同步 2026-09-26）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -6,7 +6,7 @@
 
 > 🔴 **本文件是全仓唯一承载「流水线全景」的派生视图**（v2.12.54 R-1 收敛）。SKILL.md、README、QUICKSTART、pipeline-readme、设计文档、checkpoint-card、glossary 等文档**已删除全景段，只留指向本文件的指针**——重列即构建期红（flow-check 规则 24；登记真源 = `phase-order.yaml` `panorama_sources`）。
 >
-> 🔴 **流程顺序与阻断关系的唯一真源仍是 [`phase-order.yaml`](phase-order.yaml)**。本文件与 yaml 冲突时**以 yaml 为准**。
+> **流程顺序与阻断关系的唯一真源是 [`phase-order/`](phase-order/) 目录**；[`phase-order.yaml`](phase-order.yaml) 是装配视图（生成物，禁手改）。本文件是派生视图，与真源冲突时以真源为准。
 > **真源与读法（v2.13.5 R-21 增量 2：真源已倒置）**：流程真源 = **`phase-order/` 目录**——[`index.yaml`](phase-order/index.yaml)（跨阶段共用契约 + 别名映射 + **节点路由/顺序**）与 `phase-order/<node-id>.yaml`（24 个节点切片，含 `kind` / `condition` / `next` / `after_each` / `output_chars_max` / `independence_rules` 等全部字段）**共同构成唯一真源**；[`phase-order.yaml`](phase-order.yaml) 是它们的**装配视图（生成物，禁手改）**，保留原路径供 flow-check / 门 S / 既有引用读取。
 > **主控读法**：每进入一个节点前读 **①[索引](phase-order/index.yaml)** + **②该节点切片**，**不必读装配视图全文**（单次运行读取量约 −95%）。装配视图被手改、或改了真源未重生成，均由门 AA（维护者侧生成器 --check）当场判红；**不凭本段文字记忆推进**。
 >
