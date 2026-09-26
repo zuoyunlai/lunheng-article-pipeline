@@ -1183,7 +1183,7 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77380,references/_shared/真源/M-Gate-Algorithm.md|84273,references/_shared/真源/phase-order.yaml|61603,references/_shared/真源/phase-order/index.yaml|24261"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77380,references/_shared/真源/M-Gate-Algorithm.md|84270,references/_shared/真源/phase-order.yaml|61603,references/_shared/真源/phase-order/index.yaml|24261"
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：
 #     · 增量 2 把装配从「YAML 重打」改为「原文逐字拼接」—— 重打会丢行尾注释与作者引号，
 #       实测会静默废掉文本型机械门（D-3 注释 4 处断言 + 5 条按文本注入的反向测试）。
