@@ -74,7 +74,12 @@ cd "$SKILL_ROOT" || exit
 # =========================================================================
 EXPECTED_AGENTS=("00-主控-coordinator.md" "00-主控-扩展职责.md" "01-文献检索-literature-scout.md" "02-数据检索-data-scout.md" "03-案例检索-case-scout.md" "04-分析-analyst.md" "05-写作-writer.md" "06-批判-critical-companion.md" "07-审计-auditor.md" "08-终检-final-inspector.md" "09-审稿-peer-reviewer.md")
 ACTUAL_AGENTS=""
-for f in references/agents/0[0-9]-*; do
+# v2.13.4：glob 改为 `0*-*.md` —— 原 glob（`0[0-9]-*`）会把 sync-version.sh 留在同目录的
+# gitignore 备份 `.bak.<ts>` 当「多出未登记角色卡」判红（实测 2026-09-26 发版时踩到）。
+# ⚠️ 不要收紧成 `0[0-9]-*.md`：那样 `0A-临时卡.md` 这类**真正的未登记角色卡**会被一起放走
+#   （本仓反向注入测试 test_gate_a_still_catches_unregistered_role_card 实测抓到）。
+# 现口径：形如 `0X-*.md` 的一律纳入反向差集；备份名不以 .md 结尾，天然排除。
+for f in references/agents/0*-*.md; do
   [ -e "$f" ] || continue
   ACTUAL_AGENTS="${ACTUAL_AGENTS}$(basename "$f")"$'\n'
 done

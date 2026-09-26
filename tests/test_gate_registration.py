@@ -153,6 +153,28 @@ def test_gate_z_source_uses_pass_plus_fail() -> None:
     )
 
 
+# -------------------------------------- 门 A 备份豁免（v2.13.4 发版实测）
+
+def test_gate_a_ignores_gitignored_backups(repo_copy: pathlib.Path) -> None:
+    """sync-version.sh 会在角色卡目录里留 `.bak.<ts>` 备份（已被 .gitignore 覆盖）；
+    门 A 的 glob 若写成 `0[0-9]-*` 会把这些备份当成「多出未登记角色卡」判红
+    —— 2026-09-26 发版升版本号时实际踩到。"""
+    (repo_copy / "references" / "agents" / "00-主控-coordinator.md.bak.20260926-094600").write_text(
+        "backup\n", encoding="utf-8")
+    _, out = run_gate(repo_copy)
+    line = gate_line(out, "A:")
+    assert line.startswith("✓"), f"备份文件被误判为角色卡：{line}"
+
+
+def test_gate_a_still_catches_unregistered_role_card(repo_copy: pathlib.Path) -> None:
+    """反向：真正的未登记 .md 角色卡仍必须判红（防「只认 .md」的修复过度放宽）。"""
+    (repo_copy / "references" / "agents" / "0A-临时卡.md").write_text("# 临时卡\n", encoding="utf-8")
+    _, out = run_gate(repo_copy)
+    line = gate_line(out, "A:")
+    clean = ANSI.sub("", out)
+    assert line.startswith("✗") or "0A-临时卡.md" in clean, f"未登记角色卡未判红：{line}"
+
+
 # ------------------------------------------------------- R-20 门清单自证（门 0）
 
 def test_gate_zero_reconciles_declared_gates(repo_copy: pathlib.Path) -> None:
