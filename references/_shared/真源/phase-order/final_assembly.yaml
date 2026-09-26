@@ -1,16 +1,16 @@
-# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
-# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
-# 本切片 = 节点 final_assembly（Phase 4.4 后置（定稿组装））的完整定义，读它即可推进该节点。
-id: final_assembly
-phase: Phase 4.4 后置（定稿组装）
-phase_seq: 19
-input: drafts/current_draft.md + data/数据卡.md + final/图件/*.svg（图件存在时用于嵌入）
-kind: mechanical_checkpoint
-verdict_scale: four_tier
-rerun_after_report: true
-owner: 主控
-write_authority: owner
-output: final/定稿.md
-fingerprint: required
-note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。**v2.12.60 图件嵌入**：图件存在时（`input` 含 SVG）必须把每个图位替换为可渲染的 `![图N：标题](图件/图N_标题.svg)`（与定稿同目录相对路径），使**嵌入计数 = 拍板 N**；只留纯文本 `[图N：标题]` = 不合格（口径真源 = deliverables.md「定稿图件口径」）。**v2.12.49 M-1**：产出同步写 `final/定稿.sha256`，下游 T7/T9/G14/T8 报告必填 `audited_artifact.{path,bytes,sha256}` 三元组；T8 终检做 sha256 集合相等断言（与 T7/G14/T9 一致 ⇒ 合格）。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿。**v2.12.43 投稿域 vs 工程域**：本节点**只产投稿版**（纯学术结构），**禁**写入头部工程元数据段与「## 投稿就绪附录」段；工程信息一律由 t8_technical_final 写入 final/交付说明.md。禁入清单真源 = deliverables.md「投稿域 vs 工程域」
-next: t9_review
+# 论衡流程真源 · 第二部分：节点 final_assembly（完整定义，逐字保留原文本）
+# 装配视图 = ../phase-order.yaml（生成物）；校验 = 生成器 --check（门 AA）
+# ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
+- id: final_assembly   # 别名：文档层「Phase 4.4 后置」/ 定稿组装（非独立 Phase 标签，主控呈现时归入 Phase 4）
+  phase: "Phase 4.4 后置（定稿组装）"
+  phase_seq: 19
+  input: drafts/current_draft.md + data/数据卡.md + final/图件/*.svg（图件存在时用于嵌入）
+  kind: mechanical_checkpoint
+  verdict_scale: four_tier   # v2.12.40：组装前置核验结论落四档（当前稿不存在 = 路径或参数错误）
+  rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 当前权威稿已落盘；上游改写后必须重新组装
+  owner: 主控
+  write_authority: owner
+  output: final/定稿.md
+  fingerprint: required   # v2.12.49 M-1：产出后必须写 final/定稿.sha256（主控 read + 主人 host shell 补算 sha256sum 写入）；指纹真源
+  note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。**v2.12.60 图件嵌入**：图件存在时（`input` 含 SVG）必须把每个图位替换为可渲染的 `![图N：标题](图件/图N_标题.svg)`（与定稿同目录相对路径），使**嵌入计数 = 拍板 N**；只留纯文本 `[图N：标题]` = 不合格（口径真源 = deliverables.md「定稿图件口径」）。**v2.12.49 M-1**：产出同步写 `final/定稿.sha256`，下游 T7/T9/G14/T8 报告必填 `audited_artifact.{path,bytes,sha256}` 三元组；T8 终检做 sha256 集合相等断言（与 T7/G14/T9 一致 ⇒ 合格）。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿。**v2.12.43 投稿域 vs 工程域**：本节点**只产投稿版**（纯学术结构），**禁**写入头部工程元数据段与「## 投稿就绪附录」段；工程信息一律由 t8_technical_final 写入 final/交付说明.md。禁入清单真源 = deliverables.md「投稿域 vs 工程域」
+  next: t9_review

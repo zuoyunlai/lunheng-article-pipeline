@@ -1,28 +1,23 @@
-# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
-# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
-# 本切片 = 节点 t5_style_revision（Phase 4.4 前置·风格修订）的完整定义，读它即可推进该节点。
-id: t5_style_revision
-phase: Phase 4.4 前置·风格修订
-phase_seq: 17
-kind: conditional_agent
-verdict_scale: four_tier
-rerun_after_report: true
-agent: T5
-role: T5
-write_authority: executor
-verification_authority: 主控
-on_worker_failure:
-  executor: 主控
-  disclosure: degraded_executor
-  retry_limit: 1
-input: drafts/current_draft.md + audits/G14-检测报告-vN.md
-output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
-condition_undecidable: report_to_owner
-condition: G14_requires_style_revision
-on_not_triggered: record_not_triggered_in_status
-boundary: 仅风格层改动（10 类 AI 痕迹清单）；不得改动论证结构、数据、引用、结论
-style_recheck_rounds_max: 2
-after_each:
-- current_draft_sync
-- rerun_g14_style_recheck
-next: phase4_4_figures
+# 论衡流程真源 · 第二部分：节点 t5_style_revision（完整定义，逐字保留原文本）
+# 装配视图 = ../phase-order.yaml（生成物）；校验 = 生成器 --check（门 AA）
+# ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
+- id: t5_style_revision   # 别名：文档层「Phase 4.4 前置·风格修订」（G14 Fail 的唯一出口）
+  phase: "Phase 4.4 前置·风格修订"
+  phase_seq: 17
+  kind: conditional_agent
+  verdict_scale: four_tier
+  rerun_after_report: true   # 前提 = G14 报告已落盘；必须在报告写入后取数
+  agent: T5
+  role: T5
+  write_authority: executor
+  verification_authority: 主控
+  on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
+  input: drafts/current_draft.md + audits/G14-检测报告-vN.md
+  output: drafts/初稿-v{N+1}.md + drafts/修订说明-v{N+1}.md
+  condition_undecidable: report_to_owner   # v2.12.54 R-6：G14 报告不可读/缺失 ⇒ 呈主人（不得静默按未触发跳过）
+  condition: G14_requires_style_revision   # 命中定义：G14 判定 5+ 类 Fail（其余档位 = 不命中）
+  on_not_triggered: record_not_triggered_in_status
+  boundary: 仅风格层改动（10 类 AI 痕迹清单）；不得改动论证结构、数据、引用、结论
+  style_recheck_rounds_max: 2   # v2.13.0 P0-2：风格修订-复检回环 ≤2 轮（轻量复检 = 全文词表计数严格度档，真源 = gates/14-中文AI痕迹-gate.md §四）；耗尽 ⇒ 主控暂停 + 主人三选一（接受残留 + 交付说明披露 / 破例追加 1 轮 / 主人手工润色，无默认）
+  after_each: [current_draft_sync, rerun_g14_style_recheck]   # P1-3：刷新后重跑轻量 G14 风格复检（动作名，同 rerun_t7；主控亲为、不 spawn）
+  next: phase4_4_figures

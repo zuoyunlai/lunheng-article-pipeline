@@ -28,7 +28,7 @@
 | [`paper-ready-check.py`](paper-ready-check.py) | paper-ready-check.py —— 论衡 v2.12.0 可发表性 48 项检查器 | python3 scripts/paper-ready-check.py <项目名> | — | — |
 | [`paper-ready-check.sh`](paper-ready-check.sh) | paper-ready-check.sh —— 论衡 v2.12.0 可发表性 48 项本地自动检查封装 | — | — | — |
 | [`path-canonical.py`](path-canonical.py) | path-canonical.py — 论衡路径规范化校验器 | python3 scripts/path-canonical.py <base_dir> <target_path> | — | — |
-| [`phase-order-slice.py`](phase-order-slice.py) | phase-order-slice.py — 论衡阶段真源「按节点切片」生成器 | python3 scripts/phase-order-slice.py # 生成/刷新切片 | — | — |
+| [`phase-order-slice.py`](phase-order-slice.py) | phase-order-slice.py — 论衡流程真源「文本保真装配器」 | python3 scripts/phase-order-slice.py # 生成/刷新装配视图 | — | — |
 | [`pkg-integrity.py`](pkg-integrity.py) | pkg-integrity.py — 净化包**正向**完整性校验 | python3 scripts/pkg-integrity.py snapshot <pkg_dir> <snapshot.json> | — | — |
 | [`project_lock.py`](project_lock.py) | 论衡项目锁管理器 | — | — | — |
 | [`publish-clawhub.sh`](publish-clawhub.sh) | publish-clawhub.sh — 论衡 ClawHub 一键发布封装 | bash scripts/publish-clawhub.sh [VERSION] [--yes] | — | — |

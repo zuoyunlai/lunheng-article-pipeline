@@ -1,42 +1,51 @@
-# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
-# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
-# 本切片 = 节点 t9_review（Phase 4.5）的完整定义，读它即可推进该节点。
-id: t9_review
-phase: Phase 4.5
-phase_seq: 20
-kind: advisory_agent
-verdict_scale: four_tier
-fingerprint: required
-audited_artifact_required: true
-input: final/定稿.md
-default: triggered
-opt_out: owner_peer_review_opt_out
-on_opt_out: record_opt_out_in_status
-condition_undecidable: report_to_owner
-blocking: false
-role: T9
-write_authority: owner
-verification_authority: 主控
-independence: blind_review
-independence_rules:
-- 必须 spawn 为**独立子代理**（禁主控代笔；主控只做派发、收报告、落盘拼装）
-- 输入白名单**仅两项**：final/定稿.md + 任务简报「投稿信息」子集（目标期刊 / 栏目 / 字数上限）
-- 禁止读取内部过程材料（读取即独立性违反）：literature/文献卡.md、data/数据卡.md、cases/案例卡.md、 analysis/分析大纲.md、analysis/批判报告-vN.md、audits/G14-检测报告-vN.md、audits/审计报告-vN.md、final/M-Gate-Report-*.json
-- 报告必须含必填字段「独立性声明」（声明未读上述任何材料 + 声明本文为盲审）
-- 评分与判定**不得引用任何内部报告**（引用即报告降为无效，必须重跑）
-- 不得以「参考 T7 的 G1 核验产物」为名回读内部报告（v2.12.40 删除了该旧口径）
-required_report_field: 独立性声明
-independence_failure_policy:
-  on_spawn_failure: retry_spawn_only
-  retry_limit: 2
-  executor_takeover: forbidden
-  forbidden_recovery:
-  - owner_ghostwriting
-  - owner_synthesized_report
-  - digest_existing_internal_reports
-  on_exhausted: record_missing_and_notify_owner
-  status_record: missing_blind_review
-  downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
-output: audits/审稿报告-vN.md
-output_chars_max: 15000
-next: t8_technical_final
+# 论衡流程真源 · 第二部分：节点 t9_review（完整定义，逐字保留原文本）
+# 装配视图 = ../phase-order.yaml（生成物）；校验 = 生成器 --check（门 AA）
+# ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
+- id: t9_review   # 别名：文档层「Phase 4.5」
+  phase: "Phase 4.5"
+  phase_seq: 20
+  kind: advisory_agent
+  verdict_scale: four_tier   # v2.12.40：T9 报告判定落四档
+  fingerprint: required   # v2.12.49 M-1：报告必填 audited_artifact.{path,bytes,sha256}
+  audited_artifact_required: true   # v2.12.49 M-1/M-8：以下游只读档报告必须声明三元组
+  # v2.12.40 业主定案 A2：输入由 `drafts/current_draft.md`（未定稿稿件）改为 **`final/定稿.md`（终稿）**——
+  #   T9 定位为「**终稿落成后模拟投递刊物编辑审稿**」。节点位于 final_assembly 之后，故「终稿落成后」已满足。
+  input: final/定稿.md
+  default: triggered                      # v2.12.54 S-1（Batch A 夹带的最小真源修复）：由 opt-in（owner_peer_review_consent，**全仓无生产方**）改为**默认启用**，写法同 methodology_snapshot
+  opt_out: owner_peer_review_opt_out      # 主人显式 opt-out 的条件键（真源 = condition_definitions）
+  on_opt_out: record_opt_out_in_status    # 主人显式退出 ⇒ 记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）
+  condition_undecidable: report_to_owner  # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认启用继续 + 呈主人，不静默跳过整节点
+  # v2.12.46 口径修正：体裁不再机械门控，公众号亦可由主人显式开启（体裁仅供主人参考、非门控）。
+  # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
+  # 但仍顺序排在 t8 之前，因 T8 终检需读 T9 报告做「T9 建议分流」（minor inline / major 呈主人拍板）。
+  blocking: false
+  role: T9
+  write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
+  verification_authority: 主控
+  # ⚠️ v2.12.55 S-2：本节点**不写** `on_worker_failure`（通用 fallback = 主控接管）——
+  #   盲审在结构上不可能由主控接管：主控已读遍全部内部材料，代笔即独立性归零且**事后不可修复**。
+  #   旧实况（v2.12.54 前）：通用 fallback 与下方 `independence_rules`「禁主控代笔」**两条互斥条款并存**，
+  #   实测被读成「主控代写审稿报告并给出编造精度」。失败处置**唯一出口** = `independence_failure_policy`。
+  # ↓ v2.12.40 业主定案 A2：T9 独立性**硬定义**（不是建议、不得自行放宽）——错一处即报告失效
+  independence: blind_review
+  independence_rules:
+    - 必须 spawn 为**独立子代理**（禁主控代笔；主控只做派发、收报告、落盘拼装）
+    - 输入白名单**仅两项**：final/定稿.md + 任务简报「投稿信息」子集（目标期刊 / 栏目 / 字数上限）
+    - 禁止读取内部过程材料（读取即独立性违反）：literature/文献卡.md、data/数据卡.md、cases/案例卡.md、
+      analysis/分析大纲.md、analysis/批判报告-vN.md、audits/G14-检测报告-vN.md、audits/审计报告-vN.md、final/M-Gate-Report-*.json
+    - 报告必须含必填字段「独立性声明」（声明未读上述任何材料 + 声明本文为盲审）
+    - 评分与判定**不得引用任何内部报告**（引用即报告降为无效，必须重跑）
+    - 不得以「参考 T7 的 G1 核验产物」为名回读内部报告（v2.12.40 删除了该旧口径）
+  required_report_field: 独立性声明
+  # ⚠️ v2.12.55 S-2：盲审失败处置的**唯一出口** —— 只能重试 spawn，禁主控代笔（与上条互斥条款一并删除）。
+  independence_failure_policy:
+    on_spawn_failure: retry_spawn_only        # 唯一合法恢复动作 = 重新 spawn 独立子代理（可同时换 provider 族 / 能力档）
+    retry_limit: 2                            # 可调（主人可上调）；**不得**降为 0 后改由主控代笔
+    executor_takeover: forbidden              # 禁主控代笔：主控已读全部内部材料，代笔 = 盲审失效
+    forbidden_recovery: [owner_ghostwriting, owner_synthesized_report, digest_existing_internal_reports]
+    on_exhausted: record_missing_and_notify_owner   # 重试仍失败 ⇒ 记为缺失 + 显式告知主人
+    status_record: missing_blind_review       # status.md 记 missing_blind_review（**不得**记 Done / accepted）
+    downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
+  output: audits/审稿报告-vN.md
+  output_chars_max: 15000
+  next: t8_technical_final

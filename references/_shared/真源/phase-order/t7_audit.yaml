@@ -1,19 +1,16 @@
-# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
-# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
-# 本切片 = 节点 t7_audit（Phase 4）的完整定义，读它即可推进该节点。
-id: t7_audit
-phase: Phase 4
-phase_seq: 12
-kind: agent
-agent: T7
-role: T7
-write_authority: owner
-verification_authority: 主控
-on_worker_failure:
-  executor: 主控
-  disclosure: degraded_executor
-  retry_limit: 1
-input: drafts/current_draft.md
-output: audits/审计报告-vN.md
-output_chars_max: 10000
-next: audit_revision
+# 论衡流程真源 · 第二部分：节点 t7_audit（完整定义，逐字保留原文本）
+# 装配视图 = ../phase-order.yaml（生成物）；校验 = 生成器 --check（门 AA）
+# ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
+- id: t7_audit
+  phase: "Phase 4"
+  phase_seq: 12
+  kind: agent
+  agent: T7
+  role: T7
+  write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
+  verification_authority: 主控
+  on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
+  input: drafts/current_draft.md
+  output: audits/审计报告-vN.md
+  output_chars_max: 10000
+  next: audit_revision

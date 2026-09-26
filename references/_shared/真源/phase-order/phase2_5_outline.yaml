@@ -1,15 +1,12 @@
-# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
-# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
-# 本切片 = 节点 phase2_5_outline（Phase 2.5）的完整定义，读它即可推进该节点。
-id: phase2_5_outline
-phase: Phase 2.5
-phase_seq: 6
-kind: owner_checkpoint
-blocking: true
-owner_visible: true
-decisions:
-- approved
-- revision_requested
-- restart_phase
-timeout_fallback: pending_owner_halt
-next: t5_draft_v1
+# 论衡流程真源 · 第二部分：节点 phase2_5_outline（完整定义，逐字保留原文本）
+# 装配视图 = ../phase-order.yaml（生成物）；校验 = 生成器 --check（门 AA）
+# ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
+- id: phase2_5_outline
+  phase: "Phase 2.5"
+  phase_seq: 6
+  kind: owner_checkpoint
+  blocking: true        # v2.12.49：无明确决策不得推进（改方向成本最低的关卡，尤其不得自动放行）
+  owner_visible: true
+  decisions: [approved, revision_requested, restart_phase]
+  timeout_fallback: pending_owner_halt
+  next: t5_draft_v1

@@ -1148,7 +1148,14 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77389,references/_shared/真源/M-Gate-Algorithm.md|84273,references/_shared/真源/phase-order.yaml|61559,references/_shared/真源/phase-order/index.yaml|11196"   # v2.13.5：本文件随 R-21 引入，基线 = 引入时实测值（不是放宽既有上限）
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|77380,references/_shared/真源/M-Gate-Algorithm.md|84273,references/_shared/真源/phase-order.yaml|61603,references/_shared/真源/phase-order/index.yaml|24261"
+#   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：
+#     · 增量 2 把装配从「YAML 重打」改为「原文逐字拼接」—— 重打会丢行尾注释与作者引号，
+#       实测会静默废掉文本型机械门（D-3 注释 4 处断言 + 5 条按文本注入的反向测试）。
+#     · 故 phase-order.yaml 回涨到 61,626 B（= 历史真源 61,559 B + 装配头 2 行）；这不是新增内容，
+#       而是把上游本就存在的文本还原回来。index.yaml 24,267 B 则承载契约段原文（含 144 行注释）。
+#     · 家族合计 85,893 B > 倒置前 61,559 B：真源被拆成「索引 + 装配」两份共存；代价换来的收益是
+#       运行期读取量 —— 旧协议每进一个 Phase 重读全量（≈61.6 KB × 24），新协议 index 读一次 + 逐节点切片。
 # ⚠️ v2.13.2 缩容备案（HITL 呈现/恢复协议 · 主动下调，非扩容）：00-主控-扩展职责.md 77629→77392（−237 B）。
 #   本轮新增「等待期体验与运行期留痕」运行纪律（规则 50 载体），同时把 §二十一 的「无应答兜底」长句
 #   与概览行压缩为指针/短句（真源 = phase-order.yaml owner_timeout_policy，本卡不重列）。净值为**减少**，
@@ -1360,17 +1367,20 @@ fi
 #   语义：软门（warn 级，不计 exit code）；项数只许降 —— 加门前先合并/退役旧门，
 #   治「规则的规则」内卷。检查的是门 A-X 的项数（不含门 Z 自身）。
 # =============================================================================
-# 门 AA：phase-order 派生切片 vs 真源一致性（v2.13.5，审计修订 R-21）
-#   背景：主控读法由「每进一个 Phase 必读真源全文（41,262 字符）」改为「派生索引 +
-#     当前节点切片」（≈ −70% 读取量）。代价是引入派生视图 —— 而**漂移的切片比没有切片
-#     更危险**（主控会照着一份过时判据推进）。故用逐字节校验把派生视图钉死在真源上。
-#   判据：scripts/phase-order-slice.py --check；任何差异 / 缺失 / 多余即红。
+# 门 AA：流程真源 vs 装配视图一致性（v2.13.5，审计修订 R-21 增量 2）
+#   布局（倒置后）：真源 = 真源/phase-order/ 目录（index.yaml 契约 + 路由，24 个节点切片）；
+#     真源/phase-order.yaml = **装配视图（生成物）**，保留原路径供 flow-check / 门 S /
+#     既有引用继续读取（只倒置作者权，不动消费路径）。
+#   为什么必须逐字节校验：**漂移的装配视图比没有视图更危险** —— 主控与 flow-check
+#     会照着一份过时判据推进。手改生成物、改切片未重生成、孤儿切片、路由与正文不一致
+#     四类都要在提交前当场判红。
+#   判据：维护者侧生成器 --check；任何差异 / 缺失 / 多余即红。
 # =============================================================================
 if [ -f scripts/phase-order-slice.py ] && command -v python3 >/dev/null 2>&1; then
   if GATE_AA_OUT="$(python3 scripts/phase-order-slice.py --check 2>&1)"; then
-    pass "门 AA: phase-order 切片与真源逐字节一致"
+    pass "门 AA: 流程真源装配视图与切片真源逐字节一致"
   else
-    fail "门 AA: phase-order 切片漂移" "$(printf '%s' "$GATE_AA_OUT" | tail -3 | tr '\n' '|')"
+    fail "门 AA: 装配视图与流程真源不一致（手改生成物 / 改真源未重生成）" "$(printf '%s' "$GATE_AA_OUT" | tail -3 | tr '\n' '|')"
   fi
 else
   if [ ! -f scripts/phase-order-slice.py ]; then

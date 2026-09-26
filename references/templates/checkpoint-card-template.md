@@ -153,7 +153,7 @@
 
 ## plan 标签真源纪律（v2.12.28 新增）
 
-> ⚠️ **plan / 进度标签必须取自 [`phase-order.yaml`](../_shared/真源/phase-order.yaml) 的「别名映射」表 —— 主控不得自创标签。**
+> ⚠️ **plan / 进度标签必须取自 [`phase-order/index.yaml`](../_shared/真源/phase-order/index.yaml) 的「别名映射」表（真源第一部分；装配视图同内容）—— 主控不得自创标签。**
 >
 > - **无文档层编号的节点**：要么在 yaml 补编号（由维护者定），要么**不进 plan**；**不得**套用其他节点的编号。
 > - **反面实例（2026-09-11 实测）**：`t5_feedback_revision` 当时无编号 → 主控把它标成「Phase 4.2」（实为 `audit_revision` 的别名）→ 主控据此按 `audit_revision.next` 推进 → **整段跳过 `t7_audit`（Phase 4 T7 审计）**，论文在无审计状态下交付。

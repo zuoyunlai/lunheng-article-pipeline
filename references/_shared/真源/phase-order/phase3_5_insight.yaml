@@ -1,14 +1,12 @@
-# ⚠️ 派生视图 —— 禁止手改（改真源后由切片生成器重新生成）
-# 唯一真源 = ../phase-order.yaml；一致性由生成器 --check 校验
-# 本切片 = 节点 phase3_5_insight（Phase 3.5）的完整定义，读它即可推进该节点。
-id: phase3_5_insight
-phase: Phase 3.5
-phase_seq: 8
-kind: owner_checkpoint
-blocking: true
-owner_visible: true
-decisions:
-- insight
-- no_insight
-timeout_fallback: pending_owner_halt
-next: current_draft_sync
+# 论衡流程真源 · 第二部分：节点 phase3_5_insight（完整定义，逐字保留原文本）
+# 装配视图 = ../phase-order.yaml（生成物）；校验 = 生成器 --check（门 AA）
+# ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
+- id: phase3_5_insight
+  phase: "Phase 3.5"
+  phase_seq: 8
+  kind: owner_checkpoint
+  blocking: true        # v2.12.49：「无补充」也是决策，必须留痕；静默不得当作无补充
+  owner_visible: true
+  decisions: [insight, no_insight]
+  timeout_fallback: pending_owner_halt
+  next: current_draft_sync

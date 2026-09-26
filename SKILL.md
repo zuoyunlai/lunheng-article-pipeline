@@ -97,7 +97,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 ## 单源指针与派发索引
 
-> 🔴 **唯一真源**：流程顺序与阻断关系以 [`phase-order.yaml`](references/_shared/真源/phase-order.yaml) 为准——读法：索引+节点切片（`references/_shared/真源/phase-order/index.yaml`）；本文件与 [`pipeline-overview.md`](references/_shared/真源/pipeline-overview.md) 均为派生视图，冲突时以 yaml 为准。
+> 🔴 **唯一真源**：流程顺序与阻断关系 = [`phase-order/`](references/_shared/真源/phase-order/index.yaml)；[`phase-order.yaml`](references/_shared/真源/phase-order.yaml) 是它的**装配视图（生成物，禁手改）**；本文件与 [`pipeline-overview.md`](references/_shared/真源/pipeline-overview.md) 均为派生视图。
 
 | 需要什么 | 去哪读 |
 |---|---|
