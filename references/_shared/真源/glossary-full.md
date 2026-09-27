@@ -1,4 +1,4 @@
-> 版本：v2.14.1（自动同步 2026-09-27）
+> 版本：v2.14.2（自动同步 2026-09-27）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -97,18 +97,18 @@
   - ✅ **主控 LLM 推理判定**：主控用 `read` 读取算法文档，按伪代码**推理**判定
   - ❌ **不执行 shell**：算法中的 `sha256sum` 等命令仅供人类手动验证
 - **覆盖范围**：13 项检查（M-Form 8 项 + M-Exist 3 项 + M-Integrity 2 项）
-- **T8 兜底复跑**：**11 项**（M-Form 8 + M-Exist 3）；M-Integrity-1/2 锁定在 T2.5 / T7.5 闸门，不回退复跑（真源 = `M-Gate-Algorithm.md`）
-- **单一真源**：`references/_shared/真源/M-Gate-Algorithm.md`（🟠 分片必读：伪代码段必读 / 附录按需 → `M-Gate-Algorithm-appendix.md`）
+- **T8 兜底复跑**：**11 项**（M-Form 8 + M-Exist 3）；M-Integrity-1/2 锁定在 T2.5 / T7.5 闸门，不回退复跑（真源 = `M-Gate-核心.md`）
+- **单一真源**：`references/_shared/真源/M-Gate-核心.md`（🟠 分片必读：伪代码段必读 / 附录按需 → `M-Gate-Algorithm-appendix.md`）
 
 ### 子节点闸门（T2.5 / T7.5 / T8.5）
 
 | 节点 | 定义 | 触发点 | 真源 |
 |------|------|--------|------|
-| **T2.5** | 数据卡完整性门（M-Integrity-1）：数据条目数 ≥ 任务简报需求数 + 信任级别完整 | T2 数据检索 → T4 分析前（主控机械 checkpoint） | `M-Gate-Algorithm.md` § M-Integrity-1 |
-| **T7.5** | 引用完整性门（M-Integrity-2）：审计最新版 + P0/P1 清单 + M 门全 exit 0 + 论文/报告隔离 + 修订轮独立写手 | T7 审计 → T8 终检前（主控机械 checkpoint） | `M-Gate-Algorithm.md` § M-Integrity-2 |
+| **T2.5** | 数据卡完整性门（M-Integrity-1）：数据条目数 ≥ 任务简报需求数 + 信任级别完整 | T2 数据检索 → T4 分析前（主控机械 checkpoint） | `M-Gate-核心.md` § M-Integrity-1 |
+| **T7.5** | 引用完整性门（M-Integrity-2）：审计最新版 + P0/P1 清单 + M 门全 exit 0 + 论文/报告隔离 + 修订轮独立写手 | T7 审计 → T8 终检前（主控机械 checkpoint） | `M-Gate-核心.md` § M-Integrity-2 |
 | **T8.5** | 外发许可 / 流水线终结标记：T8 终检通过 + 主人 Phase 5 签字 → T8.5 GRANTED | Phase 5 主人验收后 | `agents/08-终检-final-inspector.md` |
 
-> **步数以伪代码为准**：T2.5 / T7.5 的闸门步数随算法版本变化，一律以 `M-Gate-Algorithm.md` 伪代码为准，本文件不复述。
+> **步数以伪代码为准**：T2.5 / T7.5 的闸门步数随算法版本变化，一律以 `M-Gate-核心.md` 伪代码为准，本文件不复述。
 
 ### F 模式（失败模式清单）
 - **性质**：面向用户的叙事层，解释"为什么要这么做"

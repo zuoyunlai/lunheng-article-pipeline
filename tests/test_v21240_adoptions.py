@@ -23,7 +23,7 @@ import yaml
 
 ROOT = pathlib.Path(__file__).parent.parent
 PHASE_ORDER = ROOT / "references" / "_shared" / "真源" / "phase-order.yaml"
-MGATE = ROOT / "references" / "_shared" / "真源" / "M-Gate-Algorithm.md"
+MGATE = ROOT / "references" / "_shared" / "真源" / "M-Gate-核心.md"
 MGATE_APPENDIX = ROOT / "references" / "_shared" / "真源" / "M-Gate-Algorithm-appendix.md"
 PROTOCOL = ROOT / "references" / "_shared" / "真源" / "关键协议.md"
 PATH_SPEC = ROOT / "references" / "_shared" / "真源" / "路径校验规范.md"

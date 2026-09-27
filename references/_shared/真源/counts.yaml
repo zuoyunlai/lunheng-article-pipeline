@@ -39,7 +39,7 @@ t8_publishable_dimensions: 6
 # T9 同行评审维度（真源：references/dispatch/T9-同行评审.md）
 t9_dimensions: 6
 
-# M 门项数（真源：references/_shared/真源/M-Gate-Algorithm.md）
+# M 门项数（真源：references/_shared/真源/M-Gate-核心.md）
 m_gate_items:
   form: 8
   exist: 3

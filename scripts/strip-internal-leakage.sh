@@ -262,7 +262,7 @@ for line in lines:
     # 口径（审计 D-a ①）：语义化改写为「维护者机制机械校验」，**不裸露规则编号**；
     #   短形态残留由 FINAL_PATTERNS 兜底（产物侧命中即 fail-loud）。
     # 注：`门 M` / `门 C` / `门 S` 等**不**中性化——它们是使用者侧可读的核心机制名，
-    #   由交付物正文（M-Gate-Algorithm.md 等）自解释（审计 R-43 已就此逐条核对）。
+    #   由交付物正文（M-Gate-核心.md 等）自解释（审计 R-43 已就此逐条核对）。
     line = re.sub(r'flow-check\s*规则\s*\d+(?:\s*[/、]\s*\d+)*', '维护者机制', line)
     line = line.replace('flow-check', '维护者校验')
     line = line.replace('构建期红', '构建期校验不通过')

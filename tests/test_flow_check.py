@@ -555,7 +555,7 @@ def test_m3_counting_uses_band_not_exact():
 def test_m5_p2_quantitative_anchors_declared():
     """M-5：字数判定表 §二 + M-Gate-Algorithm §🎯 必须同时声明 P2 量化锚点（3 倍 / 1.5 倍 / 累积升级）。"""
     wz = (ROOT / "references/_shared/真源/字数判定表.md").read_text(encoding="utf-8")
-    mgate = (ROOT / "references/_shared/真源/M-Gate-Algorithm.md").read_text(encoding="utf-8")
+    mgate = (ROOT / "references/_shared/真源/M-Gate-核心.md").read_text(encoding="utf-8")
     assert "实测 > 3 倍" in wz and "1.5 倍" in wz, "字数判定表 §二 缺 M-5 P2 量化锚点"
     assert "P2 ≥ 3 项" in mgate and "形态类瑕疵" in mgate, "M-Gate §🎯 缺 M-5 P2 量化锚点"
 
@@ -784,7 +784,7 @@ def test_t8_citation_style_unified():
     d = (ROOT / "references/deliverables.md").read_text(encoding="utf-8")
     assert "引用体例单一化" in d, "deliverables 缺 T-8 段"
     assert "两套体例并存" in d, "deliverables 缺「禁止两套体例并存」铁律"
-    g = (ROOT / "references/_shared/真源/M-Gate-Algorithm.md").read_text(encoding="utf-8")
+    g = (ROOT / "references/_shared/真源/M-Gate-核心.md").read_text(encoding="utf-8")
     assert "引用体例层" in g, "M-Gate-Exist-1 缺引用体例层校验（T-8）"
 
 

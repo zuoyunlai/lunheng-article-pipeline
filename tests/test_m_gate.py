@@ -25,7 +25,7 @@ from pathlib import Path
 
 # 测试配置
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-ALGORITHM_FILE = Path(__file__).parent.parent / "references" / "_shared" / "真源" / "M-Gate-Algorithm.md"
+ALGORITHM_FILE = Path(__file__).parent.parent / "references" / "_shared" / "真源" / "M-Gate-核心.md"
 
 # 加载 M 门算法文档
 with open(ALGORITHM_FILE) as f:
@@ -33,7 +33,7 @@ with open(ALGORITHM_FILE) as f:
 
 # =============================================================================
 # M-Form-1 统一引用编号正则（v2.12.56 M-3）
-# 唯一真源 = M-Gate-Algorithm.md §统一抽取规则真源 B（CITATION_NUMBER_RE）。
+# 唯一真源 = M-Gate-核心.md §统一抽取规则真源 B（CITATION_NUMBER_RE）。
 # 此处为**断言镜像**：本模块另有一条断言校验该常量名在文档中存在（防文档/测试两处各写一份）。
 # 覆盖三类格式：① 标准 [D01]/[C-主01] ② 基线 [D-基-R-01] ③ 表格 [1.1]
 # =============================================================================

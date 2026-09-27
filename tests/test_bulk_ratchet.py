@@ -25,7 +25,7 @@ LESSONS_FIXTURE = ROOT / "tests" / "fixtures" / "lessons-gate.md"
 
 BULK_FILES = (
     "references/agents/00-主控-扩展职责.md",
-    "references/_shared/真源/M-Gate-Algorithm.md",
+    "references/_shared/真源/M-Gate-核心.md",
     "references/_shared/真源/phase-order.yaml",
     # v2.13.5（R-21）：派生索引随读法改造成为「每进一个 Phase 前必读」，纳入棘轮
     "references/_shared/真源/phase-order/index.yaml",

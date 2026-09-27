@@ -326,10 +326,10 @@ def main():
         errs.append(f'以下节点必须声明 audited_artifact_required: true（M-8）：{missing}')
 
     # 16 计数类档位真源 + P2 量化锚点（v2.12.49 M-3 + M-5）：
-    #    M-Gate-Algorithm.md 与 字数判定表.md 是计数档位 + P2 量化锚点定义的双真源。
+    #    M-Gate-核心.md 与 字数判定表.md 是计数档位 + P2 量化锚点定义的双真源。
     #    机械门锁死两个文件必须同时声明 v2.12.49 新段（防其中一份走散文被另一个被丢）。
     m3_m5_required = [
-        ('references/_shared/真源/M-Gate-Algorithm.md',
+        ('references/_shared/真源/M-Gate-核心.md',
          '## 🎯 计数类档位真源 + P2 量化锚点'),
         ('references/_shared/真源/字数判定表.md',
          '实测 > 3 倍'),
@@ -460,7 +460,7 @@ def main():
         errs.append('methodology_snapshot 未改为「默认 triggered + opt_out」（T-6）')
     if '引用体例单一化' not in deliv_text:
         errs.append('deliverables.md 缺 T-8 引用体例单一化段')
-    m_exist_text = (_R / 'references/_shared/真源/M-Gate-Algorithm.md').read_text(encoding='utf-8')
+    m_exist_text = (_R / 'references/_shared/真源/M-Gate-核心.md').read_text(encoding='utf-8')
     if '引用体例层' not in m_exist_text:
         errs.append('M-Gate-Algorithm 缺 M-Exist-1 引用体例层校验（T-8）')
 

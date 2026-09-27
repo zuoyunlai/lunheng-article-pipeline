@@ -1,4 +1,4 @@
-> 版本：v2.14.1（自动同步 2026-09-27）
+> 版本：v2.14.2（自动同步 2026-09-27）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -75,7 +75,7 @@
 | 配图 + 写手禁做 + 成本模型 | [`operations.md`](../../operations.md) | Phase 4.4 |
 | 证据检索边界（能/不能主动采集，判断口诀「这是已发布证据吗」）| [`phase-1-details.md`](phase-1-details.md)「检索边界」| Phase 1 |
 | G0-G17 审计详解 | [`audit-checklist-quickref.md`](audit-checklist-quickref.md) | Phase 4 |
-| M 门算法完整规约 | [`M-Gate-Algorithm.md`](M-Gate-Algorithm.md)（🟠 分片必读：伪代码段必读 / 附录按需 → [`M-Gate-Algorithm-appendix.md`](M-Gate-Algorithm-appendix.md)）| 跑 M 门前 + T8 终检前 |
+| M 门算法完整规约 | [`M-Gate-核心.md`](M-Gate-核心.md)（🟠 分片必读：伪代码段必读 / 附录按需 → [`M-Gate-Algorithm-appendix.md`](M-Gate-Algorithm-appendix.md)）| 跑 M 门前 + T8 终检前 |
 | 实战案例库（商业热点 / 品牌一致性 / 原创性悖论）| [`case-studies.md`](../../case-studies.md) | 参考 |
 
 ---

@@ -60,6 +60,8 @@ CHECKS=(
 
   # 共享协议
   "_shared/真源/M-Gate-Algorithm.md|v$EXPECTED|1"
+  "_shared/真源/M-Gate-核心.md|v$EXPECTED|1"
+  "_shared/真源/M-Gate-背景.md|v$EXPECTED|1"
   "_shared/真源/M-Gate-Algorithm-appendix.md|v$EXPECTED|1"
   "_shared/真源/audit-checklist-quickref.md|v$EXPECTED|1"
 

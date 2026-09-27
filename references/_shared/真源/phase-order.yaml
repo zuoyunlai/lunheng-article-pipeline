@@ -45,10 +45,10 @@
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 
-version: 2.14.1
+version: 2.14.2
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
-#   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-Algorithm.md §判定结果分档）。
+#   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-核心.md §判定结果分档）。
 #   关键纪律：`路径或参数错误` 与 `无法判定` 均**不触发内容修订轮**——前者修路径/参数后重跑，
 #   后者补证据或在人环裁决后重跑。把「产物不存在」当内容缺陷会白烧一轮修订。
 # v2.12.40 修 P0-1：原写法把档位表直接挂在 `verdict_scale.tiers`，而节点引用的是**名称** `four_tier`

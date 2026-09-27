@@ -172,6 +172,8 @@ VERSION_FILES=(
   "references/agents/09-审稿-peer-reviewer.md"
   "references/agents/09b-压力测试-owner.md"
   "references/_shared/真源/M-Gate-Algorithm.md"
+  "references/_shared/真源/M-Gate-核心.md"
+  "references/_shared/真源/M-Gate-背景.md"
   "references/_shared/真源/M-Gate-Algorithm-appendix.md"
   "references/_shared/真源/audit-checklist-quickref.md"
   "references/_shared/真源/failure-modes.md"
@@ -285,10 +287,10 @@ fi
 # =============================================================================
 # 门 F：M 门「机械化」诚实化（v2.5.5 P0-2 教训，v2.5.6 修正）
 # =============================================================================
-# M-Gate-Algorithm.md 头部必明示「LLM 推理判定，非机器强制」
+# M-Gate-核心.md 头部必明示「LLM 推理判定，非机器强制」
 M_GATE_MISSING=""
-if ! grep -qE 'M 门.*LLM 推理|LLM 推理判定.*M 门' references/_shared/真源/M-Gate-Algorithm.md 2>/dev/null; then
-  M_GATE_MISSING="[M-Gate-Algorithm.md 缺诚实声明]"
+if ! grep -qE 'M 门.*LLM 推理|LLM 推理判定.*M 门' references/_shared/真源/M-Gate-核心.md 2>/dev/null; then
+  M_GATE_MISSING="[M-Gate-核心.md 缺诚实声明]"
 fi
 if [ -z "$M_GATE_MISSING" ]; then
   pass "门 F: M 门「机械化」诚实声明（v2.5.6 P0-2 修正）"
@@ -496,7 +498,7 @@ fi
 VERIFY_SCOPE_FAIL=""
 # 核验范围文件清单：M 门 + T6/T7 dispatch
 VERIFY_SCOPE_FILES=(
-  "references/_shared/真源/M-Gate-Algorithm.md:M-Gate算法"
+  "references/_shared/真源/M-Gate-核心.md:M-Gate算法"
   "references/dispatch/T6-批判.md:T6"
   "references/dispatch/T7-审计.md:T7"
 )
@@ -582,7 +584,7 @@ fi
 # -----------------------------------------------------------------------------
 # 背景（v2.5.22 主人核查发现）：
 #   M 门是论衡三大防线之首，13 项规则（M-Form×8 / M-Exist×3 / M-Integrity×2）
-#   描述在 references/_shared/真源/M-Gate-Algorithm.md。但门 F 只检查"LLM 推理诚实
+#   描述在 references/_shared/真源/M-Gate-核心.md。但门 F 只检查"LLM 推理诚实
 #   声明"，不检查算法自身一致性也不检查应用文档是否同步。教训 #187 同型。
 #
 #   更严重：M-Gate-Report JSON 产出 = LLM 主动 write，零触发器保证——实战中
@@ -599,9 +601,9 @@ fi
 GATE_L_FAIL=""
 
 # --- L.1：算法文档实际定义的 M-Form/M-Exist/M-Integrity 项数 ---
-M_FORM_DEFINED=$(grep -cE '^### M-Form-[0-9]+:' references/_shared/真源/M-Gate-Algorithm.md 2>/dev/null)
-M_EXIST_DEFINED=$(grep -cE '^### M-Exist-[0-9]+:' references/_shared/真源/M-Gate-Algorithm.md 2>/dev/null)
-M_INTEGRITY_DEFINED=$(grep -cE '^### M-Integrity-[0-9]+:' references/_shared/真源/M-Gate-Algorithm.md 2>/dev/null)
+M_FORM_DEFINED=$(grep -cE '^### M-Form-[0-9]+:' references/_shared/真源/M-Gate-核心.md 2>/dev/null)
+M_EXIST_DEFINED=$(grep -cE '^### M-Exist-[0-9]+:' references/_shared/真源/M-Gate-核心.md 2>/dev/null)
+M_INTEGRITY_DEFINED=$(grep -cE '^### M-Integrity-[0-9]+:' references/_shared/真源/M-Gate-核心.md 2>/dev/null)
 
 # --- L.2：跨文档项数描述一致性（deliverables.md / 主控扩责 / status-template）---
 # 期望表述：「M-Form N 项」「M-Exist N 项」中 N 与算法文档匹配。
@@ -1205,7 +1207,7 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|78065,references/_shared/真源/M-Gate-Algorithm.md|84270,references/_shared/真源/phase-order.yaml|63269,references/_shared/真源/phase-order/index.yaml|24553"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|78038,references/_shared/真源/M-Gate-核心.md|78367,references/_shared/真源/phase-order.yaml|63266,references/_shared/真源/phase-order/index.yaml|24550"
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：
 #     · 增量 2 把装配从「YAML 重打」改为「原文逐字拼接」—— 重打会丢行尾注释与作者引号，
 #       实测会静默废掉文本型机械门（D-3 注释 4 处断言 + 5 条按文本注入的反向测试）。
@@ -1294,30 +1296,30 @@ fi
 
 # =============================================================================
 # 门 X：Markdown 围栏相位 + 声明式锚点 + 伪 H1（v2.12.58 新增，教训 #424/#426）
-#   历史教训：references/_shared/真源/M-Gate-Algorithm.md 曾有 2 个 M 门标题
+#   历史教训：references/_shared/真源/M-Gate-核心.md 曾有 2 个 M 门标题
 #   (M-Exist-3 / M-Integrity-1) 被裹进代码围栏，7 行伪代码注释落到块外被
 #   渲染为文档 H1；根因是围栏配对错位。
 #   判据扩围（教训 #427）：原 X.1/X.2 只锚 M-Gate 单文件 ⇒ 同类缺陷在其余文档
 #   长期漏检；改为「全仓 X.4 + 声明式锚点表 X.2」后立即抓到第二例同类缺陷
 #   （references/pipeline-readme.md 7 个围栏 = 未闭合 ⇒ 尾部 57 行被吞）。
-#     X.1  M-Gate-Algorithm.md 围栏总数为偶数（错位会变奇数）
+#     X.1  M-Gate-核心.md 围栏总数为偶数（错位会变奇数）
 #     X.2  **声明式锚点表**：每项「文件 → 锚点正则」的锚点必须全部在围栏外
 #          （新增锚点 = 加一行；锚点改名须同批改本表）
 #     X.3  全仓：围栏外「紧跟围栏且首字符为 #」的伪 H1 = 0
 #     X.4  全仓 .md 围栏总数均为偶数（未闭合围栏 = 尾部整块被吞）
 # =============================================================================
-MGATE=references/_shared/真源/M-Gate-Algorithm.md
+MGATE=references/_shared/真源/M-Gate-核心.md
 if [ -f "$MGATE" ]; then
   # X.1：围栏总数偶数
   FENCE_COUNT=$(grep -cE '^[[:space:]]*(`{3,}|~{3,})' "$MGATE" 2>/dev/null || echo 0)
   if [ $((FENCE_COUNT % 2)) -eq 0 ]; then
-    pass "门 X.1: M-Gate-Algorithm.md 围栏总数偶数（$FENCE_COUNT 个）"
+    pass "门 X.1: M-Gate-核心.md 围栏总数偶数（$FENCE_COUNT 个）"
   else
-    fail "门 X.1: M-Gate-Algorithm.md 围栏总数为奇数" "$FENCE_COUNT 个，疑似配对错位"
+    fail "门 X.1: M-Gate-核心.md 围栏总数为奇数" "$FENCE_COUNT 个，疑似配对错位"
   fi
 
 else
-  skip "门 X.1: 围栏总数偶数" "M-Gate-Algorithm.md 不存在，本轮未执行"
+  skip "门 X.1: 围栏总数偶数" "M-Gate-核心.md 不存在，本轮未执行"
 fi
 
 # X.2：声明式语义锚点表（v2.12.58 起；教训 #427）
@@ -1329,7 +1331,7 @@ fi
 #   （v2.12.58 实测：截断后正则失效 ⇒ 本门变空转绿灯；变异单测把它抓了出来）。
 #   配套「正向样本」自检：每个锚点正则必须至少命中 1 行，否则判失效（同族教训 #334/#421）。
 ANCHOR_TABLE=(
-  "references/_shared/真源/M-Gate-Algorithm.md@@^#{2,4}[[:space:]]+M-(Form|Exist|Integrity)-[0-9]+:@@13 个 M 门标题（8 Form + 3 Exist + 2 Integrity）"
+  "references/_shared/真源/M-Gate-核心.md@@^#{2,4}[[:space:]]+M-(Form|Exist|Integrity)-[0-9]+:@@13 个 M 门标题（8 Form + 3 Exist + 2 Integrity）"
   "references/pipeline-readme.md@@^##[[:space:]]+(全景与阶段顺序|status\.md 状态机|模板加载策略|设计文档加载策略)@@4 个章节锚点"
 )
 ANCHOR_INSIDE=""

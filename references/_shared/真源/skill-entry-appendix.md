@@ -1,4 +1,4 @@
-> 版本：v2.14.1（自动同步 2026-09-27）
+> 版本：v2.14.2（自动同步 2026-09-27）
 
 # SKILL.md 外移附录（入口文档瘦身用）
 
@@ -38,7 +38,7 @@
 | 1 | `references/pipeline-readme.md`（入口）| 🔴 |
 | 1 | `references/_shared/真源/glossary-full.md`（入口）| 🔴 |
 | 2 | `references/_shared/真源/phase-order/` 目录（流程顺序与阻断关系**唯一真源**，含 `index.yaml` + 25 节点切片；`phase-order.yaml` 为装配视图）| 🔴 |
-| 2 | `references/_shared/真源/M-Gate-Algorithm.md`（M-Form/M-Exist/M-Integrity 伪代码段**逐段必读**；「分片」只为省 token，**不表示跳读**）| 🟠 |
+| 2 | `references/_shared/真源/M-Gate-核心.md`（M-Form/M-Exist/M-Integrity 伪代码段**逐段必读**；「分片」只为省 token，**不表示跳读**）| 🟠 |
 
 ---
 
@@ -65,6 +65,6 @@
 |---|---|
 | 安全须知 / 外部服务声明 / 隐私与外发 | [`external-services.md`](external-services.md) |
 | 字数分层 / 字数判定（单一口径：仅正文） | [`字数判定表.md`](字数判定表.md) |
-| M 门算法（🟠 分片：伪代码必读 / 附录按需）| [`M-Gate-Algorithm.md`](M-Gate-Algorithm.md) + [附录](M-Gate-Algorithm-appendix.md) |
+| M 门算法（🟠 分片：伪代码必读 / 附录按需）| [`M-Gate-核心.md`](M-Gate-核心.md) + [附录](M-Gate-Algorithm-appendix.md) |
 | 交付边界 / F1-F9 失败模式 / 阶段闸门 | [`deliverables.md`](../../deliverables.md) |
 | 模型 5 档候选池 + 运行手册 | [`model-assignment.md`](../../model-assignment.md) / [`pipeline-readme.md`](../../pipeline-readme.md) |

@@ -35,7 +35,7 @@ SKILL = ROOT / "SKILL.md"
 SKILL_APPENDIX = ROOT / "references" / "_shared" / "真源" / "skill-entry-appendix.md"
 DH = ROOT / "references/_shared/真源/dispatch-header.md"
 PERM = ROOT / "references/permissions.md"
-MGATE = ROOT / "references/_shared/真源/M-Gate-Algorithm.md"
+MGATE = ROOT / "references/_shared/真源/M-Gate-核心.md"
 COORD = ROOT / "references/agents/00-主控-扩展职责.md"
 
 

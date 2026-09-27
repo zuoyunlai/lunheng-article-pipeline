@@ -3,7 +3,7 @@ name: lunheng-article-pipeline
 description: "学术论文/深度长文/行业分析流水线：含同行评审与期刊/发布渠道匹配建议（advisory）。不调用执行类工具（exec/process/code_execution，声明式）；主控持有会话编排与状态类工具（多 Agent 派发/收报告的设计内必需面）。标准架构 = 多 Agent 九角色；worker 不可用按节点接管并披露（详正文）。Routine 写盘（status.md / audits/）已声明；心跳为 opt-in「Operational Telemetry」。v2.14.0 起新增 G18 方法论审计（12 项清单 + D2 评分）。"
 metadata:
   openclaw:
-    version: 2.14.1
+    version: 2.14.2
     requires:
       bins: []
   tools:
@@ -19,7 +19,7 @@ metadata:
     fmt:        ["read"]
     review:     ["read"]
 ---
-> 版本：v2.14.1（自动同步 2026-09-27）
+> 版本：v2.14.2（自动同步 2026-09-27）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
@@ -103,7 +103,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 **角色速查**（10 角色卡 + G14）：T1 文献 · T2 数据 · T3 案例 · T4 分析 · T5 写手 · T6 批判 · T7 审计 · T8 终检 · T9 同行评审 · G14 中文 AI 痕迹检测闸（T8 = 主控亲为）。
 
 
-**审计必查项**（G0-G18）→ [`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + 速查 [`audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md)；G11/G12/M 门三层 → [`M-Gate-Algorithm.md`](references/_shared/真源/M-Gate-Algorithm.md)（🟠 分片必读）；**G18 方法论审计**（v2.14.0 起）→ [`方法论-审计清单.md`](references/_shared/真源/方法论-审计清单.md)；**方法论留档模板**（v2.14.0 起）→ [`方法论章节-template.md`](references/templates/方法论章节-template.md) + [`方法论-落地示例.md`](references/_shared/真源/方法论-落地示例.md)。
+**审计必查项**（G0-G18）→ [`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + 速查 [`audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md)；G11/G12/M 门三层 → [`M-Gate-核心.md`](references/_shared/真源/M-Gate-核心.md)（🟠 分片必读）；**G18 方法论审计**（v2.14.0 起）→ [`方法论-审计清单.md`](references/_shared/真源/方法论-审计清单.md)；**方法论留档模板**（v2.14.0 起）→ [`方法论章节-template.md`](references/templates/方法论章节-template.md) + [`方法论-落地示例.md`](references/_shared/真源/方法论-落地示例.md)。
 
 **G14 中文 AI 痕迹闸**：9 类判定（真源 = [`gates/14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二 + [`checkers/中文AI痕迹-checker.md`](references/checkers/中文AI痕迹-checker.md)，**判定分档与处置本节不重列**）；**LLM 推理判定**（零 exec）。适用性与位置见上「Phase 0 定案」段。
 

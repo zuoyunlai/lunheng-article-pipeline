@@ -79,6 +79,8 @@ SYNCS=(
 
   # 共享协议（顶部插入版本号）
   "_shared/真源/M-Gate-Algorithm.md|header"
+  "_shared/真源/M-Gate-核心.md|header"
+  "_shared/真源/M-Gate-背景.md|header"
   "_shared/真源/M-Gate-Algorithm-appendix.md|header"
   "_shared/真源/audit-checklist-quickref.md|header"
 

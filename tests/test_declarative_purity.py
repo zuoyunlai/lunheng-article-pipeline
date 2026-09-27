@@ -40,7 +40,7 @@ NL = chr(10)
 MAINTAINER_TOKENS = ["flow-check", "构建期红", "self-audit", "pytest"]
 
 # 使用者侧可读的核心机制名——不得入 FINAL_PATTERNS（审计 R-43 逐条核对结论）。
-# 门 M 等由交付物正文（M-Gate-Algorithm.md）自解释，是面向使用者的机制，非维护者方言。
+# 门 M 等由交付物正文（M-Gate-核心.md）自解释，是面向使用者的机制，非维护者方言。
 USER_FACING_ALLOWED = ["门 M", "门 C", "门 S", "门 T", "门 U", "门 V"]
 TEXT_SUFFIXES = {".md", ".yaml", ".yml", ".json", ".txt", ".toml"}
 
@@ -107,7 +107,7 @@ def test_final_patterns_cover_maintainer_dialect():
 def test_final_patterns_do_not_ban_user_facing_gate_names():
     """门 M / 门 C 等是使用者可读的核心机制名，不得入兜底清单。
 
-    审计方案曾提议加 门 [A-Z]——实测包内命中 41 处，绝大多数是 M-Gate-Algorithm.md
+    审计方案曾提议加 门 [A-Z]——实测包内命中 41 处，绝大多数是 M-Gate-核心.md
     等交付物正文自解释的合法机制名；一刀切会破坏交付物语义（审计 R-43 逐条核对结论）。
     """
     pats = _final_patterns()

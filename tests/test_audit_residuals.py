@@ -116,6 +116,6 @@ def test_g14_warning_declares_non_owner_checkpoint():
 
 def test_t7_5_does_not_depend_on_t8_artifact():
     """P1-6：T7.5 在 T8 之前执行，不得要求读 T8 才产出的 final/M-Gate-Report JSON"""
-    t = (REFS / "_shared" / "真源" / "M-Gate-Algorithm.md").read_text(encoding="utf-8")
+    t = (REFS / "_shared" / "真源" / "M-Gate-核心.md").read_text(encoding="utf-8")
     assert "不得依赖 `final/M-Gate-Report-v2.2.12.json`" in t, \
         "M-Gate-Algorithm 的 M-Integrity-2 仍要求读 T8 产物（前后依赖倒置）"

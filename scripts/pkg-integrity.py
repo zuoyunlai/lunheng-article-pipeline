@@ -51,7 +51,7 @@ REQUIRED_ANCHORS = [
     ("references/agents/05-写作-writer.md", "T5"),
     ("references/agents/00-主控-coordinator.md", "T0"),
     ("references/templates/任务简报-template.md", "任务简报"),
-    ("references/_shared/真源/M-Gate-Algorithm.md", "M 门"),
+    ("references/_shared/真源/M-Gate-核心.md", "M 门"),
 ]
 
 HEADING_RE = re.compile(r'^#{1,6}\s+\S', re.MULTILINE)

@@ -32,7 +32,7 @@ WC_TABLE = ROOT / "references/_shared/真源/字数判定表.md"
 G14 = ROOT / "references/gates/14-中文AI痕迹-gate.md"
 PHASE_ORDER = ROOT / "references/_shared/真源/phase-order.yaml"
 DELIVERABLES = ROOT / "references/deliverables.md"
-MGATE = ROOT / "references/_shared/真源/M-Gate-Algorithm.md"
+MGATE = ROOT / "references/_shared/真源/M-Gate-核心.md"
 T5 = ROOT / "references/dispatch/T5-写手.md"
 
 

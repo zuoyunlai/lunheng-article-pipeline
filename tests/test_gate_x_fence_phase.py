@@ -3,10 +3,10 @@
 """门 X：Markdown 围栏相位 + 声明式锚点 + 伪 H1 检测。
 
 背景（教训 #424 / #426 / #427）：
-  references/_shared/真源/M-Gate-Algorithm.md 曾因两个多余围栏（L1048 / L1181）导致
+  references/_shared/真源/M-Gate-核心.md 曾因两个多余围栏（L1048 / L1181）导致
   M-Exist-3 / M-Integrity-1 标题被裹进代码块、7 行伪代码注释落到块外被渲染为文档 H1。
 
-    X.1  M-Gate-Algorithm.md 围栏总数偶数
+    X.1  M-Gate-核心.md 围栏总数偶数
     X.2  声明式锚点表（文件 → 锚点正则）的锚点全部在围栏外
     X.3  围栏外「紧跟关闭符且首字符为 #」的伪 H1 = 0
     X.4  全仓 .md 围栏总数均为偶数（未闭合围栏 = 尾部被吞）
@@ -31,7 +31,7 @@ from conftest import tracked_tree
 
 REPO = Path(__file__).resolve().parents[1]
 GATE = REPO / "scripts" / "self-audit-gate.sh"
-MGATE = REPO / "references" / "_shared" / "真源" / "M-Gate-Algorithm.md"
+MGATE = REPO / "references" / "_shared" / "真源" / "M-Gate-核心.md"
 PIPE_README = REPO / "references" / "pipeline-readme.md"
 
 FENCE = re.compile(r"^[ \t]*(```|~~~)")
@@ -100,9 +100,9 @@ def test_gate_x_baseline_passes():
 # --------------------------------------------------------------------------
 
 def test_gate_x2_detects_m_gate_anchor_inside_fence(tmp_path):
-    """变异：在副本的 M-Gate-Algorithm.md 末尾追加被围栏裹的 M-Form-99 标题 → X.2 必须 ✗。"""
+    """变异：在副本的 M-Gate-核心.md 末尾追加被围栏裹的 M-Form-99 标题 → X.2 必须 ✗。"""
     if not MGATE.exists():
-        pytest.skip("M-Gate-Algorithm.md 不存在")
+        pytest.skip("M-Gate-核心.md 不存在")
     root = make_copy(tmp_path)
     target = root / MGATE.relative_to(REPO)
     target.write_text(
@@ -136,7 +136,7 @@ def test_gate_x2_detects_pipeline_readme_anchor_inside_fence(tmp_path):
 def test_gate_x1_detects_odd_fence_count(tmp_path):
     """变异：删一个裸围栏使 M-Gate 围栏总数变奇数 → X.1 必须 ✗。"""
     if not MGATE.exists():
-        pytest.skip("M-Gate-Algorithm.md 不存在")
+        pytest.skip("M-Gate-核心.md 不存在")
     root = make_copy(tmp_path)
     target = root / MGATE.relative_to(REPO)
     lines = target.read_text(encoding="utf-8").splitlines()
@@ -153,7 +153,7 @@ def test_gate_x1_detects_odd_fence_count(tmp_path):
 def test_gate_x3_detects_fence_leaked_pseudo_h1(tmp_path):
     """变异：追加「紧跟围栏关闭的 # 伪 H1」→ X.3 必须 ✗。"""
     if not MGATE.exists():
-        pytest.skip("M-Gate-Algorithm.md 不存在")
+        pytest.skip("M-Gate-核心.md 不存在")
     root = make_copy(tmp_path)
     target = root / MGATE.relative_to(REPO)
     target.write_text(
@@ -214,5 +214,5 @@ def test_anchor_table_registers_known_docs():
         assert pattern and label, f"锚点表条目缺正则或说明：{entry[:60]}"
         assert (REPO / f).exists(), f"锚点表登记了不存在的文件：{f}"
         files.append(f)
-    assert "references/_shared/真源/M-Gate-Algorithm.md" in files
+    assert "references/_shared/真源/M-Gate-核心.md" in files
     assert "references/pipeline-readme.md" in files
