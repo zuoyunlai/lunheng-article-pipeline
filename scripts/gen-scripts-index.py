@@ -187,6 +187,35 @@ def parse_indexed_names(text):
     return sorted({m.group(1) for m in re.finditer(r'^\|\s*\[`([^`]+)`\]', text, re.M)})
 
 
+MAINTAINER_QA_INDEX = (
+    "## 维护者 QA 装置索引（v2.14.1，审计 R-49）",
+    "",
+    "> **分层约定（两层文档）**：本索引是**维护者侧 QA 装置叫法**的唯一落点。交付物",
+    "> （`SKILL.md` / `references/` / `templates/` / `dispatch/`）**只写「给使用者看的声明式内容」**；",
+    "> 维护者侧的**命令名 / 规则编号 / 门编号 / 测试框架名**一律收敛到本文件（或 `references/_shared/治理/`）。",
+    "> 违反此约定 = 交付物用维护者方言写成（审计 R-43：2.14.0 包内实测 `flow-check` 27 处 /",
+    "> `构建期红` 12 处 / `pytest` 3 处 / `self-audit` 1 处逸出）。",
+    "",
+    "| 装置 | 维护者侧叫法 | 交付物侧口径 |",
+    "|---|---|---|",
+    "| 流程校验器 | `scripts/flow-check.py` 规则编号 | 「由维护者机制机械校验」（**不裸露规则编号**） |",
+    "| 构建期阻断 | 「构建期红」 | 「构建期校验不通过」 |",
+    "| 自审门 | `scripts/self-audit-gate.sh`（门 A-AA） | 「自检门」 |",
+    "| 测试框架 | `pytest tests/` | 「维护者侧一致性测试」 |",
+    "| 净化链 | `scripts/strip-internal-leakage.sh` / `scripts/build-clawhub-release.sh` | 不存在（纯构建期装置） |",
+    "",
+    "**机械保障（三重，防复发）**：",
+    "",
+    "1. **源头中性化** — `strip-internal-leakage.sh` 阶段 6b（md 通道 + 非 md 文本资产通道）；",
+    "2. **产物侧兜底** — `build-clawhub-release.sh` `FINAL_PATTERNS` v2.14.1 组（产物命中即 fail-loud）；",
+    "3. **不变式单测** — `tests/test_declarative_purity.py`（含反向对照，防判据空转）。",
+    "",
+    "**新增内容时的落点**：维护者命令 / 门编号 / 指标 → 写在本文件；使用者可读的核心机制名",
+    "（`门 M` / `门 C` / `门 S` 等，由交付物正文自解释）→ 留在交付物。",
+    "",
+)
+
+
 def build_index(scripts_dir, makefile):
     scripts_dir = Path(scripts_dir)
     targets = make_targets(Path(makefile))
@@ -220,6 +249,7 @@ def build_index(scripts_dir, makefile):
         out.append("| [`%s`](%s) | %s | %s | %s | %s |"
                    % (name, name, _cell(purpose), _cell(usage), _cell(trigger), _cell(mk)))
     out.append("")
+    out.extend(MAINTAINER_QA_INDEX)
     return "\n".join(out)
 
 

@@ -176,7 +176,7 @@
 
 ### 6.1 PNG 转换的执行边界
 
-> **关键澄清**：`rsvg-convert` 是外部可执行程序。论衡「零 exec」承诺 = 论衡 agent（主控 + 全部子代理）**任何情况下都不调用** `exec`/`process` 等 shell 执行工具（对应 `metadata.tools.denied` 声明；**真实隔离由宿主 config 机械层生效**，Phase 0 同意也不能豁免）。SVG 文件一律由主控用 `write` 工具纯文本产出；SVG → PNG 的本地转换**只由主人本人手工执行**（在 agent 流程之外，T8 终检后建议清单给出命令模板）。论衡无 `image_generate` 路径。
+> **关键澄清**：`rsvg-convert` 是外部可执行程序。论衡「零 exec」承诺 = 论衡 agent（主控 + 全部子代理）**任何情况下都不调用** `exec`/`process` 等 shell 执行工具（对应 frontmatter `denied_high_risk` 声明；**真实隔离由宿主 config 机械层生效**，Phase 0 同意也不能豁免）。SVG 文件一律由主控用 `write` 工具纯文本产出；SVG → PNG 的本地转换**只由主人本人手工执行**（在 agent 流程之外，T8 终检后建议清单给出命令模板）。论衡无 `image_generate` 路径。
 
 | 转换方式 | 执行性质 | 触发条件 | 谁来执行 |
 |---------|---------|---------|---------|
@@ -186,7 +186,7 @@
 **执行边界（v2.12.52 定案）**：
 - PNG/PDF/latex 等格式转换**不再是 Phase 0 选项**，只在 **T8 终检后的「主人自行操作建议清单」**出现（含命令模板），由主人自行执行
 - 论衡**无 `image_generate` 路径**（该工具在 `denied` 中）；不存在「主控转 PNG」选项
-- **禁止**主控/子代理运行 rsvg-convert / ImageMagick / pandoc / 任何转换 binary 或 shell 命令——此禁止不可被主人同意、进度压力或任何理由豁免（与 `metadata.tools.denied` 声明一致；**真实隔离由宿主 config 机械层生效**）
+- **禁止**主控/子代理运行 rsvg-convert / ImageMagick / pandoc / 任何转换 binary 或 shell 命令——此禁止不可被主人同意、进度压力或任何理由豁免（与 frontmatter `denied_high_risk` 声明一致；**真实隔离由宿主 config 机械层生效**）
 - PNG 转 SVG 不影响数字精确性（SVG 是文本，主控可重写）
 
 ---

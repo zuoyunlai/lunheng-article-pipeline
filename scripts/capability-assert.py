@@ -25,7 +25,7 @@
 
 设计（教训 #210，审计响应）：
 - **单一真源**：允许面/禁用面**直接读 SKILL.md frontmatter**（metadata.tools.{base,coordinator_only,
-  research_extra,opt_in} 为允许，metadata.tools.denied 为禁用）；
+  research_extra,opt_in} 为允许，permissions.md「禁用面（denied）唯一真源」为禁用）；
   硬编码列表一旦与 frontmatter 漂移，就会出现「文档声明禁用、脚本实际放行」的假绿灯
   （2026-09-12 第三方审计 P0-1：denied 里的 memory_store / memory_forget / sessions_search
    曾被本脚本列入允许白名单）。本脚本现**不再维护第二份权限清单**。

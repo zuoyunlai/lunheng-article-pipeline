@@ -255,6 +255,20 @@ for line in lines:
     line = re.sub(r'/home/zuoyunlai/\.openclaw/workspace/[^\s`）)]*', '<用户工作区>', line)
     line = re.sub(r'/home/zuoyunlai/[^\s`）)]*', '<用户路径>', line)
 
+    # ===== 阶段 6b: 维护者 QA 话术中性化（v2.14.1，审计 R-43）=====
+    # 背景：剥离链只剥「路径」，不剥「规则编号话术」——`flow-check 规则 N` / `构建期红` 等
+    #   维护者侧 QA 装置的叫法逸出进交付物，用户读到的是自己**无法观察、无法运行**的机制，
+    #   等于交付物用维护者的方言写成（2.14.0 包实测：flow-check 27 / 构建期红 12 / pytest 3）。
+    # 口径（审计 D-a ①）：语义化改写为「维护者机制机械校验」，**不裸露规则编号**；
+    #   短形态残留由 FINAL_PATTERNS 兜底（产物侧命中即 fail-loud）。
+    # 注：`门 M` / `门 C` / `门 S` 等**不**中性化——它们是使用者侧可读的核心机制名，
+    #   由交付物正文（M-Gate-Algorithm.md 等）自解释（审计 R-43 已就此逐条核对）。
+    line = re.sub(r'flow-check\s*规则\s*\d+(?:\s*[/、]\s*\d+)*', '维护者机制', line)
+    line = line.replace('flow-check', '维护者校验')
+    line = line.replace('构建期红', '构建期校验不通过')
+    line = line.replace('self-audit', '自检门')
+    line = line.replace('pytest', '维护者测试')
+
     # ===== 阶段 7: 清理空标点 / 多余空格 =====
     line = re.sub(r'[，,；;]+\s*[）)]', '）', line)
     line = re.sub(r'[，,；;]+\s*。', '。', line)
@@ -307,6 +321,33 @@ if content != orig:
         fh.write(content)
     print(f"  EDITED: {path}")
 PYEOF
+done
+
+# ---------- 2b. Process non-md text assets（v2.14.1，审计 R-43）----------
+# 背景：阶段 6b 的中性化只在 .md 上执行；`.yaml` 里的维护者规则编号话术会原样出厂
+#   （2.14.0 实测：包内 flow-check 14 处 / 构建期红 4 处 **全部**在 .yaml）。
+#   本段对非 md 文本资产只做「维护者话术中性化」这一件事，**不做** md 专属变形
+#   （缩进保护 / 围栏相位 / 空格收口 / 教训编号剥离等一律不进本段）。
+echo ""
+echo "Processing non-md text assets (维护者话术中性化)..."
+mapfile -t TXT_FILES < <(find "$PKG_DIR" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.json" -o -name "*.txt" -o -name "*.toml" \))
+for f in "${TXT_FILES[@]}"; do
+python3 - "$f" <<'PYEOF2'
+import re, sys
+path = sys.argv[1]
+with open(path, encoding="utf-8") as fh:
+    content = fh.read()
+orig = content
+content = re.sub(r'flow-check\s*规则\s*\d+(?:\s*[/、]\s*\d+)*', '维护者机制', content)
+content = content.replace('flow-check', '维护者校验')
+content = content.replace('构建期红', '构建期校验不通过')
+content = content.replace('self-audit', '自检门')
+content = content.replace('pytest', '维护者测试')
+if content != orig:
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(content)
+    print("  EDITED: " + path)
+PYEOF2
 done
 
 echo ""

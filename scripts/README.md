@@ -41,3 +41,28 @@
 | [`sync-version.sh`](sync-version.sh) | 论衡版本号同步脚本（P1-3 版本号自动化 - 层 2） | ./scripts/sync-version.sh [--dry-run] | — | `make sync-version` |
 | [`test-capability-assert.sh`](test-capability-assert.sh) | test-capability-assert.sh — capability-assert.py 测试套件（v2.9.1） | — | — | `make test` |
 | [`test-path-canonical.sh`](test-path-canonical.sh) | test-path-canonical.sh — path-canonical.py 测试套件（v2.9.1） | — | — | `make path-canonical`、`make test` |
+
+## 维护者 QA 装置索引（v2.14.1，审计 R-49）
+
+> **分层约定（两层文档）**：本索引是**维护者侧 QA 装置叫法**的唯一落点。交付物
+> （`SKILL.md` / `references/` / `templates/` / `dispatch/`）**只写「给使用者看的声明式内容」**；
+> 维护者侧的**命令名 / 规则编号 / 门编号 / 测试框架名**一律收敛到本文件（或 `references/_shared/治理/`）。
+> 违反此约定 = 交付物用维护者方言写成（审计 R-43：2.14.0 包内实测 `flow-check` 27 处 /
+> `构建期红` 12 处 / `pytest` 3 处 / `self-audit` 1 处逸出）。
+
+| 装置 | 维护者侧叫法 | 交付物侧口径 |
+|---|---|---|
+| 流程校验器 | `scripts/flow-check.py` 规则编号 | 「由维护者机制机械校验」（**不裸露规则编号**） |
+| 构建期阻断 | 「构建期红」 | 「构建期校验不通过」 |
+| 自审门 | `scripts/self-audit-gate.sh`（门 A-AA） | 「自检门」 |
+| 测试框架 | `pytest tests/` | 「维护者侧一致性测试」 |
+| 净化链 | `scripts/strip-internal-leakage.sh` / `scripts/build-clawhub-release.sh` | 不存在（纯构建期装置） |
+
+**机械保障（三重，防复发）**：
+
+1. **源头中性化** — `strip-internal-leakage.sh` 阶段 6b（md 通道 + 非 md 文本资产通道）；
+2. **产物侧兜底** — `build-clawhub-release.sh` `FINAL_PATTERNS` v2.14.1 组（产物命中即 fail-loud）；
+3. **不变式单测** — `tests/test_declarative_purity.py`（含反向对照，防判据空转）。
+
+**新增内容时的落点**：维护者命令 / 门编号 / 指标 → 写在本文件；使用者可读的核心机制名
+（`门 M` / `门 C` / `门 S` 等，由交付物正文自解释）→ 留在交付物。

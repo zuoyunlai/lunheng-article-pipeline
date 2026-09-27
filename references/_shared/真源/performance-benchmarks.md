@@ -26,7 +26,7 @@
 | 子代理数 | 实际 spawn 成功数 / 计划数 | status.md `spawn_landing` |
 | 环境 | OS / WSL 发行版、文件系统位置、Python/Node 版本 | status.md 运行环境段 |
 | 缓存状态 | `cold` / `warm` / `unavailable` | 主人或维护者实测 |
-| 门总耗时 | self-audit / 全量 pytest 分别记录；无法拆分填 `unavailable` | 主人或维护者 host shell 实测 |
+| 门总耗时 | 自检门 / 维护者全量测试分别记录；无法拆分填 `unavailable` | 主人或维护者 host shell 实测 |
 
 ## 二、实测登记表
 
@@ -77,7 +77,7 @@
 
 ## 六、端到端活体冒烟登记（v2.12.72 批次 3-D）
 
-> **唯一登记表**：冒烟结果必须来自真实运行期 status.md，不得用 pytest、flow-check 或自造样本替代。协议真源 = [`执行韧化协议-exec.md`](执行韧化协议-exec.md)「端到端活体冒烟协议」。
+> **唯一登记表**：冒烟结果必须来自真实运行期 status.md，不得用维护者侧测试或校验脚本的结果、或自造样本替代。协议真源 = [`执行韧化协议-exec.md`](执行韧化协议-exec.md)「端到端活体冒烟协议」。
 
 | 日期 | smoke_run_id | 级别 | 项目/档位 | spawn 落地 | 交接回传 | 审计链 | M 门对账 | status 更新 | 结论 | 备注 |
 |---|---|---|---|---|---|---|---|---|---|---|

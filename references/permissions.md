@@ -93,6 +93,7 @@
 **行为授权（非工具，Phase 0 预授权记录，默认全部关闭）**：
 - **配额耗尽预授权**：主人预勾选「配额耗尽时授权 X（换 provider 重试 / 白名单接力）」后，配额事件发生时主控按预授权选项直接执行并事后通报；**未勾选 = 必须暂停等主人拍板**（fail-closed）。预授权仅限白名单工具路径，**永不覆盖 exec/process 等永久拒绝**
 - **G14 Warning 预授权**：主人预勾选「G14 Warning 默认 A」后，Warning 场景主控自动走 A 并事后通报；未勾选 = 暂停等主人 3 选 1
+- **⚠️ 预授权边界（v2.14.1 明示）**：上述 Phase 0 行为预授权（配额耗尽 / G14 Warning）**仅覆盖行为与成本类决策**，**不覆盖四个 owner_checkpoint**（Phase 0 / 2.5 / 3.5 / 5）——owner checkpoint 一律 fail-closed，主人未显式拍板 = 未通过（真源 = `phase-order.yaml` `owner_timeout_policy` + `关键协议.md`「不因插话跳过节点」）。**不得以「主控提前获得的笼统授权」替代 owner 正式拍板。**
 - 记录位置：status.md「Phase 0 同意记录」段 `behavior_opt_in: [quota_fallback: provider-switch, g14_warning: A]`，凭记录执行
 
 ## 🔒 禁用面（denied）唯一真源（v2.13.5 R-22）
