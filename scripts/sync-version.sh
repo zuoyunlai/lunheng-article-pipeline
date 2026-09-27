@@ -186,10 +186,14 @@ SYNCS=(
   "templates/文献卡-template-lite.md|header"
   "templates/案例卡-template-lite.md|header"
 
-  # v2.12.12 版本一致性盲区修复：phase-order.yaml（阶段真源，头部自述「版本随 SKILL.md 同步」
-  #   但既不在本清单、也不是 markdown 块引用格式，故长期停在旧版本戳 —— 净化包内随包分发的
-  #   版本与 SKILL.md 不一致）。用 yarnversion 模式改专用 `version: X.Y.Z` 行。
-  "_shared/真源/phase-order.yaml|yamlversion"
+  # v2.12.12 版本一致性盲区修复：阶段真源头部自述「版本随 SKILL.md 同步」，但既不在本清单、
+  #   也不是 markdown 块引用格式，故长期停在旧版本戳 —— 净化包内随包分发的版本与 SKILL.md 不一致。
+  #   用 yamlversion 模式改专用 `version: X.Y.Z` 行。
+  # v2.14.1（门 AA 修复）：真源于 v2.13.5 R-21 已倒置为 phase-order/ 逐节点切片，
+  #   phase-order.yaml 变成**生成物（禁手改）**。此处若仍写装配视图，则每次 bump 都会只改
+  #   生成物、留下真源旧戳 ⇒ 装配视图与真源逐字节不一致（门 AA 必红）。故目标改真源 index.yaml，
+  #   装配视图交由 scripts/phase-order-slice.py 重生成。
+  "_shared/真源/phase-order/index.yaml|yamlversion"
 )
 
 # v2.12.20（教训 #331）：header 模式改为「排队 + 末尾一次性归一化」，写入路径统一由
