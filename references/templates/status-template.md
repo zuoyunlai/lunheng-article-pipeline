@@ -1,17 +1,27 @@
-> 版本：v2.14.2（自动同步 2026-09-27）
+> 版本：v2.14.3（自动同步 2026-09-27）
 
-> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
+> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
+
+> 📚 **填写说明/口径/教训**：见仓库维护资料 `references/_shared/治理/模板填写说明.md`（R-51）；本文件只保留填写骨架与机械校验锚点。
 
 # 项目状态机 — run/<项目名>/status.md
 
-> ⚠️ **本文件含运行期遥测，按敏感文件处理（v2.12.40）**：`session id` / `sessionKey` / 宿主可见余额 / 模型可用性探测结果 / 阶段计时 / token 成本明细均属**运行期遥测**。**收容四条**：① **仅留本文件**（禁止转录进 `final/交付说明.md` 或任何交付物）；② **归档排除**——项目归档/打包默认**排除本文件**，确需留档时只归档**脱敏副本** `status.redacted.md`（见 [`../_shared/治理/project-archive-sop.md`](../_shared/治理/project-archive-sop.md) §二）；③ **分享前脱敏**——对外分享/外发前，余额/可用性只留档位符号（✅/⚠️/❌）、**不留具体数值**；`sessionKey`/`session id` **本就不记录**（见 ⑤），仅历史文件/意外残留才按 ⑤ 兜底截断；④ **保留期**——原文件仅在 `run/<项目名>/` 本地存在，项目清理即随之删除，交付物与归档包均不含原始遥测；⑤ **★ 默认不记录（v2.12.42 收紧，现行口径；§4.7 真源）**——`sessionKey` / `sessionId` **一律不记录**（会话关联用角色名）。**截断（前 8 字符 + `…` / 哈希前 12 位）仅兜底用于历史文件或意外出现的标识**，不用于新写入。余额/可用性一律只落档位符号（✅/⚠️/❌）。**不依赖事后脱敏**——「留原文 + 事后 redact」被扫描判为控制点在收集之后（收容不足）。
+> ⚠️ **本文件含运行期遥测，按敏感文件处理**：仅留本文件，不得转录进交付物；项目归档默认排除 `status.md`，确需留档时只保留脱敏副本 `status.redacted.md`；分享前余额/可用性只留档位符号（✅/⚠️/❌），`sessionKey`/`session id` 不记录。历史标识兜底截断仅用前 8 字符 + `…` 或哈希前 12 位。
+
 > 真源 = [`../_shared/真源/关键协议.md`](../_shared/真源/关键协议.md) §遥测收容。
+
+> **运行期呈现留痕（四节点每次都填；仅记录主控动作，不冒充主人已阅读）**：
+> `checkpoint_id=<唯一值>` / `checkpoint_presented=true|false` / `checkpoint_presented_at=<时间>` / `checkpoint_materials=<路径列表>` / `checkpoint_status=<awaiting_owner|reminded|pending_owner|decided>` / `reminder_sent=<true|false>` / `pending_owner_at=<时间|n/a>` / `owner_response_received=<true|false>` / `owner_response_at=<时间|n/a>` / `owner_decision_normalized=<合法枚举值|n/a>`
+
+> **留痕纪律**：进入节点先写 `checkpoint_presented=true`；发送轻提醒后才写 `reminder_sent=true`；超时只写 `checkpoint_status=pending_owner`，不得写 accepted。主人回复后核对同一 `checkpoint_id` 和材料版本，再写 `owner_response_received=true` 与规范化决策。
+
+> **🔒 v2.12.54 R-2 节点 id 合法性**：§二 / §四 出现的节点 id 必须取自 `_shared/真源/phase-order.yaml`；**禁止自创**节点 id。
+> **🔒 v2.12.54 R-3 Done 记账一致性**：`Done` 必须对应磁盘上存在且非空的产物；`Not Triggered` / `opt_out` / `pending_owner` / 产物缺失一律**不得计 Done**。
 
 > **读取指引**：主控/子代理运行期**只读「一~四」节（~3K）** 维护状态；「方法论足迹」「执行韧化记录」「维护说明」「重写说明」是扩展段（~7K），按需查阅——无需要时不必全量读。
 >
 > **重写**（教训 #166，主控实测反馈）：原 markdown 表格 7 列 + 主控 edit 频繁失败（空格漂移 / old_string 不匹配 / 重复行 bug）。**改为「4 段结构化纯文本」+ key:value 字段**，主控用 `**当前**: X` → `**当前**: Y` 替换策略，零空格漂移、零编辑摩擦。
 >
-> 主控维护（**独占写**），读 `run/<项目名>/.tmp/<两位角色号>-<角色名>-heartbeat.md` 后更新对应行。状态：Inbox → Assigned → In Progress → Review → Done | Failed | Skipped。对 T3 和 Phase 1.5 不得只写通用 `Skipped`，必须使用下方规定的结果/触发状态。
 > 失败必须留原因；任一行停留超阈值无进展 → 主控介入（按主控卡 §二十二 硬卡阈值表，角色分级：T1-T3 10 / T4 12 / T5 15 / T6 15 / T7 12 / T9 10 / G14 8 分钟）。
 > **T3 案例检索**：Phase 0 确认需要案例时即 spawn（cases=0 走空卡协议）；T3 worker 不可用 ⇒ 主控接管该节点并记录；T2 不再兼带案例，状态独立行。
 
@@ -48,14 +58,7 @@
 - **Phase 3.5 洞察**: decision=<insight|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md
 - **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md
 
-> **运行期呈现留痕（四节点每次都填；仅记录主控动作，不冒充主人已阅读）**：
-> `checkpoint_id=<唯一值>` / `checkpoint_presented=true|false` / `checkpoint_presented_at=<时间>` / `checkpoint_materials=<路径列表>` / `checkpoint_status=<awaiting_owner|reminded|pending_owner|decided>` / `reminder_sent=<true|false>` / `pending_owner_at=<时间|n/a>` / `owner_response_received=<true|false>` / `owner_response_at=<时间|n/a>` / `owner_decision_normalized=<合法枚举值|n/a>`
->
-> **留痕纪律**：进入节点先写 `checkpoint_presented=true`；发送轻提醒后才写 `reminder_sent=true`；超时只写 `checkpoint_status=pending_owner`，不得写 accepted。主人回复后核对同一 `checkpoint_id` 和材料版本，再写 `owner_response_received=true` 与规范化决策。
-
 > 仅有材料、主控代判、子代理声称已确认，均不构成决策；`no_insight` 是明确决策，不是跳过。
->
-> **决策字面值禁自创（v2.12.61）**：四行 `decision=<...>` 的取值必须**逐字取自**对应节点的 `phase-order.yaml` `decisions`—— Phase 0 → `phase0_definition` / Phase 2.5 → `phase2_5_outline` / Phase 3.5 → `phase3_5_insight` / Phase 5 → `phase5_acceptance`。机械校验 = flow-check 规则 33（status ↔ yaml 双向点名；自创字面值 = 构建期红）。
 
 ## 能力自检（Phase 0 首次 spawn 前填；越权回报即时追加）
 
@@ -144,9 +147,7 @@
 > - 磁盘 `final/定稿.md` 存在 但 `T8 技术终检: ⬜ Inbox` ⇒ T8 必须报「状态漂移」
 > - `T7 审计: ✅ Done` 但 `audits/审计报告-vN.md` 不存在 ⇒ T8 必须报「产物缺失」
 >
-> **🔒 v2.12.54 R-2 节点 id 合法性（构建期锁 + 运行期目视）**：§二 / §四 出现的节点 id **必须取自 `_shared/真源/phase-order.yaml` `pipeline[].id`**（全集 25 个，seq 0–24；全景视图 = `_shared/真源/pipeline-overview.md`）。**禁止自创节点 id**（历史事故：`t5_final_v5` 被插在 seq 7.0 位置 ⇒ 进度表顺序错乱、缺失节点被计成 Done；同型事故：无编号节点被误标「Phase 4.2」，导致整段跳过 T7 审计）。主控写入任何一行进度时，先自问「这个 id 在 yaml 里吗？」——不在则不写。
 >
-> **🔒 v2.12.54 R-3 Done 记账一致性（构建期锁 + 运行期目视）**：`Done` ⇒ 对应产物**在磁盘存在且非空**；`Not Triggered` / `opt_out` / `pending_owner` / 产物缺失 **一律不得计 Done**。**汇总行必须与逐节点行一致**——两处互斥 = 记账无效（历史事故：同一 status「全部 Done ✅」与 seq19「主控接管 / 不补做」自相矛盾，缺失节点污染「跑通 N / 跳过 M」统计）。
 
 - **drafts/初稿** [节点: T5]: drafts/初稿-v{N}.md
 - **analysis/分析大纲** [节点: T4]: analysis/分析大纲.md
@@ -201,7 +202,6 @@ status_json: {
 > **借鉴 deep-research-pro 的方法论透明**（论衡化，非竞品简单复制）
 > **作用**：让主人/读者实时看到「**为什么是这个进度、证据强度是多少、下一步预测什么**」
 > **维护方**：主控自动更新（每个 Phase / 闸门 / 子代理完成时刷新）
-> **留档（快照副本，默认触发 / 主人可 opt-out）**（v2.12.49 T-6）：项目结束时的快照副本写入 `run/<项目名>/audits/methodology-footprint-{项目名}.md`，**默认生成（简版 ≤2 节）**；主人若在 Phase 0 显式 `opt_out` ⇒ **不创建快照副本**（不写盘），仅在交付说明中说明本字段已 opt-out；创建时：只写新文件，不移动、不删除任何既有文件
 
 ### 4.1 当前阶段（实时）
 
@@ -248,7 +248,6 @@ status_json: {
 
 ### 4.6 本轮模型分配（Phase 0 静态映射）
 
-> **v2.3.12 P0-3 → v2.12.42 重做**：原「扫本机模型 + 逐候选 1-token 探测 + 余额预检」**整体删除**（回应外部扫描：模型清单枚举与主动探测超出写作流水线必要范围）。改为**静态映射**：读一次 `session_status` 的**已配置模型清单**（只读元数据，非探测、不查余额），按 [`模型候选池.md`](../_shared/真源/模型候选池.md) §二映射规则定档，写入下表后**不再探测**。
 >
 > 🔒 **遥测分级（v2.12.39）+ 收容（v2.12.40/41）仍适用**：本表只记「能力档 → 模型名」；**不记可用性探测结果、不记宿主余额**（v2.12.42 起不采集）；`session id` / `sessionKey` 见 §4.7（不记录）。
 
@@ -272,12 +271,10 @@ status_json: {
 | <节点 id> | T1 | ok / missing / retry:<N> | <重试原因 / 未落地处置> |
 ```
 
-> ⚠️ **机械兜底边界（诚实声明，勿删）**：论衡 agent **零 exec**，「spawn accepted 但子会话不存在」属**运行期**故障，**构建期无法机械校验**。本项 = **纪律层 + 运行期留痕**（留痕可被主人事后核验）；构建期只锁「协议在两处载体中都在位」（flow-check 规则 34）。**不要把「模板里有这一行」误读为「门会拦住不验证」。**
 
 ### 4.7 token 消耗记录（精确机制）
 
 > **用途**：T8 终检时汇总「token 总成本」呈现给主人（deliverables.md 成本指标字段的落地）。
-> **重写根因**（教训 #256）：OpenClaw 的子代理 token 真实来源是**完成事件（completion event）末尾的 Stats line**（固定含 `Token usage` input/output/total + `Runtime` + `Estimated cost` + `sessionKey`/`sessionId`），**不是 sessions_spawn 返回值**（其无 stats 字段）。教训 #192 早前把来源误记为「sessions_spawn 返回值 stats」。
 >
 > **精确机制**（取代三级降级）：
 > - **`sessionKey` / `sessionId` 不记录（v2.12.42）**：Stats line 虽含会话标识，主控只提取 Token usage / Runtime / Estimated cost 三类字段；会话关联用**角色名**即可（聚合成本报告不需要会话标识——回应外部扫描）。
@@ -364,25 +361,4 @@ status_json: {
 
 ---
 
-## 维护说明
-
-- **方法论足迹**每阶段自动更新，无需主人手动维护
-- **留档（默认触发 / 可 opt-out，v2.12.49 T-6）**：由 phase-order.yaml 的 `methodology_snapshot` 节点处理，**默认生成简版（≤2 节）**；主人 Phase 0 显式 `opt_out` ⇒ 记 `opt_out`（**不得记 `not_triggered`**，两者语义不同），不创建 `run/<项目名>/audits/methodology-footprint-{项目名}.md`（与 §5.8 工作流外的「结题归档」区分）
-- **借鉴 deep-research-pro 的方法论透明**（论衡化）——论衡不是简单复制竞品，而是把方法论足迹当成论衡哲学的一部分：诚实透明 + 主人随时看清进度 + 借鉴但不依赖
-- **实时面板与持久化快照均默认启用（v2.12.49 T-6）**：方法论足迹面板实时更新；快照**默认生成简版（≤2 节）**，主人可在 Phase 0 显式 `opt_out` 关闭。噪音控制走「按档位裁剪字段集」；**关闭只能走显式 opt-out + 交付说明披露**（不再要求先显式勾选才创建）
-
----
-
-## 重写说明（教训 #166）
-
-**为什么重写**：
-- 原 markdown 表格（7 列） + 主控 edit 频繁失败（空格漂移 / old_string 不匹配 / 重复行 bug）
-- 实战口腔 AI + 论艺术中的丑两次项目，主控都遇到 status.md 维护成本过高
-
-**怎么改**：
-- 角色状态从「表格行替换」改为「key:value 文本替换」 → `**T5 写作**: ⬜ Inbox` → `**T5 写作**: ✅ Done` （一行一替换，零空格漂移）
-- 闸门清单从「表格 checkbox」保留 checkbox 格式（仅打钩不修改内容）
-- 产物路径从「表格行」改为「key:value」（路径在项目内不变）
-- 方法论足迹从「表格」保留表格（实时数据有数字变化，主控用 row replace）
-
-**向后兼容**：实战项目按新模板启动，旧 status.md 可手工迁移（把表格行拆为 key:value 文本）。
+> 📚 维护说明与重写背景已下沉至仓库维护资料 `references/_shared/治理/模板填写说明.md`；运行期只填写本文件字段。

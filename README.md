@@ -1,4 +1,4 @@
-> 版本：v2.14.2（自动同步 2026-09-27）
+> 版本：v2.14.3（自动同步 2026-09-27）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -14,7 +14,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.14.1**（2026-09-27，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**自适应数据源 opt-in 与零 exec 纯度收口**：T1/T2/T3 三检索角色按宿主实际部署自适应选用搜索工具（未装即降级、不报错），关闭可选层的代价在 Phase 0 一并明示；净化链新增维护者话术中性化通道 + 构建期 fail-loud 兜底，随包交付物内五类维护者方言由 43 处归零；SKILL.md 首屏显式声明完整性验证边界（`sha256` / 精确 `bytes` 属主人侧量值，未回填一律记 `pending_owner_verification`）。
+**v2.14.2**（2026-09-27，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**上下文/效率/质量三维优化修订**：完成 M-Gate 物理分片、审计触发计数、workspace 边界内联、章节级 minor 通道、G14 声音保留反查与轻量档审计分档；同步收口零 exec 纯度与净化链完整性边界。
 
 论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
 
@@ -22,11 +22,7 @@
 
 ## 🌟 快速开始（5 分钟）
 
-**第一次使用？** 读 [`QUICKSTART.md`](QUICKSTART.md)：
-
-1. **写任务简报**（2 分钟）：新建 `<项目名>/01-任务简报.md`，含研究问题/类型/篇幅/引用格式 + Phase 0 同意关卡
-2. **主控自动派发**：T1∥T2∥T3 并行检索 → T4 分析 → T5 写作 → T6 批判 → T7 审计 → T9 审稿 → T8 主控亲终检
-3. **主人在 4 个节点介入**：Phase 0（定题）/ 2.5（大纲）/ 3.5（洞察）/ 5（终稿验收）——T6/G14 与 T9 均是内部动作，T9 只提供建议；T8 技术终检不能代替 Phase 5 主人验收
+**第一次使用？** 从 [`QUICKSTART.md`](QUICKSTART.md) 开始；它负责安装、任务简报示例、启动步骤和常见问题。本 README 只保留面向人的定位与能力概览；主控执行入口和运行纪律以 [`SKILL.md`](SKILL.md) 为准。
 
 **预计项目时间**：轻量档（**2000-3000 字**，真源 = `字数判定表.md`）30-60 分钟 / 中段档 1-2 小时 / 重量档（≥5000 字）2-4 小时。实测四维数据（字数/耗时/token/成本）唯一登记表 = [`references/_shared/真源/performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md)；重量档已有 1 例实测（~2h40m，2026-09-22）但不足 3 行不同档位实测，上述数字仍为估计值（禁线性外推，见该表 §三）。
 
@@ -69,7 +65,7 @@
 - **不堆砌** — 强相关性铁律（每条材料必答「它支撑哪个论点」+ 反向淘汰自查）
 - **不重复** — 先行者检索 + 差异点声明 + 原创性审计
 
-### 九角色流水线
+### 九角色流水线（能力概览）
 
 ```
 主控（Coordinator）—— 定题/拆解/派发/T8 终检亲完成/状态机
@@ -87,9 +83,9 @@
          T8 终检 = 独立角色卡
 ```
 
-**T9 同行评审**：论文投稿前的「预演审稿人」，6 维度（原创性/方法论/证据强度/论证结构/写作质量/引文规范，总分 30）→ accept / minor / major / reject 建议。**期刊匹配助手**：基于 T9 评分 + 主题关键词，从 24 中文 CSSCI/北大核心 + 12 英文 SSCI 数据库输出 Top 3 + 综合匹配度（主题契合 50% + 风格匹配 30% + T9 评分 20%）。**行业分析/学术论文默认开启**，公众号默认关闭（主人可选）。详见 [`09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md)。
+**T9 同行评审**：提供原创性、方法论、证据强度、论证结构、写作质量、引文规范六维度的投稿前建议；完整评分与期刊匹配口径见 [`09-审稿-peer-reviewer.md`](references/agents/09-审稿-peer-reviewer.md)。
 
-**G14 中文 AI 痕迹深度检测闸**：**Phase 4.4 前置**（`g14_style_gate`）—— **定稿前最后一道闸，首审只一次；风格修订后全文复检 ≤2 轮**；适用性由 Phase 0「目标语言」**客观决定**（含中文必跑 / 纯外语记 `n/a`）。9 类判定（真源 = [`14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二，**本节不重列**），LLM 推理判定（**零 exec**）。0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → T5 最后一次风格层修订（`t5_style_revision`）。
+**G14 中文 AI 痕迹深度检测闸**：用于识别中文成文中的风格同质化风险；判定真源见 [`14-中文AI痕迹-gate.md`](references/gates/14-中文AI痕迹-gate.md) §二。具体触发位置、档位和修订规则不在 README 重列，按 [`SKILL.md`](SKILL.md) 与真源执行。
 
 ### 三角验证（证据底座）
 
@@ -106,9 +102,8 @@
 
 > ⚠️ **两轴不混用**（v2.12.64 修复，回应审计 V-9；真源 [`_shared/真源/glossary-full.md`](references/_shared/真源/glossary-full.md) §三）：**信任级别 = 上述文字取值**（数据卡字段）；**emoji 🟢🟡🔴 专用于「时效评级」**（🟢当前 / 🟡1-3 年 / 🔴3 年以上）。
 
-### 人在环四节点
-- **Phase 0 定题** · **Phase 2.5 大纲** · **Phase 3.5 洞察补充** · **Phase 5 终稿验收**
-- 四节点均须向主人呈现材料并记录明确决策；Phase 3.5 可记录「无补充」，不可静默跳过。T8 技术终检先完成，不能代替 Phase 5 主人验收。
+### 人在环
+四节点（定题、大纲、洞察补充、终稿验收）保留主人决策；呈现格式与运行留痕以 [`checkpoint-card-template.md`](references/templates/checkpoint-card-template.md) 和 [`status-template.md`](references/templates/status-template.md) 为准。
 
 ### 三层防御体系
 
@@ -118,9 +113,7 @@
 | **F 模式**（失败模式）| 面向用户的叙事 | F1-F9 失败模式清单（幻觉/格式/数据信任/论证强度）|
 | **G 清单**（质量审计）| 面向审计员 | G0-G17 共 20 项（含 G0.5 / G2.5）|
 
-**常规修订 ≤2 轮硬约束**（例外通道须主人拍板）：例外通道触发 → Acknowledged Limitations 模式（未关闭 P0/P1 搬入 `final/局限性.md`，论文正常交付不假装完美）。**轮次映射与各通道判定 → 见 [`references/_shared/真源/pipeline-overview.md`](references/_shared/真源/pipeline-overview.md)『修订回环仲裁规则』（单一真源；本文件不复述轮次数字）**。
-
-完整定义：详见 [`references/_shared/真源/glossary-full.md`](references/_shared/真源/glossary-full.md)。
+修订回环、门判据与完整定义不在 README 重列，统一见 [`pipeline-overview.md`](references/_shared/真源/pipeline-overview.md)、[`glossary-full.md`](references/_shared/真源/glossary-full.md) 和 [`SKILL.md`](SKILL.md)。
 
 ---
 
@@ -132,11 +125,11 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.14.2  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.14.3  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 
-**方式二：参考方法论**——九角色 + 三角验证 + 独立审计 + 三不原则可移植到任意支持子代理编排的框架。
+**方式二：参考方法论**——九角色、三角验证、独立审计与三不原则可移植到任意支持子代理编排的框架；具体运行步骤仍以 [`SKILL.md`](SKILL.md) 为准。
 
 **模型更换**：能力分层（检索/分析写作/审计/主控）+ 候选池集中管理，任何 OpenAI 兼容模型可替换。详见 [`SKILL.md 模型分档`](SKILL.md)。
 

@@ -184,6 +184,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'PERFORMANCE-PROFILE.md' \
     --exclude 'references/_shared/治理/教训索引.md' \
     --exclude 'references/_shared/治理/论衡仓库内教训.md' \
+    --exclude 'references/_shared/治理/模板填写说明.md' \
     --exclude '.safe-pattern-manifest.json' \
     --exclude 'pyproject.toml' \
     --exclude 'requirements.txt' \
@@ -227,6 +228,7 @@ else
   rm -f "$OUT_DIR/references/_shared/治理/教训索引.md"
   # v2.12.63：维护者工程内档（#R 编号空间），实测自 v2.12.42 起长期随包出厂 —— 见 2b' 段根因说明
   rm -f "$OUT_DIR/references/_shared/治理/论衡仓库内教训.md"
+  rm -f "$OUT_DIR/references/_shared/治理/模板填写说明.md"
   # v2.12.47：维护者侧门 H 判据快照（不随包交付，与教训索引同侧）
   rm -f "$OUT_DIR/references/_shared/治理/lessons-max.snapshot"
   # ② v2.12.12：维护者扫描器豁免清单（非 md，消费者无用）不再随包分发
@@ -836,6 +838,7 @@ PKG_EXCLUDED_DOC_PATHS=(
   'references/设计文档-哲学.md'
   'references/_shared/治理/教训索引.md'
   'references/_shared/治理/论衡仓库内教训.md'
+  'references/_shared/治理/模板填写说明.md'
   'references/_shared/治理/lessons-max.snapshot'
   'references/_shared/通用韧化块-v2.1.0.md'
   'references/_shared/版本升级自审门-*.md'
