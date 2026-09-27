@@ -148,6 +148,30 @@ E1 对象、字段和枚举唯一真源见 [`../_shared/真源/evidence-object-m
 
 **主控指引**：Phase 1.5 留**主人在环节点**供主人修正元数据；LLM 独占字段主人**不要改**，改即视为越权。
 
+
+
+## 🧰 工具选用决策树（v2.14.0+ 自适应 opt-in）
+
+> **背景**：v2.5.5 引入 OpenAlex/Crossref/Firecrawl opt-in（仅本卡接入）；v2.14.0 起扩展为「**按宿主实际部署自适应启用**」——宿主网关装了 `exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` / `firecrawl_*` 任一工具后，本卡通过 `dispatch-header.md` §启动自检 自动发现，按下表选用。
+
+**任务类型 → 工具选用决策树（T1 文献检索）**：
+
+| 任务类型 | 优先工具（v2.14.0+ 按可用性探测） | fallback 链 |
+|----------|-------------------------------|------------|
+| 学术文献 / 期刊论文 / DOI 查询 | `search_google_scholar`（multi-search-engine + `site:scholar.google.com`）→ `exa_search`（语义最匹配）→ `consensus_search`（学术问答）→ `AI4Scholar_search`（中文） | OpenAlex + Crossref（已勾选 opt-in） → `tavily_search` → `web_search` |
+| 学术元数据补全（被引频次 / 概念标签 / DOI） | OpenAlex + Crossref（已勾选 opt-in，无需 Key） | — |
+| 中文文献全文抓取 | `firecrawl_scrape`（paper.edu.cn，抓取层 opt-in） | `web_fetch`（HTML 直拉） |
+| 跨语言快速概览 | `multi_search`（16 引擎聚合：百度/Bing CN+INT/360/Sogou/微信/神马/Google/Google HK/DuckDuckGo/Yahoo/Startpage/Brave/Ecosia/Qwant/WolframAlpha） | `tavily_search` → `web_search` |
+
+**自适应启用原则**（与 [`中文数据源集成.md`](../_shared/真源/中文数据源集成.md) §一 同步）：
+
+1. **启动自检** 时探测当前会话可见工具集（含 `exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` / `firecrawl_*` 等候选）
+2. **已装工具按上表优先级选用**；未装工具**不报错，降级到 fallback 链下一档**
+3. 调用结果记录到交接报告「工具选用记录」段：每条来源 = 「用了什么工具 + 是否降级」
+4. **fail-closed**：主人选「④全部拒绝」时，**全部搜索工具（含默认层 + 所有 opt-in 层）一次都不调**，改纯本地材料 + 本地推理
+
+
+
 ## 🔲 边界：不负责什么（v2.12.27 新增）
 
 - **本卡负责**：文献检索与先行者核查

@@ -170,6 +170,31 @@
 
 **主控指引**：Phase 1.5 是显式的定向回查窗口：主人可补充一手数据，或主控按触发条件派 T1b 回查；无触发时也要在 status.md 写 `not_triggered`。LLM 独占字段主人不要改，T1b 完成后 T2 更新数据卡并由主控重跑 T2.5。
 
+
+
+## 中文数据源集成派发（v2.14.0+ 自适应 opt-in）
+
+> **背景**：v2.5.5 引入 OpenAlex/Crossref opt-in（**仅 T1 接入**，本卡当时未接入）；v2.14.0 起扩展为「**按宿主实际部署自适应启用**」并**补齐 T2 数据检索**——本卡适用。
+
+**任务类型 → 工具选用决策树（T2 数据检索）**：
+
+| 任务类型 | 优先工具 | fallback 链 |
+|----------|---------|------------|
+| 统计数据 / 行业报告 / 市场数据 | `multi_search`（行业报告引擎：百度/Bing/Google）→ `exa_search`（公司研究） | OpenAlex + Crossref（数据集元数据）→ `tavily_search` → `web_search` |
+| 学术数据集 / 期刊数据 | OpenAlex + Crossref（已勾选 opt-in） | `tavily_search` → `web_search` |
+| 事实查询 / 公司研究 / 人物 | `exa_search`（神经搜索，最匹配） | `consensus_search` → `tavily_search` → `web_search` |
+| 数据集全文抓取 | `firecrawl_scrape`（已勾选抓取层 opt-in） | `web_fetch`（HTML 直拉） |
+
+**自适应启用原则**：
+
+1. **启动自检** 时探测当前可见工具集（含 `exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` / `firecrawl_*` 等候选）
+2. **已装工具按上表优先级选用**；未装工具**不报错，降级到下一档**
+3. 工具选用记录写入交接报告「工具选用记录」段
+4. **fail-closed**：主人选「④全部拒绝」时全部搜索工具一次都不调
+
+**唯一真源**：[`../_shared/真源/中文数据源集成.md`](../_shared/真源/中文数据源集成.md)（已 v2.14.0+ 扩展为自适应 opt-in）—— URL / API 用法详见真源 §二。
+
+
 ## 🔲 边界：不负责什么（v2.12.27 新增）
 
 - **本卡负责**：数据检索与信任级别标注
