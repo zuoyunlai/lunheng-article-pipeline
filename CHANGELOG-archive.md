@@ -5,6 +5,17 @@
 > **`scripts/changelog-check.py` 同时读取两份**，故「每个版本 tag 都有章节」的校验纪律不变。
 > 查找某一版本：`grep -n '^## \[v2.12.41\]' CHANGELOG-archive.md`
 
+## [v2.13.4] — 2026-09-26
+
+- **全面审计修订**：收口 G14 9 类与复检口径、门 C 空转/版本边界、门 S/T/U 静默跳过、门 X.4 围栏状态机、门 Z 失败计数、发版半成品清理与 preflight fail-closed；补齐 T1b 版本清单、tracked-only 测试沙箱、M fixture fail-loud、工具/计数文档漂移。
+- **工具面与 CI 对齐**：工具能力边界与 frontmatter 集合对齐（补 `ask_user` / `sessions_list`，并新增集合一致性测试锁死漂移）；`path-canonical` 由「无任何门/CI 调用的孤儿脚本」纳入 `make test` 与 CI；CI 触发面与步骤对齐（`references/**` / `SKILL.md`、quality 增 changelog 检查、changelog workflow 监听 `references/**`）；新增 `.gitattributes` 统一换行，治跨挂载 CRLF/exec 位幻影。
+- **计数单一真源**：新增 `references/_shared/真源/counts.yaml` 与计数漂移机械门 `tests/test_count_drift.py` —— 把「人记住 N 个地方」升级为「机器同源」，白名单 = CHANGELOG / archive / reports / 教训索引，并豁免「版本历史」小节（旧数字是史实）。
+- **门清单自证（新增门 0）**：声明的 25 个顶层门必须各有 PASS / FAIL / SKIP 结论，缺一即红并点名；新增 SKIP 三态与配额告警（SKIP 从「静默消失」变成「可观测的覆盖缩小」）。此门回应实测事故：门 S/T/U 曾因条件注册而整门静默消失，报告上看不出异常。
+- **验收**：全量 pytest 567/567、自审门 37 PASS/0 FAIL、版本一致性 89/89、path-canonical 12/12、发版链专项（构建/净化/清单）42/42；反向注入覆盖门 0（门 V 静默消失必红）与计数漂移 8 例。
+- **验收基线**：全量 pytest 535/535、自审门 36/36、flow-check RC=0、版本一致性通过。
+
+
+
 ## [v2.13.3] — 2026-09-25
 
 - **人在环交互体验**：Checkpoint Card 改为“决策摘要优先、详情后置”，降低主人在等待节点的认知负担。
