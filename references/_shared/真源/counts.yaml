@@ -28,6 +28,9 @@ journals:
 # 派发话术文件数（目录 references/dispatch/）
 dispatch_files: 11
 
+# G 质量审计清单项数（G0-G18；G18 内部 12 项不拆成独立 G 门）
+g_checklist_items: 21
+
 # 角色
 role_cards: 11        # 概念口径：T0 主控 + T1-T7 + T8 终检 + T9 同行评审 + T9b 压力测试
 role_card_files: 12   # 物理文件数：主控拆 coordinator + 扩展职责两张卡，另含 T9b

@@ -113,9 +113,10 @@ def test_gate_count_reconciles_with_summary(repo_copy: pathlib.Path) -> None:
     """门数对账：门 Z 的项数必须等于汇总 PASS+FAIL（防某门失败后总数悄悄变小）。"""
     _, out = run_gate(repo_copy)
     passed, failed = parsed_pass_fail(out)
-    # 门 Z 自身不计入 A-X 分母，但会计入最终 PASS 汇总，因此总汇总比门 Z 项数多 1。
-    assert gate_z_count(out) == passed + failed - 1, (
-        f"门 Z 项数 {gate_z_count(out)} ≠ A-X 门数 {passed} + {failed} - 1\n{out[-1200:]}"
+    # 门 Z 与门 0 均在门 Z 计数之后发射，不计入门 Z 分母，但都会计入最终汇总；
+    # 因此总汇总比门 Z 项数多 2。
+    assert gate_z_count(out) == passed + failed - 2, (
+        f"门 Z 项数 {gate_z_count(out)} ≠ 前置门数 {passed} + {failed} - 2\n{out[-1200:]}"
     )
 
 
@@ -139,7 +140,7 @@ def test_gate_z_count_does_not_shrink_on_failure(tmp_path: pathlib.Path) -> None
         f"软上限在失败时变松（FAILED 未计入分母）\n{out[-1200:]}"
     )
     # 门 Z 自身不计入 A-X 分母，但会计入最终 PASS/FAIL 汇总。
-    assert gate_z_count(out) == passed + failed - 1
+    assert gate_z_count(out) == passed + failed - 2
 
 
 def test_gate_z_source_uses_pass_plus_fail() -> None:

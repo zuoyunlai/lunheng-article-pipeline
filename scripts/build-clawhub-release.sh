@@ -607,7 +607,7 @@ _src_had_layer1 = '入口必读（启动清单 1-2 步）' in s
 # 1. SKILL.md 启动清单第 2 步：设计文档 → glossary-full（v2.7.10 起 glossary.md 拆分到 _shared/真源/glossary-full.md）
 s = s.replace(
     '读 `references/设计文档.md`（数据信任级别 / M 门 / 阶段闸门 / F 失败模式 / T6 批判）',
-    '读 `references/_shared/真源/glossary-full.md`（核心概念单一真源：10 张角色卡 / 三层防御 / 数据信任 / 关键协议 / 工具边界）'
+    '读 `references/_shared/真源/glossary-full.md`（核心概念单一真源：11 张角色卡（含 T9b 压力测试） / 三层防御 / 数据信任 / 关键协议 / 工具边界）'
 )
 
 # 2. SKILL.md 角色卡与模板段：删除「设计文档」行

@@ -82,6 +82,16 @@ def check_line(line: str, counts: dict):
             neq(m.group(1), counts["t8_items"], "T8 项数")
             neq(m.group(2), counts["t8_publishable_dimensions"], "T8 维度数")
 
+    for m in re.finditer(r"G0-G(\d+)[^\n]{0,40}?(\d+)\s*项", line):
+        if int(m.group(1)) >= 18:
+            neq(m.group(2), counts["g_checklist_items"], "G 门项数")
+
+    # 只检查现行口径的角色卡声明；版本沿革中的「原 8/9 张」与协议历史
+    # 不属于当前计数，避免把历史事实误判为漂移。
+    if any(marker in line for marker in ("拆成", "角色卡一览", "论衡有", "核心角色（", "角色定义（")):
+        for m in re.finditer(r"(\d+)\s*张角色卡", line):
+            neq(m.group(1), counts["role_cards"], "角色卡数")
+
     return msgs
 
 
@@ -110,7 +120,7 @@ def collect_drift(root: pathlib.Path = ROOT):
 
 def test_counts_file_parses():
     c = load_counts()
-    for key in ("g14_classes", "errors", "journals", "dispatch_files", "t8_items",
+    for key in ("g14_classes", "errors", "journals", "dispatch_files", "g_checklist_items", "t8_items",
                 "t9_dimensions", "m_gate_items", "role_cards", "role_card_files"):
         assert key in c, f"counts.yaml 缺键：{key}"
     assert c["m_gate_items"]["total"] == (
@@ -200,3 +210,15 @@ def test_drift_after_history_section_is_still_caught(tmp_path):
 def test_correct_line_passes(tmp_path):
     root = _mini_tree(tmp_path, "错误信息友好化（13 类常见错误）。\n期刊：24 中文 + 12 英文 = 36 个\n")
     assert collect_drift(root) == []
+
+
+def test_checker_catches_wrong_g_checklist_count(tmp_path):
+    root = _mini_tree(tmp_path, "G0-G18 共 20 项检查。\n")
+    drift = collect_drift(root)
+    assert drift and "G 门项数" in " ".join(drift), f"漏报 G 清单项数漂移：{drift}"
+
+
+def test_checker_catches_wrong_role_card_count(tmp_path):
+    root = _mini_tree(tmp_path, "论衡有 10 张角色卡。\n")
+    drift = collect_drift(root)
+    assert drift and "角色卡数" in " ".join(drift), f"漏报角色卡数漂移：{drift}"

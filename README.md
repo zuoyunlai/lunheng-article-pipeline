@@ -1,4 +1,4 @@
-> 版本：v2.14.3（自动同步 2026-09-27）
+> 版本：v2.14.4（自动同步 2026-09-28）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -14,9 +14,9 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.14.2**（2026-09-27，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**上下文/效率/质量三维优化修订**：完成 M-Gate 物理分片、审计触发计数、workspace 边界内联、章节级 minor 通道、G14 声音保留反查与轻量档审计分档；同步收口零 exec 纯度与净化链完整性边界。
+**v2.14.4**（2026-09-28，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**反哺规则固化**：T5 §4 研究方法契约增加加载/完成回执；T7 新增文献卡↔稿末著录对账与 §4 契约核验，防止引用漂移和方法章节只在报告中声明。
 
-论衡把一篇深度长文 / 论文的生产拆成 **10 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
+论衡把一篇深度长文 / 论文的生产拆成 **11 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
 
 ---
 
@@ -77,7 +77,7 @@
   ├─ T4 分析员（Analyst）────────── 分析大纲（论证主线 + 反方论证 + 建议图表）
   ├─ T5 写手（Writer）────────────── 初稿（AI 去味 10 项）
   ├─ T6 批判伙伴（Critical Companion）── 批判报告（C1-C7 反方攻击 v2）
-  ├─ T7 审计员（Auditor）────────── 审计报告（G0-G17 = 20 项（含 G0.5 / G2.5））
+  ├─ T7 审计员（Auditor）────────── 审计报告（G0-G18 = 21 项（含 G0.5 / G2.5））
   └─ T9 同行评审（Peer Reviewer）── 审稿报告（6 维度评分 + 期刊匹配）
               ↓
          T8 终检 = 独立角色卡
@@ -111,7 +111,7 @@
 | --- | --- | --- |
 | **M 门**（形式合规）| LLM 结构化自评（**零 exec**；规则硬性、非机器强制）| 引用/数据/案例的形式完整性（M-Form 8 项 + M-Exist 3 项 + M-Integrity 2 项 = 13 项）|
 | **F 模式**（失败模式）| 面向用户的叙事 | F1-F9 失败模式清单（幻觉/格式/数据信任/论证强度）|
-| **G 清单**（质量审计）| 面向审计员 | G0-G17 共 20 项（含 G0.5 / G2.5）|
+| **G 清单**（质量审计）| 面向审计员 | G0-G18 共 21 项（含 G0.5 / G2.5）|
 
 修订回环、门判据与完整定义不在 README 重列，统一见 [`pipeline-overview.md`](references/_shared/真源/pipeline-overview.md)、[`glossary-full.md`](references/_shared/真源/glossary-full.md) 和 [`SKILL.md`](SKILL.md)。
 
@@ -125,7 +125,7 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.14.3  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.14.4  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

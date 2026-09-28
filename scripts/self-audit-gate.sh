@@ -61,13 +61,13 @@ skip() { SKIPPED+=("$1: $2"); _record_gate_id "$1"; echo -e "${YELLOW}⊘${NC} $
 warn() { echo -e "${YELLOW}⚠${NC} $1"; }
 
 # 声明的门清单（顶层门：M.3/M.4 归 M，X.1-X.4 归 X）——门 0 以此对账，缺一即红
-DECLARED_GATES=(A B C D E F G H I J K L M N O P Q R S T U V W X Y AA)
+DECLARED_GATES=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z AA AB)
 
 cd "$SKILL_ROOT" || exit
 
 # =============================================================================
 # 门 A：角色卡完整性（v2.7.0 实测 11 文件 = 10 角色：主控 2 文件 + T1-T9 九卡。
-# 概念口径「10 张角色卡」= T0 主控 + T1-T7 + T8 终检 + T9 同行评审；物理 11 文件因主控拆 coordinator + 扩展职责两张）
+# 概念口径「11 张角色卡」= T0 主控 + T1-T7 + T8 终检 + T9 同行评审 + T9b 压力测试；物理 12 文件因主控拆 coordinator + 扩展职责两张）
 # 2026-09-25 审计修订（R-24-2）：原判据**只查缺席不查多出** —— 目录里多出一个未被登记的角色卡
 #   （如 `0A-临时卡.md`）本门照过，而门 C 的 VERSION_FILES 与 sync/check-version 清单都是白名单，
 #   同样不报 ⇒ 「新增角色卡」这一动作当时无任何机械门覆盖。现补**反向差集**。
@@ -137,7 +137,7 @@ for r in "${ROLE_NUMS[@]}"; do
   fi
 done
 if [ -z "$ROLE_MISSING" ]; then
-  pass "门 B: 10 角色编号 README/SKILL/pipeline 三处覆盖"
+  pass "门 B: 11 角色编号 README/SKILL/pipeline 三处覆盖"
 else
   fail "门 B: 角色编号覆盖不全" "$ROLE_MISSING"
 fi
@@ -231,6 +231,24 @@ elif [ -z "$EXPECTED_VERSION" ]; then
   : # 上方空转守卫已 fail，此处不重复计数
 else
   fail "门 C: 版本号不一致" "期望 v$EXPECTED_VERSION, 不一致:$VERSION_MISSING"
+fi
+
+# =============================================================================
+# 门 AB：正文版本一致性（R-60）
+# 判据唯一真源 = tests/test_audit_residuals.py；本门只触发，不复制正则。
+# 缺少 python3/pytest 或任一测试失败均 fail-closed，不得静默跳过。
+# =============================================================================
+if command -v python3 >/dev/null 2>&1; then
+  if python3 -m pytest -q \
+    tests/test_audit_residuals.py::test_readme_prose_version_matches_frontmatter \
+    tests/test_audit_residuals.py::test_skill_body_version_header_matches_frontmatter \
+    >/tmp/lunheng-gate-ab.out 2>&1; then
+    pass "门 AB: 正文版本一致性（README/SKILL.md == frontmatter）"
+  else
+    fail "门 AB: 正文版本一致性" "升版后正文版本一致性门失败：$(tail -3 /tmp/lunheng-gate-ab.out | tr '\\n' '|')"
+  fi
+else
+  fail "门 AB: 正文版本一致性" "缺少 python3，正文版本一致性门不可判定"
 fi
 
 # =============================================================================
@@ -1449,9 +1467,18 @@ else
   fi
 fi
 
-# 门 0：门清单对账（v2.13.x 审计修订 R-20）
-#   判据：DECLARED_GATES 中每个门都必须在本轮给出结论（PASS/FAIL/SKIP）。
-#   任一门无结论 = 门静默消失（曾实际发生：门 S/T/U 缺依赖时整行不输出）。
+GATE_COUNT_CEIL=40
+# v2.13.x 审计修订（R-08）：项数口径改为 **PASS + FAIL**。原写 `${#PASSED[@]}` ⇒ 一旦有门失败，
+#   分母反而变小，「只许降」的软上限在失败时变松（失败越多越容易「合规」）。软门语义（warn，
+#   不计 exit code）保持不变，只修正计数。
+_GATE_AX_COUNT=$(( ${#PASSED[@]} + ${#FAILED[@]} ))
+if [ "$_GATE_AX_COUNT" -le "$GATE_COUNT_CEIL" ]; then
+  pass "门 Z: 自审门项数 ${_GATE_AX_COUNT}（PASS ${#PASSED[@]} + FAIL ${#FAILED[@]}） ≤ ${GATE_COUNT_CEIL}（软上限，只许降）"
+else
+  warn "门 Z: 自审门项数 ${_GATE_AX_COUNT} > 软上限 ${GATE_COUNT_CEIL} —— 加门前先合并/退役旧门，不要放宽本上限"
+fi
+
+# 门 0：门清单对账（必须在门 Z 发射后执行，才能真实检查 Z）
 GATE_NO_VERDICT=""
 for _dg in "${DECLARED_GATES[@]}"; do
   case " $SEEN_GATE_IDS " in
@@ -1466,17 +1493,6 @@ else
 fi
 if [ ${#SKIPPED[@]} -gt 0 ]; then
   warn "门 0: SKIP 配额 ${#SKIPPED[@]} —— 覆盖缩小（非全绿）：$(printf '%s | ' "${SKIPPED[@]}")"
-fi
-
-GATE_COUNT_CEIL=40
-# v2.13.x 审计修订（R-08）：项数口径改为 **PASS + FAIL**。原写 `${#PASSED[@]}` ⇒ 一旦有门失败，
-#   分母反而变小，「只许降」的软上限在失败时变松（失败越多越容易「合规」）。软门语义（warn，
-#   不计 exit code）保持不变，只修正计数。
-_GATE_AX_COUNT=$(( ${#PASSED[@]} + ${#FAILED[@]} ))
-if [ "$_GATE_AX_COUNT" -le "$GATE_COUNT_CEIL" ]; then
-  pass "门 Z: 自审门项数 ${_GATE_AX_COUNT}（PASS ${#PASSED[@]} + FAIL ${#FAILED[@]}） ≤ ${GATE_COUNT_CEIL}（软上限，只许降）"
-else
-  warn "门 Z: 自审门项数 ${_GATE_AX_COUNT} > 软上限 ${GATE_COUNT_CEIL} —— 加门前先合并/退役旧门，不要放宽本上限"
 fi
 
 TOTAL_PASS=${#PASSED[@]}
