@@ -1,4 +1,4 @@
-> 版本：v2.14.4（自动同步 2026-09-28）
+> 版本：v2.14.5（自动同步 2026-09-28）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -28,7 +28,7 @@
 | 5 | `t4_analysis` | Phase 2 | T4 | `analysis/分析大纲.md` + `analysis/T5-写作上下文.md` |
 | 6 | `phase2_5_outline` | Phase 2.5 | 主人 × 主控（**人在环**） | 大纲确认 + **图位拍板**（含 `figure_decision`） |
 | 7 | `t5_draft_v1` | Phase 3 | T5 | `drafts/初稿-v1.md`（铁律：`[Lxx]`/`[Dxx]`/`[Cxx]` + AI 去味 10 项） |
-| 8 | `phase3_5_insight` | Phase 3.5 | 主人 × 主控（**人在环**） | `insight` / `no_insight`（无补充也须留痕） |
+| 8 | `phase3_5_insight` | Phase 3.5 | 主人 × 主控（**人在环**） | `insight` / `direction_correction` / `no_insight`（无补充也须留痕；方向纠偏不得降格为普通补充） |
 | 9 | `current_draft_sync` | Phase 3.6 前置 | 主控（亲为） | `drafts/current_draft.md`（权威稿指针） |
 | 10 | `t6_critique` | Phase 3.6 | T6（轻量档必跳） | `analysis/批判报告-vN.md`（攻击**含主人洞察的 v2**） |
 | 11 | `t5_feedback_revision` | Phase 3.7 | T5（条件触发） | `drafts/初稿-v{N+1}.md` + `drafts/修订说明-v{N+1}.md` |
@@ -39,7 +39,7 @@
 | 16 | `g14_style_gate` | Phase 4.4 前置（G14 风格闸） | G14（含中文必跑） | `audits/G14-检测报告-vN.md`（**全流程只审一次**；风格修订后全文复检 ≤2 轮） |
 | 17 | `t5_style_revision` | Phase 4.4 前置·风格修订 | T5（G14 Fail 唯一出口） | 仅风格层修订稿（**不得动论证/数据/引用/结论**） |
 | 18 | `phase4_4_figures` | Phase 4.4 | 主控（亲为） | `final/图件/*.svg`（零外发、零 exec；有图位才触发） |
-| 19 | `final_assembly` | Phase 4.4 后置（定稿组装） | 主控（亲为） | `final/定稿.md`（**只产投稿版**，禁入工程元数据段） |
+| 19 | `final_assembly` | Phase 4.4 后置（定稿组装） | 主控（亲为） | `final/定稿.md`（**只产投稿版**，禁入工程元数据段；组装后必须完成 `g14_caption_recheck`） |
 | 20 | `t9_review` | Phase 4.5 | T9（盲审独立子代理） | `audits/审稿报告-vN.md`（6 维度 + D1/D2 → accept/minor/major/reject） |
 | 21 | `t9b_stress_test` | Phase 4.5 后置（压力测试轮） | 主控（亲为） | `audits/压力测试报告-vN.md`（三剧本、建议性） |
 | 22 | `t8_technical_final` | Phase 5 终检 | 主控（T8 亲为） | `final/交付说明.md`（+ Acknowledged Limitations 时 `final/局限性.md`） |

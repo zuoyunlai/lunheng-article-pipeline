@@ -1088,6 +1088,26 @@ def test_status_decision_literals_subset_of_yaml():
         assert vals <= declared, f"「{label}」{sorted(vals)} ⊄ {nid}.decisions {sorted(declared)}"
 
 
+def test_phase35_direction_correction_is_explicit_and_not_silent_insight():
+    """审计 HMI 修订：方向纠偏必须是独立态，并要求记录纠偏范围。"""
+    node = _node("phase3_5_insight")
+    assert "direction_correction" in set(node.get("decisions") or [])
+    contract = str(node.get("decision_contract") or "")
+    assert "不得把它降格为普通补充洞察" in contract
+    assert "correction_scope" in (ROOT / "references/templates/status-template.md").read_text(encoding="utf-8")
+    card = (ROOT / "references/templates/checkpoint-card-template.md").read_text(encoding="utf-8")
+    assert "direction_correction" in card
+
+
+def test_final_assembly_requires_post_assembly_caption_recheck():
+    """审计 P2-1 修订：组装后图注/图位复核必须是 final_assembly 的机械契约。"""
+    node = _node("final_assembly")
+    assert "g14_caption_recheck" in (node.get("post_assembly_checks") or [])
+    assert node.get("post_assembly_recheck") == "required"
+    assert node.get("recheck_record") == "status.md"
+    assert "不得进入 t9_review" in str(node.get("note") or "")
+
+
 def test_card_declares_enum_source_for_all_four_nodes():
     """卡片四段各须带枚举真源指针 —— 「选项固定，不可自由发挥」不能只是自我声明。"""
     card = (ROOT / "references/templates/checkpoint-card-template.md").read_text(encoding="utf-8")

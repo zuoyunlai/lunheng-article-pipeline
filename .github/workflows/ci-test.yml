@@ -110,6 +110,27 @@ jobs:
     name: 自审门验证
     steps:
       - uses: actions/checkout@v5
+
+      - name: 设置 Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖（两份锁定文件全装，门 AB 真源需要 pytest）
+        # v2.14.4 后补（教训 #430 同族·假绿灯）：原 job 只 checkout + chmod + bash
+        #   scripts/self-audit-gate.sh，未装 tests/requirements-test.txt；自审门内
+        #   门 AB 调用 `python3 -m pytest tests/test_audit_residuals.py::...`（脚本
+        #   行 236-252 注释明确 fail-closed：缺 pytest 不得 SKIP）⇒ CI ubuntu-latest
+        #   自带 python3 但无 pytest ⇒ `No module named pytest` ⇒ 门 AB 红、
+        #   test-self-audit-gate 与 test-official-validate 两条 job 全红，而同仓
+        #   test-m-gate-format / quality.yml 装依赖后是绿的 ⇒ **「红的那条没人点开」**
+        #   经典绿灯幻觉（教训 #430 已记录 v2.12.62 同族）。本 job 现口径与
+        #   test-m-gate-format / quality.yml / 门 N「两份锁定文件」一致：两份全装。
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r tests/requirements-test.txt
+
       - name: 跑 self-audit-gate.sh
         run: |
           chmod +x scripts/self-audit-gate.sh
@@ -129,6 +150,22 @@ jobs:
           QV="$(npm root -g)/openclaw/skills/skill-creator/scripts/quick_validate.py"
           test -f "$QV"
           python3 "$QV" .
+
+      - name: 设置 Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖（两份锁定文件全装，门 AB 真源需要 pytest）
+        # v2.14.4 后补（教训 #430 同族·假绿灯）：同 test-self-audit-gate job，本步骤
+        #   「自审门（强制要求校验器存在）」直接 bash scripts/self-audit-gate.sh，
+        #   未装 tests/requirements-test.txt ⇒ 门 AB 在 CI 必红。安装口径与
+        #   test-self-audit-gate / test-m-gate-format / 门 N「两份锁定文件」一致。
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r tests/requirements-test.txt
+
       - name: 自审门（强制要求校验器存在）
         run: |
           chmod +x scripts/self-audit-gate.sh

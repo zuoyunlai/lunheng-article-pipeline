@@ -45,7 +45,7 @@
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 
-version: 2.14.4
+version: 2.14.5
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-核心.md §判定结果分档）。
@@ -466,7 +466,8 @@ pipeline:
     kind: owner_checkpoint
     blocking: true        # v2.12.49：「无补充」也是决策，必须留痕；静默不得当作无补充
     owner_visible: true
-    decisions: [insight, no_insight]
+    decisions: [insight, direction_correction, no_insight]
+    decision_contract: "direction_correction = 方向纠偏；记录 correction_scope，回 T5 重定向后才可进 current_draft_sync；不得把它降格为普通补充洞察。"
     timeout_fallback: pending_owner_halt
     next: current_draft_sync
   - id: current_draft_sync   # 别名：文档层「Phase 3.6 前置」（非独立 Phase 标签，主控呈现时归入 Phase 3.6）
@@ -704,7 +705,10 @@ pipeline:
     write_authority: owner
     output: final/定稿.md
     fingerprint: required   # v2.12.49 M-1：产出后必须写 final/定稿.sha256（主控 read + 主人 host shell 补算 sha256sum 写入）；指纹真源
-    note: 主控亲为（不 spawn）：把当前权威稿组装为 final/定稿.md（正文 + 图注对齐），供 T8 终检。**v2.12.60 图件嵌入**：图件存在时（`input` 含 SVG）必须把每个图位替换为可渲染的 `![图N：标题](图件/图N_标题.svg)`（与定稿同目录相对路径），使**嵌入计数 = 拍板 N**；只留纯文本 `[图N：标题]` = 不合格（口径真源 = deliverables.md「定稿图件口径」）。**v2.12.49 M-1**：产出同步写 `final/定稿.sha256`，下游 T7/T9/G14/T8 报告必填 `audited_artifact.{path,bytes,sha256}` 三元组；T8 终检做 sha256 集合相等断言（与 T7/G14/T9 一致 ⇒ 合格）。v2.12.37 审计 P0-3：原「定稿组装」只写在散文（pipeline-overview / 主控卡），未入真源 → 续跑按 output 核对永远漏掉定稿。**v2.12.43 投稿域 vs 工程域**：本节点**只产投稿版**（纯学术结构），**禁**写入头部工程元数据段与「## 投稿就绪附录」段；工程信息一律由 t8_technical_final 写入 final/交付说明.md。禁入清单真源 = deliverables.md「投稿域 vs 工程域」
+    post_assembly_checks: [g14_caption_recheck]
+    post_assembly_recheck: required
+    recheck_record: status.md
+    note: 主控组装 final/定稿.md；图件存在时必须按 `![图N：标题](图件/图N_标题.svg)` 嵌入且计数等于拍板 N。组装后必做 `g14_caption_recheck`：核对最终图位数量、图注—数据卡对应关系与 Markdown 嵌入形态，结果写 status.md；未完成/不可判定不得进入 t9_review。该复核只覆盖组装新增/变形的图注图位文本，不替代 G14 首审。
     next: t9_review
   - id: t9_review   # 别名：文档层「Phase 4.5」
     phase: "Phase 4.5"

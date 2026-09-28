@@ -1,4 +1,4 @@
-> 版本：v2.14.4（自动同步 2026-09-28）
+> 版本：v2.14.5（自动同步 2026-09-28）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
@@ -102,7 +102,8 @@
 - **待审材料**：`drafts/初稿-v1.md`
 - **选项**（枚举真源：`phase-order.yaml` `phase3_5_insight.decisions`）：
   - A. 补充洞察（主人写出要加的内容/方向，T5 融入 v2）→ `insight`
-  - B. 无补充（直接进 T6 批判）→ `no_insight`
+  - B. 方向需纠偏（当前初稿的核心问题/论证方向需要调整，主控记录纠偏要求后回 T5 重定向）→ `direction_correction`
+  - C. 无补充（直接进 T6 批判）→ `no_insight`
 - **必呈现**：初稿字数 vs 目标、AI 痕迹初检结果（如有）
 
 ### Phase 5 · 终稿验收
@@ -145,7 +146,7 @@
 
 主控能力白名单含 `ask_user`（结构化提问，native 控件 + 单选 + free text 兜底）。对**纯枚举单选**的人环节点，可用 ask_user 替代纯文本 A/B/C/D，交互更利落（点选、免手打、结构化回填）：
 
-- **适用**：Phase 2.5 大纲（**三态** `approved`/`revision_requested`/`restart_phase`，真源 = `phase-order.yaml` 该节点 `decisions`）、Phase 3.5 洞察（`insight`/`no_insight` 二选一）——单一决策、枚举闭合，且 free text 兜底不可移除（`restart_phase` 即「重新定题」，缺该态会使决策落不到 yaml 枚举 → 人在环硬门判「未记录」）。
+- **适用**：Phase 2.5 大纲（**三态** `approved`/`revision_requested`/`restart_phase`，真源 = `phase-order.yaml` 该节点 `decisions`）、Phase 3.5 洞察（`insight`/`direction_correction`/`no_insight` 三选一）——单一决策、枚举闭合，且 free text 兜底不可移除（`restart_phase` 即「重新定题」，缺该态会使决策落不到 yaml 枚举 → 人在环硬门判「未记录」）。
 - **不适用（保留文本）**：Phase 0（外发范围四选一 + 可选服务 2 项 + 定题 **2 进线态 + 2 未进线出口** = 多问题组合）、Phase 5（可发表性 6 选项 + M-13 建议清单（多格式导出等四类，非对话式选择题）+ 补改意见自由文本 = 多维度 + 需自由表达）。
 - **铁律**：ask_user 只约束「选项枚举」，不取消自由表达（free text 自动兜底）；拍板结果同样写入 status.md「人在环决策记录」段，与文本路径**等价**。
 - **降级**：宿主/渠道不支持 ask_user（如部分 messaging 渠道无 native 控件）→ 自动回退文本 Checkpoint Card，不阻塞。

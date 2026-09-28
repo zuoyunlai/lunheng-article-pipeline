@@ -1,4 +1,4 @@
-> 版本：v2.14.4（自动同步 2026-09-28）
+> 版本：v2.14.5（自动同步 2026-09-28）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
@@ -55,7 +55,7 @@
 
 - **Phase 0 定题**: decision=<approved|revision_requested> / owner_confirmed_at=<时间> / evidence=01-任务简报.md / **未启动时**：decision=n/a + `pre_pipeline_exit=<pause|reject>`（v2.12.61：「是否启动」是流水线**外**前置门，其字面值**不进** `decision`；真源 = `phase-order.yaml` `phase0_definition.decisions`）
 - **Phase 2.5 大纲**: decision=<approved|revision_requested|restart_phase> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md / **v2.12.49 M-11**：figures=<N> / figure_decision=<采用 T4 建议|调整图位数|取消图表> —— **任一字段缺失 = 不合格**（t7_5_integrity / T8 机械门均报）
-- **Phase 3.5 洞察**: decision=<insight|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md
+- **Phase 3.5 洞察**: decision=<insight|direction_correction|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md / correction_scope=<方向纠偏时必填>
 - **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md
 
 > 仅有材料、主控代判、子代理声称已确认，均不构成决策；`no_insight` 是明确决策，不是跳过。
@@ -158,6 +158,7 @@
 - **audits/G14 检测报告** [节点: G14]: audits/G14-检测报告-v{N}.md
 - **literature/回查报告** [节点: T1b]: literature/回查报告-v{N}.md
 - **final/定稿** [节点: final_assembly + t8_technical_final]: final/定稿.md
+- **组装后 G14 轻量复检** [节点: final_assembly]: `g14_caption_recheck=<pass|warning|fail|n/a>` / `scope=<组装新增或变形的图注/可见文本范围>` / `checked_at=<时间>` / `阻断进入 t9_review=<yes|no>`（未完成或无法判定不得进入 T9）
 - **final/交付说明** [节点: t8_technical_final]: final/交付说明.md
 - **final/M-Gate 报告** [节点: t7_5_integrity]: final/M-Gate-Report-v2.2.12.json
 - **final/定稿指纹** [节点: t8_technical_final]: final/定稿.sha256
