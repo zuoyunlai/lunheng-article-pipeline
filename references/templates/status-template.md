@@ -167,7 +167,19 @@ doctor:
 runtime_observability:
   event_log: {path: control/events/, last_event_id: <id|n/a>, last_event_type: <type|n/a>}
   routing: {requested: [], actually_used: [], unavailable: [], fallback_chain: [], degradation_level: none | L1 | L2 | owner_halt, reason: []}
-  gate_telemetry: {<gate_id>: {current_run: 0, cumulative: 0, last_result: pass | warning | fail | unavailable}}
+  gate_telemetry:
+    <gate_id>:
+      triggered: 0
+      blocked: 0
+      current_run: 0
+      cumulative: 0
+      pass: 0
+      warning: 0
+      fail: 0
+      not_applicable: 0
+      unavailable: 0
+      last_result: pass | warning | fail | not_applicable | unavailable
+      # 仅计真实运行期判定；反向注入、构建测试、文档演练不计入。零触发必须显式写 0。
 ```
 
 > `requested` 不等于 `actually_used`；反向注入、构建测试和文档演练不计 gate telemetry；零触发必须显式写 `0`。

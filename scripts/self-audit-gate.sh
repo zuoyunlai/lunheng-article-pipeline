@@ -61,7 +61,7 @@ skip() { SKIPPED+=("$1: $2"); _record_gate_id "$1"; echo -e "${YELLOW}⊘${NC} $
 warn() { echo -e "${YELLOW}⚠${NC} $1"; }
 
 # 声明的门清单（顶层门：M.3/M.4 归 M，X.1-X.4 归 X）——门 0 以此对账，缺一即红
-DECLARED_GATES=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z AA AB)
+DECLARED_GATES=(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z AA AB AC)
 
 cd "$SKILL_ROOT" || exit
 
@@ -1436,6 +1436,25 @@ if [ -z "$ODD_FENCES" ]; then
   pass "门 X.4: 全仓 .md 围栏相位收尾闭合（状态机判定，无未闭合围栏）"
 else
   fail "门 X.4: 存在未闭合围栏（其尾部内容会被吞进代码块）" "$(echo "$ODD_FENCES" | head -5 | tr '\n' '|')"
+fi
+
+# AC：跨文档合同、paper-ready fail-closed 与 Markdown 基础结构（本轮 P0/P1 机械收口）
+# 合同门必须执行：其内部负责真源多值簇、lite/full 必填字段、dispatch 关键合同、
+# 语言政策受管文件完整性与 status gate telemetry 字段。paper-ready 反例与结构 lint
+# 由 pytest/独立脚本验证；缺失脚本或任一检查失败均不得静默跳过。
+if command -v python3 >/dev/null 2>&1 && [ -f scripts/contract-check.py ] && [ -f scripts/markdown-structure-lint.py ]; then
+  AC_OUT=""
+  if ! AC_OUT="$(python3 scripts/contract-check.py 2>&1)"; then
+    fail "门 AC: 跨文档合同/语言政策/模板遥测不一致" "$(printf '%s' "$AC_OUT" | tail -10 | tr '\n' '|')"
+  elif ! AC_OUT="$(python3 scripts/markdown-structure-lint.py --check 2>&1)"; then
+    fail "门 AC: Markdown 基础结构 lint 失败" "$(printf '%s' "$AC_OUT" | tail -10 | tr '\n' '|')"
+  elif ! AC_OUT="$(python3 -m pytest -q tests/test_paper_ready_check.py tests/test_scripts_index.py 2>&1)"; then
+    fail "门 AC: paper-ready/脚本索引反例回归失败" "$(printf '%s' "$AC_OUT" | tail -12 | tr '\n' '|')"
+  else
+    pass "门 AC: 跨文档合同 + paper-ready fail-closed + Markdown 基础结构通过"
+  fi
+else
+  fail "门 AC: 新增机械门不可执行" "缺 python3 或 contract-check.py 或 markdown-structure-lint.py（fail-closed）"
 fi
 
 # =============================================================================

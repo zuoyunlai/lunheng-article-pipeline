@@ -64,6 +64,7 @@ CHECKS=(
   "_shared/真源/M-Gate-背景.md|v$EXPECTED|1"
   "_shared/真源/M-Gate-Algorithm-appendix.md|v$EXPECTED|1"
   "_shared/真源/audit-checklist-quickref.md|v$EXPECTED|1"
+  "_shared/真源/evidence-object-model.md|v$EXPECTED|1"
 
   # 10 个角色卡（顶部必须含版本号）
   "agents/00-主控-coordinator.md|v$EXPECTED|1"
@@ -152,6 +153,8 @@ CHECKS=(
   "templates/status-template-lite.md|v$EXPECTED|1"
   "templates/交接报告-template-lite.md|v$EXPECTED|1"
   "templates/任务简报-template-lite.md|v$EXPECTED|1"
+  "templates/claim-evidence-map-template.md|v$EXPECTED|1"
+  "templates/evidence-register-template.md|v$EXPECTED|1"
   "templates/先行者清单-template-lite.md|v$EXPECTED|1"
   "templates/数据卡-template-lite.md|v$EXPECTED|1"
   "templates/文献卡-template-lite.md|v$EXPECTED|1"

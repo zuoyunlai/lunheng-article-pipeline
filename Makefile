@@ -1,6 +1,6 @@
 # 论衡开发工具 Makefile（P1-5 修订 2026-09-08）
 
-.PHONY: help test lint format audit changelog-check path-canonical scripts-index clean install
+.PHONY: help test lint format audit changelog-check path-canonical scripts-index contract-check markdown-structure-lint clean install
 
 help:
 	@echo "论衡开发工具"
@@ -70,6 +70,12 @@ changelog-check:
 scripts-index:
 	@python3 scripts/gen-scripts-index.py
 
+contract-check:
+	@python3 scripts/contract-check.py
+
+markdown-structure-lint:
+	@python3 scripts/markdown-structure-lint.py --check
+
 # 发版前置闸（教训 #332，四查一停）——任何对外发版动作（push / tag / Release / 净化包）之前必跑
 # 本链自身会话 key 用 LUNHENG_PREFLIGHT_SELF_SESSION 传入，否则本链会被闸算作在飞链（失败关闭）。
 # 指定目标编号：make preflight PREFLIGHT_TAG=v2.12.21（默认取 SKILL.md frontmatter 版本）
@@ -93,7 +99,7 @@ clean:
 	find . -type f -name ".coverage" -delete
 	@echo "✓ 清理完成"
 
-all: lint test audit changelog-check
+all: lint test contract-check markdown-structure-lint audit changelog-check
 	@echo ""
 	@echo "✅ 全部检查通过！"
 
