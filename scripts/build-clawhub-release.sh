@@ -185,6 +185,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/_shared/治理/教训索引.md' \
     --exclude 'references/_shared/治理/论衡仓库内教训.md' \
     --exclude 'references/_shared/治理/模板填写说明.md' \
+    --exclude 'references/_shared/真源/template-contracts.yaml' \
     --exclude '.safe-pattern-manifest.json' \
     --exclude 'pyproject.toml' \
     --exclude 'requirements.txt' \

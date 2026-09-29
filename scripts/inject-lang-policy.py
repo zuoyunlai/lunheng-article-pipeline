@@ -27,8 +27,9 @@ MARKER = "🌐 **语言政策**"
 LINE = (
     "> 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**"
     "（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；"
-    "中文特化按目标语言客观适用：含中文时 G14 中文 AI 痕迹闸必跑；"
-    "GB/T 7714-2015 引用规范为可选能力；二者均不构成使用者语种限制。"
+    "中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**"
+    "（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；"
+    "GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。"
 )
 
 # 交付文件根（相对 skill 根）
@@ -98,7 +99,8 @@ def inject(text):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="只报告不写入")
-    ap.add_argument("--check", action="store_true", help="只校验，缺失即 exit 1")
+    ap.add_argument("--check", action="store_true", help="只校验，缺失或旧变体即 exit 1")
+    ap.add_argument("--normalize", action="store_true", help="将现有语言政策块统一为真源文本")
     args = ap.parse_args()
 
     skill_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -108,25 +110,37 @@ def main():
     for full, rel in files:
         with open(full, encoding="utf-8") as f:
             text = f.read()
-        if MARKER in text:
+        policy_lines = [line for line in text.splitlines() if MARKER in line]
+        if not policy_lines:
+            missing.append(rel)
+            if args.check:
+                continue
+            changed.append(rel)
+            if args.dry_run:
+                continue
+            new_text, _ = inject(text)
+        elif args.normalize and any(line != LINE for line in policy_lines):
+            changed.append(rel)
+            if args.dry_run:
+                continue
+            new_text = "\n".join(LINE if MARKER in line else line for line in text.split("\n"))
+        else:
             continue
-        missing.append(rel)
-        if args.check:
-            continue
-        changed.append(rel)
-        if args.dry_run:
-            continue
-        new_text, _ = inject(text)
         with open(full, "w", encoding="utf-8") as f:
             f.write(new_text)
 
     if args.check:
-        if missing:
-            print(f"❌ 语言政策声明缺失 {len(missing)} 个文件：")
-            for rel in missing:
+        stale = []
+        for full, rel in files:
+            text = open(full, encoding="utf-8").read()
+            if not any(line == LINE for line in text.splitlines()):
+                stale.append(rel)
+        if missing or stale:
+            print(f"❌ 语言政策声明不完整：缺失 {len(missing)}，旧变体/不一致 {len(stale)}")
+            for rel in missing + stale:
                 print(f"  - {rel}")
             return 1
-        print(f"✅ 语言政策声明完整（{len(files)} 个交付文件）")
+        print(f"✅ 语言政策声明统一（{len(files)} 个交付文件）")
         return 0
 
     verb = "将修改" if args.dry_run else "已注入"

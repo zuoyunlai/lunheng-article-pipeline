@@ -1,0 +1,53 @@
+# 论衡模板能力矩阵（v2.15.x 第二批机械门·真源）
+#
+# 背景（v2.15.x 审计修订）：lite/full 模板的必填字段此前在 contract-check.py 内
+#   硬编码，加一个模板要改两处（模板本身 + 门）。本文件作为**唯一真源**：
+#     - 改本文件即可改门
+#     - 门由 scripts/contract-check.py 加载并机械校验
+#     - 反例注入测试 = tests/test_contract_check.py
+#
+# 原则：
+#   - required_fields：模板正文必须含每项（子串匹配，区分大小写）
+#   - lite 模板只承担骨架字段；gate_telemetry 等高密度字段只在 full 模板上要求
+#   - 任何新增字段 = 先在这里登记，再去模板里写
+#
+# 维护：本文件不带版本戳（与 counts.yaml 同口径，避免 check-version 清单无谓扩张）。
+#   新增/删除本文件须同步随包清单（维护者侧清单文件，见构建脚本目录）。
+
+templates:
+  任务简报-template-lite.md:
+    mode: lite
+    required_fields:
+      - 目标语言
+      - figure_decision
+      - 同行评审
+      - 方法论留档
+      - 压力测试轮
+
+  任务简报-template.md:
+    mode: full
+    required_fields:
+      - 目标语言
+      - figure_decision
+      - owner_peer_review_opt_out
+      - axis_A
+      - axis_B
+
+  status-template.md:
+    mode: status_full
+    required_fields:
+      - gate_telemetry
+      - current_run
+      - cumulative
+      - last_result
+      - 零触发
+      - checkpoint_id
+      - checkpoint_status
+      - owner_decision_normalized
+
+  status-template-lite.md:
+    mode: status_lite
+    required_fields:
+      - checkpoint_id
+      - checkpoint_status
+      - owner_decision_normalized

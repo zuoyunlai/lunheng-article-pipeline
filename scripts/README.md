@@ -6,7 +6,7 @@
 > 🔁 **派生视图**：本表由 `gen-scripts-index.py` 机械提取，**不承载新口径**。列源：**用途** = 脚本头部首个内容行；**用法** = 头部 `用法：` / `调用：` 行；**触发时机** = 头部 `触发：` 行；**make 入口** = `Makefile` recipe 中调用该脚本的目标。单元格里的「—」= 该脚本**未声明**该项（不是「不存在用法」；补口径请改脚本头，勿改本文件）。改了脚本头请跑 `make scripts-index` 刷新本文件；`tests/test_scripts_index.py` 会因本文件与 `scripts/` 不一致而报红（缺条目 / 残留已删条目 / 条目内容漂移）。
 > 📦 **本文件不进发布包**：`scripts/` 整目录由构建脚本排除，使用者侧不出现开发者工具链。
 
-共 **33** 个条目（`scripts/` 下除本索引自身以外的全部文件）。
+共 **34** 个条目（`scripts/` 下除本索引自身以外的全部文件）。
 
 | 脚本 | 用途 | 用法 | 触发时机（头部声明） | make 入口 |
 |---|---|---|---|---|
@@ -17,6 +17,7 @@
 | [`cleanup-skill-store.sh`](cleanup-skill-store.sh) | cleanup-skill-store.sh — 论衡技能库瘦身脚本 | — | 主人手动跑 / 每次发版前自动跑 | — |
 | [`contract-check.py`](contract-check.py) | Build-time contracts for high-drift declarations. | — | — | `make contract-check` |
 | [`create-github-release.sh`](create-github-release.sh) | create-github-release.sh — 从 CHANGELOG.md 建 / 同步 GitHub Release（一条命令） | bash scripts/create-github-release.sh [<tag>] [--dry-run\|--check] [--no-dispatch] | — | — |
+| [`dispatch-contract.py`](dispatch-contract.py) | dispatch-contract.py — 论衡派发话术合同块生成与校验（v2.15.x 第二批机械门）。 | python3 scripts/dispatch-contract.py # 生成并写盘 | — | `make dispatch-contract`、`make dispatch-contract-check` |
 | [`flow-check.py`](flow-check.py) | 论衡流程图检查 | python3 scripts/flow-check.py → 无输出=通过；有输出=问题列表（分号分隔）。 | — | — |
 | [`flow-schema.lunheng.yaml`](flow-schema.lunheng.yaml) | flow-schema.lunheng.yaml — 论衡「跨载体一致性」规则的声明式演示实例（批次 4-B） | — | — | — |
 | [`flow-schema.py`](flow-schema.py) | flow-schema.py — 声明式「跨载体一致性」校验器（可复用治理引擎，批次 4-B） | python3 scripts/flow-schema.py [--schema scripts/flow-schema.lunheng.yaml] | — | — |

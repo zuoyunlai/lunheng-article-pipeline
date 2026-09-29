@@ -1,6 +1,6 @@
 # 论衡开发工具 Makefile（P1-5 修订 2026-09-08）
 
-.PHONY: help test lint format audit changelog-check path-canonical scripts-index contract-check markdown-structure-lint clean install
+.PHONY: help test lint format audit changelog-check path-canonical scripts-index contract-check dispatch-contract dispatch-contract-check markdown-structure-lint clean install
 
 help:
 	@echo "论衡开发工具"
@@ -73,6 +73,12 @@ scripts-index:
 contract-check:
 	@python3 scripts/contract-check.py
 
+dispatch-contract:
+	@python3 scripts/dispatch-contract.py
+
+dispatch-contract-check:
+	@python3 scripts/dispatch-contract.py --check
+
 markdown-structure-lint:
 	@python3 scripts/markdown-structure-lint.py --check
 
@@ -99,7 +105,7 @@ clean:
 	find . -type f -name ".coverage" -delete
 	@echo "✓ 清理完成"
 
-all: lint test contract-check markdown-structure-lint audit changelog-check
+all: lint test contract-check dispatch-contract-check markdown-structure-lint audit changelog-check
 	@echo ""
 	@echo "✅ 全部检查通过！"
 

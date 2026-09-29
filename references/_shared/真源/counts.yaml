@@ -28,6 +28,15 @@ journals:
 # 派发话术文件数（目录 references/dispatch/）
 dispatch_files: 11
 
+# 版本文件数（维护者侧版本一致性清单真源；历史沿革中的旧数字不参与扫描）
+version_files: 95
+
+# 高频分档口径（references/_shared/真源/字数判定表.md §五）
+word_tiers:
+  light: "2000-3000"
+  medium: "3000-5000"
+  heavy_min: 5000
+
 # G 质量审计清单项数（G0-G18；G18 内部 12 项不拆成独立 G 门）
 g_checklist_items: 21
 

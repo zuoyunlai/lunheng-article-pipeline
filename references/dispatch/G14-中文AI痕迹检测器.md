@@ -1,4 +1,4 @@
-> 版本：v2.15.2（自动同步 2026-09-29）
+> 版本：v2.15.3（自动同步 2026-09-29）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -10,6 +10,16 @@
 > 公共工具白名单 / 零 exec / 叶子纪律 / 降级自报 / token 统计：见 [`_shared/真源/dispatch-header.md`](../_shared/真源/dispatch-header.md)
 
 
+
+<!-- generated: dispatch-contract (do not edit by hand) -->
+node: g14_style_gate
+phase: Phase 4.4 前置（G14 风格闸）
+default: required
+opt_out_key: n/a
+on_opt_out: n/a
+condition: target_language_includes_zh
+recheck_max_rounds: 2
+<!-- /generated -->
 ### G14 中文 AI 痕迹检测器
 
 > **何时用**：**Phase 4.4 前置（`g14_style_gate`）**，位置 `t7_5_integrity → g14_style_gate → phase4_4_figures`——**首审定稿前唯一一次；如触发风格修订，复检纪律按 `gates/14-中文AI痕迹-gate.md` §四执行（复检 ≤2 轮）**；**执行前提 = 已可定稿（前置修订已收敛）**，否则不执行。**非可选**：按 Phase 0「目标语言」客观适用——含中文 → `enabled` 必跑；纯外语 → `n/a`（客观不适用，非「关闭」）；轻量档 → `selfcheck` 走内置自检；主人**显式要求关闭**（`exempted_by_owner`）→ 全项目不 spawn，且须在交付说明披露。

@@ -2,6 +2,19 @@
 
 ---
 
+## [v2.15.3] — 2026-09-29
+
+- **高频数字机械门加固**：`scripts/contract-check.py` 升级为多文档多值集合比对，新增字数分档簇（轻量/中段/重量）与版本文件数（`scripts/check-version.sh` 真源）的实测钩子；`conceptual roles` 与 `physical role-card files` 拆为两个独立语义簇，避免把概念口径与物理文件数误判为冲突。
+- **语言政策真源化与反向校验**：`scripts/inject-lang-policy.py` 加 `--normalize` 写入选项，`--check` 升级为同时检测「缺失」与「旧变体/不一致」，旧文本出现即红。
+- **Markdown 结构门上线**：`scripts/markdown-structure-lint.py` 默认拦截字面量 `\n` 与未闭合代码围栏；`--strict` 额外拦截重复章号与孤立标题，作为新文档核验工具。
+- **计数真源扩展**：`references/_shared/真源/counts.yaml` 新增 `version_files` 与 `word_tiers` 两组字段；`tests/test_contract_check.py` / `tests/test_markdown_structure_lint.py` 注册对应回归。
+- **派发话术合同门**：新增 `scripts/dispatch-contract.py`，从 `phase-order/` 节点切片生成 G14 / T9 派发话术顶部合同块，`--check` 把「复检轮次 / 默认触发」口径漂移升级为构建期阻断；配套反向注入回归 `tests/test_dispatch_contract.py`。
+- **模板能力矩阵真源**：新增 `references/_shared/真源/template-contracts.yaml` 驱动 lite/full 模板必填字段校验（维护者侧资产，已显式排除出净化包，不随包出厂）。
+- **净化链一致性**：`counts.yaml` 注释去除随包文件中不得出现的维护者脚本名；随包准入与最终残留扫描双侧闭合。
+- **验收**：核心回归 **56+ passed**（含本轮新增门与回归）；`contract-check` / `markdown structure lint` / `inject-lang-policy --check` 全部 PASS。
+
+---
+
 ## [v2.15.2] — 2026-09-29
 
 - **发布链修复**：轮转 `CHANGELOG.md` 保持最近 5 期上限，补齐 v2.14.5 归档章节，修复 changelog CI 阻断。
