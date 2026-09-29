@@ -46,6 +46,7 @@
     on_exhausted: record_missing_and_notify_owner   # 重试仍失败 ⇒ 记为缺失 + 显式告知主人
     status_record: missing_blind_review       # status.md 记 missing_blind_review（**不得**记 Done / accepted）
     downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
+  terminal_state_rules: {allowed: [worker_running, worker_failed, worker_timeout, missing_blind_review, done], empty_output_is_success: false, executor_takeover: forbidden, missing_report_blocks_t9_claims: true}
   output: audits/审稿报告-vN.md
   output_chars_max: 15000
   next: t9b_stress_test

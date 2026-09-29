@@ -1,4 +1,4 @@
-> 版本：v2.14.5（自动同步 2026-09-28）
+> 版本：v2.15.0（自动同步 2026-09-29）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -71,6 +71,8 @@
 - **修订复核**：写手提交修订说明后，逐条对照确认 P0/P1 是否真正关闭；未关闭的升级为 P0
 - **文献卡 ↔ 稿末著录对账（反哺实测 P1-1 固化）**：凡正文使用的 `[Lxx]`，逐条对照 `literature/文献卡.md` 对应条目的预格式字段与稿末参考文献条目，至少核对题名、作者、来源、年份、卷期页码、DOI/URL 六类字段；任一字段不一致 → P1-D；字段在卡片缺失或来源不可复核 → `待人工核验`，不得凭记忆补齐或静默二选一。审计报告必须有 `citation_reconciliation` 小节，列 `id / card_value / manuscript_value / verdict`，全部一致也写 `all_citations_reconciled=true`。
 - **§4 契约回执核验（反哺实测 P1-2 固化）**：T7 读取 T5 交接报告，确认 `§4_contract_loaded=true`、`§4_contract_complete=true` 和 §4.1–§4.6 逐项状态；缺回执、只写“已完成”或复现性/伦理范围只在报告未落入正文 → P1。无对应交接报告时记版本链缺失/路径或参数错误，不得推断 T5 已加载契约。
+- **B2-M4 四向证据对账**：E1 启用时，审计报告必须有 `citation_evidence_reconciliation`，逐项列 `body_without_card`、`card_without_body`、`claim_without_link`、`link_without_evidence`、`unavailable_overclaim`、`counter_evidence_unhandled` 和 `verdict`。正文引用↔来源卡、正文主张↔证据关系回写 两个方向都要查；登记表为空或只统计不落关系不得判通过。
+- **B2-M5 DOI 分层核验**：对每个 DOI 分别记录 `identifier_check`（`syntax` / `resolves` / `metadata_match` / `semantic_match` / `checked_sources` / `verdict`）。可解析不等于语义相关；只有摘要/搜索摘要最多 `needs_review`，不可把 404、标题错配或主题不相关标成 pass。
 - **主人复核清单（R-66）**：T7 必须同时产出 `audits/主人复核清单.md`。逐条列出正文每个 `[Dxx]` 硬数据点的正文位置、原文数值与单位、统计量 / DOI、来源年份和 `pending_owner_verification` 状态；无硬数据点也须产出文件并写明 `no_hard_data_points: true`。引用编号闭环与纯中文字数的主人侧命令唯一真源见 [`../_shared/真源/host-verify-recipe.md`](../_shared/真源/host-verify-recipe.md) §七；T7 不执行命令、不伪造 bytes/sha256/字数精确值。
 - **主人洞察融入保真（R-69，并入 G7）**：逐条核对正文 `[C-主xx]`。理论贡献类洞察必须有独立论据段并与论证主线形成链接；观点来源类洞察至少有明确正文落点。判定为「实质融入 / 表面提及 / 丢弃」：理论贡献类出现后两者 → P1-A/B/C；观点来源类丢弃 → P2，并在修订说明写明未采用原因。此项不新增 G 编号。
 - **G1 引用核验两档标注（主人实测 + 本机实战互补）**：G1 引用核验不再一刀切，区分「**存在性核验**（标题/作者/年份 是否真实存在）」与「**数字级核验**（具体数值是否准确）」两档——存在性核验通过 ≠ 数字级核验通过。PDF/反爬源（付费墙等）无法全文核验时，用 Crossref/DOI 兜底核验存在性，并标「待人工复核」。

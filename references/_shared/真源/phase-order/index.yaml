@@ -46,7 +46,7 @@
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 
-version: 2.14.5
+version: 2.15.0
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-核心.md §判定结果分档）。
@@ -190,6 +190,8 @@ architecture:
   owner_nodes: [phase0_definition, phase2_5_outline, phase3_5_insight, pre_spawn_enforcement, t2_5_integrity, current_draft_sync, t7_5_integrity, phase4_4_figures, final_assembly, t9b_stress_test, t8_technical_final, methodology_snapshot, phase5_acceptance]
   worker_failure_policy: owner_takeover_with_disclosure
   fallback_is_not_equivalent: true
+  worker_terminal_states: [worker_not_started, worker_running, worker_failed, worker_empty_output, worker_timeout, main_controller_takeover, owner_decision_required, not_executed]
+  worker_state_rules: {empty_output_is_success: false, takeover_preserves_original_role_done: false, takeover_requires_disclosure: true, t9_takeover: forbidden}
 # ⚠️ P0-3：版本号 vN 只随闸门里程碑推进；minor 自修走 vN.m；风格修订走 vN-style。
 version_numbering:
   milestone_rule: vN 整数位只由闸门节点推进（phase3_5_insight / t5_feedback_revision / audit_revision）

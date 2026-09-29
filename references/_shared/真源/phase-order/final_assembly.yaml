@@ -15,5 +15,5 @@
   post_assembly_checks: [g14_caption_recheck]
   post_assembly_recheck: required
   recheck_record: status.md
-  note: 主控组装 final/定稿.md；图件存在时必须按 `![图N：标题](图件/图N_标题.svg)` 嵌入且计数等于拍板 N。组装后必做 `g14_caption_recheck`：核对最终图位数量、图注—数据卡对应关系与 Markdown 嵌入形态，结果写 status.md；未完成/不可判定不得进入 t9_review。该复核只覆盖组装新增/变形的图注图位文本，不替代 G14 首审。
+  note: 主控组装 final/定稿.md；图件存在时必须按 `![图N：标题](图件/图N_标题.svg)` 嵌入且计数等于拍板 N。组装后必做 `g14_caption_recheck`：核对最终图位数量、图注—数据卡对应关系、图注是否引入未登记新主张与 Markdown 嵌入形态，结果写 status.md；未完成/不可判定不得进入 t9_review。该复核只覆盖组装新增/变形的图注图位文本，不替代 G14 首审。
   next: t9_review

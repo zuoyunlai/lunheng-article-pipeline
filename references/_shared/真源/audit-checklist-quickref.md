@@ -1,4 +1,4 @@
-> 版本：v2.14.5（自动同步 2026-09-28）
+> 版本：v2.15.0（自动同步 2026-09-29）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -15,6 +15,48 @@
 词汇表第二章详细定义了 G 清单（G0-G18）的性质、覆盖范围、与 M 门/F 模式的关系。本文档是具体的审计操作细节，不重复概念定义。
 
 ---
+
+## B4 机械任务查询化：先对账、后语义审查
+
+机械对账只负责提取集合、计数和字段差异；它不替代 T7/T8 对理论、证据充分性、反方质量、作者声音和发表适配的语义判断。每次运行先产出结构化结果，再由审计角色解释异常。
+
+```yaml
+mechanical_reconciliation:
+  citation_reconciliation:
+    body_refs: 0
+    registered_cards: 0
+    matched: 0
+    body_without_card: []
+    card_without_body: []
+    duplicate_identifiers: []
+    semantic_review_required: []
+  data_reconciliation:
+    body_data_refs: 0
+    registered_data_cards: 0
+    verified: 0
+    unresolved: []
+    missing_fields: []
+  gate_coverage:
+    declared: 0
+    executed: 0
+    skipped: []
+    missing_reason: []
+    false_green_risk: []
+  version_reconciliation:
+    expected: ""
+    matched: []
+    mismatched: []
+    generated_views_stale: []
+  verdict: pass | fail | path_or_param_error | not_enabled
+```
+
+硬规则：
+
+1. `body_without_card`、`card_without_body`、`unresolved`、`mismatched`、`skipped` 不能被计入 matched/verified/executed；
+2. 机械计数必须保留异常清单，不能只回传一个总数；零异常也要记录扫描范围和 `[]`；
+3. `gate_coverage.declared != gate_coverage.executed + len(skipped)` 时，判 `path_or_param_error` 或 `fail`，不得绿灯；
+4. `false_green_risk` 非空时不得写 `pass`；
+5. 机械对账完成后，T7/T8 才做语义审查；机械 `pass` 不等于整项质量通过。
 
 ## 必查项（逐条执行，缺一不可）
 

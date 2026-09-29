@@ -1,4 +1,4 @@
-> 版本：v2.14.5（自动同步 2026-09-28）
+> 版本：v2.15.0（自动同步 2026-09-29）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化（G14 中文 AI 痕迹检测 / GB/T 7714-2015 引用规范）为**可选能力**，不构成使用者语种限制。
 
@@ -34,6 +34,8 @@
 **最后更新**: YYYY-MM-DD HH:MM
 **架构**: 多 Agent 九角色流水线（固定，不设总开关）。**worker 接管记录**（每节点失败时填一行；无失败留空）：<角色 / 原因 timeout|failed|no_artifact / 接管者=主控 / L1 影响>。**不记录宿主配置明细、不记 deny 原文**——论衡不读取宿主配置，OpenClaw 平台负责多 Agent 运行与工具策略。
 **接管 L1 披露**: <无 worker 接管时填 `n/a`；有接管时必填：接管角色 / 原因 / 判定者=主控（L1）/ 交付说明须披露无法独立复核的残留风险>
+**worker 终态**: <worker_not_started|worker_running|worker_failed|worker_empty_output|worker_timeout|main_controller_takeover|owner_decision_required|not_executed> / 原计划执行者=<角色> / 实际执行者=<角色|n/a> / 产物状态=<present|missing|empty|unverified>
+> **终态纪律（B1-M1）**：`worker_empty_output` 不得记为成功；主控接管不得把原角色记为 `Done`；T9 只能 `retry_spawn_only`，耗尽后记 `missing_blind_review`，不得主控代笔。
 **运行性质**: 生产 / **测试模式**（测试模式 = phase2_5_outline / phase3_5_insight / phase5_acceptance 三个人在环节点自动通过；**必须在此 + 任务简报 + 交付说明三处同步披露**，v2.12.38；**v2.12.43：T8 终检机械核对三处一致，缺任一 = P1 并重跑终检**）
 **活体冒烟**: smoke_level=<n/a|L1|L2> / smoke_run_id=<n/a|唯一值> / smoke_started_at=<时间|n/a> / smoke_finished_at=<时间|n/a> / smoke_verdict=<pending|pass|fail>（L2 不得自动通过 owner_checkpoint）
 **M 门**: v2.2.12 / v2.5.x
@@ -43,9 +45,17 @@
   - 全人工：所有数据均为主人一手，LLM 不检索
 **G14 状态**: enabled（目标语言含中文，必跑）/ selfcheck（轻量档内置自检）/ exempted_by_owner（主人显式豁免，已披露）/ n/a（纯外语，客观不适用）（按 Phase 0「目标语言」客观判定，全项目不变；位置 = Phase 4.4 前置，定稿前唯一一次）
 **当前稿件**: draft_id=<唯一标识> / draft_version=v1 / 来源=T5
+**draft_ref（B3）**: path=drafts/current_draft.md / sha256=<verified|unavailable> / section_manifest=<path|n/a> / changed_sections=<列表|n/a> / hash_status=<match|mismatch|unavailable> / resync=<not_needed|requested|completed>
+**上下文指标（B3）**: raw_input_bytes=<数值|unavailable> / structured_output_bytes=<数值|unavailable> / context_reduction_ratio=<数值|unavailable> / critical_evidence_preserved=<true|false|unavailable> / locator_preserved=<true|false|unavailable> / false_negative_count=<数值|unavailable>
 **审计修订轮**: 0 / 上限=2
 **T8 技术终检**: ⬜ 未完成 / ✅ 完成
 **Phase 5 主人验收**: ⬜ 未决策 / ✅ accepted / 🔁 revision_requested / ↩ restart_phase / ⏸ deferred
+
+## ▲ 重要写入验证记录（B1-M2）
+
+> 高风险文件写入后必须 read-back；未验证不得推进节点。`append:true` 不作为通用工具语义。完整字段见 [`关键协议.md`](../_shared/真源/关键协议.md)「重要写入完整性」。
+
+- `target=<路径>` / `operation=<replace|append_fragment|edit_section>` / `before_bytes=<数值|unavailable>` / `after_bytes=<数值|unavailable>` / `readback=<verified|failed|unavailable>` / `anchor_preserved=<true|false|unavailable>` / `unrelated_sections_preserved=<true|false|unavailable>` / `verified_by=<主控|n/a>`
 
 ## ▲ 降级运行记录（fallback 每次一行，主人扫一眼可见）
 
@@ -121,7 +131,63 @@
 | v1→v2 修订后 | 章节级 M 门| YYYY-MM-DD HH:MM | 变更点 N 处 | ✅/❌ |
 | T8 终检 | M-Form 8 + M-Exist 3 = 11 项 | YYYY-MM-DD HH:MM | exit 0 / exit 1 | ✅/❌ |
 
+## 三.六、B7 质量与人机交互摘要
+
+```yaml
+b7_quality_hmi:
+  g14_caption_recheck: pass | warning | fail | n/a | unavailable
+  caption_scope: <组装新增或变形范围|n/a>
+  caption_checked_at: <时间|n/a>
+  block_t9: true | false | unavailable
+  direction_decision: insight | direction_correction | no_insight | n/a
+  correction_scope: <摘要|n/a>
+  phase_summary: {recorded_in_status: true|false, owner_notified: true|false, owner_acknowledged: true|false}
+```
+
+> `recorded_in_status=true` 不等于主人已收到或确认；缺少渠道确认不得写 `owner_acknowledged=true`。
+
+## 三.六、pipeline-doctor 诊断快照（B6）
+
+> 这是结构化诊断，不是自动执行器、自动继续或 gate 替代。三态必须有证据；`blocked` 必须列阻断原因，`proceed_with_limits` 必须列限制与下一步。
+
+```yaml
+doctor:
+  verdict: blocked | proceed_with_limits | proceed
+  blocking_findings: []
+  warnings: []
+  evidence: []
+  required_action: []
+```
+
+## 三.六、事件、路由与 gate telemetry（B5）
+
+> 运行期只记录事实，不自动继续、不替代主人决策。事件账本建议写入项目内 `control/events/`，每个事件独立文件；此处保留当前运行摘要。
+
+```yaml
+runtime_observability:
+  event_log: {path: control/events/, last_event_id: <id|n/a>, last_event_type: <type|n/a>}
+  routing: {requested: [], actually_used: [], unavailable: [], fallback_chain: [], degradation_level: none | L1 | L2 | owner_halt, reason: []}
+  gate_telemetry: {<gate_id>: {current_run: 0, cumulative: 0, last_result: pass | warning | fail | unavailable}}
+```
+
+> `requested` 不等于 `actually_used`；反向注入、构建测试和文档演练不计 gate telemetry；零触发必须显式写 `0`。
+
 ## 三.六、审计门触发计数（R-52）
+
+## 三.六、机械对账快照（B4）
+
+> 先机械提取集合、计数和差异，再由 T7/T8 做语义审查；此快照不替代理论、证据充分性、反方质量或作者声音判断。零异常也必须保留 `[]`，未知写 `unavailable`，不得猜测。
+
+```yaml
+mechanical_reconciliation:
+  citation_reconciliation: {body_refs: 0, registered_cards: 0, matched: 0, body_without_card: [], card_without_body: [], duplicate_identifiers: [], semantic_review_required: []}
+  data_reconciliation: {body_data_refs: 0, registered_data_cards: 0, verified: 0, unresolved: [], missing_fields: []}
+  gate_coverage: {declared: 0, executed: 0, skipped: [], missing_reason: [], false_green_risk: []}
+  version_reconciliation: {expected: "", matched: [], mismatched: [], generated_views_stale: []}
+  verdict: pass | fail | path_or_param_error | not_enabled
+```
+
+## 三.七、审计门触发计数（R-52）
 
 > **运行期真实判定计数**：T7/T8 在实际审计中逐门回填；只统计本轮真实产物被判为「不通过」并因此打回/阻断的次数，**不计反向注入测试、构建期测试或文档演练**。未触发的门必须明确记 `0`，不得省略或用「已审计」代替。
 >

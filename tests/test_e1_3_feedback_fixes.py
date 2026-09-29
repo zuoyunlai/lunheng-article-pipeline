@@ -98,7 +98,7 @@ def test_injection_stripping_writeback_veto_is_caught():
     """抽掉 T7 卡的 ClaimEvidenceLink 否决项标记 ⇒ 校验器报红。"""
     rel = "references/agents/07-审计-auditor.md"
     text = (ROOT / rel).read_text(encoding="utf-8")
-    mutated = text.replace("ClaimEvidenceLink", "核心主张关系", 1)
+    mutated = text.replace("ClaimEvidenceLink", "核心主张关系")
     bad = scan(overrides={rel: mutated})
     assert bad and any("ClaimEvidenceLink" in b for b in bad), "回写否决项被删未被检出：%s" % bad
 

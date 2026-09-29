@@ -10,6 +10,8 @@
   owner: 主控
   write_authority: owner
   output: drafts/current_draft.md
-  note: 主控亲为（不 spawn）：把**当前权威版本**（v2/v3/修订稿）write 复制为 drafts/current_draft.md，保留 draft_id / draft_version 绑定
+  note: 主控亲为（不 spawn）：同步当前权威稿至 drafts/current_draft.md，保留 draft_id / draft_version；下游默认只取指针与增量清单
+  draft_ref_contract: {path: drafts/current_draft.md, required: [draft_id, draft_version, sha256, section_manifest, changed_sections], sha256_status: verified | unavailable, section_manifest_fields: [section, chars_or_bytes, locator], changed_sections_source: previous_synced_version, hash_mismatch: stop_and_request_resync, full_read_exceptions: [final_assembly, cross_section_audit, owner_explicit_request, incremental_validation_failed]}
+  context_metrics: {required: [raw_input_bytes, structured_output_bytes, context_reduction_ratio, critical_evidence_preserved, locator_preserved, false_negative_count], compression_is_not_evidence: true}
   precondition: 上游最新稿（drafts/初稿-vN.md 或修订稿）+ Phase 3.5 洞察记录已在磁盘
   next: t6_critique
