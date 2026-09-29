@@ -1,4 +1,4 @@
-> 版本：v2.15.0（自动同步 2026-09-29）
+> 版本：v2.15.1（自动同步 2026-09-29）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -32,11 +32,11 @@
 | 9 | `current_draft_sync` | Phase 3.6 前置 | 主控（亲为） | `drafts/current_draft.md`（权威稿指针） |
 | 10 | `t6_critique` | Phase 3.6 | T6（轻量档必跳） | `analysis/批判报告-vN.md`（攻击**含主人洞察的 v2**） |
 | 11 | `t5_feedback_revision` | Phase 3.7 | T5（条件触发） | `drafts/初稿-v{N+1}.md` + `drafts/修订说明-v{N+1}.md` |
-| 12 | `t7_audit` | Phase 4 | T7 | `audits/审计报告-vN.md`（G0-G13 + G15-G16；G14 已迁出） |
+| 12 | `t7_audit` | Phase 4 | T7 | `audits/审计报告-vN.md`（G0-G18；G14 为独立风格闸，G18 方法论审计按真源执行） |
 | 13 | `audit_revision` | Phase 4.2 | T5（有界回环） | 修订稿 + 修订说明；`max_rounds: 2`，耗尽走三选一 |
 | 14 | `t1b_targeted_review` | Phase 4.3 定向回查（T1b） | T1b（条件触发，复用 T1） | `literature/回查报告-vN.md`（「待人工核验」引用定向回查；≤2 轮，未触发记 `not_triggered`） |
 | 15 | `t7_5_integrity` | T7.5 完整性门 | 主控 checkpoint | `final/M-Gate-Report-*.json`（**审完才放行 T9/T8**） |
-| 16 | `g14_style_gate` | Phase 4.4 前置（G14 风格闸） | G14（含中文必跑） | `audits/G14-检测报告-vN.md`（**全流程只审一次**；风格修订后全文复检 ≤2 轮） |
+| 16 | `g14_style_gate` | Phase 4.4 前置（G14 风格闸） | G14（含中文必跑） | `audits/G14-检测报告-vN.md`（**首审只审一次**；如触发风格修订，按闸门 §四全文复检 ≤2 轮） |
 | 17 | `t5_style_revision` | Phase 4.4 前置·风格修订 | T5（G14 Fail 唯一出口） | 仅风格层修订稿（**不得动论证/数据/引用/结论**） |
 | 18 | `phase4_4_figures` | Phase 4.4 | 主控（亲为） | `final/图件/*.svg`（零外发、零 exec；有图位才触发） |
 | 19 | `final_assembly` | Phase 4.4 后置（定稿组装） | 主控（亲为） | `final/定稿.md`（**只产投稿版**，禁入工程元数据段；组装后必须完成 `g14_caption_recheck`） |

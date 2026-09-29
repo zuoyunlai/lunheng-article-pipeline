@@ -93,11 +93,17 @@ def check_ai_declaration(final_md_path: str) -> tuple:
 
 
 def check_citation_ordering(final_md_path: str) -> tuple:
-    """维度 4 国标引用 · 顺序编码闭环（教训 #251 核心修复）"""
+    """维度 4 引用—参考文献闭环（内部编号或机构—年份模式）。
+
+    投稿版必须清除 [Lxx]/[Dxx]/[C-主xx]/[先xx]，因此不能把空集合
+    当作闭环通过；无内部编号时改查正文机构—年份引用与文末条目。
+    """
     with open(final_md_path, encoding='utf-8') as f:
         text = f.read()
 
-    body_refs = re.findall(r'\[(C-\u4e3b?\d+|D\d+|L\d+|\u5148\d+)\]', text)
+    body_end = min((i for i in (text.find('## 引用来源'), text.find('## 参考文献'), text.find('## 先行者文献')) if i >= 0), default=len(text))
+    body_text = text[:body_end]
+    body_refs = re.findall(r'\[(C-\u4e3b?\d+|D\d+|L\d+|\u5148\d+)\]', body_text)
 
     appendix_start = -1
     for marker in ['## 引用来源', '## 参考文献', '## 先行者文献']:
@@ -110,6 +116,21 @@ def check_citation_ordering(final_md_path: str) -> tuple:
 
     appendix = text[appendix_start:]
     appendix_refs = re.findall(r'\[(C-\u4e3b?\d+|D\d+|L\d+|\u5148\d+)\]', appendix)
+
+    # 投稿版には内部溯源编号を残さない。内部编号が空の場合は、
+    # 机构—年份引用が本文と文末参考文献の双方に存在することを要求する。
+    inline_body = re.findall(r'[（(]([^（）()]{1,80}?)[，,]\s*(?:19|20)\d{2}[）)]', body_text)
+    inline_appendix = re.findall(r'[（(]([^（）()]{1,80}?)[，,]\s*(?:19|20)\d{2}[）)]', appendix)
+    if not body_refs and not inline_body:
+        return (False, {'error': 'no_citations_in_body', 'internal_refs': 0, 'inline_citations': 0})
+    if not body_refs:
+        missing_inline = [x for x in dict.fromkeys(inline_body) if not any(x in y for y in inline_appendix)]
+        return (not missing_inline and bool(inline_appendix), {
+            'citation_mode': 'author_year',
+            'body_inline_count': len(inline_body),
+            'appendix_inline_count': len(inline_appendix),
+            'missing_in_appendix': missing_inline,
+        })
 
     seen = set()
     body_unique_ordered = []
@@ -283,7 +304,7 @@ def main():
         print(f'❌ {final_md} 不存在')
         sys.exit(1)
 
-    print(f'🔍 论衡 v2.12.0 可发表性 48 项检查 · 项目: {project}')
+    print(f'🔍 论衡可发表性机械实现 34 项检查（未实现判定项不计入）· 项目: {project}')
     print(f'   定稿: {Path(final_md).resolve()}')
     print('=' * 70)
 

@@ -1225,7 +1225,7 @@ fi
 #   「改 A 漏 B」（边删边加），必须在余量耗尽前被看见，而不是等撞到门 V 硬墙才发现。
 #   测试覆盖：tests/test_bulk_ratchet.py（正向无告警 / 覆盖阈值必告警 / 清单完整性 / 缺失文件）。
 # =============================================================================
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|78038,references/_shared/真源/M-Gate-核心.md|78367,references/_shared/真源/phase-order.yaml|64296,references/_shared/真源/phase-order/index.yaml|24891"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|78031,references/_shared/真源/M-Gate-核心.md|78430,references/_shared/真源/phase-order.yaml|64172,references/_shared/真源/phase-order/index.yaml|24767"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：

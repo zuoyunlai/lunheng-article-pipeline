@@ -1,4 +1,4 @@
-> 版本：v2.15.0（自动同步 2026-09-29）
+> 版本：v2.15.1（自动同步 2026-09-29）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -364,7 +364,7 @@ def verdict_path_error(reason, **fields):
 | `get_latest_audit_report(dir)` | 列目录取 `vN` 最大者 | M-Integrity-2 |
 | `check_p0_p1_listed(report)` | 读审计报告，核对 P0/P1 段显式列出（可为零条但须显式写） | M-Integrity-2 |
 | `check_m_gate_all_pass_current_round()` | 读本轮章节级 M 门记录 + status.md 记录表 | M-Integrity-2 |
-| `check_evidence_sha256_placeholder(doc)` | 读交付说明「证据包指纹」段，认占位符即通过 | M-Integrity-2 |
+| `check_evidence_sha256_placeholder(doc)` | 读「证据包指纹」；`sha256`/`bytes` 为空或占位符记 `pending_owner_verification`，不得判通过 | M-Integrity-2 |
 | `check_draft_vs_report_isolation(...)` | 分别 `read` 三份产物，判论文与报告内容互不混入 | M-Integrity-2 |
 | `check_revision_by_independent_writer(status)` | 读 status.md 修订回环记录，判是否由独立写手执行 | M-Integrity-2 |
 | `emit_placeholder_sha256(card)` | 发占位符文本（非哈希计算，**不**作闸门强制项） | M-Integrity-1 |
@@ -1138,7 +1138,7 @@ if not audit_latest:
     return verdict_path_error("audits/ 下无审计报告（路径或参数错误，不触发修订）")
 p0_p1_listed = check_p0_p1_listed(audit_latest)
 m_gate_ok = check_m_gate_all_pass_current_round()  # 读**本轮已产出**的章节级 M 门记录 + status.md「7.三.五 M 门执行记录表」；**不得读** final/M-Gate-Report-v2.2.12.json（T8 产物，T7.5 时尚未生成 —— 2026-09-12 审计 P1-6）
-sha256_ok = check_evidence_sha256_placeholder('final/交付说明.md')  # v2.2.17 改：占位符即通过，人类可选回填
+sha256_ok = check_evidence_sha256_placeholder('final/交付说明.md')  # 未回填/占位符 => pending_owner_verification，不得判通过
 trust_ok = check_M_Exist_3(...)
 isolation_ok = check_draft_vs_report_isolation('final/定稿.md', 'final/交付说明.md', 'audits/')
 revision_independent = check_revision_by_independent_writer('status.md')

@@ -26,7 +26,7 @@
 | [`m_gate_dependencies.yaml`](m_gate_dependencies.yaml) | M 门依赖关系配置 | — | — | — |
 | [`normalize-version-header.py`](normalize-version-header.py) | normalize-version-header.py — 文件头版本戳归一化（sync-version.sh 的幂等写入口） | python3 scripts/normalize-version-header.py --root <skill_root> \ | — | — |
 | [`paper-ready-check.py`](paper-ready-check.py) | paper-ready-check.py —— 论衡 v2.12.0 可发表性 48 项检查器 | python3 scripts/paper-ready-check.py <项目名> | — | — |
-| [`paper-ready-check.sh`](paper-ready-check.sh) | paper-ready-check.sh —— 论衡 v2.12.0 可发表性 48 项本地自动检查封装 | — | — | — |
+| [`paper-ready-check.sh`](paper-ready-check.sh) | paper-ready-check.sh —— 论衡 v2.12.0 可发表性机械实现 34 项本地自动检查（判定表总计 48 项，未实现项不计入）封装 | — | — | — |
 | [`path-canonical.py`](path-canonical.py) | path-canonical.py — 论衡路径规范化校验器 | python3 scripts/path-canonical.py <base_dir> <target_path> | — | — |
 | [`phase-order-slice.py`](phase-order-slice.py) | phase-order-slice.py — 论衡流程真源「文本保真装配器」 | python3 scripts/phase-order-slice.py # 生成/刷新装配视图 | — | — |
 | [`pkg-integrity.py`](pkg-integrity.py) | pkg-integrity.py — 净化包**正向**完整性校验 | python3 scripts/pkg-integrity.py snapshot <pkg_dir> <snapshot.json> | — | — |

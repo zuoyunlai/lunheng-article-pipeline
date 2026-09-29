@@ -68,7 +68,6 @@ COVERED = {
     "47": "test_rule47_smoke_protocol_reverse_injection",
     "48": "test_rule48_status_json_reverse_injection",
     "49": "test_rule49_english_layer_reverse_injection",
-    "40": "test_hitl_runtime_trace_reverse_injection",
 }
 
 # DEBT：规则号 → 豁免理由（≥12 字符）。债务规则点名登记既有正向证据 + 补负例方向；
