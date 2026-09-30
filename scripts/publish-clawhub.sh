@@ -229,9 +229,13 @@ echo "🚀 正式发布 $SLUG@$VERSION ..."
 if [[ "${SKIP_RELEASE_PREFLIGHT:-0}" != "1" ]]; then
   if [[ -x "$SCRIPT_DIR/release-preflight.sh" ]]; then
     echo "🔎 运行 release-preflight.sh ..."
-    # 发版核查 2026-09-30 修正：本脚本 $VERSION 是 "2.15.4"（无 v 前缀），
-    # 而 release-preflight.sh 的目标参数是 **tag**（形如 vX.Y.Z）；漏 v 会被前置闸判参数错误。
-    if ! bash "$SCRIPT_DIR/release-preflight.sh" "v$VERSION"; then
+    # 发版核查 2026-09-30 修正两处（闸工作正常，是调用方参数错）：
+    #   ① 本脚本 $VERSION 是 "2.15.4"（无 v 前缀），而 release-preflight.sh 的目标参数是
+    #      **tag**（形如 vX.Y.Z）⇒ 传 "v$VERSION"；
+    #   ② 走到本脚本时 tag 必然**已创建**（发布是 tag 之后的一步）⇒ 必须传
+    #      --allow-existing-tag，否则正常发版路径被闸的「编号占用」必然拦死
+    #      （口径与 create-github-release.sh 的调用点一致，教训 #334）。
+    if ! bash "$SCRIPT_DIR/release-preflight.sh" --allow-existing-tag "v$VERSION"; then
       echo "❌ release-preflight.sh 未通过——发布中止（前置闸失败）" >&2
       echo "   若为 CI 自动发版且 CI 已另跑门，设 SKIP_RELEASE_PREFLIGHT=1 显式跳过" >&2
       exit 9
