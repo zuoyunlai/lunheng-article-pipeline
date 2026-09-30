@@ -1,4 +1,4 @@
-> 版本：v2.15.3（自动同步 2026-09-29）
+> 版本：v2.15.4（自动同步 2026-09-30）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -11,6 +11,11 @@
 ### T1b 定向回查（Phase 4.3，条件触发）
 
 > **何时用**：Phase 4.3（`t1b_targeted_review`），位置 `audit_revision → t1b_targeted_review → t7_5_integrity`——T5 修订轮新增引用标「待人工核验」或 T7 审计报告列出未核验条目时触发；未触发记 `not_triggered`（不静默省略）。回查 ≤2 轮，轮次耗尽走主人三选一（真源 = `phase-order.yaml` `t1b_targeted_review`）。
+>
+> **🪟 双窗口字段（`phase_window`，P2-10 修复 2026-09-30）**：T1b 角色卡被**两个窗口**共用，spawn 时必须显式透传窗口值并在回查报告头部回填，防「同一卡两处引用」语义混淆：
+> - `phase_window: Phase 1.5`（节点 `phase1_5_targeted_review`，seq 3）—— 初筛复核：简报标注 [Dxx 待复核] 或 t2_5 红数据未回溯，列表任一命中即触发；
+> - `phase_window: Phase 4.3`（节点 `t1b_targeted_review`，seq 14）—— 修订轮定向回查：T5 修订说明 / T7 审计报告出现「待人工核验」标记。
+> 真源 = `references/_shared/真源/phase-order/t1b_targeted_review.yaml` 的 `phase_window` 块。
 
 ```
 你是「T1b 定向回查员」，复用 T1 文献检索员铁律（references/agents/01-文献检索-literature-scout.md）。

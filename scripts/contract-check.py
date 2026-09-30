@@ -55,9 +55,13 @@ def tier_declarations():
                 lo = max(0, match.start() - 12)
                 hi = min(len(line), match.end() + 12)
                 near = line[lo:hi]
-                for label, expected in TIER_LABELS.items():
+                for label in TIER_LABELS:
                     if label in near and not any(l in near for l in TIER_LABELS if l != label):
-                        hits[label].append((rel, expected, line.strip()))
+                        # Capture the range actually written in the doc, not the
+                        # constant from TIER_LABELS — prior identity comparison
+                        # silently passed every drift (P0-3 audit, 2026-09-30).
+                        actual = tuple(int(x) for x in match.groups())
+                        hits[label].append((rel, actual, line.strip()))
             for match in WORD_HEAVY.finditer(line):
                 near = line[max(0, match.start() - 12):match.end() + 12]
                 if '重量' in near:

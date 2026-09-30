@@ -1,4 +1,4 @@
-# 论衡开发工具 Makefile（P1-5 修订 2026-09-08）
+# 论衡开发工具 Makefile（P1-5 修订 2026-09-08；P2-6 修订 2026-09-30：preflight 升级为五查一停）
 
 .PHONY: help test lint format audit changelog-check path-canonical scripts-index contract-check dispatch-contract dispatch-contract-check markdown-structure-lint clean install
 
@@ -13,7 +13,7 @@ help:
 	@echo "  make audit      - 运行自审门"
 	@echo "  make changelog-check - 校验 changelog 完整性（每个版本 tag 都有章节）"
 	@echo "  make scripts-index - 刷新 scripts/README.md 脚本索引（从脚本头部生成；漂移由 pytest 锁死）"
-	@echo "  make preflight  - 发版前置闸（四查一停：在飞链 / 编号占用 / 工作区干净 / CI 不红）"
+	@echo "  make preflight  - 发版前置闸（五查一停：在飞链 / 编号占用 / 工作区干净 / CI 不红 / 教训真源在位）"
 	@echo "  make clean      - 清理临时文件"
 	@echo "  make all        - 运行全部检查（lint + test + audit + changelog-check）"
 

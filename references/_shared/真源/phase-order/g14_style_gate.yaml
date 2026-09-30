@@ -11,8 +11,8 @@
   write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
   verification_authority: 主控
   on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
-  rerun_after_report: false   # 全流程仅 1 次（v2.12.40 A1）；例外 = t5_style_revision 后轻量复检（≤2 轮，v2.13.0 P0-2 收紧为全文词表计数严格度档）
-  rerun_after_post_acceptance: true   # v2.12.49 M-2：终态后修改 final/ 或 drafts/current_draft.md ⇒ 必须重跑 G14（与「rerun_after_report」互不覆盖；「rerun_after_report」指报告落盘后激活，本字段指跨过终态后必重启）
+  rerun_after_report: false   # 全流程仅 1 次（v2.12.40 A1）；例外 = t5_style_revision 后轻量复检（≤2 轮）
+  rerun_after_post_acceptance: true   # v2.12.49 M-2：终态后改稿 ⇒ 必重跑 G14
   # 执行前提（业主定案 A2：「T5 之前若有修订但还不能定稿，则 G14 还是不执行」）：
   #   本闸是**定稿前最后一道闸**。前置修订尚未收敛（audit_revision 未退出 / 仍有未决 P0·P1 修订项 / 尚不能定稿）
   #   → **不执行本闸**，先完成修订；只有进入「可定稿」状态才开闸。
@@ -24,6 +24,7 @@
   on_not_triggered: record_not_triggered_in_status   # 纯外语 → n/a；未触发亦须入 status
   degrade: selfcheck_in_lite_tier   # 轻量档（2000-3000 字，口径真源 = 字数判定表.md）→ 内置自检，不 spawn
   exempt: owner_exempted_requires_disclosure   # 主人显式要求关闭 → 全项目不跑 + final/交付说明.md 披露
+  audited_artifact: drafts/current_draft.md
   input: drafts/current_draft.md
   output: audits/G14-检测报告-vN.md
   output_chars_max: 6000   # AI 痕迹检测报告

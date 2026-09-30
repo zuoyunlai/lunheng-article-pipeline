@@ -1,4 +1,4 @@
-> 版本：v2.15.3（自动同步 2026-09-29）
+> 版本：v2.15.4（自动同步 2026-09-30）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -35,12 +35,28 @@ sha256sum -c final/定稿.sha256
 
 ## 四、回填登记位置（四处，缺一即不合格）
 
+> **P1-5 修复（2026-09-30）**：旧版要求 T7/G14/T9/T8 四份报告 `audited_artifact` 的
+> sha256 **两两相等**——但 T7/G14 审的是 `drafts/current_draft.md`（phase_seq 12 / 16），
+> T9/T8 审的是 `final/定稿.md`（phase_seq 20 / 22）。final_assembly 一旦做标题整理 /
+> 图件嵌入 / 段落合并，二者 sha256 必然不等。**新版改判版本链链接**：T7/G14 与 T9/T8
+> 的 audited_artifact 指向不同文件，但都登记到同一份「链式指纹」主链上；归档清单按
+> 主链顺序比对即可（drafts/current_draft.md.sha256 → final/定稿.sha256）。
+
 | 落点 | 字段 | 说明 |
 |---|---|---|
 | `final/定稿.sha256` | 两列输出本体 | 指纹真源，见 §二 |
 | `final/交付说明.md` 头部 | `deliverables_fingerprint`（path / bytes / sha256） | 主人验收时比对用 |
-| 四份只读档报告头部 | `audited_artifact.{path, bytes, sha256}` | T7 / G14 / T9 / T8 各一份，值必须两两相等（M-8） |
-| 归档清单 | 校验和登记行 | 见 [`project-archive-sop.md`](../治理/project-archive-sop.md) §二 |
+| T7 / G14 报告头部 | `audited_artifact.{path, bytes, sha256}` | **path = `drafts/current_draft.md`**（phase_seq 12 / 16，定稿前） |
+| **T9 / T8 报告头部** | `audited_artifact.{path, bytes, sha256}` | **path = `final/定稿.md`**（phase_seq 20 / 22，定稿后） |
+| 链式指纹主链 | `artifact_chain: [drafts/current_draft.md, final/定稿.md]` | 顺序：草稿 → 终稿；二者 sha256 不要求相等，但都须登记 |
+| 归档清单 | 校验和登记行（按 artifact_chain 顺序） | 见 [`project-archive-sop.md`](../治理/project-archive-sop.md) §二 |
+
+**比较规则**：
+- T7 vs G14：审同一份草稿 ⇒ sha256 必须相等（同一输入）；
+- T9 vs T8：审同一份终稿 ⇒ sha256 必须相等（同一输入）；
+- T7/G14 vs T9/T8：审不同文件 ⇒ sha256 **不要求相等**，但要求二者对应的真源
+  （drafts/current_draft.md → final/定稿.md）能被 final_assembly 节点的输出链
+  关系反查（详见 phase-order/phase-order.yaml 的 assembly 节点）。
 
 `bytes` = **精确字节数属主人侧量值**（`wc -c` 可得；零 exec 下 agent 不可得）；`sha256` = 本文件 §二 命令输出值。二者均由**主人**在 host shell 补算后回填，未回填记 `unavailable`。
 

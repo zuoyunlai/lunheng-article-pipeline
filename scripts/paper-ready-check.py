@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""paper-ready-check.py —— 可发表性判定表 48 项中的 34 项机械检查。
+"""paper-ready-check.py —— 可发表性判定表 48 项的机械分组检查。
 
-本工具只执行可确定机械化的 34 项；其余 14 项涉及作者声音、理论贡献、
-反方质量等语义判断，必须由 T8 按判定表完成，不把「未实现」当作通过。
+P2-8 修复（2026-09-30）：实际跑的是 **10 个分组**（F1-F5/F6-F10/F11-F15/F16-F19/F20-F22/
+F23-F27/F28-F31/A1-A4/C1-C4/D1），合计 34 项机械检查（判定表 48 项中的 34 项）；
+剩余 14 项涉及作者声音、理论贡献、反方质量等语义判断，由 T8 按判定表完成，
+不把「未实现」当作通过。
 """
 import glob, json, os, re, sys
 from pathlib import Path
@@ -32,17 +34,61 @@ def check_ai_declaration(path):
     return all(c.values()),c
 
 def check_citation_ordering(path):
-    text=_read(path); body_end=min((text.find(x) for x in ('## 引用来源','## 参考文献','## 先行者文献') if text.find(x)>=0),default=len(text)); body=text[:body_end]
-    body_refs=re.findall(r'\[(C-主?\d+|C\d+|D\d+|L\d+|先\d+)\]',body); start=min((text.find(x) for x in ('## 引用来源','## 参考文献','## 先行者文献') if text.find(x)>=0),default=-1)
-    if start<0:return False,{'error':'no_appendix_found'}
-    appendix=text[start:]; app_refs=re.findall(r'\[(C-主?\d+|C\d+|D\d+|L\d+|先\d+)\]',appendix)
-    inline_body=re.findall(r'[（(]([^（）()]{1,80}?)[，,]\s*(?:19|20)\d{2}[）)]',body); inline_app=re.findall(r'[（(]([^（）()]{1,80}?)[，,]\s*(?:19|20)\d{2}[）)]',appendix)
-    if not body_refs and not inline_body:return False,{'error':'no_citations_in_body','internal_refs':0,'inline_citations':0}
+    # P1-7 修复（2026-09-30）：作者年必须 (作者, 年份) 双键对账 + 编号首现序严格一致
+    text = _read(path)
+    headers = ('## 引用来源', '## 参考文献', '## 先行者文献')
+    body_end = min((text.find(h) for h in headers if text.find(h) >= 0), default=len(text))
+    body = text[:body_end]
+    body_refs = re.findall(r'\[(C-主?\d+|C\d+|D\d+|L\d+|先\d+)\]', body)
+    start = min((text.find(h) for h in headers if text.find(h) >= 0), default=-1)
+    if start < 0:
+        return False, {'error': 'no_appendix_found'}
+    appendix = text[start:]
+    app_refs = re.findall(r'\[(C-主?\d+|C\d+|D\d+|L\d+|先\d+)\]', appendix)
+
+    # 提取 (作者, 年份) 双键 — 不再只匹配作者子串
+    ay_re = re.compile(r'[（(]([^（）()]{1,80}?)[，,]\s*((?:19|20)\d{2})[）)]')
+    def ay_pairs(blob):
+        return [(m.group(1).strip(), m.group(2)) for m in ay_re.finditer(blob)]
+
+    inline_body = ay_pairs(body)
+    inline_app = ay_pairs(appendix)
+
+    if not body_refs and not inline_body:
+        return False, {'error': 'no_citations_in_body', 'internal_refs': 0, 'inline_citations': 0}
+
     if not body_refs:
-        missing=[x for x in dict.fromkeys(inline_body) if not any(x in y for y in inline_app)]
-        return not missing and bool(inline_app),{'citation_mode':'author_year','body_inline_count':len(inline_body),'appendix_inline_count':len(inline_app),'missing_in_appendix':missing}
-    ordered=list(dict.fromkeys(body_refs)); missing=[x for x in ordered if x not in app_refs]; unused=[x for x in app_refs if x not in ordered]
-    return not missing and not unused,{'body_unique_ordered':ordered,'appendix_ordered':app_refs,'missing_in_appendix':missing,'unused_in_body':unused}
+        # 作者年模式：(作者, 年份) 双键覆盖 + 顺序严格一致
+        body_set = set(inline_body)
+        app_set = set(inline_app)
+        body_order = list(dict.fromkeys(inline_body))
+        app_order = list(dict.fromkeys(inline_app))
+        missing = [p for p in body_order if p not in app_set]
+        unused = [p for p in app_order if p not in body_set]
+        order_match = body_order == app_order
+        return (not missing) and (not unused) and bool(inline_app) and order_match, {
+            'citation_mode': 'author_year',
+            'body_inline_count': len(inline_body),
+            'appendix_inline_count': len(inline_app),
+            'missing_in_appendix': missing,
+            'unused_in_body': unused,
+            'order_match': order_match,
+        }
+    # 编号模式：双方向覆盖 + 首现序严格一致
+    body_set = set(body_refs)
+    app_set = set(app_refs)
+    ordered = list(dict.fromkeys(body_refs))
+    app_ordered = list(dict.fromkeys(app_refs))
+    missing = [x for x in ordered if x not in app_set]
+    unused = [x for x in app_ordered if x not in body_set]
+    order_match = ordered == app_ordered
+    return (not missing) and (not unused) and order_match, {
+        'body_unique_ordered': ordered,
+        'appendix_ordered': app_ordered,
+        'missing_in_appendix': missing,
+        'unused_in_body': unused,
+        'order_match': order_match,
+    }
 
 def check_gbt_types(path):
     found=set(re.findall(r'\[(M|J|C|S|D|R|P|Z|N|EB/OL)\]',_read(path))); return len(found)>=5,{'types_found':sorted(found),'count':len(found)}
@@ -60,11 +106,35 @@ def check_word_count(path,project):
     t=_read(path); m=re.search(r'^## (参考文献|数据来源|案例来源|先行者文献|AI 使用声明|致谢)',t,re.M); body=t[:m.start()] if m else t; n=len(re.findall(r'[\u4e00-\u9fff]',body)); return n>=2000,{'正文字数(纯汉字)':n,'正文字符':len(body),'分层下限(纯汉字)':2000}
 
 def check_m_gate(project):
-    p=os.path.join(project,'final','M-Gate-Report-v2.2.12.json')
-    if _missing_or_empty(p): return False,{'error':'missing_or_empty_m_gate_report','path':p}
+    # P1-6 修复（2026-09-30）：glob 文件名 + 四档 + 字段对齐 M-Gate-Algorithm-appendix.md。
+    # 旧版硬编码 'M-Gate-Report-v2.2.12.json' + 沿用已废止的 exit_code，
+    # 导致 "exit_code=0 且 判定档位=不通过" 被错误放行。
+    pattern = os.path.join(project, 'final', 'M-Gate-Report-*.json')
+    matches = sorted(glob.glob(pattern))
+    if not matches:
+        # 保留旧错误名以兼容既有 fail-closed 回归（missing / empty 同族）
+        return False, {'error': 'missing_or_empty_m_gate_report', 'pattern': pattern}
+    if len(matches) > 1:
+        # 同一项目内多份 M 门报告 → 必须删除陈旧份；否则无法判定本次终检读哪份
+        return False, {'error': 'multiple_m_gate_reports_must_be_unique', 'matches': matches}
+    p = matches[0]
+    if _missing_or_empty(p):
+        return False, {'error': 'missing_or_empty_m_gate_report', 'path': p}
     try:
-        d=json.loads(_read(p)); code=d.get('exit_code'); placeholder=code in (None,'', 'pending','unavailable','<exit_code>'); return code==0 and not placeholder,{'exit_code':code,'placeholder':placeholder}
-    except Exception as e:return False,{'error':str(e)}
+        d = json.loads(_read(p))
+        if not isinstance(d, dict):
+            return False, {'error': 'm_gate_report_not_object', 'path': p}
+        verdict = d.get('判定档位')
+        if verdict is None:
+            # 缺四档字段（含旧版 exit_code 伪报告 / 占位）→ fail-closed，标记 placeholder
+            return False, {'error': 'placeholder_or_missing_verdict', 'placeholder': True,
+                           'raw_keys': sorted(d.keys()), 'path': p}
+        allowed = {'通过', '不通过', '无法判定', '路径或参数错误'}
+        if verdict not in allowed:
+            return False, {'error': 'unknown_verdict_field', '判定档位': verdict, 'allowed': sorted(allowed)}
+        return verdict == '通过', {'判定档位': verdict, 'path': p}
+    except Exception as exc:
+        return False, {'error': str(exc), 'path': p}
 
 def check_residual_codes(path):
     if _missing_or_empty(path): return False, ['missing_or_empty_final']

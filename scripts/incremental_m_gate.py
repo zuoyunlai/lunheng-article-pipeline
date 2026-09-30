@@ -35,9 +35,15 @@ class ChangeDetector:
         return {}
 
     def _save_cache(self):
-        """保存文件哈希缓存"""
+        """保存文件哈希缓存（P2-5 修订 2026-09-30：同时落缓存文件清单）。"""
         self.cache_file.write_text(
             json.dumps(self.cache, indent=2, ensure_ascii=False),
+            encoding='utf-8'
+        )
+        # 缓存文件清单（_files）—— 防「cache 损坏但 _save_cache 仍静默通过」
+        cache_index = self.cache_file.with_suffix(self.cache_file.suffix + '.files.txt')
+        cache_index.write_text(
+            "\n".join(sorted(self.cache.keys())),
             encoding='utf-8'
         )
 

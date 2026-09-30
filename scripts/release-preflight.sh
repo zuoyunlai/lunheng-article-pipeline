@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# release-preflight.sh — 发版前置闸「四查一停」
+# release-preflight.sh — 发版前置闸「五查一停」
 #   （教训 #332 两查一停 → #430 扩为四查：在飞链 / 编号占用 / 工作区干净 / **CI 不红**；
 #     v2.12.22 加 --allow-existing-tag，教训 #334）
 # =============================================================================
@@ -63,7 +63,9 @@
 #   -h | --help
 #
 # 退出码：0=通过 / 10=在飞链未收口 / 11=目标编号已占用 / 12=工作区不净
-#         / 13=待发布提交 CI 为红 / 2=用法或环境错误
+#         / 13=待发布提交 CI 为红
+#         / 14=教训真源缺失（v2.15.4 第五查；默认开；LUNHENG_REQUIRE_LESSONS_SRC=0 或 SKIP_LESSONS_SRC=1 可跳）
+#         / 2=用法或环境错误
 # 依赖：bash + git + python3（JSON 解析）；查 ④ 另需 gh（缺失时降级为警告，不阻塞）
 # =============================================================================
 
@@ -421,17 +423,24 @@ try:
     assert isinstance(runs, list)
 except Exception:
     print("unparsable\t查询输出不是 JSON 数组"); raise SystemExit(0)
+# P1-9 修复（2026-09-30）：green 必须满足 status=completed AND conclusion in {success, neutral, skipped}；
+# [{}] / skipped 不再单独记 green（skipped 仅作"该 run 不阻塞发布"）；unknown 字段亦不可记 green。
 BAD = ("failure", "cancelled", "timed_out", "startup_failure", "action_required")
 PENDING = ("in_progress", "queued", "pending", "requested", "waiting")
-red = sorted({f"{r.get('workflowName')}({r.get('conclusion')})" for r in runs
-              if r.get("conclusion") in BAD})
-pending = sorted({str(r.get("workflowName")) for r in runs if r.get("status") in PENDING})
-if red:
-    print("red\t" + " / ".join(red))
-elif pending:
-    print("pending\t" + " / ".join(pending))
-elif runs:
-    print(f"green\t{len(runs)} 个 run 全无红灯")
+GREEN_OK = ("success", "neutral", "skipped")
+red_list = [r for r in runs if r.get("conclusion") in BAD]
+pending_list = [r for r in runs if r.get("status") in PENDING]
+strict_green = [r for r in runs if r.get("status") == "completed" and r.get("conclusion") in GREEN_OK]
+unknown = [r for r in runs if r not in red_list and r not in pending_list and r not in strict_green]
+if red_list:
+    print("red\t" + " / ".join(sorted({f"{r.get('workflowName')}({r.get('conclusion')})" for r in red_list})))
+elif pending_list:
+    print("pending\t" + " / ".join(sorted({str(r.get("workflowName")) for r in pending_list})))
+elif strict_green and len(strict_green) == len(runs):
+    print(f"green\t{len(strict_green)}/{len(runs)} 个 run 严格通过（status=completed AND conclusion in {GREEN_OK}）")
+elif unknown:
+    names = sorted({f"{r.get('workflowName','?')}(status={r.get('status','?')},conclusion={r.get('conclusion','?')})" for r in unknown})
+    print("unknown\t" + " / ".join(names))
 else:
     print("none\t该提交无 workflow run 记录（未推 / 无 CI）")
 PYEOF
@@ -459,18 +468,61 @@ esac
 echo ""
 
 # =============================================================================
-# 判定：任一不过即拒绝（优先级：在飞链 > 编号 > 工作区 > CI）
+# 查 ⑤ 教训快照在位（P1-1 修复 2026-09-30；五查一停之第五查）
+# 口径（修正 2026-09-30 发版核查）：判据 = **仓库内 hermetic 快照**
+#   references/_shared/治理/教训索引.md —— 永远可达、不受仓库外漂移影响；
+#   与 self-audit-gate.sh 门 H 的分工：门 H 管「教训编号引用 ↔ 主真源/快照」差集，
+#   本查只管「教训沉淀载体在位且非空」（fail-closed，防发布时经验沉淀被静默跳过）。
+#   仓库外主真源（memory/lessons.md 等）**不**在本查范围内（属门 H 的 LESSONS_SRC）。
+# 跳过：SKIP_LESSONS_SRC=1（**跳过 ≠ 全绿**，最后一行会明示覆盖缩小）。
 # =============================================================================
-if [ "$FAIL_INFLIGHT" -ne 0 ] || [ "$FAIL_TAG" -ne 0 ] || [ "$FAIL_DIRTY" -ne 0 ] || [ "$FAIL_CI" -ne 0 ]; then
-  echo "⛔ 发版前置闸未通过（在飞链=$FAIL_INFLIGHT / 编号占用=$FAIL_TAG / 工作区不净=$FAIL_DIRTY / CI 红=$FAIL_CI，1=未过）"
+LESSONS_SNAPSHOT="${SKILL_ROOT}/references/_shared/治理/教训索引.md"
+LESSONS_INREPO="${SKILL_ROOT}/references/_shared/治理/论衡仓库内教训.md"
+FAIL_LESSONS=0
+LESSONS_SKIPPED=0
+LESSONS_NA=0
+if [ ! -d "${SKILL_ROOT}/references/_shared/治理" ]; then
+  # 非论衡布局（如离线回归用的极简假仓库：仅 SKILL.md + 闸脚本）⇒ 本查**不适用**，跳过而非硬失败。
+  # 判据 = 治理目录存在性：真论衡仓必有；假仓库必无。避免把「不适用」错报成「缺失」。
+  echo "[5/5] 教训快照在位检查——不适用（无 references/_shared/治理/，非论衡布局）"
+  LESSONS_NA=1
+elif [ "${SKIP_LESSONS_SRC:-0}" = "1" ]; then
+  echo "[5/5] 教训快照在位检查——显式跳过（SKIP_LESSONS_SRC=1）"
+  echo "      ⚠️  跳过第五查：覆盖缩小，本次**不构成全绿**，需人工确认教训索引已更新"
+  LESSONS_SKIPPED=1
+elif [ ! -s "$LESSONS_SNAPSHOT" ]; then
+  echo "[5/5] 教训快照在位检查——❌ $LESSONS_SNAPSHOT 缺失或为空" >&2
+  echo "      → 拒绝发版（教训沉淀载体缺失 = 发布即丢经验）" >&2
+  echo "      修法：补写 references/_shared/治理/教训索引.md，或显式 SKIP_LESSONS_SRC=1 跳过" >&2
+  FAIL_LESSONS=1
+else
+  LESSONS_BYTES="$(wc -c < "$LESSONS_SNAPSHOT" | tr -d ' ')"
+  LESSONS_MTIME="$(date -r "$LESSONS_SNAPSHOT" '+%Y-%m-%d %H:%M' 2>/dev/null || echo '未知')"
+  LESSONS_COUNT="$(grep -cE '^#{2,4} (教训 )?#[0-9]+' "$LESSONS_SNAPSHOT" 2>/dev/null || echo 0)"
+  echo "[5/5] 教训快照在位检查"
+  echo "      ✅ 教训索引.md（${LESSONS_BYTES} 字节，${LESSONS_COUNT} 条教训，mtime ${LESSONS_MTIME}）"
+  if [ -s "$LESSONS_INREPO" ]; then
+    echo "      ✅ 仓库内教训.md 在位"
+  else
+    echo "      ⚠️  仓库内教训.md 缺失（仅告警，不阻断）"
+  fi
+fi
+echo ""
+
+# =============================================================================
+# 判定：任一不过即拒绝（优先级：在飞链 > 编号 > 工作区 > CI > 教训真源）
+# =============================================================================
+if [ "$FAIL_INFLIGHT" -ne 0 ] || [ "$FAIL_TAG" -ne 0 ] || [ "$FAIL_DIRTY" -ne 0 ] || [ "$FAIL_CI" -ne 0 ] || [ "$FAIL_LESSONS" -ne 0 ]; then
+  echo "⛔ 发版前置闸未通过（在飞链=$FAIL_INFLIGHT / 编号占用=$FAIL_TAG / 工作区不净=$FAIL_DIRTY / CI 红=$FAIL_CI / 教训真源=$FAIL_LESSONS，1=未过）"
   echo "   不进入 tag / push / GitHub Release / 净化包 任何一步。"
   [ "$FAIL_INFLIGHT" -ne 0 ] && exit "$EXIT_INFLIGHT"
   [ "$FAIL_TAG" -ne 0 ] && exit "$EXIT_TAG_TAKEN"
   [ "$FAIL_DIRTY" -ne 0 ] && exit "$EXIT_DIRTY"
+  [ "$FAIL_LESSONS" -ne 0 ] && exit 14
   exit "$EXIT_CI_RED"
 fi
 
-# ---- 通过：打印四行现状（远端 master / 本地 HEAD / tag 区间 / 在飞链）----
+# ---- 通过：打印五行现状（远端 master / 本地 HEAD / tag 区间 / 在飞链 / 教训快照）----
 HEAD_SHA="$(git rev-parse --short HEAD)"
 HEAD_TAG="$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)"
 
@@ -500,12 +552,24 @@ L_ONLY_N="$(grep -c . "$TMP_PF/local_only.txt" || true)"
 R_ONLY_N="$(grep -c . "$TMP_PF/remote_only.txt" || true)"
 L_ONLY_PREVIEW="$(grep -m 5 . "$TMP_PF/local_only.txt" | tr '\n' ' ' | sed 's/ $//' || true)"
 
-echo "✅ 发版前置闸通过 —— 四查均过，可进入 tag / push / GitHub Release / 净化包"
+if [ "$LESSONS_SKIPPED" -ne 0 ]; then
+  echo "⚠️  发版前置闸通过（四查均过；第五查教训快照**已跳过** —— 覆盖缩小，非全绿）"
+  echo "   可进入 tag / push / GitHub Release / 净化包，但需人工确认教训索引已更新"
+else
+  echo "✅ 发版前置闸通过 —— 五查均过，可进入 tag / push / GitHub Release / 净化包"
+fi
 echo "   ① 远端 master : $REMOTE_MASTER_LINE"
 echo "   ② 本地 HEAD   : $HEAD_SHA（最近 tag $HEAD_TAG）$HEAD_REL_LINE"
 echo "   ③ tag 区间    : 本地最近 $HEAD_TAG / 远端最近 ${R_TAG:-（无）}；本地独有 $L_ONLY_N 个（未推）${L_ONLY_PREVIEW:+［$L_ONLY_PREVIEW］} / 远端独有 $R_ONLY_N 个（未取）"
 echo "   ④ 在飞链      : 0 条（同项目 status=${INFLIGHT_STATUSES} 会话）"
 echo "   ⑤ CI 结论     : ${CI_VERDICT}（待发布提交 ${HEAD_FULL:0:7}；来源 $CI_SOURCE）$CI_DETAIL"
+if [ "$LESSONS_NA" -ne 0 ]; then
+  echo "   ⑥ 教训快照    : 不适用（非论衡布局，本查跳过）"
+elif [ "$LESSONS_SKIPPED" -ne 0 ]; then
+  echo "   ⑥ 教训快照    : 已跳过（SKIP_LESSONS_SRC=1，覆盖缩小）"
+else
+  echo "   ⑥ 教训快照    : 教训索引.md 在位（hermetic 快照）"
+fi
 echo "   数据来源      : 在飞链 = $SESSIONS_SOURCE / 远端 = $REMOTE_SOURCE"
 if [ "$ALLOW_EXISTING_TAG" = true ] && { [ -n "$LOCAL_HIT" ] || [ -n "$REMOTE_HIT" ]; }; then
   echo "   目标编号 $TAG：已存在（--allow-existing-tag 已证属本链历史；远端同号同对象或未推）；工作区干净"

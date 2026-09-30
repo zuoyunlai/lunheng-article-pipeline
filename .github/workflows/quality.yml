@@ -27,11 +27,11 @@ jobs:
           pip install -r tests/requirements-test.txt
       
       - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@2.0.0   # P2-7 修订（2026-09-30 发版核查更正）：上游真实 tag **无 v 前缀**（v2.0.6 不存在 → CI 报 Unable to resolve action）；钉到最新真实 tag 2.0.0
         with:
           scandir: './scripts'
           severity: warning
-      
+
       - name: Run pytest
         # v2.12.40 修复（2026-09-14）：旧写法 `cd tests` 后再 `--cov=.` ⇒ 覆盖率只统计 tests/ 自身，
         #   scripts/ 覆盖率恒为 0、报告无信息量；且只装 requirements.txt，漏装 pytest 版本锁定真源。

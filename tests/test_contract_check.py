@@ -26,6 +26,59 @@ def test_word_tier_source_has_one_value_per_label():
     assert heavy and {item[1] for item in heavy} == {5000}
 
 
+def test_word_tier_contract_catches_drift_reverse_injection():
+    """P0-3 反向注入（验证收口 2026-09-30 修正：用三引号字符串避开 \n 转义坑）：
+    写一个含错误档位的临时文件，验证 contract-check 必红线；
+    同时验证存在正确 + 错误两个不同区间时仍能检出。"""
+    import contextlib
+
+    base = ROOT / 'references' / '_shared' / '真源'
+    wrong_path = base / '_TEST_DRIFT_WRONG.md'
+    both_path = base / '_TEST_DRIFT_BOTH.md'
+
+    # 验证收口 2026-09-30：regex \d{4} 只能匹配 4 位数字；9999-10000 中 10000 是 5 位不匹配
+    WRONG_TEXT = """# 漂移注入测试
+
+> 轻量档 9000-9500 字（P0-3 反向注入；该文件由测试创建并清理）
+"""
+    BOTH_TEXT = """# 漂移注入测试（并存）
+
+- 轻量档 2000-3000 字
+- 轻量档 9000-9500 字（P0-3 反向注入；该文件由测试创建并清理）
+"""
+    try:
+        # 第一次：单一错误 → 必须检出
+        wrong_path.write_text(WRONG_TEXT, encoding='utf-8')
+        both_path.write_text(WRONG_TEXT, encoding='utf-8')
+        errors = contract.check_counts()
+        assert any('word_tier_轻量' in e for e in errors),             f'expected word_tier_轻量 drift error, got: {errors}'
+
+        # 清理：让基线恢复绿
+        with contextlib.suppress(FileNotFoundError):
+            wrong_path.unlink()
+        with contextlib.suppress(FileNotFoundError):
+            both_path.unlink()
+
+        # 第二次：并存错误必须能被检出（即修复未退化为"第一个胜出"）
+        wrong_path.write_text(BOTH_TEXT, encoding='utf-8')
+        errors2 = contract.check_counts()
+        assert any('word_tier_轻量' in e for e in errors2),             f'expected drift detection on coexisting correct+wrong, got: {errors2}'
+    finally:
+        with contextlib.suppress(FileNotFoundError):
+            wrong_path.unlink()
+        with contextlib.suppress(FileNotFoundError):
+            both_path.unlink()
+
+
+def test_word_tier_contract_passes_after_cleanup():
+    """P0-3 修复后：基线文档不带错误档位时 contract.check_counts() 应通过。"""
+    # 若上一个测试未清理（例如异常退出），这里再保底清一次
+    for p in (ROOT / 'references' / '_shared' / '真源').glob('_TEST_DRIFT_*.md'):
+        p.unlink(missing_ok=True)
+    errors = contract.check_counts()
+    assert not errors, f'baseline drift after P0-3 cleanup: {errors}'
+
+
 def test_language_policy_is_single_canonical_line():
     assert lang.LINE.startswith("> 🌐 **语言政策**")
     assert "目标语言客观适用" in lang.LINE

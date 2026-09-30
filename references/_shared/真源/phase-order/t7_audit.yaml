@@ -10,6 +10,8 @@
   write_authority: owner   # v2.12.51 D-3：只读档报告由主控 write 落盘，本节点不授写权
   verification_authority: 主控
   on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
+  audited_artifact: drafts/current_draft.md
+  precondition: t6_done OR skip_in_lite_tier
   input: drafts/current_draft.md
   output: audits/审计报告-vN.md
   output_chars_max: 10000

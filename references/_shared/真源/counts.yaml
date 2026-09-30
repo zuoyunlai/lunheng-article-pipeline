@@ -42,7 +42,7 @@ g_checklist_items: 21
 
 # 角色
 role_cards: 11        # 概念口径：T0 主控 + T1-T7 + T8 终检 + T9 同行评审 + T9b 压力测试
-role_card_files: 12   # 物理文件数：主控拆 coordinator + 扩展职责两张卡，另含 T9b
+role_card_files: 12   # 物理文件数：主控拆 coordinator + 扩展职责两张卡，另含 T9b（T1b 复用 T1 角色卡，不新增物理卡 —— 发版核查 2026-09-30 撤销误增）
 
 # T8 终检可发表性判据（真源：references/_shared/真源/可发表性判定表.md）
 t8_items: 48

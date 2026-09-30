@@ -215,6 +215,24 @@ else
   fi
   echo "  ✅ bundle 校验通过（$(du -sh "$BUNDLE_FILE" | awk '{print $1}')）"
 
+  # P1-10 修订（2026-09-30）：git bundle --all **不含 reflog-only 对象**；
+  # 物理备份 .git/objects/ 以覆盖那些 dangling commit/tree/blob，
+  # 确保清理后**任何**历史对象都可由 bundle + objects 副本重建。
+  PHYSICAL_BAK_DIR="${BUNDLE_DIR}/lunheng-git-objects-${TIMESTAMP}"
+  mkdir -p "$PHYSICAL_BAK_DIR"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete .git/objects/ "$PHYSICAL_BAK_DIR/objects/" || {
+      echo "❌ .git/objects 物理备份失败（rsync），拒绝继续销毁历史" >&2
+      exit 1
+    }
+  else
+    cp -a .git/objects "$PHYSICAL_BAK_DIR/" || {
+      echo "❌ .git/objects 物理备份失败（cp -a），拒绝继续销毁历史" >&2
+      exit 1
+    }
+  fi
+  echo "  ✅ .git/objects 物理备份 → $PHYSICAL_BAK_DIR"
+
   git reflog expire --expire=now --all
   git gc --prune=now
 

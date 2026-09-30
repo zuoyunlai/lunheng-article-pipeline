@@ -28,9 +28,10 @@ def test_acquire_release():
         lock_file = Path(tmpdir) / "run" / "test-project" / ".lunheng.lock"
         assert lock_file.exists(), "锁文件不存在"
         
-        # 锁文件内容正确
+        # 锁文件内容为 owner_token（pid:hex8），不再只是 PID
         content = lock_file.read_text().strip()
-        assert content == str(lock.pid), f"锁文件内容错误: {content} != {lock.pid}"
+        assert content.startswith(f"{lock.pid}:"), f"锁文件内容缺少 PID 前缀: {content}"
+        assert ":" in content, f"锁文件必须含 owner_token: {content}"
         
         # 释放锁
         lock.release()
@@ -61,6 +62,39 @@ def test_concurrent_acquire():
         lock2.release()
 
 
+def test_concurrent_acquire_atomic_enforcement():
+    """P1-8 反向注入：两线程 Barrier 同步触发 acquire()，有且仅有一个返回成功。
+
+    旧实现走 exists() -> write_text() 非原子路径，两次并发 acquire() 可双双
+    返回 (True, None)（audit P1-8 实测）。本测试用 threading.Barrier 让两个线程
+    在同一拍进入 acquire()，断言恰有一个成功。
+    """
+    import threading
+    with tempfile.TemporaryDirectory() as tmpdir:
+        lock1 = ProjectLock("race-project", tmpdir)
+        lock2 = ProjectLock("race-project", tmpdir)
+        barrier = threading.Barrier(2)
+        results = [None, None]
+
+        def worker(idx, lock):
+            barrier.wait()  # 同步启动，让两个线程尽可能同一拍进入 os.open(O_EXCL)
+            results[idx] = lock.acquire()
+
+        t1 = threading.Thread(target=worker, args=(0, lock1))
+        t2 = threading.Thread(target=worker, args=(1, lock2))
+        t1.start(); t2.start(); t1.join(); t2.join()
+
+        successes = sum(1 for r in results if r and r[0] is True)
+        assert successes == 1, (
+            f"P1-8 FAIL: 并发 acquire() 中有 {successes} 个返回成功（必须恰为 1）；"
+            f"results={results}"
+        )
+        # 清理胜出者的锁（防止 tmpdir 删除警告）
+        for lock, r in zip([lock1, lock2], results):
+            if r and r[0] is True:
+                lock.release()
+
+
 def test_stale_lock_cleanup():
     """测试陈旧锁文件的清理"""
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -77,10 +111,10 @@ def test_stale_lock_cleanup():
         # 尝试获取锁，应该自动清理陈旧锁
         success, error = lock.acquire()
         assert success, f"清理陈旧锁后获取失败: {error}"
-        
-        # 锁文件内容应该是当前进程的 PID
+
+        # 验证收口 2026-09-30：token 格式 "pid:hex"，不再只是 PID
         content = lock_file.read_text().strip()
-        assert content == str(lock.pid), f"锁文件未更新: {content} != {lock.pid}"
+        assert content.startswith(f"{lock.pid}:"), f"锁文件未更新: {content} 不以 {lock.pid}: 起头"
         
         lock.release()
 
@@ -186,9 +220,9 @@ def test_corrupted_lock_file():
         # 尝试获取锁，应该自动清理损坏的锁文件
         success, error = lock.acquire()
         assert success, f"清理损坏锁文件后获取失败: {error}"
-        
-        # 锁文件内容应该是当前进程的 PID
+
+        # 验证收口 2026-09-30：token 格式 "pid:hex"，不再只是 PID
         content = lock_file.read_text().strip()
-        assert content == str(lock.pid), f"锁文件未更新: {content} != {lock.pid}"
+        assert content.startswith(f"{lock.pid}:"), f"锁文件未更新: {content} 不以 {lock.pid}: 起头"
         
         lock.release()

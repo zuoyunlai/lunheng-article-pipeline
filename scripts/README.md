@@ -28,14 +28,14 @@
 | [`m_gate_dependencies.yaml`](m_gate_dependencies.yaml) | M 门依赖关系配置 | — | — | — |
 | [`markdown-structure-lint.py`](markdown-structure-lint.py) | markdown-structure-lint.py — 确定性 Markdown 结构门。 | — | — | `make markdown-structure-lint` |
 | [`normalize-version-header.py`](normalize-version-header.py) | normalize-version-header.py — 文件头版本戳归一化（sync-version.sh 的幂等写入口） | python3 scripts/normalize-version-header.py --root <skill_root> \ | — | — |
-| [`paper-ready-check.py`](paper-ready-check.py) | paper-ready-check.py —— 可发表性判定表 48 项中的 34 项机械检查。 | — | — | — |
+| [`paper-ready-check.py`](paper-ready-check.py) | paper-ready-check.py —— 可发表性判定表 48 项的机械分组检查。 | — | — | — |
 | [`paper-ready-check.sh`](paper-ready-check.sh) | paper-ready-check.sh —— 论衡 v2.12.0 可发表性机械实现 34 项本地自动检查（判定表总计 48 项，未实现项不计入）封装 | — | — | — |
 | [`path-canonical.py`](path-canonical.py) | path-canonical.py — 论衡路径规范化校验器 | python3 scripts/path-canonical.py <base_dir> <target_path> | — | — |
 | [`phase-order-slice.py`](phase-order-slice.py) | phase-order-slice.py — 论衡流程真源「文本保真装配器」 | python3 scripts/phase-order-slice.py # 生成/刷新装配视图 | — | — |
 | [`pkg-integrity.py`](pkg-integrity.py) | pkg-integrity.py — 净化包**正向**完整性校验 | python3 scripts/pkg-integrity.py snapshot <pkg_dir> <snapshot.json> | — | — |
 | [`project_lock.py`](project_lock.py) | 论衡项目锁管理器 | — | — | — |
 | [`publish-clawhub.sh`](publish-clawhub.sh) | publish-clawhub.sh — 论衡 ClawHub 一键发布封装 | bash scripts/publish-clawhub.sh [VERSION] [--yes] | — | — |
-| [`release-preflight.sh`](release-preflight.sh) | release-preflight.sh — 发版前置闸「四查一停」 | bash scripts/release-preflight.sh [<tag>] [选项] | — | `make preflight` |
+| [`release-preflight.sh`](release-preflight.sh) | release-preflight.sh — 发版前置闸「五查一停」 | bash scripts/release-preflight.sh [<tag>] [选项] | — | `make preflight` |
 | [`runtime-capability-probe.py`](runtime-capability-probe.py) | runtime-capability-probe.py — 论衡能力边界「声明 vs 实际」runtime 探针工具 | — | — | — |
 | [`self-audit-gate.sh`](self-audit-gate.sh) | self-audit-gate.sh — 论衡自审门自动化执行脚本 | — | commit 前由 sync-version.sh 末尾自动调用；或主控 LLM 主动跑 | `make audit` |
 | [`strip-anchor-residue.py`](strip-anchor-residue.py) | 净化包「编号锚点」残留清理 | python3 scripts/strip-anchor-residue.py <净化包目录> | — | — |

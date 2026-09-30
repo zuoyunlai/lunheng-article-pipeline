@@ -142,15 +142,51 @@ else
   OUT_DIR="$OUT_ROOT_ABS/$VERSION"
 fi
 
-# ---- 1. 净化包存在性（缺则现场构建） ----
+# ---- 1. 净化包存在性与内容校验（P0-1 修复 2026-09-30）----
+# 旧版只判断 SKILL.md 是否存在 → 内容损坏/旧版本/未绑定 commit 的包会被直接发布。
+# 现版：缺则构建；存在则必须核验通过（版本戳 + 按源树随包清单核验包内文件集）。
 if [[ ! -f "$OUT_DIR/SKILL.md" ]]; then
   echo "🔧 净化包缺失，先构建 $OUT_DIR ..."
   bash "$SCRIPT_DIR/build-clawhub-release.sh" "$VERSION"
 fi
+# 二次核验 1：SKILL.md frontmatter 版本戳必须等于本次 VERSION（防陈旧包）
+pkg_ver="$(grep -m1 -E '^[[:space:]]*version:' "$OUT_DIR/SKILL.md" | sed 's/^[[:space:]]*version:[[:space:]]*//' | tr -d '"')"
+if [[ "$pkg_ver" != "$VERSION" ]]; then
+  echo "❌ 净化包 SKILL.md frontmatter 版本 = '$pkg_ver' 与待发布版本 = '$VERSION' 不一致——发布中止" >&2
+  exit 8
+fi
+# 二次核验 2：按**源树**随包清单核验**包内**文件集
+#   （发版核查 2026-09-30 修正：净化包**不含 scripts/** —— 清单是维护者侧构建资产，
+#    不随包出厂；故清单从 $SKILL_ROOT 读、核验目标在 $OUT_DIR，方向不可颠倒）
+manifest="$SKILL_ROOT/scripts/.pkg-manifest.txt"
+if [[ ! -f "$manifest" ]]; then
+  echo "❌ 源树缺 scripts/.pkg-manifest.txt（无法核验包内容）——发布中止" >&2
+  exit 8
+fi
+missing_in_pkg=0
+while IFS= read -r line; do
+  [[ -z "$line" || "$line" == "#*" ]] && continue
+  if [[ ! -e "$OUT_DIR/$line" ]]; then
+    echo "❌ 随包清单登记了 '$line'，但净化包内缺失——发布中止（陈旧/损坏包）" >&2
+    missing_in_pkg=1
+  fi
+done < "$manifest"
+if [[ "$missing_in_pkg" -ne 0 ]]; then
+  exit 8
+fi
+echo "✅ 净化包内容核验通过：版本 $VERSION，随包清单全数在包内"
 
-# ---- 2. dry-run 校验 displayName ----
+# ---- 2. dry-run 校验 displayName + changelog（P0-1 修复 2026-09-30）----
+# 旧版 `|| true` 把 dry-run 退出码吞掉，导致 dry-run 失败时仍可进入正式发布（最高危缺陷之一）。
+# 现版：dry-run 非 0 ⇒ 立即 exit 6（独立码，便于排查）；JSON 写入临时文件避免大输出污染变量。
 echo "🔍 dry-run 校验 displayName ..."
-DRY="$(clawhub publish "$OUT_DIR" --slug "$SLUG" --version "$VERSION" --name "$DISPLAY_NAME" --changelog "$CHANGELOG_TEXT" --dry-run --json 2>&1 || true)"
+DRY_OUTPUT="$(mktemp)"; trap 'rm -f "$DRY_OUTPUT"' EXIT
+if ! clawhub publish "$OUT_DIR" --slug "$SLUG" --version "$VERSION" --name "$DISPLAY_NAME" --changelog "$CHANGELOG_TEXT" --dry-run --json >"$DRY_OUTPUT" 2>&1; then
+  echo "❌ dry-run 失败（发布中止；不允许 dry-run 失败后仍正式调用）——以下为 CLI 输出尾段：" >&2
+  tail -20 "$DRY_OUTPUT" >&2
+  exit 6
+fi
+DRY="$(cat "$DRY_OUTPUT")"
 echo "$DRY" | tail -14
 
 # displayName 若等于纯版本号（如 "2.7.9"）→ 失败退出（教训 #200 防线）
@@ -158,10 +194,13 @@ if echo "$DRY" | grep -qE '"displayName"[[:space:]]*:[[:space:]]*"v?[0-9]+\.[0-9
   echo "❌ displayName 仍是版本号（漏 --name？），发布中止——见教训 #200" >&2
   exit 1
 fi
+# displayName 必须包含「论衡」；否则硬失败（不再是 warn）
 if echo "$DRY" | grep -q '"displayName"[[:space:]]*:[[:space:]]*"论衡'; then
   echo "✅ displayName = $DISPLAY_NAME"
 else
-  echo "⚠️ dry-run 未识别出预期 displayName，继续前请人工核对上方 JSON" >&2
+  echo "❌ dry-run 报告的 displayName 与预期 '$DISPLAY_NAME' 不符——发布中止（教训 #200 防线硬失败）" >&2
+  echo "   上方 JSON 即为回显；若确要使用别的 displayName，请显式传 --name" >&2
+  exit 7
 fi
 
 # changelog 传递不能靠 dry-run 断言（教训 #354 复验）：当前 CLI 的 dry-run 分支
@@ -185,6 +224,20 @@ if [[ "$CONFIRM" == "yes" ]]; then
 fi
 
 echo "🚀 正式发布 $SLUG@$VERSION ..."
+# 发布前置闸（P0-1 修复 2026-09-30）：release-preflight.sh 红 ⇒ 绝不进入正式调用
+# 可由 SKIP_RELEASE_PREFLIGHT=1 显式跳过（CI 自动发版场景，由 CI 自身已跑门保证）。
+if [[ "${SKIP_RELEASE_PREFLIGHT:-0}" != "1" ]]; then
+  if [[ -x "$SCRIPT_DIR/release-preflight.sh" ]]; then
+    echo "🔎 运行 release-preflight.sh ..."
+    if ! bash "$SCRIPT_DIR/release-preflight.sh" "$VERSION"; then
+      echo "❌ release-preflight.sh 未通过——发布中止（前置闸失败）" >&2
+      echo "   若为 CI 自动发版且 CI 已另跑门，设 SKIP_RELEASE_PREFLIGHT=1 显式跳过" >&2
+      exit 9
+    fi
+  else
+    echo "⚠️ 未找到 release-preflight.sh，跳过前置闸（建议恢复该脚本以堵 P0-1 第二半）" >&2
+  fi
+fi
 clawhub publish "$OUT_DIR" --slug "$SLUG" --version "$VERSION" --name "$DISPLAY_NAME" --changelog "$CHANGELOG_TEXT"
 echo ""
 echo "✅ 已提交。审核页：https://clawhub.ai/$SLUG?version=$VERSION （服务端异步扫描，H1 应显示「$DISPLAY_NAME」）"

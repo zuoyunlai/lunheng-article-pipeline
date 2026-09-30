@@ -9,6 +9,7 @@
   rerun_after_report: true   # 前提 = T5 修订说明与 T7 审计报告均已落盘；必须在报告写入后取数（不得用修订进行中的中间态）
   agent: T1b
   role: T1                   # T1b = T1 文献检索员的定向回查子任务（口径同 T1 卡 T1b 段）——不新增独立角色，九角色架构不变；工具面 = research 档
+  phase_window: [phase1_5_targeted_review, t1b_targeted_review]
   write_authority: executor
   verification_authority: 主控
   on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}

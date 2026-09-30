@@ -2,6 +2,20 @@
 
 ---
 
+## [v2.15.4] — 2026-09-30
+
+> **主题：全量审计修订 —— 3 项 P0 阻断缺陷 + 12 项 P1 门假绿 + 10 项 P2 口径漂移**
+
+- **P0-1 发布链失败不可见修复**（`scripts/publish-clawhub.sh`）：dry-run 去掉 `|| true`（失败即 `exit 6`）；displayName 不符由 warn 改硬失败（`exit 7`）；净化包新增内容核验（版本戳 + `.pkg-manifest.txt` 路径解析到源树）；正式发布前串行调用 `release-preflight.sh`。
+- **P0-2 T7.5 时序倒置修复**（`M-Gate-核心.md`）：步骤 4（读 `final/交付说明.md`）整体移出至 T8 —— 该文件在 T7.5（phase_seq 15）时尚未生成，旧版导致首轮必然落「路径或参数错误」第 4 档。新增「合法输入集合」声明，伪代码第 0 步改判 `audits/` 审计报告。
+- **P0-3 字数合同门恒等比较修复**（`scripts/contract-check.py`）：`tier_declarations()` 改捕获正则实际区间（原存入 `TIER_LABELS` 常量，与自身比较恒等通过）；补 3 条反向注入回归。
+- **P1 门假绿与越权修复**：M 门判定改 `glob(M-Gate-Report-*.json)` + 四档 `判定档位`（废止 `exit_code`）；引用闭环改 `(作者, 年份)` 双键对账 + 编号首现序严格一致；CI 分类器要求 `status=completed AND conclusion=success`（`[{}]`/skipped 不再记 green）；M 门 6 处零断言用例补真断言；项目锁改 `O_EXCL` 原子创建 + `owner_token` 防 PID 复用（并补空文件窗口竞态守卫）；`audited_artifact` 语义区分 T7/G14（草稿）与 T9/T8（终稿）。
+- **P1 口径与脚本加固**：发布前置闸扩为「五查一停」（新增教训快照在位，判据 = 仓库内 hermetic 快照 `教训索引.md`）；`cleanup-skill-store.sh` 增 `.git/objects` 物理备份（覆盖 reflog-only 对象）；`incremental_m_gate.py` 落缓存文件清单；`capability-assert.py` 明确最小权限真源 = frontmatter；T1 派发话术澄清工具自适应真源；`t7_audit` 前置接受 `skip_in_lite_tier`。
+- **P2 口径漂移收敛**：`dispatch-header.md` 只读档心跳由主控代写 + `degraded_toolset_silent_continue`/`degraded_workforce_takeover` 语义消歧；`SKILL.md` 轻量档 G18 措辞对齐真源、frontmatter `fmt`→`audit` 档位名；`Makefile`/`quality.yml` 同步五查措辞与 action 版本钉（`action-shellcheck@v2.0.6`）；`T1b` 补 `phase_window` 双窗口字段（`Phase 1.5` 初筛复核 / `Phase 4.3` 修订回查，同一角色卡两处引用 → 显式消歧；**不新增独立角色**，T1b 复用 T1 角色卡，九角色架构不变）。
+- **验证收口追加**：修复验证过程暴露的 7 处连带缺陷（JS 层 `\n` 转义破坏 Python 字面量 ×3、项目锁空文件窗口竞态、`M-Form-2` 必需节口径、合同门误报、`#*` 引号、反向注入用例 5 位数字失效）；33 项回归 3 连跑稳定通过；自审门 38 PASS / 0 FAIL。
+
+---
+
 ## [v2.15.3] — 2026-09-29
 
 - **高频数字机械门加固**：`scripts/contract-check.py` 升级为多文档多值集合比对，新增字数分档簇（轻量/中段/重量）与版本文件数（`scripts/check-version.sh` 真源）的实测钩子；`conceptual roles` 与 `physical role-card files` 拆为两个独立语义簇，避免把概念口径与物理文件数误判为冲突。
@@ -39,14 +53,3 @@
 - **B6-B7 诊断与质量收尾**：新增三态 pipeline-doctor、组装后图注复检、独立方向纠偏状态与主人通知三态留痕。
 - **边界保持**：全程保持纯 skill、零 exec、声明式、fail-closed 人在环；诊断和机械对账不得替代语义审计或主人 checkpoint。
 - **验收**：全量 pytest 652 passed；B1-B7 回归 39 passed；流程一致性 125 passed；自审门 40 PASS / 0 FAIL（门 H 环境性 SKIP）。
-
----
-
-## [v2.14.3] — 2026-09-27
-
-- **入口职责去重**：README 收敛为面向人的定位、能力与安装概览；执行步骤与运行纪律统一指向 QUICKSTART、SKILL.md 及真源文档，减少三入口重复加载。
-- **模板骨架瘦身**：checkpoint-card、status、任务简报模板移除可外移的说明注释、历史背景与重复判据，保留运行期填写骨架和机械校验锚点；维护说明下沉至仓库维护资料，并确保该资料不进入净化发布包。
-- **发布链守卫**：净化构建脚本将维护资料明确列入排除清单，避免内部维护口径随包外发。
-- **验收**：全量 pytest **608 passed / 1 skipped**；自审门 **39 PASS / 0 FAIL**（门 H 因外部 lessons 真源不可达 SKIP）；链接与流程检查通过。
-
----

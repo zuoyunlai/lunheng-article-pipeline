@@ -30,7 +30,12 @@
   （2026-09-12 第三方审计 P0-1：denied 里的 memory_store / memory_forget / sessions_search
    曾被本脚本列入允许白名单）。本脚本现**不再维护第二份权限清单**。
 - **denied 优先**：任何同时出现在允许面与 denied 的能力，一律判定为禁用（denied 永不失效）。
-- **角色最小权限**：每个角色只声明实际需要的能力。
+- **角色最小权限**：每个角色只声明实际需要的能力。P2-4 修订（2026-09-30）：
+  本门仅做"声面真交集 + 逐项拒斥"，**不再**做"进一步收紧"——
+  "最小权限"由 SKILL.md frontmatter 五档（base / coordinator_only / research_extra /
+  audit / review）声明，**真源 = frontmatter，本脚本不维护第二份白名单**；
+  想缩减某角色可用工具 ⇒ **改 frontmatter**而非在本脚本里硬编码。
+  否则会出现"声明、脚本、runtime 三处口径互相矛盾"（v2.12.74 教训）。
 - **角色分区（v2.12.74 F2，CARD-P1 问题 2）**：`coordinator_only` 仅对主控角色 T0/T8 放行；
    worker 角色（T1-T7/T9/G14）请求任一项即拒绝——旧实现取全部允许档并集，导致
    `T5 sessions_yield` 也 exit 0（声明、脚本、runtime 三处口径互相矛盾）。
