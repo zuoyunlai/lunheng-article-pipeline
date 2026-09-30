@@ -229,7 +229,9 @@ echo "🚀 正式发布 $SLUG@$VERSION ..."
 if [[ "${SKIP_RELEASE_PREFLIGHT:-0}" != "1" ]]; then
   if [[ -x "$SCRIPT_DIR/release-preflight.sh" ]]; then
     echo "🔎 运行 release-preflight.sh ..."
-    if ! bash "$SCRIPT_DIR/release-preflight.sh" "$VERSION"; then
+    # 发版核查 2026-09-30 修正：本脚本 $VERSION 是 "2.15.4"（无 v 前缀），
+    # 而 release-preflight.sh 的目标参数是 **tag**（形如 vX.Y.Z）；漏 v 会被前置闸判参数错误。
+    if ! bash "$SCRIPT_DIR/release-preflight.sh" "v$VERSION"; then
       echo "❌ release-preflight.sh 未通过——发布中止（前置闸失败）" >&2
       echo "   若为 CI 自动发版且 CI 已另跑门，设 SKIP_RELEASE_PREFLIGHT=1 显式跳过" >&2
       exit 9
