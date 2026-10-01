@@ -1615,8 +1615,8 @@ def test_rule46_context_budget_reverse_injection(tmp_path):
 def test_rule46_carrier_drift_reverse_injection(tmp_path):
     """规则 46 反向注入：status-template 摘除留痕字段 ⇒ 必须红（运行期痕迹不得静默消失）。"""
     def mutate(src):
-        return src.replace("### 4.8 主控上下文预算与余量检测（v2.12.72 E，防教训 #268）",
-                           "### 4.8 预算检测（v2.12.72 E）", 1)
+        return src.replace("### 4.8 主控上下文预算与余量检测",
+                           "### 4.8 预算检测", 1)
 
     _inject_and_expect("references/templates/status-template.md", mutate, "规则 46", tmp_path)
 
@@ -1672,8 +1672,8 @@ def test_rule47_smoke_status_field_drift_reverse_injection(tmp_path):
 def test_rule48_status_json_reverse_injection(tmp_path):
     """规则 48 反向注入：摘除 status_json 快照标题 ⇒ 必须红。"""
     def mutate(src):
-        return src.replace("### 4.9 status_json 机器可解析快照（v2.12.72 G）",
-                           "### 4.9 运行状态快照（v2.12.72 G）", 1)
+        return src.replace("### 4.9 status_json 机器可解析快照",
+                           "### 4.9 运行状态快照", 1)
 
     _inject_and_expect("references/templates/status-template.md", mutate, "规则 48", tmp_path)
 
