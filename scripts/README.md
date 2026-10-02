@@ -6,7 +6,7 @@
 > 🔁 **派生视图**：本表由 `gen-scripts-index.py` 机械提取，**不承载新口径**。列源：**用途** = 脚本头部首个内容行；**用法** = 头部 `用法：` / `调用：` 行；**触发时机** = 头部 `触发：` 行；**make 入口** = `Makefile` recipe 中调用该脚本的目标。单元格里的「—」= 该脚本**未声明**该项（不是「不存在用法」；补口径请改脚本头，勿改本文件）。改了脚本头请跑 `make scripts-index` 刷新本文件；`tests/test_scripts_index.py` 会因本文件与 `scripts/` 不一致而报红（缺条目 / 残留已删条目 / 条目内容漂移）。
 > 📦 **本文件不进发布包**：`scripts/` 整目录由构建脚本排除，使用者侧不出现开发者工具链。
 
-共 **34** 个条目（`scripts/` 下除本索引自身以外的全部文件）。
+共 **35** 个条目（`scripts/` 下除本索引自身以外的全部文件）。
 
 | 脚本 | 用途 | 用法 | 触发时机（头部声明） | make 入口 |
 |---|---|---|---|---|
@@ -35,6 +35,7 @@
 | [`pkg-integrity.py`](pkg-integrity.py) | pkg-integrity.py — 净化包**正向**完整性校验 | python3 scripts/pkg-integrity.py snapshot <pkg_dir> <snapshot.json> | — | — |
 | [`project_lock.py`](project_lock.py) | 论衡项目锁管理器 | — | — | — |
 | [`publish-clawhub.sh`](publish-clawhub.sh) | publish-clawhub.sh — 论衡 ClawHub 一键发布封装 | bash scripts/publish-clawhub.sh [VERSION] [--yes] | — | — |
+| [`rebuild.sh`](rebuild.sh) | 论衡 phase-order.yaml 一键重建 | — | — | — |
 | [`release-preflight.sh`](release-preflight.sh) | release-preflight.sh — 发版前置闸「五查一停」 | bash scripts/release-preflight.sh [<tag>] [选项] | — | `make preflight` |
 | [`runtime-capability-probe.py`](runtime-capability-probe.py) | runtime-capability-probe.py — 论衡能力边界「声明 vs 实际」runtime 探针工具 | — | — | — |
 | [`self-audit-gate.sh`](self-audit-gate.sh) | self-audit-gate.sh — 论衡自审门自动化执行脚本 | — | commit 前由 sync-version.sh 末尾自动调用；或主控 LLM 主动跑 | `make audit` |

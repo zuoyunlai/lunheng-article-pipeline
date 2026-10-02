@@ -2,6 +2,28 @@
 
 ---
 
+## [v2.15.7] — 2026-10-02 · 派发硬验证 + fallback 接管协议 + 零宿主要求
+
+### 新能力（`3138ff2`）
+
+- **派发硬验证闸门**：新增 Phase 1 后置节点 `post_phase1_dispatch_verify`（切片 + 装配视图 + 门 AA 接线），spawn 返回值 `runId` / `childSessionKey` / `resolvedModel` 三字段硬校验，防「主控口头已派发、实际静默失败」；新增 `scripts/rebuild.sh` 一键重建装配视图（scripts 索引 34→35）。
+- **模型 fallback 接管协议真源**：新增 `references/_shared/真源/model_fallback_takeover_protocol.md`（触发三条件 / 接管五步 / status §八声明段）；`SKILL.md` frontmatter 新增 `coordinator_fallback_protocol_ref` 指向。
+- **frontmatter 声明面扩展**：`delivery`（channel_relay 默认 + session_local 兑底，纯声明性建议）；`compatible_models`（7 个已实测模型）+ `compatible_models_candidates`（4 个未实测候选，晋升须一次实跑验证）；`coordinator_spawn_hard_gate: true`。
+- **weight 阈值自包含（`4acd8f9`）**：撤回宿主配置耦合——`recommended_session_for_weight` 自造键从 openclaw.json 移除，阈值表改 skill 自包含，「零宿主配置」是架构红线（教训 #490；同族 #484）。
+
+### 审计收尾（外部全量审计报告 2026-10-02）
+
+- **95 个受管文件版本戳同步** v2.15.6→v2.15.7（外部审计复刻 `normalize-version-header.py` 幂等语义写入，diff 仅版本戳行）；README 正文「当前版本」块与安装 pin 同步。
+- **版本矩阵盲区修复（审计 D3，教训 #118.1 第三次表现）**：`model_fallback_takeover_protocol.md` 此前是全仓唯一带版本戳但不在两矩阵的受管文件，下次 bump 版本戳将永停 v2.15.7 → 补入 `check-version.sh` CHECKS 与 `sync-version.sh` SYNCS，`counts.yaml` `version_files` 95→96。
+- **CHANGELOG 补节 + 轮转（审计 D4）**：补本节；v2.15.2 轮转入归档（保主文件 5 期上限）。
+- **审计核实项**：phase-order 装配视图与真源一致（45251 字符，生成器零 diff）；报告所称 16 个 scripts 仅 mode 变化已消失；README/SKILL 版本真源两门人工核验通过。
+
+### 验收
+
+- `check-version.sh` 96/96 ✅ · `contract-check` PASS · `changelog-check` PASS · `phase-order-slice.py --check` 零 diff · pytest 版本真源两门通过。
+
+---
+
 ## [v2.15.6] — 2026-10-01 · 真源/模板/运行手册重构（第三、四、五批）
 
 ### 变更（第三批：棘轮锁定文件 + README）
@@ -171,10 +193,3 @@
 - **模板能力矩阵真源**：新增 `references/_shared/真源/template-contracts.yaml` 驱动 lite/full 模板必填字段校验（维护者侧资产，已显式排除出净化包，不随包出厂）。
 - **净化链一致性**：`counts.yaml` 注释去除随包文件中不得出现的维护者脚本名；随包准入与最终残留扫描双侧闭合。
 - **验收**：核心回归 **56+ passed**（含本轮新增门与回归）；`contract-check` / `markdown structure lint` / `inject-lang-policy --check` 全部 PASS。
-
----
-
-## [v2.15.2] — 2026-09-29
-
-- **发布链修复**：轮转 `CHANGELOG.md` 保持最近 5 期上限，补齐 v2.14.5 归档章节，修复 changelog CI 阻断。
-- **v2.15.1 收口延续**：保留审计收口、fail-closed 加固、Phase 0 字段与流程对齐等修订。

@@ -6,7 +6,7 @@ metadata:
     version: 2.15.7
     requires:
       bins: []
-    # v2.15.7 新增（ECS 实战反馈）：主人移动端默认不主动看侧栏，主控/主人对话需走 message channel relay
+    # v2.15.7 新增（ECS 实战反馈）：主人移动端默认不主动看侧栏，交付提示建议经当前聊天渠道转发（纯声明性建议，加载器不执行）
     delivery:
       default: "channel_relay"
       fallback: "session_local"

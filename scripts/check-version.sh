@@ -125,6 +125,8 @@ CHECKS=(
   "_shared/真源/host-verify-recipe.md|v$EXPECTED|1"
   "_shared/真源/performance-benchmarks.md|v$EXPECTED|1"
   "_shared/治理/反哺报告处理.md|v$EXPECTED|1"
+  # v2.15.7：新增 fallback 接管协议真源（SKILL.md frontmatter coordinator_fallback_protocol_ref 指向）
+  "_shared/真源/model_fallback_takeover_protocol.md|v$EXPECTED|1"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 新增）
   "templates/任务简报-template.md|v$EXPECTED|1"

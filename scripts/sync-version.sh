@@ -148,6 +148,8 @@ SYNCS=(
   "_shared/真源/performance-benchmarks.md|header"
   # E1-0：证据对象与主张—证据链基础层
   "_shared/真源/evidence-object-model.md|header"
+  # v2.15.7：新增 fallback 接管协议真源（SKILL.md frontmatter coordinator_fallback_protocol_ref 指向）
+  "_shared/真源/model_fallback_takeover_protocol.md|header"
 
   # 模板（v2.4.6 + v2.5.0 + v2.5.1 + v2.6.4 补全，教训 #175 防漏改）
   "templates/任务简报-template.md|header"
