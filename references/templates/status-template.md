@@ -1,4 +1,4 @@
-> 版本：v2.15.6（自动同步 2026-10-01）
+> 版本：v2.15.7（自动同步 2026-10-02）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -90,6 +90,7 @@
 
 - **T1 文献检索**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, N 文献卡）
 - **T2 数据检索**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, N 数据卡 + M 缺口）
+- **Phase 1 后置 派发硬验证**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, post_phase1_dispatch_verify, 3 行派发记录核验 passed|path_error|conflict）
 - **T2.5 完整性门**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 主控 checkpoint）
 - **T3 案例检索**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, result=required|empty_card|waived, N 案例卡）
 - **T4 分析**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, analysis/分析大纲.md）
@@ -105,6 +106,12 @@
 - **T8 技术终检**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, final/定稿.md 技术检查）
 - **Phase 5 主人验收**: ⬜ 未决策 → 🔄 In Progress → ✅ accepted / 🔁 revision_requested / ↩ restart_phase / ⏸ deferred
 - **T9 同行评审**: ⬜ Inbox → 🔄 In Progress → ✅ Done（YYYY-MM-DD HH:MM, 6 维度评分 XX/30 + Top 3 期刊）
+
+### 派发清单（00-主控-扩展职责.md §十六点五硬验证输入；每次 spawn 一行，v2.15.7 新增）
+
+- **<node_id>** @ <ISO 8601 时间> | runId=<runId> | sessionKey=<childSessionKey> | model=<resolvedModel>
+- 派发失败也必须留痕：`派发失败 = <node_id> @ <时间>（原因：<摘要>）`
+- 任一字段为空 ⇒ `incomplete_dispatch`；三条 runId 重复 ⇒ 冲突（post_phase1_dispatch_verify 拦截）
 
 ## 三、闸门清单（checklist）
 
@@ -386,6 +393,42 @@ status_json: {
 - 主要消耗：T5 写手 <N> / T7 审计 <N> / T9 评审 <N>
 - 数据源：子代理完成事件末尾 Stats line（Token usage input/output/total）+ session_status 工具（OpenClaw 9.1+）
 ```
+
+---
+
+## 八、模型接管声明（fallback 协议落地段；v2.15.7 新增）
+
+> **真源**：字段定义见 [`../_shared/真源/model_fallback_takeover_protocol.md`](../_shared/真源/model_fallback_takeover_protocol.md) §三；本段仅提供 status.md 落盘模板。
+> **触发时机**：仅在主控进程失联 + fallback 模型接管时填写；常规项目**整段留空**。
+> **字段任一为空 ⇒ 记 `takeover_incomplete`**（下游 T8 终检按 M-Exist 判「路径或参数错误」档）。
+
+**接管触发时间**（ISO 8601，精确到秒）：<YYYY-MM-DDTHH:MM:SS+08:00>
+**原主控 session_key**：<原 sessions_history 可见到的 key；若已不可见记 `unknown`>
+**fallback 模型**（provider/model）：<如 kkaiapi/gpt-5.6-terra>
+**接管时 seq 序号**：<数字>
+**接管时 node_id**：<如 t4_analysis>
+**正在运行的 worker 数**：<数字>
+**takeover-log 路径**：<相对路径，如 audits/takeover-log-v1.md>
+**原主控恢复状态**：<recovered | not_recovered | unknown>
+**主人是否已告知**：<yes | no | pending>
+**接管清单一览**（每个正在运行的 worker 一行）：
+
+    - <node_id> | last_heartbeat=<ISO 8601> | final_state=<worker_running|worker_failed|worker_timeout> | takeover_action=<continued|reset_by_fallback>
+
+**接管动作执行记录**（按 model_fallback_takeover_protocol.md §二 6 步顺序）：
+
+    - [step 1] 读 status.md 快照：<完成时间> | sha=<前 12 位>
+    - [step 2] 写 §八 段：<完成时间>
+    - [step 3] 列接管清单：N 个 worker
+    - [step 4] 写 takeover-log：<路径>
+    - [step 5] 重读 phase-order.yaml：从 seq=N 继续
+    - [step 6] status.md 头部 banner 已加：<完成时间>
+
+**后续状态记录**：
+
+    - 原主控恢复时间（若 recovered）：<ISO 8601>
+    - fallback 模型继续推进的 node 数：<N>
+    - 是否触发主人三选（换 provider / 换档 / 接受同源）：<yes | no>
 
 ---
 

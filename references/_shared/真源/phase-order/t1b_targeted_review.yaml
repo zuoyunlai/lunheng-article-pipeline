@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t1b_targeted_review   # 别名：文档层「Phase 4.3 定向回查」（v2.13.0 P0-1，ECS 实战反馈新增）
   phase: "Phase 4.3 定向回查（T1b）"
-  phase_seq: 14
+  phase_seq: 15
   kind: conditional_agent
   verdict_scale: four_tier
   rerun_after_report: true   # 前提 = T5 修订说明与 T7 审计报告均已落盘；必须在报告写入后取数（不得用修订进行中的中间态）

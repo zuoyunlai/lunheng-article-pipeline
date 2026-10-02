@@ -15,4 +15,4 @@
     T1: literature/文献卡.md
     T2: data/数据卡.md
     T3: cases/案例卡.md
-  next: phase1_5_targeted_review
+  next: post_phase1_dispatch_verify   # v2.15.7：先过派发硬验证闸门再进 Phase 1.5

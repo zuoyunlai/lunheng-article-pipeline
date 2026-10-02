@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t5_feedback_revision   # 别名：文档层「Phase 3.7」（T6/G14 否决后的预审计修订；本轮修完才进 Phase 4）
   phase: "Phase 3.7"
-  phase_seq: 11
+  phase_seq: 12
   input: drafts/初稿-v{N}.md + analysis/批判报告-v{N}.md
   kind: conditional_agent
   verdict_scale: four_tier   # v2.12.40：T6 报告判定落四档

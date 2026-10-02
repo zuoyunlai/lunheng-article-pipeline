@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: g14_style_gate   # 别名：文档层「Phase 4.4 前置（G14 风格闸）」（非独立 Phase 标签，主控呈现时归入 Phase 4.4）
   phase: "Phase 4.4 前置（G14 风格闸）"
-  phase_seq: 16
+  phase_seq: 17
   kind: agent
   verdict_scale: four_tier
   agent: G14

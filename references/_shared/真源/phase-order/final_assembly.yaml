@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: final_assembly   # 别名：文档层「Phase 4.4 后置」/ 定稿组装（非独立 Phase 标签，主控呈现时归入 Phase 4）
   phase: "Phase 4.4 后置（定稿组装）"
-  phase_seq: 19
+  phase_seq: 20
   input: drafts/current_draft.md + data/数据卡.md + final/图件/*.svg（图件存在时用于嵌入）
   kind: mechanical_checkpoint
   verdict_scale: four_tier   # v2.12.40：组装前置核验结论落四档（当前稿不存在 = 路径或参数错误）

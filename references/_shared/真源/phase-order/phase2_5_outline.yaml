@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: phase2_5_outline
   phase: "Phase 2.5"
-  phase_seq: 6
+  phase_seq: 7
   kind: owner_checkpoint
   blocking: true        # v2.12.49：无明确决策不得推进（改方向成本最低的关卡，尤其不得自动放行）
   owner_visible: true

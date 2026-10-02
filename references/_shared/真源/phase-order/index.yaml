@@ -1,5 +1,5 @@
 # 论衡流程真源 · 第一部分：跨阶段契约（逐字保留原文本）+ 节点路由（**顺序唯一真源**）
-# 真源第二部分 = 同目录 <node>.yaml；装配视图 = ../phase-order.yaml（生成物，禁手改）。当前节点切片共 25 个（v2.14.0 新增 t9b_stress_test）。
+# 真源第二部分 = 同目录 <node>.yaml；装配视图 = ../phase-order.yaml（生成物，禁手改）。当前节点切片共 26 个（v2.14.0 新增 t9b_stress_test；v2.15.7 新增 post_phase1_dispatch_verify，ECS 反馈：防 spawn 静默失败）。
 # 校验 = 维护者侧生成器 --check（门 AA）。
 
 # 论衡阶段真源（版本随 SKILL.md 同步）
@@ -7,7 +7,7 @@
 # 这是流程顺序与阻断关系的唯一真源；运行时由主控使用 read/write/edit 执行。
 # agent 报告节点含 output_chars_max（**双上限**：`output_chars_max` = 报告**写盘**上限；**回传**上限恒为平台硬上限 4096 字符，见 执行韧化协议-exec.md § 报告长度上限与分块协议）
 # 平台事实（官方文档）：completion 回传 findings ≤ 4096 字符 / 单条结果 ≤ 512 / 路由通知 ≤ 1024 —— 超限即被截断，不报错
-# 别名映射（文档层 → 本文件符号 id）：Phase 3.6 = t6_critique；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.3 = t1b_targeted_review**；**Phase 4.4 前置 = g14_style_gate**；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
+# 别名映射（文档层 → 本文件符号 id）：**Phase 1 后置 = post_phase1_dispatch_verify（v2.15.7 新增）**；Phase 3.6 = t6_critique；**Phase 3.7 = t5_feedback_revision**；Phase 4 = t7_audit；Phase 4.2 = audit_revision；**Phase 4.3 = t1b_targeted_review**；**Phase 4.4 前置 = g14_style_gate**；**Phase 4.4 = phase4_4_figures**；Phase 4.5 = t9_review
 # ⚠️ v2.12.40（业主定案 A1/A2）：G14 由「Phase 3.6 与 T6 同批、且每轮修订后复检」迁至「**Phase 4.4 前置**」，语义变为
 #   「**定稿前的最后一道闸；风格修订后全文复检 ≤2 轮（v2.13.0 P0-2）**」；不再是可选项（按 Phase 0「目标语言」字段客观适用）。
 #   **执行前提 = 「已可定稿」**：前置修订尚未收敛（还不能定稿）时**不执行 G14**；G14 检查后由 T5 做**最后一次**（仅风格层）修订。
@@ -46,7 +46,7 @@
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 
-version: 2.15.6
+version: 2.15.7
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-核心.md §判定结果分档）。
@@ -289,69 +289,72 @@ nodes:
   - seq: 2
     phase: Phase 1
     node: retrieval
-  - seq: 3
+  - seq: 3   # v2.15.7 新增（ECS 反馈：防 spawn 静默失败）
+    phase: Phase 1 后置（派发硬验证闸门）
+    node: post_phase1_dispatch_verify
+  - seq: 4
     phase: Phase 1.5
     node: phase1_5_targeted_review
-  - seq: 4
+  - seq: 5
     phase: T2.5 完整性门
     node: t2_5_integrity
-  - seq: 5
+  - seq: 6
     phase: Phase 2
     node: t4_analysis
-  - seq: 6
+  - seq: 7
     phase: Phase 2.5
     node: phase2_5_outline
-  - seq: 7
+  - seq: 8
     phase: Phase 3
     node: t5_draft_v1
-  - seq: 8
+  - seq: 9
     phase: Phase 3.5
     node: phase3_5_insight
-  - seq: 9
+  - seq: 10
     phase: Phase 3.6 前置
     node: current_draft_sync
-  - seq: 10
+  - seq: 11
     phase: Phase 3.6
     node: t6_critique
-  - seq: 11
+  - seq: 12
     phase: Phase 3.7
     node: t5_feedback_revision
-  - seq: 12
+  - seq: 13
     phase: Phase 4
     node: t7_audit
-  - seq: 13
+  - seq: 14
     phase: Phase 4.2
     node: audit_revision
-  - seq: 14
+  - seq: 15
     phase: Phase 4.3 定向回查（T1b）
     node: t1b_targeted_review
-  - seq: 15
+  - seq: 16
     phase: T7.5 完整性门
     node: t7_5_integrity
-  - seq: 16
+  - seq: 17
     phase: Phase 4.4 前置（G14 风格闸）
     node: g14_style_gate
-  - seq: 17
+  - seq: 18
     phase: Phase 4.4 前置·风格修订
     node: t5_style_revision
-  - seq: 18
+  - seq: 19
     phase: Phase 4.4
     node: phase4_4_figures
-  - seq: 19
+  - seq: 20
     phase: Phase 4.4 后置（定稿组装）
     node: final_assembly
-  - seq: 20
+  - seq: 21
     phase: Phase 4.5
     node: t9_review
-  - seq: 21
+  - seq: 22
     phase: Phase 4.5 后置（压力测试轮）
     node: t9b_stress_test
-  - seq: 22
+  - seq: 23
     phase: Phase 5 终检
     node: t8_technical_final
-  - seq: 23
+  - seq: 24
     phase: Phase 5 终检后置（方法论留档）
     node: methodology_snapshot
-  - seq: 24
+  - seq: 25
     phase: Phase 5 验收
     node: phase5_acceptance

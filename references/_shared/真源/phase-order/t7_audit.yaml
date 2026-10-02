@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t7_audit
   phase: "Phase 4"
-  phase_seq: 12
+  phase_seq: 13
   kind: agent
   agent: T7
   role: T7

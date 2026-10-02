@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t9_review   # 别名：文档层「Phase 4.5」
   phase: "Phase 4.5"
-  phase_seq: 20
+  phase_seq: 21
   kind: advisory_agent
   verdict_scale: four_tier   # v2.12.40：T9 报告判定落四档
   fingerprint: required   # v2.12.49 M-1：报告必填 audited_artifact.{path,bytes,sha256}

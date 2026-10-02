@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: phase1_5_targeted_review
   phase: "Phase 1.5"
-  phase_seq: 3
+  phase_seq: 4
   kind: conditional_review_window
   verdict_scale: four_tier   # v2.12.40：结论落四档（通过/不通过/无法判定/路径或参数错误），不用退出码
   rerun_after_report: true   # v2.12.40「报告后激活」：依赖 t2_5_integrity 闸门结果 → 必须在该判定重跑后取数
