@@ -19,6 +19,7 @@ references/_shared/真源/format-export.md
 references/_shared/真源/glossary-core.md
 references/_shared/真源/glossary-full.md
 references/_shared/真源/host-verify-recipe.md
+references/_shared/真源/model_fallback_takeover_protocol.md
 references/_shared/真源/performance-benchmarks.md
 references/_shared/真源/phase-1-details.md
 references/_shared/真源/phase-2-details.md
@@ -36,6 +37,7 @@ references/_shared/真源/phase-order/phase2_5_outline.yaml
 references/_shared/真源/phase-order/phase3_5_insight.yaml
 references/_shared/真源/phase-order/phase4_4_figures.yaml
 references/_shared/真源/phase-order/phase5_acceptance.yaml
+references/_shared/真源/phase-order/post_phase1_dispatch_verify.yaml
 references/_shared/真源/phase-order/pre_spawn_enforcement.yaml
 references/_shared/真源/phase-order/retrieval.yaml
 references/_shared/真源/phase-order/t1b_targeted_review.yaml

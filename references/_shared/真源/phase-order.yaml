@@ -45,7 +45,7 @@
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 
-version: 2.15.7
+version: 2.15.8
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-核心.md §判定结果分档）。
@@ -416,6 +416,7 @@ pipeline:
       - 三条 runId 必须互不相同（防重复派发同一 session）
       - 三条 childSessionKey 必须互不相同且可解析为 sessions_history 可见记录
     verdict_scale: four_tier   # 与 v2.12.40 一致：通过 / 不通过 / 无法判定 / 路径或参数错误
+    rerun_after_report: true   # v2.12.40「报告后激活」+ v2.15.8 债务补标：前提 = status.md 派发清单段已落盘；不得用预跑/上轮记录
     # 失败处置（不走 on_fail 路由键；两个失败档位都是 halt，不路由到其它节点）：
     #   路径或参数错误（派发清单缺失/字段空）⇒ halt + 报 post_dispatch_verify_path_error + 主控亲补 spawn
     #   不通过（runId/childSessionKey 重复或不可解析）⇒ halt + 报 post_dispatch_verify_conflict + 主人拍板

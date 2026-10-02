@@ -2,6 +2,45 @@
 
 ---
 
+## [v2.15.8] — 2026-10-02 · 发版债务清零（v2.15.7 遗留 15 项 CI 失败全修）
+
+> 背景：v2.15.7 两笔提交（`3138ff2` / `4acd8f9`）遗留 **15 项 pytest 失败**（v2.15.6 基线 27/27 全绿），推送后 CI 必红。
+> 归属判定：`/tmp` 建 v2.15.6 与 HEAD 双基线 worktree 复跑同一批测试，区分「既有失败」与「新增失败」——本轮修复**零新增**（双基线 11F 完全一致）。
+
+### P0 净化包构建门 6F（根因：v2.15.7 两个新文件未登记入包）
+
+- `scripts/build-clawhub-release.sh` `SHARED_ADMITTED` 补 `真源/model_fallback_takeover_protocol.md` + `真源/phase-order/post_phase1_dispatch_verify.yaml`（按 LC_ALL=C 排序位插入）。
+- `scripts/.pkg-manifest.txt` 全包白名单同批补两条。**两处漏任一 ⇒ 构建失败**（该门设计意图：新文件默认入包 = 泄漏风险）。
+- 连带清理：`references/` 树下 **55 个** `.bak.20261002-122541`（外部审计者遗留；`.gitignore` 挡得住 git、挡不住构建门源树扫描）移出仓库。
+
+### P1 门 H / 门 Y 棘轮 4F（根因：#490 引用未同步快照 + 上限表未随扩容重定）
+
+- `references/_shared/治理/lessons-max.snapshot` **437 → 490**：#438–#489 为宿主/工作区类（不推高本值），#490（skill 行为判据不得写入宿主配置）属论衡类，随 `4acd8f9` 引用入库；同批补 `tests/fixtures/lessons-gate.md` 的 #490 定义（hermetic fixture 缺项 ⇒ 门 H 硬红）。
+- `BULK_RATCHET_CEIL_DEFAULT` 基线重定（v2.15 B1-B7 先例，以实测为准、后续**只许降**）：扩展职责卡 69808→74923、phase-order.yaml 63928→66574、index.yaml 24767→25084；装配视图重生成后再校准一次（+162 B）。
+
+### P1 SKILL.md 预算回涨 1F（根因：v2.15.7 把模型清单内联进 frontmatter）
+
+- 违反 R-22「frontmatter 常驻预算 <9000 字符」：实测 **9487**（内联 7 项已实测模型 + 4 项候选模型清单）。
+- 修复：清单整体收回其**既有唯一真源** `references/_shared/真源/模型候选池.md` §二·三（新增「compatible_models 实测清单与候选池」两表），frontmatter 只留指针注释 + `delivery` / `coordinator_spawn_hard_gate` / `coordinator_fallback_protocol_ref`。**9487 → 8641 字符**。
+- 附带修正架构一致性：候选池.md §五 章程本就写明「SKILL.md 引用本文件，不重复定义」，v2.15.7 内联写法同时违反该章程与预算门。
+
+### P1 新节点连带面 4F（根因：`post_phase1_dispatch_verify` 插入 seq 3 后位移未同步）
+
+- 该 `mechanical_checkpoint` 补 `rerun_after_report: true`（v2.12.40「报告后激活」纪律，参照 `t7_5_integrity` 先例）⇒ 重生成装配视图。
+- canary 校准（`tests/test_v2130_p0_fixes.py`）：t1b `phase_seq` 断言 14→**15**、全景节点计数 25→**26**（与 pipeline-overview.md 头部 v2.15.7 更新记录一致）。
+
+### 验收
+
+- **pytest 681 项 / 57 文件全绿**（分块：块1 159✓+1s · 块2 254✓ · 块3 286✓+1s；零失败）。
+- `check-version.sh` 96/96 · `contract-check` PASS · `changelog-check` PASS · 门 AA 逐字节一致 · 自审门 37 PASS / 0 FAIL。
+
+### 同族教训
+
+- **#491**：v2.15.7 两笔提交各留 15 项 CI 失败却已发版/tag —— 「提交后不跑全量回归」与「升版只改 SKILL.md 不跑三层联动」同源于**流程断裂**。新增受管/随包文件时，登记清单不止版本矩阵（check/sync + counts），还包括**净化包双白名单**（SHARED_ADMITTED + `.pkg-manifest`）与**教训快照/fixture**。
+- **#492**：外部工具留下的 `.bak` 备份能同时躲过 `git status`（`.gitignore` 命中）与人工抽查（文件名不显眼），却在**构建门源树扫描**整片爆红 —— 清理纪律须覆盖「被 `.gitignore` 掩盖的中间产物」，不能只看 git 视角。
+
+---
+
 ## [v2.15.7] — 2026-10-02 · 派发硬验证 + fallback 接管协议 + 零宿主要求
 
 ### 新能力（`3138ff2`）
@@ -181,15 +220,3 @@
 - **P2 口径漂移收敛**：`dispatch-header.md` 只读档心跳由主控代写 + `degraded_toolset_silent_continue`/`degraded_workforce_takeover` 语义消歧；`SKILL.md` 轻量档 G18 措辞对齐真源、frontmatter `fmt`→`audit` 档位名；`Makefile`/`quality.yml` 同步五查措辞与 action 版本钉（`action-shellcheck@v2.0.6`）；`T1b` 补 `phase_window` 双窗口字段（`Phase 1.5` 初筛复核 / `Phase 4.3` 修订回查，同一角色卡两处引用 → 显式消歧；**不新增独立角色**，T1b 复用 T1 角色卡，九角色架构不变）。
 - **验证收口追加**：修复验证过程暴露的 7 处连带缺陷（JS 层 `\n` 转义破坏 Python 字面量 ×3、项目锁空文件窗口竞态、`M-Form-2` 必需节口径、合同门误报、`#*` 引号、反向注入用例 5 位数字失效）；33 项回归 3 连跑稳定通过；自审门 38 PASS / 0 FAIL。
 
----
-
-## [v2.15.3] — 2026-09-29
-
-- **高频数字机械门加固**：`scripts/contract-check.py` 升级为多文档多值集合比对，新增字数分档簇（轻量/中段/重量）与版本文件数（`scripts/check-version.sh` 真源）的实测钩子；`conceptual roles` 与 `physical role-card files` 拆为两个独立语义簇，避免把概念口径与物理文件数误判为冲突。
-- **语言政策真源化与反向校验**：`scripts/inject-lang-policy.py` 加 `--normalize` 写入选项，`--check` 升级为同时检测「缺失」与「旧变体/不一致」，旧文本出现即红。
-- **Markdown 结构门上线**：`scripts/markdown-structure-lint.py` 默认拦截字面量 `\n` 与未闭合代码围栏；`--strict` 额外拦截重复章号与孤立标题，作为新文档核验工具。
-- **计数真源扩展**：`references/_shared/真源/counts.yaml` 新增 `version_files` 与 `word_tiers` 两组字段；`tests/test_contract_check.py` / `tests/test_markdown_structure_lint.py` 注册对应回归。
-- **派发话术合同门**：新增 `scripts/dispatch-contract.py`，从 `phase-order/` 节点切片生成 G14 / T9 派发话术顶部合同块，`--check` 把「复检轮次 / 默认触发」口径漂移升级为构建期阻断；配套反向注入回归 `tests/test_dispatch_contract.py`。
-- **模板能力矩阵真源**：新增 `references/_shared/真源/template-contracts.yaml` 驱动 lite/full 模板必填字段校验（维护者侧资产，已显式排除出净化包，不随包出厂）。
-- **净化链一致性**：`counts.yaml` 注释去除随包文件中不得出现的维护者脚本名；随包准入与最终残留扫描双侧闭合。
-- **验收**：核心回归 **56+ passed**（含本轮新增门与回归）；`contract-check` / `markdown structure lint` / `inject-lang-policy --check` 全部 PASS。

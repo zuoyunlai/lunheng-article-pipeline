@@ -49,7 +49,7 @@ def _node(nid: str) -> dict:
 def test_t1b_node_declared():
     """Phase 4.3 定向回查节点存在且关键字段齐全（kind/condition/上限/出口/产物）。"""
     n = _node("t1b_targeted_review")
-    assert n["phase_seq"] == 14, "t1b phase_seq 应为 14（audit_revision 之后、t7_5_integrity 之前）"
+    assert n["phase_seq"] == 15, "t1b phase_seq 应为 15（audit_revision 之后、t7_5_integrity 之前；v2.15.7 新增 post_phase1_dispatch_verify 插入 seq 3 后整体 +1 位移，v2.15.8 canary 校准）"
     assert n["kind"] == "conditional_agent"
     assert n["condition"] == "t5_t7_report_unverified_references"
     assert n["on_not_triggered"] == "record_not_triggered_in_status"
@@ -86,10 +86,10 @@ def test_t1b_role_reuse_t1_card_and_dispatch():
 
 
 def test_canary_has_t1b_row():
-    """全景唯一派生视图承载 t1b 行 + 节点计数 25。"""
+    """全景唯一派生视图承载 t1b 行 + 节点计数 26。"""
     t = _read("references/_shared/真源/pipeline-overview.md")
     assert "t1b_targeted_review" in t, "全景缺 t1b 行（R-1 漂移）"
-    assert "共 25 节点" in t
+    assert "共 26 节点" in t
 
 
 def test_mirrors_no_stale_node_count():

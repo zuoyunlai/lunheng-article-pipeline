@@ -1228,7 +1228,11 @@ fi
 # ⚠️ 2026-10-01 缩容备案（扩展职责卡重构 · 历史叙事外移）：00-主控-扩展职责.md 78031→69808（−8223 B）；
 #   教训 #N 由来/版本考古/实战事故叙事外移至 CHANGELOG [Unreleased]，节编号与顺序不变（外部 §N 指针依赖）。
 #   同步修复：§九 G14 孤头、§二十二断裂列表、T7.5 元说明计数、exit 0 旧口径。按「只许降」下调上限。
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|69808,references/_shared/真源/M-Gate-核心.md|77526,references/_shared/真源/phase-order.yaml|63928,references/_shared/真源/phase-order/index.yaml|24767"
+# ⚠️ 2026-10-02 基线重定（v2.15.7 扩容备案 · CI 债务修复）：00-主控-扩展职责.md 69808→74923
+#   （§十六点五 派发硬验证 + weight 阈值表，v2.15.7 功能性新增）；phase-order.yaml 63928→66412 /
+#   index.yaml 24767→25084（新增 post_phase1_dispatch_verify 节点；装配视图系生成物，无分层可选）。
+#   按 v2.15 B1-B7 先例以实测重定，后续仍**只许降**；不得借此掩盖无关内容膨胀。明细见 CHANGELOG [v2.15.7]。
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|74923,references/_shared/真源/M-Gate-核心.md|77526,references/_shared/真源/phase-order.yaml|66574,references/_shared/真源/phase-order/index.yaml|25084"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：

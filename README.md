@@ -1,4 +1,4 @@
-> 版本：v2.15.7（自动同步 2026-10-02）
+> 版本：v2.15.8（自动同步 2026-10-02）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -14,7 +14,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.15.7**（2026-10-02，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**派发硬验证 + fallback 接管协议**：新增 Phase 1 后置派发硬验证闸门（spawn 返回值 runId/childSessionKey/resolvedModel 三字段硬校验，防「口头已派发」静默失败）；新增模型 fallback 接管协议真源 + status §八接管声明段；weight 阈值表 skill 自包含（零宿主要求）。
+**v2.15.8**（2026-10-02，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**发版债务清零**：v2.15.7 遗留的 15 项 CI 失败全修（净化包双白名单补登记、门 H 教训快照 437→490、门 Y 棘轮基线按实测重定、SKILL.md frontmatter 预算回涨 9487→8641、新节点连带面补齐）；模型清单收回候选池单一真源。
 
 论衡把一篇深度长文 / 论文的生产拆成 **11 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
 
@@ -125,7 +125,7 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.7  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.8  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

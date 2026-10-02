@@ -3,32 +3,16 @@ name: lunheng-article-pipeline
 description: "学术论文/深度长文/行业分析流水线：含同行评审与期刊/发布渠道匹配建议（advisory）。不调用执行类工具（exec/process/code_execution，声明式）；主控持有会话编排与状态类工具（多 Agent 派发/收报告的设计内必需面）。标准架构 = 多 Agent 九角色；worker 不可用按节点接管并披露（详正文）。Routine 写盘（status.md / audits/）已声明；心跳为 opt-in「Operational Telemetry」。v2.14.0 起新增 G18 方法论审计（12 项清单 + D2 评分）。"
 metadata:
   openclaw:
-    version: 2.15.7
+    version: 2.15.8
     requires:
       bins: []
-    # v2.15.7 新增（ECS 实战反馈）：主人移动端默认不主动看侧栏，交付提示建议经当前聊天渠道转发（纯声明性建议，加载器不执行）
+    # v2.15.7：交付建议默认经聊天渠道转发（声明性，加载器不执行）
     delivery:
       default: "channel_relay"
       fallback: "session_local"
       modes: ["channel_relay", "session_local"]
-    # v2.15.7 新增：已验证可流畅承载论衡全流程的模型清单（维护者实测维护；skill 运行时不读宿主配置）
-    # 本字段自包含声明兼容子集；不在此清单的模型默认按「未验证」对待，不阻断使用
-    compatible_models:
-      - minimax-portal/MiniMax-M3       # 本机默认；T4 写作快速完整（ECS 2026-10-02）
-      - kkaiapi/claude-opus-5           # 顶配档；T6/T7 批判审计
-      - kkaiapi/gpt-5.6-terra           # 顶配档备选；T9 同行评审
-      - deepseek/deepseek-v4-pro        # 强推理档；T4 分析
-      - deepseek/deepseek-flash         # 便宜快档；T1/T2/T3 检索
-      - zhipu/glm-5.3                   # 强推理备选
-      - moonshot/kimi-k2.7-code         # 编码向
-    # v2.15.7 顶配档候选（本机已配置、尚未跑过论衡全流程实测；晋升 compatible_models 须经一次实跑验证）
-    compatible_models_candidates:
-      - kkaiapi/gpt-6-astra              # 顶配候选（未实测）
-      - teamorouter/claude-opus-5.5      # 顶配候选（未实测）
-      - moonshot/kimi-k3                 # 顶配候选（未实测）
-      - zhipu-std/glm-5.3                # 强推理候选（未实测）
-    # v2.15.7 新增：spawn 硬闸门（防「主控口头说『已派发』但实际无 sessions_spawn 返回值」）
-    # 真源规则：见 references/agents/00-主控-扩展职责.md §十六点五「派发硬验证」
+    # v2.15.7：已实测兼容模型 7 项 + 未实测候选 4 项 —— 清单唯一真源 = 模型候选池.md §二·三（本文件不内联清单，R-22 预算纪律）
+    # v2.15.7：spawn 硬闸门 —— 规则真源 = 00-主控-扩展职责.md §十六点五「派发硬验证」
     coordinator_spawn_hard_gate: true
     coordinator_fallback_protocol_ref: "references/_shared/真源/model_fallback_takeover_protocol.md"
   tools:
@@ -44,7 +28,7 @@ metadata:
     audit:      ["read"]   # P2-3 修复（2026-09-30）：原 fmt: 与 permissions.md 档位命名真源 (audit) 不一致；T6 批判 + T7 审计 + G14 中文 AI 痕迹闸均映射至此
     review:     ["read"]
 ---
-> 版本：v2.15.7（自动同步 2026-10-02）
+> 版本：v2.15.8（自动同步 2026-10-02）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
