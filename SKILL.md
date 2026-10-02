@@ -11,8 +11,8 @@ metadata:
       default: "channel_relay"
       fallback: "session_local"
       modes: ["channel_relay", "session_local"]
-    # v2.15.7 新增：本机已验证可流畅承载论衡全流程的模型清单（与 openclaw.json agents.defaults.models 取交集）
-    # 真实源 = openclaw.json，本字段仅声明论衡兼容子集；不在此清单的模型默认按「未验证」对待
+    # v2.15.7 新增：已验证可流畅承载论衡全流程的模型清单（维护者实测维护；skill 运行时不读宿主配置）
+    # 本字段自包含声明兼容子集；不在此清单的模型默认按「未验证」对待，不阻断使用
     compatible_models:
       - minimax-portal/MiniMax-M3       # 本机默认；T4 写作快速完整（ECS 2026-10-02）
       - kkaiapi/claude-opus-5           # 顶配档；T6/T7 批判审计

@@ -9,8 +9,8 @@
 
 ## 一、触发条件（必须三项同时命中）
 
-1. **in-process 失联**：主控 session 在平台层仍可见，但 `sessions_status` 返回 `running` 而实际心跳已停止 ≥ 5 分钟（**心跳阈值 = hardClear.ttl × 1.5**，与 openclaw.json `agents.defaults.contextPruning` 同源）。
-2. **fallback 模型可调用**：宿主已配置 fallback 模型清单（`openclaw.json` `agents.defaults.models`），且至少 1 个模型 `ping_token < 阈值`（Phase 0 已跑过 `top_tier_liveness_gate`，可直接复用结论）。
+1. **in-process 失联**：主控 session 在平台层仍可见，但 `sessions_status` 返回 `running` 而实际心跳已停止 ≥ 5 分钟（固定阈值 5 分钟，skill 自包含；运行时不读取任何宿主配置）。
+2. **fallback 模型可调用**：当前会话可见模型面（`session_status` 只读元数据，非读取宿主配置）中存在至少 1 个可调用模型（Phase 0 已跑过 `top_tier_liveness_gate`，可直接复用结论）。
 3. **未触发主人拍板**：同一项目未进入「主人已显式叫停」状态（`status.md` 不含 `pending_owner_halt`）。
 
 三项任一不命中 ⇒ **禁触发接管**，按既有路径等待 / 降级 / 报错。
