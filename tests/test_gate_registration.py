@@ -235,9 +235,12 @@ def test_gate_h_has_no_skip_path(repo_copy: pathlib.Path) -> None:
     rc, out = run_gate(repo_copy, LESSONS_SRC=str(repo_copy / "不存在的教训源.md"))
     clean = ANSI.sub("", out)
     assert "门 H" in clean, "门 H 整行消失（门 0 对账将点名）"
-    # 断言零 ⊘ 行（skip() 输出格式 = "⊘ <门>: SKIP — <原因>"）；
+    # 断言门 H 自身无 ⊘ 行（skip() 输出格式 = "⊘ <门>: SKIP — <原因>"）。
     # 不能用 "SKIP" 字符串全文匹配 —— 门 0 静态文案含「PASS/FAIL/SKIP 结论」会误报。
+    # v2.15.9 修正：本断言只锁门 H，不锁全门零 SKIP —— 门 W（官方 quick_validate.py
+    #   不在 CI 环境）等环境性软门仍合法输出 SKIP，属独立覆盖范围（CI 实际 2 failed 样本）。
     skip_lines = [l for l in clean.splitlines() if l.lstrip().startswith("⊘")]
-    assert not skip_lines, f"自审门仍输出 SKIP 行（v2.15.9 起门 H 无 SKIP 路径）：{skip_lines}"
+    h_skip = [l for l in skip_lines if "门 H" in l]
+    assert not h_skip, f"门 H 仍输出 SKIP 行（v2.15.9 起门 H 无 SKIP 路径）：{h_skip}"
     assert gate_line(out, "0:").startswith("✓"), "登记表判据全绿时门 0 应为 ✓"
     assert rc == 0, "门 H 无 SKIP 路径后全绿应 exit 0"

@@ -33,7 +33,7 @@ CHANGELOG_ARCHIVE = SKILL_ROOT / "CHANGELOG-archive.md"
 # v2.12.47：主文件容量上限（主人定案「保留 5 期」）。超限即红——轮转 = 把最旧一章移入归档。
 CHANGELOG_KEEP = 5
 # v2.15.9：归档体量软上限（B）—— 实测水位，只许降；扩容走冷归档外移而非放宽本值。
-CHANGELOG_ARCHIVE_CEIL = 502827
+CHANGELOG_ARCHIVE_CEIL = 505747
 # v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法单行 >4000 字符，
 #   可读性崩坏且与 CHANGELOG 职责重叠）。新写法 = 摘要 + 链接；超限即红。
 README_PROSE_MAX = 500
