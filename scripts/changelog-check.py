@@ -32,6 +32,8 @@ README_FILE = SKILL_ROOT / "README.md"
 CHANGELOG_ARCHIVE = SKILL_ROOT / "CHANGELOG-archive.md"
 # v2.12.47：主文件容量上限（主人定案「保留 5 期」）。超限即红——轮转 = 把最旧一章移入归档。
 CHANGELOG_KEEP = 5
+# v2.15.9：归档体量软上限（B）—— 实测水位，只许降；扩容走冷归档外移而非放宽本值。
+CHANGELOG_ARCHIVE_CEIL = 502827
 # v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法单行 >4000 字符，
 #   可读性崩坏且与 CHANGELOG 职责重叠）。新写法 = 摘要 + 链接；超限即红。
 README_PROSE_MAX = 500
@@ -207,6 +209,17 @@ def cmd_check(online):
         print(f"❌ {CHANGELOG.name} 保有 {len(_main_sections)} 期，超过上限 {CHANGELOG_KEEP} 期："
               f"把最旧的 {len(_main_sections) - CHANGELOG_KEEP} 章移入 {CHANGELOG_ARCHIVE.name}")
         fail = 1
+
+    # v2.15.9（审计 P2「仓库瘦身」）：归档体量软上限 —— 主文件有 5 期门，归档无上限 ⇒
+    #   长期看「轮转」只是把体积从主文件挪到归档（491KB / 382 章，已是全仓最大被跟踪文件）。
+    #   本门给归档设**棘轮**：按维护者裁定的当前水位为上限，只许降（与门 Y 同纪律）；
+    #   需要扩容时走「冷归档外移」而非放宽本值（拆到 docs/history/ 或 GitHub Release 视图）。
+    #   超限仅 warn（软门，不阻断 changelog 校验本身）；本值变更须同批更新说明。
+    if CHANGELOG_ARCHIVE.is_file():
+        _arch_bytes = CHANGELOG_ARCHIVE.stat().st_size
+        if _arch_bytes > CHANGELOG_ARCHIVE_CEIL:
+            print(f"⚠️  {CHANGELOG_ARCHIVE.name} 体积 {_arch_bytes} B > 上限 {CHANGELOG_ARCHIVE_CEIL} B —— "
+                  f"归档已接近无界；下次轮转请把最旧若干章冷归档到 docs/history/，而不是放宽本值")
 
     # v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法曾单行 >4000 字符）。
     #   判据与 test_audit_residuals 的版本一致性断言互补：那边锁「版本号对」，这边锁「可读性」。
