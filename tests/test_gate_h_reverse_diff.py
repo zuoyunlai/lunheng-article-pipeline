@@ -191,41 +191,27 @@ def test_no_false_positive_when_exclude_table_leads_source(tmp_path):
 
 @requires_real_src
 def test_host_class_numbers_excluded_from_advisory(tmp_path):
-    """#340/#341/#355/#374/#375/#376 宿主/工作区类不计入 SRC_MAX，告警行不出现这些编号。
+    """宿主/通用类编号不计入 advisory 最大告警编号（v2.15.9 重写后回归样本）。
 
-    2026-09-14 去环境耦合修订：旧实现「主真源全文 + 合成条目」却断言告警行点名 #342 ——
-    但告警行**只点 SRC_MAX（最大非排除编号）**，主真源持续增长（实测已到 #365）后该断言
-    必然为红，属环境漂移型假红。
-    现改为：仍以主真源为基（仓库引用的编号必须都有定义，否则会触发门 H 的另一条检查
-    「教训编号引用在主真源缺定义」），但用排除表把 **> 342 的全部编号**排除，使 SRC_MAX
-    恒为 #342；快照显式压低到 300，令参照告警必响且**只能**点 #342。
-    断言意图（宿主类不进 SRC_MAX）原样保留，判据不再依赖真源当前最大编号。
+    旧写法用「压低快照到 300」制造告警 —— 新门 H 把「登记表 alive 上界 == 快照值」
+    升级为一致性红门（教训 #352 off-by-one 防线），压低快照会直接 REFS_FAIL，
+    不再是合法测试手段。现改为：快照保持真实，在 probe 真源追加**高于快照**的
+    合成条目 —— 宿主类入排除表、非排除类计入 —— 断言 advisory 只点名非排除编号。
     """
     base_text = REAL_SRC.read_text(encoding="utf-8")
     probe = tmp_path / "lessons.md"
     probe.write_text(
         base_text
-        + "\n## #340 宿主/通用类样本（索引设计上不入本索引）\n"
-        "## #341 宿主/通用类样本二\n"
-        "## #355 宿主/通用类样本三\n"
-        "## #374 工作区审计类样本四\n"
-        "## #375 工作区审计类样本五\n"
-        "## #376 工作区审计类样本六\n"
-        "## #342 论衡类样本（标题不含「论衡」字样）\n",
+        + "\n## #500 宿主/通用类样本（索引设计上不入本索引）\n"
+        "## #501 论衡类样本（标题不含「论衡」字样）\n",
         encoding="utf-8")
-    high = sorted({n for n in _src_numbers(base_text) if n > 342})
-    exclude = " ".join(["340", "341", "355", "374", "375", "376"] + [str(n) for n in high])
-    low_snap = tmp_path / "snapshot-low"
-    low_snap.write_text("300\n", encoding="utf-8")
-    r, out = _run_gate(probe, {"LUNHENG_LESSON_EXCLUDE": exclude,
-                               "LESSONS_SNAPSHOT": str(low_snap)})
-    assert r.returncode == 0, f"宿主类排除应放行：\n{out}"
+    r, out = _run_gate(probe, {"LUNHENG_LESSON_EXCLUDE": "500"})
+    assert r.returncode == 0, f"宿主类排除应放行（告警不参与 exit code）：\n{out}"
     advisories = _advisory_lines(out)
-    assert advisories, f"SRC_MAX 342 > 快照 300，应产生参照告警：\n{out}"
+    assert advisories, f"probe 含 #501 > 快照，应产生参照告警：\n{out}"
     for line in advisories:
-        for n in (340, 341, 355, 374, 375, 376):
-            assert f"#{n}" not in line, f"宿主类 #{n} 不应出现在告警中：{line}"
-        assert "#342" in line, f"#342 应被计入：{line}"
+        assert "#500" not in line, f"宿主类 #500 不应出现在告警中：{line}"
+        assert "#501" in line, f"#501 应被计入告警：{line}"
 
 
 # ---------------- ⑤ 元测试：排除表默认值不得被清空 + 解析口径不动 ----------------

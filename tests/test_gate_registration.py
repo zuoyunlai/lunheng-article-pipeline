@@ -219,10 +219,20 @@ def test_gate_zero_fails_when_a_gate_goes_silent(repo_copy: pathlib.Path) -> Non
     assert rc != 0, "门 0 失败后自审门退出码应为非 0"
 
 
-def test_skip_state_is_reported_and_counted(repo_copy: pathlib.Path) -> None:
-    """主真源不可达 ⇒ 门 H 记 SKIP（既非 PASS 也非静默消失），且 SKIP 配额被点名。"""
-    _, out = run_gate(repo_copy, LESSONS_SRC=str(repo_copy / "不存在的教训源.md"))
+def test_gate_h_has_no_skip_path(repo_copy: pathlib.Path) -> None:
+    """v2.15.9：门 H 改登记表 hermetic 判据 —— 外部真源不可达不再 SKIP（旧语义回归样本）。
+
+    旧语义（软门）：LESSONS_SRC 不可达 ⇒ SKIP + 配额点名 —— CI/本地长期 SKIP，
+    29 门中唯一常态化覆盖缺口（2026-10-03 全量审计 P1）。
+    新语义：登记表在仓库内永远可达；门 H 必须给出 PASS/FAIL 结论；
+    LESSONS_SRC 仅作可选参照告警输入，不参与 exit code。
+    """
+    rc, out = run_gate(repo_copy, LESSONS_SRC=str(repo_copy / "不存在的教训源.md"))
     clean = ANSI.sub("", out)
-    assert "SKIP" in clean, f"未输出 SKIP 态（覆盖缩小被掩盖）：\n{clean[-1500:]}"
-    assert "SKIP 配额" in clean, "SKIP 未被计入配额（覆盖缩小被静默）"
-    assert gate_line(out, "0:").startswith("✓"), "有 SKIP 时门 0 的对账结论不应判红"
+    assert "门 H" in clean, "门 H 整行消失（门 0 对账将点名）"
+    # 断言零 ⊘ 行（skip() 输出格式 = "⊘ <门>: SKIP — <原因>"）；
+    # 不能用 "SKIP" 字符串全文匹配 —— 门 0 静态文案含「PASS/FAIL/SKIP 结论」会误报。
+    skip_lines = [l for l in clean.splitlines() if l.lstrip().startswith("⊘")]
+    assert not skip_lines, f"自审门仍输出 SKIP 行（v2.15.9 起门 H 无 SKIP 路径）：{skip_lines}"
+    assert gate_line(out, "0:").startswith("✓"), "登记表判据全绿时门 0 应为 ✓"
+    assert rc == 0, "门 H 无 SKIP 路径后全绿应 exit 0"

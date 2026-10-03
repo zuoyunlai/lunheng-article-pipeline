@@ -317,94 +317,144 @@ else
 fi
 
 # =============================================================================
-# 门 H：教训编号引用 vs 主真源实有差集（v2.5.9 新增，2026-08-26）
+# 门 H：教训编号引用 vs 登记表差集（v2.15.9 重写 —— hermetic 单点真源，无 SKIP）
 # -----------------------------------------------------------------------------
-# 背景：论衡侧角色卡/脚本/模板一路编到 #178，主真源 memory/lessons.md 停在 #136，
-#   造成 36 条教训「有引用无定义」。2026-08-26 清理时靠手写 python 才扫出。
-#   文档层漏改会死链报错，**编号层漏写不报错**——只是查不到，比死链更隐蔽。
-#   同型于教训 #150「自审工具假绿灯」在记忆层的映射。
-# 说明：主真源不在 skill 仓库内（教训 #143 双视图原则），所以本门是**软门**：
-#   真源不可达时 warn 不 fail（净化包/CI 环境不应因主工作区缺失而挂）。
-#   v2.12.40：新增硬门开关 LUNHENG_REQUIRE_LESSONS_SRC=1 —— 置 1 时「主真源不可达」
-#   升级为**硬失败**。缺省（不设）保持软门语义不变，本地开发不受影响。
-#   v2.13.1 hermetic 修订：不再默认探测仓库外 `$HOME/.openclaw/workspace/memory/lessons.md`。
-#   未显式传入 LESSONS_SRC 时，门 H 只运行仓库内快照判据；需要正向差集时由调用者
-#   显式传入外部真源。这样自审门/CI 不会随开发者工作区记忆增长或裁剪而漂移。
+# 历史：v2.5.9 原始实现依赖仓库外主真源 memory/lessons.md 做正向差集 ⇒ 长期 SKIP
+#   （2026-10-03 全量审计 P1：29 门中唯一常态化覆盖缺口）。
+#   主真源 2026-09-26 / 09-28 两次被整文件覆写（教训 #474/#461），#180-#472 原文
+#   不可恢复，「从未定义」与「已知销毁」在外部真源上已不可区分。
+#   v2.15.9 正解（登记表 = references/_shared/治理/lessons-registry.md §一a 区间）：
+#     · 判据① 仓库引用全查 —— 每个「教训 #N」引用按登记表三态判定：
+#       永久空档（§二）⇒ FAIL；可引用区间（§一a）⇒ PASS；其余 ⇒ FAIL（缺登记）；
+#     · 判据④ 登记表自洽 —— 三区间键可解析 + alive 上界 == 快照值（防 off-by-one）；
+#     · SKIP 路径移除；CI / 本地同口径；LESSONS_SRC 降格为**可选参照告警**
+#       （外部真源最大未排除编号 > 快照 ⇒ warn，不参与 exit code）。
+#   登记表更新纪律（同批五件套）见该文件 §五；禁止凭印象编造已蒸发区间的标题。
 # =============================================================================
 LESSONS_SRC="${LESSONS_SRC:-}"
 LUNHENG_LESSON_EXCLUDE="${LUNHENG_LESSON_EXCLUDE:-340 341 355 374 375 376 380 382 383 385 392 393 394 395 396 397 398 402 403 404 405 410 411 412 413 414}"
 # v2.12.62（审计 P2-7）：**编号只在快照写一次**。索引三处旧副本已于本版改为派生指针；
-#   本门改为「索引**不得**出现硬编码最大编号」——把「5 处联动必然 off-by-one」的漂移面
-#   从「人工记得改 5 处」压成「机器拒绝第 2 处副本」。LUNHENG_LESSON_INDEX 供测试注入副本。
+#   本门保留「索引**不得**出现硬编码最大编号」判据（下方双判据块）。LUNHENG_LESSON_INDEX 供测试注入副本。
 LESSON_INDEX_FILE="${LUNHENG_LESSON_INDEX:-references/_shared/治理/教训索引.md}"
 IDX_HARDCODED_COUNT=$(grep -cE '最大编号 \*\*#[0-9]+\*\*' "$LESSON_INDEX_FILE" 2>/dev/null | tr -d '[:space:]')
 IDX_HARDCODED_COUNT=${IDX_HARDCODED_COUNT:-0}
 SNAPSHOT_FILE="${LESSONS_SNAPSHOT:-references/_shared/治理/lessons-max.snapshot}"
 SNAP_MAX=$(grep -oE '[0-9]+' "$SNAPSHOT_FILE" 2>/dev/null | head -1)
-SRC_MAX=""
+REGISTRY_FILE="${LUNHENG_LESSON_REGISTRY:-references/_shared/治理/lessons-registry.md}"
 
-if [ -f "$LESSONS_SRC" ]; then
-  # 采集论衡侧所有「教训 #N」引用编号（排除 .bak / 净化包输出）
-  REFS=$(grep -rhoE '教训 #[0-9]+' \
-           --include="*.md" --include="*.sh" --include="*.py" \
-           --exclude="*.bak*" \
-           references/ scripts/ SKILL.md README.md QUICKSTART.md 2>/dev/null \
-         | grep -oE '[0-9]+')
-  # v2.11.1 修复（教训 #249）：教训索引表格用裸「| #N |」格式（无「教训」前缀），
-  #   门 H 旧正则扫不到 → #245 在主真源缺失仍 PASS。补采集索引表格裸编号列。
-  INDEX_REFS=$(grep -oE '^\| #[0-9]+ ' "$LESSON_INDEX_FILE" 2>/dev/null | grep -oE '[0-9]+')
-  REFS=$( { echo "$REFS"; echo "$INDEX_REFS"; } | grep -oE '[0-9]+' | sort -un)
+# ---- 判据① + ④：引用全查（登记表区间判定）+ 登记表自洽（python 单源解析）----
+# 解析与判定都在 python 里完成（bash 字符串手术是 sed -i 教训 #265 的重灾区）。
+# 采集面与 v2.5.9 起一致：references/ scripts/ SKILL.md README.md QUICKSTART.md 的
+# 「教训 #N」引用 + 教训索引表格裸「| #N |」列（教训 #249），排除 .bak。
+if command -v python3 >/dev/null 2>&1; then
+  GATE_H_OUT="$(python3 - "$REGISTRY_FILE" "$LESSON_INDEX_FILE" "$SNAP_MAX" "$LESSONS_SRC" "$LUNHENG_LESSON_EXCLUDE" <<'PYEOF'
+import re, subprocess, sys
 
-  # 采集主真源实有编号（任意标题层级，兼容「## #N」与「## 教训 #N」两种书写）
-  HAVE=$(grep -oE '^#{2,4} (教训 )?#[0-9]+' "$LESSONS_SRC" \
-         | grep -oE '[0-9]+$' | sort -un)
+registry_path, index_path, snap_max, lessons_src, exclude_raw = sys.argv[1:6]
+exclude = {int(x) for x in exclude_raw.split()}
 
-  # 差集：仅检 >=115（#1-#114 已归档到 memory/archive/，不在 lessons.md 主体）
-  MISSING_LESSONS=""
-  for n in $REFS; do
-    [ "$n" -lt 115 ] && continue
-    if ! echo "$HAVE" | grep -qx "$n"; then
-      MISSING_LESSONS="$MISSING_LESSONS #$n"
-    fi
-  done
+# --- 登记表解析（判据④）---
+try:
+    reg = open(registry_path, encoding="utf-8").read()
+except OSError:
+    print("REFS_FAIL\t登记表缺失: " + registry_path); sys.exit(0)
 
-  if [ -z "$MISSING_LESSONS" ]; then
-    REF_COUNT=$(echo "$REFS" | wc -w)
-    pass "门 H: 教训编号引用全部在主真源有定义（引用 $REF_COUNT 个编号）"
-  else
-    fail "门 H: 教训编号引用在主真源缺定义" "$MISSING_LESSONS —— 请补录到 $LESSONS_SRC"
-  fi
+def parse_ranges(key):
+    m = re.search(rf"^\s*{key}:\s*\[(.*)\]\s*$", reg, re.M)
+    if not m:
+        return None
+    ranges = []
+    for tok in m.group(1).split(","):
+        tok = tok.strip().strip('"').strip("'")
+        if not tok:
+            continue
+        if "-" in tok:
+            a, b = tok.split("-", 1)
+            ranges.append((int(a), int(b)))
+        else:
+            ranges.append((int(tok), int(tok)))
+    return ranges or None
 
-  # v2.12.13 新增（方案 1.6；v2.12.33 修「标题须含论衡」字面依赖）：**反向差集**——索引声明的
-  #   「当前最大编号 #N」不得落后于主真源中论衡类教训的**实际最大编号**。原门 H 是单向（论衡引用
-  #   → 真源），漏掉「真源已有新教训、索引未跟」这一侧：#317/#318/#319 已入真源，索引声明仍停在
-  #   #316 却 PASS（审计 consist 路）。
-  #   ⚠️ v2.12.33 修的覆盖盲区（教训 #352 的换形复发）：旧 SRC_MAX 正则要求标题行内含「论衡」二字，
-  #   于是 `## #352 半成品版本戳：…` 这类**标题不含「论衡」的新教训对反向差集完全不可见** ——
-  #   真源已到 #352、索引仍声明 #351 时，门 H 照样 PASS（漏报），直到 #353 标题恰好带「论衡」才暴露。
-  #   现口径：按「标题形如 `## #N ` 的编号」取最大编号，再用排除表剔除非论衡编号。
-  #   排除表只列**宿主/通用类**编号（#340/#341 索引设计上不入本索引，见 `教训索引.md` 开头
-  #   「curated 主题分类，非全枚举」原则）；**未列入者一律按论衡类计入** —— 宁可多报（红）不可漏报：
-  #   新增宿主类教训时务必把它加进 LUNHENG_LESSON_EXCLUDE，而不是放宽本门判据。
-  #   注：仍不用「含论衡标题 ⊆ 索引编号」判据——索引是 curated 集，该判据会永久误报 19 条历史教训。
-  # 排除表默认已在上方定义（含宿主类 #340/#341/#355）
-  # sort -un 升序 → 循环结束时 SRC_MAX 即「最大未排除编号」
-  for _n in $(grep -oE '^#{2,4} (教训 )?#[0-9]+' "$LESSONS_SRC" 2>/dev/null | grep -oE '[0-9]+$' | sort -un); do
-    case " $LUNHENG_LESSON_EXCLUDE " in
-      *" $_n "*) continue ;;
-    esac
-    SRC_MAX="$_n"
-  done
-  if [ -n "$SRC_MAX" ] && [ -n "$SNAP_MAX" ] && [ "$SRC_MAX" -gt "$SNAP_MAX" ]; then
-    warn "门 H: 外部真源 #$SRC_MAX > 快照 #$SNAP_MAX —— 若属论衡类，请同步 快照 + 索引 + 排除表"
+evap = parse_ranges("evaporated_ok")
+alive = parse_ranges("alive")
+gaps = parse_ranges("permanent_gaps")
+if evap is None or alive is None or gaps is None:
+    print("REFS_FAIL\t登记表不可解析（§一a 区间键 evaporated_ok/alive/permanent_gaps 缺一或为空）: " + registry_path); sys.exit(0)
+
+ok_set = set()
+for a, b in evap + alive:
+    ok_set.update(range(a, b + 1))
+gap_set = set()
+for a, b in gaps:
+    gap_set.update(range(a, b + 1))
+alive_max = max(b for _, b in alive)
+
+# --- 引用采集（与旧门同口径）---
+refs_raw = subprocess.run(
+    ["grep", "-rhoE", r"教训 #[0-9]+",
+     "--include=*.md", "--include=*.sh", "--include=*.py", "--exclude=*.bak*",
+     "references/", "scripts/", "SKILL.md", "README.md", "QUICKSTART.md"],
+    capture_output=True, text=True).stdout
+refs = {int(n) for n in re.findall(r"[0-9]+", refs_raw)}
+try:
+    idx_raw = open(index_path, encoding="utf-8").read()
+    refs |= {int(n) for n in re.findall(r"^\| #(\d+) ", idx_raw, re.M)}
+except OSError:
+    pass
+
+# --- 判据基自洽：alive 上界 == 快照值（两处数字同批改，教训 #352）---
+if snap_max and int(alive_max) != int(snap_max):
+    print(f"REFS_FAIL\t登记表 alive 上界 #{alive_max} != 快照 #{snap_max}（同批五件套，登记表 §五-2）")
+    sys.exit(0)
+
+# --- 判据①：三态判定（N >= 115 才检；#1-#114 已归档）---
+missing, gap_hits = [], []
+for n in sorted(refs):
+    if n < 115:
+        continue
+    if n in gap_set:
+        gap_hits.append(n)
+    elif n not in ok_set:
+        missing.append(n)
+
+checked = sum(1 for n in refs if n >= 115)
+if gap_hits or missing:
+    parts = []
+    if gap_hits:
+        parts.append("永久空档被引用: " + " ".join(f"#{n}" for n in gap_hits))
+    if missing:
+        parts.append("缺登记: " + " ".join(f"#{n}" for n in missing))
+    print("REFS_FAIL\t" + "; ".join(parts))
+else:
+    print(f"REFS_OK\t{checked} 个编号全过；登记表三区间可解析，alive #{alive_max} = 快照 #{snap_max}")
+
+# --- 参照告警（可选，不参与 exit code）：外部真源最大未排除编号 > 快照 ---
+if lessons_src:
+    try:
+        src_text = open(lessons_src, encoding="utf-8").read()
+        src_nums = [int(n) for n in re.findall(r"^#{2,4} (?:教训 )?#(\d+)", src_text, re.M)]
+        src_max = max((n for n in src_nums if n not in exclude), default=0)
+        if snap_max and src_max > int(snap_max):
+            print(f"ADVISORY\t#{src_max}")
+    except OSError:
+        pass
+PYEOF
+)"
+  GATE_H_REFS_VERDICT="$(printf '%s\n' "$GATE_H_OUT" | grep -E '^REFS_' | head -1 | cut -f1)"
+  GATE_H_REFS_DETAIL="$(printf '%s\n' "$GATE_H_OUT" | grep -E '^REFS_' | head -1 | cut -f2-)"
+  GATE_H_ADVISORY="$(printf '%s\n' "$GATE_H_OUT" | grep -E '^ADVISORY' | head -1 | cut -f2-)"
+
+  case "$GATE_H_REFS_VERDICT" in
+    REFS_OK)     pass "门 H: 教训编号引用全部在登记表有定义（$GATE_H_REFS_DETAIL）" ;;
+    REFS_FAIL)   fail "门 H: 教训引用与登记表不一致" "$GATE_H_REFS_DETAIL —— 补登记（references/_shared/治理/lessons-registry.md §一a）或修正引用；永久空档不回收" ;;
+    *)            fail "门 H: 引用全查未执行（python 判定器无输出）" "本门不可判定（不允许静默跳过）；检查 python3 与登记表" ;;
+  esac
+
+  if [ -n "$GATE_H_ADVISORY" ]; then
+    warn "门 H: 外部真源 $GATE_H_ADVISORY > 快照 #$SNAP_MAX —— 若属论衡类，请同步 快照 + 登记表 + 索引 + 排除表（同批五件套）"
   fi
 else
-  if [ "${LUNHENG_REQUIRE_LESSONS_SRC:-0}" = "1" ]; then
-    # 硬门：要求正向差集必须真实执行（CI / 发版前置链用）
-    fail "门 H: 主真源不可达" "$LESSONS_SRC —— LUNHENG_REQUIRE_LESSONS_SRC=1 要求正向差集必须执行，缺主真源即硬失败"
-  else
-    skip "门 H: 主真源不可达" "$LESSONS_SRC —— 正向差集未执行（本门覆盖缩小，非全绿；严格场景请设 LUNHENG_REQUIRE_LESSONS_SRC=1）"
-  fi
+  fail "门 H: 引用全查未执行（缺 python3）" "本门不可判定（不允许静默跳过；v2.15.9 起门 H 无 SKIP 路径）"
 fi
 
 # -----------------------------------------------------------------------------
@@ -1281,9 +1331,82 @@ while IFS='|' read -r _bf _bceil; do
 done <<EOF
 $(echo "$BULK_RATCHET_CEIL" | tr ',' '\n')
 EOF
-if [ "$BULK_RATCHET_OK" = "1" ]; then
-  pass "门 Y: 必读文件体量棘轮清单全部在位且未回涨"
+# ---- 棘轮重定台账（v2.15.9 增补，审计 P1「合法上涨通道」修复）----
+# 语义：上涨本身不是错误，但必须是**有账的债务** —— 每次重定须登记回落目标 + 截止版本。
+# 判据（软门，与门 Y 同语义，不进 exit code）：
+#   ① 未过期债务计数（status=open 且当前 minor >= due minor）→ 逐条点名；
+#   ② 台账不可解析 / 声明文件缺失 → 告警；
+#   ③ 零未结 → pass。
+# 真源 = references/_shared/治理/ratchet-ledger.md（维护者侧，随包排除）。
+RATCHET_LEDGER="${LUNHENG_RATCHET_LEDGER:-references/_shared/治理/ratchet-ledger.md}"
+if [ -f "$RATCHET_LEDGER" ] && command -v python3 >/dev/null 2>&1; then
+  _CUR_VER="$(grep -m1 -E '^[[:space:]]*version:' SKILL.md | sed -E 's/^[[:space:]]*version:[[:space:]]*//;s/["'"'"']//g;s/[[:space:]]*$//')"
+  _LEDGER_OUT="$(python3 - "$RATCHET_LEDGER" "$_CUR_VER" "$BULK_RATCHET_CEIL" <<'PYEOF'
+import re, sys
+ledger_path, cur_ver, ceil_raw = sys.argv[1:4]
+try:
+    text = open(ledger_path, encoding="utf-8").read()
+except OSError:
+    print("LEDGER_UNREADABLE"); raise SystemExit(0)
+
+def vkey(v):
+    parts = re.findall(r"\d+", str(v))
+    return tuple(int(x) for x in parts[:3]) if parts else (0,)
+
+lines = text.splitlines()
+items, cur = [], None
+for ln in lines:
+    m = re.match(r"^\s*-\s*path:\s*(.+?)\s*$", ln)
+    if m:
+        if cur: items.append(cur)
+        cur = {"path": m.group(1).strip().strip('"').strip("'"), "status": "?", "due": "0"}
+        continue
+    if cur is None:
+        continue
+    ms = re.search(r"^\s*status:\s*[\"']?(\w+)", ln)
+    md = re.search(r"^\s*due_version:\s*[\"']?([0-9.]+)", ln)
+    if ms: cur["status"] = ms.group(1)
+    if md: cur["due"] = md.group(1)
+    # 顶层新块（非 debt 项）终止收集
+    if re.match(r"^structural_exempt:", ln): break
+if cur: items.append(cur)
+if not items: print("LEDGER_UNPARSABLE"); raise SystemExit(0)
+open_items, expired = [], []
+for it in items:
+    if it["status"] != "open": continue
+    open_items.append((it["path"], it["due"]))
+    if cur_ver and vkey(cur_ver) >= vkey(it["due"]):
+        expired.append(f"{it['path'].rsplit('/',1)[-1]} (due {it['due']})")
+
+
+if expired:
+    print("LEDGER_EXPIRED\t" + " / ".join(expired))
+elif open_items:
+    print(f"LEDGER_OPEN\t{len(open_items)} 条未结（最近截止 {max(d for _, d in open_items)}）")
+else:
+    print("LEDGER_CLEAN\t0")
+PYEOF
+)"
+  _LEDGER_VERDICT="$(printf '%s\n' "$_LEDGER_OUT" | head -1 | cut -f1)"
+  _LEDGER_DETAIL="$(printf '%s\n' "$_LEDGER_OUT" | head -1 | cut -f2-)"
+  # 结论并入下方「清单全部在位」行（门 Z 项数棘轮：只许降，不新增结论行）
+  case "$_LEDGER_VERDICT" in
+    LEDGER_CLEAN)   _RATCHET_LEDGER_NOTE="棘轮无未结债务" ;;
+    LEDGER_OPEN)    _RATCHET_LEDGER_NOTE="台账 $_LEDGER_DETAIL" ;;
+    LEDGER_EXPIRED) _RATCHET_LEDGER_NOTE="⚠ 债务已过期未回落：$_LEDGER_DETAIL"
+                    warn "门 Y: 棘轮债务已过期未回落：$_LEDGER_DETAIL —— 请分层/外移后下调上限并销账，**不得**再次重定（台账 §四-3）" ;;
+    *)              _RATCHET_LEDGER_NOTE="⚠ 台账不可解析或缺失"
+                    warn "门 Y: 棘轮台账不可解析或缺失（$RATCHET_LEDGER）—— 重定上涨将失去账本约束" ;;
+  esac
+else
+  _RATCHET_LEDGER_NOTE="⚠ 台账检查未执行"
+  warn "门 Y: 棘轮台账检查未执行（缺 $RATCHET_LEDGER 或 python3）—— 重定上涨将失去账本约束"
 fi
+
+if [ "$BULK_RATCHET_OK" = "1" ]; then
+  pass "门 Y: 必读文件体量棘轮清单全部在位且未回涨（${_RATCHET_LEDGER_NOTE:-台账未检}）"
+fi
+
 if [ -n "${SKILL_CHARS:-}" ]; then
   SKILL_MARGIN=$((SKILL_CHARS_CEIL - SKILL_CHARS))
   if [ "$SKILL_MARGIN" -lt "$SKILL_MARGIN_WARN" ]; then
