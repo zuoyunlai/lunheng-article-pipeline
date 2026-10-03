@@ -1252,11 +1252,33 @@ fi
 #   说明：内容受「机械门锚定」保护者（tests/test_rules_consistency.py 以 SKILL.md 为
 #   T9 6 维度 / 4 档 + G14 8 类的漂移锚点）与合规清单（外发同意）**不得为凑数而删**。
 # =============================================================================
+# v2.15.9（审计 P2「frontmatter 预算事前拦截」）：frontmatter 单独预算门。
+#   缺口来源：门 V 锁的是 SKILL.md 全文字符数，而 v2.15.7 踩的坑是 frontmatter
+#   单独撑到 9487 字符（R-22 常驻预算 <9000）—— 全文门当时并未报警（正文够短），
+#   直到事后 CI 才红。本门补上「frontmatter 自己的预算」。
+#   语义：frontmatter = 首个 --- 与其配对 --- 之间的内容（不含两行分隔符）；
+#   预算 9000 字符（R-22 常驻预算；frontmatter 每次加载都进模型上下文，比正文更贵）。
+FM_CHARS_CEIL=9000
+if [ -f SKILL.md ] && command -v python3 >/dev/null 2>&1; then
+  FM_CHARS=$(python3 -c "
+import io, re
+t = io.open('SKILL.md', encoding='utf-8').read()
+m = re.match(r'^---\n(.*?)\n---', t, re.S)
+print(len(m.group(1)) if m else -1)
+")
+  if [ "${FM_CHARS:-0}" -lt 0 ]; then
+    fail "门 V: SKILL.md frontmatter 不可解析" "首部无配对的 --- 分隔符（frontmatter 预算不可判定）"
+  elif [ "$FM_CHARS" -le "$FM_CHARS_CEIL" ]; then
+    FM_NOTE="frontmatter ${FM_CHARS} ≤ ${FM_CHARS_CEIL}"
+  else
+    fail "门 V: SKILL.md frontmatter 预算超限" "${FM_CHARS} > ${FM_CHARS_CEIL}（R-22）—— 长清单/模型枚举请回真源文件，frontmatter 只留指针"
+  fi
+fi
 SKILL_CHARS_CEIL=10000
 if [ -f SKILL.md ]; then
   SKILL_CHARS=$(wc -m < SKILL.md | tr -d '[:space:]')
   if [ "$SKILL_CHARS" -le "$SKILL_CHARS_CEIL" ]; then
-    pass "门 V: SKILL.md 体量棘轮（${SKILL_CHARS} ≤ ${SKILL_CHARS_CEIL} 字符；项目可读性棘轮，只许降）"
+    pass "门 V: SKILL.md 体量棘轮（${SKILL_CHARS} <= ${SKILL_CHARS_CEIL} 字符；${FM_NOTE:-frontmatter 未检}；只许降）"
   else
     fail "门 V: SKILL.md 体量回涨" "${SKILL_CHARS} > ${SKILL_CHARS_CEIL} 项目棘轮上限—— 请外移长内容而非放宽本上限"
   fi
