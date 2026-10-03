@@ -25,6 +25,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+
+
+import pytest
+
+# v2.15.9（审计 P2 测试提速）：本文件跑 self-audit-gate.sh（约 9-10s/次）⇒ 标 slow。
+#   本地快速回路：pytest -m "not slow"；CI 全量：pytest。
+pytestmark = pytest.mark.slow
+
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 GEN_SCRIPT = SCRIPTS / "gen-scripts-index.py"

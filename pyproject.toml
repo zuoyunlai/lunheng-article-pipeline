@@ -44,6 +44,13 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short --strict-markers"
+# v2.15.9（审计 P2「测试提速」）：慢测分层标记。
+#   背景：全量 690 项约 520s，其中约 470s = 12 个测试文件对 self-audit-gate.sh 的
+#   49 次 subprocess 调用（每次约 9-10s）。本地迭代不需要每次都跑全量。
+#   用法：pytest -m "not slow"（快速回路，约 50s）/ pytest（全量，CI 用）。
+markers = [
+    "slow: 跑 self-audit-gate.sh 等外部脚本的慢测（本地可用 -m 'not slow' 跳过）",
+]
 
 [tool.coverage.run]
 source = ["scripts", "tests"]

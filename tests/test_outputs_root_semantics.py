@@ -32,6 +32,14 @@ import subprocess
 
 from conftest import tracked_tree
 
+
+
+import pytest
+
+# v2.15.9（审计 P2 测试提速）：本文件跑 self-audit-gate.sh（约 9-10s/次）⇒ 标 slow。
+#   本地快速回路：pytest -m "not slow"；CI 全量：pytest。
+pytestmark = pytest.mark.slow
+
 ROOT = pathlib.Path(__file__).parent.parent
 BUILD = ROOT / "scripts" / "build-clawhub-release.sh"
 PUBLISH = ROOT / "scripts" / "publish-clawhub.sh"

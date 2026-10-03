@@ -7,7 +7,8 @@ help:
 	@echo ""
 	@echo "可用命令："
 	@echo "  make install    - 安装开发依赖"
-	@echo "  make test       - 运行测试套件"
+	@echo "  make test       - 运行测试套件（全量，约 520s）"
+	@echo "  make test-fast  - 快速回路（跳过慢测，约 98s）"
 	@echo "  make lint       - 运行代码检查（ShellCheck + Python 语法）"
 	@echo "  make format     - 格式化 Python 代码（black + isort）"
 	@echo "  make audit      - 运行自审门"
@@ -23,8 +24,15 @@ install:
 	@echo "✓ 依赖安装完成"
 
 test:
-	@echo "运行测试套件..."
+	@echo "运行测试套件（全量；CI 同口径）..."
 	pytest -v --tb=short
+
+# v2.15.9（审计 P2 测试提速）：本地快速回路 —— 跳过跑 self-audit-gate.sh 的慢测。
+#   全量约 520s（12 文件 / 49 次门脚本调用占约 470s）；快速回路约 98s（586 项）。
+#   提交前 / CI 仍须跑全量（make test）；本地迭代用本目标。
+test-fast:
+	@echo "运行快速测试回路（-m 'not slow'）..."
+	pytest -v --tb=short -m "not slow"
 	@echo ""
 	@echo "运行 capability-assert 测试..."
 	bash scripts/test-capability-assert.sh

@@ -22,6 +22,11 @@ import pytest
 
 from conftest import tracked_tree
 
+# v2.15.9（审计 P2 测试提速）：本文件跑 self-audit-gate.sh（约 9-10s/次）⇒ 标 slow。
+#   本地快速回路：pytest -m "not slow"；CI 全量：pytest。
+pytestmark = pytest.mark.slow
+
+
 REPO = pathlib.Path(__file__).resolve().parents[1]
 GATE = REPO / "scripts" / "self-audit-gate.sh"
 FIXTURE_LESSONS = pathlib.Path(__file__).parent / "fixtures" / "lessons-gate.md"
