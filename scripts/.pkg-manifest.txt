@@ -56,6 +56,7 @@ references/_shared/真源/pipeline-overview.md
 references/_shared/真源/pressure-test-protocol.md
 references/_shared/真源/skill-entry-appendix.md
 references/_shared/真源/中文数据源集成.md
+references/_shared/真源/主动介入机制.md
 references/_shared/真源/关键协议.md
 references/_shared/真源/可发表性判定表.md
 references/_shared/真源/字数判定表.md

@@ -79,11 +79,12 @@ def test_clean_tree_reports_open_debt_count():
     assert "台账" in note or "无未结债务" in note, f"门 Y 未输出台账结论：{_y_lines(out)}"
     if (ROOT / LEDGER.relative_to(ROOT)).is_file():
         text = LEDGER.read_text(encoding="utf-8")
-        expected = len(re.findall(r"^\s*-\s*path:", text, re.M))
+        all_items = len(re.findall(r"^\s*-\s*path:", text, re.M))
+        open_items = len(re.findall(r'status: "open"', text))
         if "未结" in note:
             m = re.search(r"(\d+)\s*条未结", note)
-            assert m and int(m.group(1)) == expected, \
-                f"台账条目数 {expected} 与门内报告不一致：{note}"
+            assert m and int(m.group(1)) == open_items, \
+                f"台账未结数 {open_items}（共 {all_items} 条）与门内报告不一致：{note}"
     assert r.returncode == 0, f"软门不得改 exit code：\n{out[-800:]}"
 
 
@@ -104,9 +105,13 @@ def test_expired_debt_warns(tmp_path):
     tracked_tree(ROOT, dst)
     ledger = dst / "references" / "_shared" / "治理" / "ratchet-ledger.md"
     text = ledger.read_text(encoding="utf-8")
-    # 把第一条 open 债务的截止版本压到 1.0.0（必然已过期）
-    ledger.write_text(re.sub(r'due_version: "2\.18\.0"', 'due_version: "1.0.0"', text, count=1),
-                      encoding="utf-8")
+    # v2.15.9：只改第一条 status=open 的条目（settled 条目不受过期判据管辖）
+    parts = text.split("- path:")
+    for i in range(1, len(parts)):
+        if 'status: "open"' in parts[i]:
+            parts[i] = parts[i].replace('due_version: "2.18.0"', 'due_version: "1.0.0"', 1)
+            break
+    ledger.write_text("- path:".join(parts), encoding="utf-8")
     r, out = _run_gate(dst)
     warns = [l for l in _y_lines(out) if "过期" in l]
     assert warns, f"过期债务未告警：{_y_lines(out)}"

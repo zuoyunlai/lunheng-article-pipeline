@@ -381,6 +381,7 @@ SHARED_ADMITTED=(
   '真源/pressure-test-protocol.md'
   '真源/skill-entry-appendix.md'
   '真源/中文数据源集成.md'
+  '真源/主动介入机制.md'
   '真源/关键协议.md'
   '真源/可发表性判定表.md'
   '真源/字数判定表.md'
