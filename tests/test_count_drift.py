@@ -22,7 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 COUNTS_REL = "references/_shared/真源/counts.yaml"
 # 历史沿革类文件必须豁免（旧数字是史实，不得被机械门要求改写）：
 #   CHANGELOG* / archive/ / reports/（工程过程产物）/ 教训索引（历史教训台账）
-WHITELIST_MARKERS = ("CHANGELOG", "/archive/", "reports/", "教训索引.md")
+WHITELIST_MARKERS = ("CHANGELOG", "changelog-cold", "/archive/", "reports/", "教训索引.md")
 
 
 def load_counts(root: pathlib.Path = ROOT) -> dict:
