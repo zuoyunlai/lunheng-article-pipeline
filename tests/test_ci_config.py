@@ -112,10 +112,20 @@ def test_c_ci_test_installs_both_requirement_files():
 
 
 def test_d_ci_test_runs_full_suite():
-    """D：ci-test.yml 必须跑**全量** tests/（子集步不构成 CI 判据）。"""
+    """D：ci-test.yml 必须跑**全量** tests/（子集步不构成 CI 判据）。
+
+    2026-10-04（方案 A）：判据由「单步跑 tests/」扩写为「slow/fast 两 job 并集 = 全量」。
+    两者并集覆盖 tests/ 的每个测试项（慢组 470s 硬成本不切分，快组 ~110s 单 job）。
+    锁定的是「覆盖面」，不是「写法」——结构再变时本断言同批更新。
+    """
     text = CI_TEST.read_text(encoding="utf-8")
-    assert re.search(r"pytest\s+tests/\s", text) or "pytest tests/ -q" in text, (
-        "ci-test.yml 未跑全量 tests/ —— 新增测试永不进 CI 判据（教训 #430 根因之二）")
+    # 零正则写法（避免多层转义吃 \n）：用子串包含判断
+    has_slow = ("-m slow" in text)
+    has_fast = ("not slow" in text)
+    has_plain = ("pytest tests/ -q" in text) or ("pytest tests/ " in text)
+    assert (has_slow and has_fast) or has_plain, (
+        "ci-test.yml 未覆盖全量 tests/ —— slow/fast 两组并集缺失，或单步全量步被删"
+        "（新增测试永不进 CI 判据；教训 #430 根因之二）")
 
 
 def test_g_ci_runs_path_canonical_suite():
