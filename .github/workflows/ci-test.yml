@@ -72,19 +72,6 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
 
-      - name: 跑全量测试（与本地同口径；教训 #430）
-        # v2.12.62 后补：此前本 job 只跑 3 个**子集**文件 ⇒ 新测试永不进 CI
-        #   （test_bulk_ratchet.py / test_gate_h_reverse_diff.py 等全部在 CI 判据之外），
-        #   CI 与本地判据分叉 = 「门存在 ≠ 门跑过」的 CI 版。子集步保留作快速定位，
-        #   本步为**权威判据**：全量 tests/ 必须全绿。
-        run: |
-          echo "=========================================="
-          echo "论衡全量测试（tests/ 全量，与本地同口径）"
-          echo "=========================================="
-          python -m pytest tests/ -q
-        env:
-          PYTHONPATH: ${{ github.workspace }}
-
       - name: 跑 path-canonical 边界测试
         run: bash scripts/test-path-canonical.sh
 
@@ -95,6 +82,66 @@ jobs:
           echo "测试完成（详见上文日志）"
           echo "=========================================="
 
+  test-full-suite:
+    # 2026-10-03（CI 收口提速）：原「跑全量测试」由**单个 job 串行**改为 4 路分片并行。
+    #   依据（实测，非估算）：run 37121582498 中「跑全量测试」步 829s（该 job 861s 的 96%）；
+    #   run 37121582571 中 quality.yml 的 Run pytest 步 1308s（该 job 的 99.2%，其余步骤合计 11s）。
+    #   pyproject [tool.pytest.ini_options] 已记录分布：全量 690 项中约 470s = 12 个测试文件对
+    #   self-audit-gate.sh 的 49 次 subprocess 调用（每次约 9-10s）。
+    #   分片口径：按**测试文件名**轮转（模块不跨片，测试内部状态假设不变）；文件清单运行时用
+    #   `ls tests/test_*.py` 动态取 ⇒ 新增测试文件自动进片，不依赖手写清单（防「新测试永不进
+    #   CI」复现，见 tests/test_ci_config.py 教训 #430）。
+    #   命令仍是 `python -m pytest tests/ -q`（非本片文件用 --ignore 排除）⇒ 4 片并集 = tests/ 全量，
+    #   且 test_ci_config.py 的「必须跑全量 tests/」字面不变量继续成立。
+    runs-on: ubuntu-latest
+    name: 全量测试分片 ${{ matrix.shard }}/4
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      SHARDS: '4'
+      SHARD: ${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 设置 Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖（两份锁定文件全装）
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r tests/requirements-test.txt
+
+      - name: 跑全量测试分片（${{ matrix.shard }}/4）
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -eo pipefail
+          mapfile -t FILES < <(ls tests/test_*.py | sort)
+          echo "tests/ 全量文件数：${#FILES[@]}"
+          ARGS=()
+          for i in "${!FILES[@]}"; do
+            if [ $(( i % SHARDS )) -ne $(( SHARD - 1 )) ]; then
+              ARGS+=("--ignore=${FILES[$i]}")
+            fi
+          done
+          echo "分片 ${SHARD}/${SHARDS} 认领 $(( ${#FILES[@]} - ${#ARGS[@]} )) 个测试文件"
+          if [ "$(( ${#FILES[@]} - ${#ARGS[@]} ))" -eq 0 ]; then
+            echo "::error::分片 ${SHARD} 为空（分片配置错误）—— 拒绝静默通过"
+            exit 1
+          fi
+          python -m pytest tests/ -q --tb=short --durations=15 "${ARGS[@]}"
+
+      - name: 测试结果汇总
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "分片测试完成（详见上文日志）"
+          echo "=========================================="
   test-version-sync:
     runs-on: ubuntu-latest
     name: 版本号同步检查
