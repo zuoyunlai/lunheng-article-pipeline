@@ -744,7 +744,7 @@ MD_SCAN_FILES=$(find "$SKILL_ROOT" -name '*.md' \
     -not -name '版本升级自审门*.md' -not -name 'self-audit-gate*' \
     -not -name '*.bak*' \
     -not -path '*/reports/*' -not -path '*/memory/*' -not -path '*/.audit/*' \
-    -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' 2>/dev/null)
+    -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' -not -name 'changelog-cold-*.md' 2>/dev/null)
 MD_SCAN_COUNT=$(echo "$MD_SCAN_FILES" | grep -c . || true)
 
 # 门 M：发布包 exec/process 授权语句一致性（v2.6.8 新增，回应 ClawHub T05 三连击）
@@ -1052,7 +1052,7 @@ while IFS= read -r -d '' f; do
 done < <(find "$SKILL_ROOT" \( -name '*.md' -o -name '*.json' -o -name '*.yaml' -o -name '*.yml' -o -name '*.txt' -o -name '*.toml' \) -not -path '*/.git/*' -not -path '*/outputs/*' \
   -not -path '*/references/_shared/archive/*' -not -path '*/references/design/*' \
   -not -path '*/reports/*' -not -path '*/memory/*' \
-  -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' -not -name 'README.md' -print0)
+  -not -name 'CHANGELOG.md' -not -name 'CHANGELOG-archive.md' -not -name 'changelog-cold-*.md' -not -name 'README.md' -print0)
 Q_PATTERNS=(
   'ClawHub A\.I\.G'
   'A\.I\.G'
@@ -1547,6 +1547,7 @@ FAKE_H1=$(find . -type f -name '*.md' \
   -not -path './outputs/*' -not -path './reports/*' -not -path './memory/*' \
   -not -path './node_modules/*' -not -path './.git/*' \
   -not -name 'CHANGELOG-archive.md' \
+  -not -name 'changelog-cold-*.md' \
   -exec awk '
     function is_fence(s){ return s ~ /^[[:space:]]*(`{3,}|~{3,})/ }
     {

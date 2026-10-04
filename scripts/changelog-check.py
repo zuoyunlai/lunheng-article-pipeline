@@ -30,10 +30,11 @@ README_FILE = SKILL_ROOT / "README.md"
 # v2.12.47：主文件只保留最近 5 期，更早章节逐字迁入 CHANGELOG-archive.md。
 # 「每个版本 tag 都有章节」的校验口径跨两份文件生效（见 changelog_files）。
 CHANGELOG_ARCHIVE = SKILL_ROOT / "CHANGELOG-archive.md"
+CHANGELOG_COLD = SKILL_ROOT / "references" / "_shared" / "治理" / "changelog-cold-v2.0-v2.11.md"
 # v2.12.47：主文件容量上限（主人定案「保留 5 期」）。超限即红——轮转 = 把最旧一章移入归档。
 CHANGELOG_KEEP = 5
 # v2.15.9：归档体量软上限（B）—— 实测水位，只许降；扩容走冷归档外移而非放宽本值。
-CHANGELOG_ARCHIVE_CEIL = 505747
+CHANGELOG_ARCHIVE_CEIL = 362901
 # v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法单行 >4000 字符，
 #   可读性崩坏且与 CHANGELOG 职责重叠）。新写法 = 摘要 + 链接；超限即红。
 README_PROSE_MAX = 500
@@ -71,14 +72,15 @@ def version_key(tag):
 
 def changelog_files():
     """参与校验的 changelog 文件（主文件 + 历史归档；缺归档也兼容）。"""
-    return [p for p in (CHANGELOG, CHANGELOG_ARCHIVE) if p.exists()]
+    return [p for p in (CHANGELOG, CHANGELOG_ARCHIVE, CHANGELOG_COLD) if p.exists()]
 
 
 def archived_versions():
     """仅在归档文件里出现的版本（--fill 据此判定「已记录」，不重复回填进主文件）。"""
     if not CHANGELOG_ARCHIVE.exists():
         return set()
-    return set(HEADING_RE.findall(CHANGELOG_ARCHIVE.read_text(encoding="utf-8")))
+    _fs = [CHANGELOG_ARCHIVE, CHANGELOG_COLD]
+    return {v for f in _fs if f.exists() for v in HEADING_RE.findall(f.read_text(encoding="utf-8"))}
 
 
 def changelog_versions():

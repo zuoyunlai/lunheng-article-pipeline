@@ -12,7 +12,7 @@ def numbers(text, patterns):
     for p in patterns: out += [int(x) for x in re.findall(p,text)]
     return out
 
-HISTORY_PARTS = ('reports/', 'archive/', 'CHANGELOG', '教训索引', '.bak.')
+HISTORY_PARTS = ('reports/', 'archive/', 'CHANGELOG', '教训索引', '.bak.', 'changelog-cold-')
 
 
 def managed_markdown():
