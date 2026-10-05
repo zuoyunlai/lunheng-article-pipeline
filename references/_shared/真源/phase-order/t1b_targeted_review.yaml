@@ -16,6 +16,7 @@
   input: drafts/current_draft.md + drafts/修订说明-v{N}.md + audits/审计报告-vN.md
   output: literature/回查报告-v{N}.md
   output_chars_max: 8000
+  dispatch: references/dispatch/T1b-定向回查.md   # 派发话术合同块载体（max_rounds 随块入锚点）；合同面由生成器从本字段现算
   condition_undecidable: report_to_owner   # 修订说明/审计报告不可读或缺失 ⇒ 呈主人（不得静默按未触发跳过）
   condition: t5_t7_report_unverified_references   # 命中定义：T5 修订说明或 T7 审计报告出现「待人工核验」标记（真源 = condition_definitions；无标记 = 不命中）
   on_not_triggered: record_not_triggered_in_status   # 无未核验引用 → status 记 not_triggered（防「未触发」与「漏跑」不可分）

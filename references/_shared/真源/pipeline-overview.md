@@ -54,6 +54,14 @@
 
 ## 修订回环仲裁规则
 
+<!-- generated: rounds-contract (do not edit by hand) -->
+audit_revision.max_rounds: 2
+t1b_targeted_review.max_rounds: 2
+g14_style_gate.recheck_max_rounds: 2
+t5_style_revision.style_recheck_rounds_max: 2
+t9_review.recheck_max_rounds: 0
+<!-- /generated -->
+
 > **✅ v2.12.54 主人裁定（2026-09-18 20:42）**：`≤2 轮` 覆盖 **{Phase 3.6/3.7 批判修订, Phase 4.2 审计修订}**；**Phase 3.5 主人洞察轮不计入**该预算。
 
 | 轮次 | 内容 | 计数 |

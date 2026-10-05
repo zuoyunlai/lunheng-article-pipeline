@@ -19,5 +19,6 @@
   on_not_triggered: record_not_triggered_in_status
   boundary: 仅风格层改动（10 类 AI 痕迹清单）；不得改动论证结构、数据、引用、结论
   style_recheck_rounds_max: 2   # v2.13.0 P0-2：风格复检 ≤2 轮；耗尽 ⇒ 主人三选一
+  rounds_carrier: overview-arbitration   # 轮次契约载体 = pipeline-overview.md「修订回环仲裁规则」generated 块（架构评审 v3 R2③ 收口）
   after_each: [current_draft_sync, rerun_g14_style_recheck]   # P1-3：刷新后重跑轻量 G14 风格复检（动作名，同 rerun_t7；主控亲为、不 spawn）
   next: phase4_4_figures

@@ -30,7 +30,7 @@
 
 ## 🔧 开发环境与性能边界（P2-B）
 
-仓库级自审与反向注入测试的正式支持环境是 **Linux / WSL**。Windows git-bash 可能触发 MSYS 路径转换差异；这类失败不能直接判定 Linux CI 缺陷。性能优化前，应先按 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 登记同一仓库、同一依赖和同一文件系统位置的 cold/warm 基线；基线齐备前不改门逻辑、不静默做路径兼容。
+仓库级自审与反向注入测试的正式支持环境是 **Linux / WSL + Python 3.12**（CI 钉 `python-version: '3.12'`；black / isort `target-version = py312`；3.11 / 3.13 未在支持面）。Windows git-bash 可能触发 MSYS 路径转换差异；这类失败不能直接判定 Linux CI 缺陷。性能优化前，应先按 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 登记同一仓库、同一依赖和同一文件系统位置的 cold/warm 基线；基线齐备前不改门逻辑、不静默做路径兼容。
 
 ## ⚠️ 外发项与能力边界声明
 

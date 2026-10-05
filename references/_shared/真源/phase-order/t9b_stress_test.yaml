@@ -14,6 +14,7 @@
   opt_out: owner_stress_test_opt_out
   condition_undecidable: report_to_owner
   on_opt_out: record_opt_out_in_status
+  opt_out_carriers: [references/templates/任务简报-template.md, references/agents/00-主控-扩展职责.md]   # owner 节点无派发文件：opt-out 键的机械锚点载体清单（--check 逐文件验「键在」；架构评审 v3 R2③ 收口）
   verdict_scale: four_tier
   independence: bounded_owner_pressure_test
   note: "T9b 是主控亲完成的文本压力测试，不是 T9 盲审，不读取 T7/证据卡/过程稿，不参与修订回环。"

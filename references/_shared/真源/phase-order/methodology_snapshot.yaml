@@ -13,6 +13,7 @@
   default: triggered                      # v2.14.0 升级：默认触发（输出 4 节标准结构：研究设计 / 数据来源 / 分析方法 / 局限性），不再要求 Phase 0 opt-in
   opt_out: methodology_snapshot_opt_out   # 主人显式 opt-out 的条件键（真源 = condition_definitions）
   on_opt_out: record_opt_out_in_status
+  opt_out_carriers: [references/templates/任务简报-template.md]   # owner 节点无派发文件：opt-out 键机械锚点载体（--check 逐文件验「键在」）
   condition_undecidable: report_to_owner   # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认触发继续 + 呈主人
   note: "v2.14.0 升级：**默认触发**（含 4 节标准结构：研究设计 / 数据来源 / 分析方法 / 局限性）—— 替代 v2.12.49 T-6 的「≤2 节简版」。真源对照：[方法论-审计清单.md](../_shared/真源/方法论-审计清单.md) G18 12 项；模板：templates/方法论章节-template.md + walkthrough references/_shared/真源/方法论-落地示例.md。主人在 Phase 0 显式 opt-out ⇒ 不创建且记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）。"
   next: phase5_acceptance

@@ -8,13 +8,23 @@
 > 公共工具白名单 / 零 exec / 叶子纪律 / 降级自报 / token 统计：见 [`_shared/真源/dispatch-header.md`](../_shared/真源/dispatch-header.md)
 
 
+
+<!-- generated: dispatch-contract (do not edit by hand) -->
+node: t1b_targeted_review
+phase: Phase 4.3 定向回查（T1b）
+default: required
+opt_out_key: n/a
+on_opt_out: n/a
+condition: t5_t7_report_unverified_references
+max_rounds: 2
+<!-- /generated -->
 ### T1b 定向回查（Phase 4.3，条件触发）
 
 > **何时用**：Phase 4.3（`t1b_targeted_review`），位置 `audit_revision → t1b_targeted_review → t7_5_integrity`——T5 修订轮新增引用标「待人工核验」或 T7 审计报告列出未核验条目时触发；未触发记 `not_triggered`（不静默省略）。回查 ≤2 轮，轮次耗尽走主人三选一（真源 = `phase-order.yaml` `t1b_targeted_review`）。
 >
 > **🪟 双窗口字段（`phase_window`，P2-10 修复 2026-09-30）**：T1b 角色卡被**两个窗口**共用，spawn 时必须显式透传窗口值并在回查报告头部回填，防「同一卡两处引用」语义混淆：
-> - `phase_window: Phase 1.5`（节点 `phase1_5_targeted_review`，seq 3）—— 初筛复核：简报标注 [Dxx 待复核] 或 t2_5 红数据未回溯，列表任一命中即触发；
-> - `phase_window: Phase 4.3`（节点 `t1b_targeted_review`，seq 14）—— 修订轮定向回查：T5 修订说明 / T7 审计报告出现「待人工核验」标记。
+> - `phase_window: Phase 1.5`（节点 `phase1_5_targeted_review`，seq 4）—— 初筛复核：简报标注 [Dxx 待复核] 或 t2_5 红数据未回溯，列表任一命中即触发；
+> - `phase_window: Phase 4.3`（节点 `t1b_targeted_review`，seq 15）—— 修订轮定向回查：T5 修订说明 / T7 审计报告出现「待人工核验」标记。
 > 真源 = `references/_shared/真源/phase-order/t1b_targeted_review.yaml` 的 `phase_window` 块。
 
 ```

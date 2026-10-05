@@ -17,7 +17,7 @@
 | [`cleanup-skill-store.sh`](cleanup-skill-store.sh) | cleanup-skill-store.sh — 论衡技能库瘦身脚本 | — | 主人手动跑 / 每次发版前自动跑 | — |
 | [`contract-check.py`](contract-check.py) | Build-time contracts for high-drift declarations. | — | — | `make contract-check` |
 | [`create-github-release.sh`](create-github-release.sh) | create-github-release.sh — 从 CHANGELOG.md 建 / 同步 GitHub Release（一条命令） | bash scripts/create-github-release.sh [<tag>] [--dry-run\|--check] [--no-dispatch] | — | — |
-| [`dispatch-contract.py`](dispatch-contract.py) | dispatch-contract.py — 论衡派发话术合同块生成与校验（v2.15.x 第二批机械门）。 | python3 scripts/dispatch-contract.py # 生成并写盘 | — | `make dispatch-contract`、`make dispatch-contract-check` |
+| [`dispatch-contract.py`](dispatch-contract.py) | dispatch-contract.py — 论衡派发/轮次契约块生成与校验（v2.15.x 第二批机械门；2026-10-05 架构评审 v3 R2 真源化重写）。 | python3 scripts/dispatch-contract.py # 生成并写盘（dispatch 块 + 轮次块） | — | `make dispatch-contract`、`make dispatch-contract-check` |
 | [`flow-check.py`](flow-check.py) | 论衡流程图检查 | python3 scripts/flow-check.py → 无输出=通过；有输出=问题列表（分号分隔）。 | — | — |
 | [`flow-schema.lunheng.yaml`](flow-schema.lunheng.yaml) | flow-schema.lunheng.yaml — 论衡「跨载体一致性」规则的声明式演示实例（批次 4-B） | — | — | — |
 | [`flow-schema.py`](flow-schema.py) | flow-schema.py — 声明式「跨载体一致性」校验器（可复用治理引擎，批次 4-B） | python3 scripts/flow-schema.py [--schema scripts/flow-schema.lunheng.yaml] | — | — |

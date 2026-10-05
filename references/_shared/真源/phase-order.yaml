@@ -574,6 +574,7 @@ pipeline:
     verdict_scale: four_tier   # v2.12.40：T7 审计报告判定落四档（「本轮无 P0/P1」= 通过，非失败）
     rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 审计报告已落盘；不得沿用审计进行中的中间态
     max_rounds: 2
+    rounds_carrier: overview-arbitration   # 轮次契约载体 = pipeline-overview.md「修订回环仲裁规则」generated 块（T5 dispatch 明文不复述轮次数字；架构评审 v3 R2③ 收口）
     # v2.12.49 M-6：轮次耗尽出口改「三选一」（废「默认走最保守项」fail-open）
     # 原状：`max_rounds` 用尽且仍有未决 P0/P1/P2（非豁免项）⇒ 程序性资源耗尽被当质量结论
     #   ⇒ 流水线自动 GO。**对比 G14 Warning 出口（主控暂停 + 3 选 1）设计正确却未复制**。
@@ -623,6 +624,7 @@ pipeline:
     input: drafts/current_draft.md + drafts/修订说明-v{N}.md + audits/审计报告-vN.md
     output: literature/回查报告-v{N}.md
     output_chars_max: 8000
+    dispatch: references/dispatch/T1b-定向回查.md   # 派发话术合同块载体（max_rounds 随块入锚点）；合同面由生成器从本字段现算
     condition_undecidable: report_to_owner   # 修订说明/审计报告不可读或缺失 ⇒ 呈主人（不得静默按未触发跳过）
     condition: t5_t7_report_unverified_references   # 命中定义：T5 修订说明或 T7 审计报告出现「待人工核验」标记（真源 = condition_definitions；无标记 = 不命中）
     on_not_triggered: record_not_triggered_in_status   # 无未核验引用 → status 记 not_triggered（防「未触发」与「漏跑」不可分）
@@ -674,6 +676,7 @@ pipeline:
     verification_authority: 主控
     on_worker_failure: {executor: 主控, disclosure: degraded_executor, retry_limit: 1}
     rerun_after_report: false   # 全流程仅 1 次（v2.12.40 A1）；例外 = t5_style_revision 后轻量复检（≤2 轮）
+    recheck_max_rounds: 2   # v2.13.0 P0-2 复检回环上限；真源级结构化字段——派发合同块唯一取数源（数字禁在代码/他处复述；架构评审 v3 R2② 收口）
     rerun_after_post_acceptance: true   # v2.12.49 M-2：终态后改稿 ⇒ 必重跑 G14
     # 执行前提（业主定案 A2：「T5 之前若有修订但还不能定稿，则 G14 还是不执行」）：
     #   本闸是**定稿前最后一道闸**。前置修订尚未收敛（audit_revision 未退出 / 仍有未决 P0·P1 修订项 / 尚不能定稿）
@@ -690,6 +693,7 @@ pipeline:
     input: drafts/current_draft.md
     output: audits/G14-检测报告-vN.md
     output_chars_max: 6000   # AI 痕迹检测报告
+    dispatch: references/dispatch/G14-中文AI痕迹检测器.md   # 派发话术合同块载体；合同面由生成器从本字段现算（节点改名 ⇒ 改本切片即改合同面）
     on_fail: t5_style_revision   # 业主定案：G14 检查后由 T5 做**最后一次**修订（仅风格层，不得动论证/数据/引用）
     next: phase4_4_figures
   - id: t5_style_revision   # 别名：文档层「Phase 4.4 前置·风格修订」（G14 Fail 的唯一出口）
@@ -710,6 +714,7 @@ pipeline:
     on_not_triggered: record_not_triggered_in_status
     boundary: 仅风格层改动（10 类 AI 痕迹清单）；不得改动论证结构、数据、引用、结论
     style_recheck_rounds_max: 2   # v2.13.0 P0-2：风格复检 ≤2 轮；耗尽 ⇒ 主人三选一
+    rounds_carrier: overview-arbitration   # 轮次契约载体 = pipeline-overview.md「修订回环仲裁规则」generated 块（架构评审 v3 R2③ 收口）
     after_each: [current_draft_sync, rerun_g14_style_recheck]   # P1-3：刷新后重跑轻量 G14 风格复检（动作名，同 rerun_t7；主控亲为、不 spawn）
     next: phase4_4_figures
   - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
@@ -763,6 +768,7 @@ pipeline:
     default: triggered                      # v2.12.54 S-1（Batch A 夹带的最小真源修复）：由 opt-in（owner_peer_review_consent，**全仓无生产方**）改为**默认启用**，写法同 methodology_snapshot
     opt_out: owner_peer_review_opt_out      # 主人显式 opt-out 的条件键（真源 = condition_definitions）
     on_opt_out: record_opt_out_in_status    # 主人显式退出 ⇒ 记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）
+    recheck_max_rounds: 0   # T9 无复检回环（盲审仅一次、无重跑场景）；显式登记 0 = 派发合同块取数源（原为代码侧无源常量，架构评审 v3 R2② 收口）
     condition_undecidable: report_to_owner  # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认启用继续 + 呈主人，不静默跳过整节点
     # v2.12.46 口径修正：体裁不再机械门控，公众号亦可由主人显式开启（体裁仅供主人参考、非门控）。
     # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
@@ -798,6 +804,7 @@ pipeline:
     terminal_state_rules: {allowed: [worker_running, worker_failed, worker_timeout, missing_blind_review, done], empty_output_is_success: false, executor_takeover: forbidden, missing_report_blocks_t9_claims: true}
     output: audits/审稿报告-vN.md
     output_chars_max: 15000
+    dispatch: references/dispatch/T9-同行评审.md   # 派发话术合同块载体；合同面由生成器从本字段现算
     next: t9b_stress_test
   - id: t9b_stress_test
     phase: "Phase 4.5 后置（压力测试轮）"
@@ -812,6 +819,7 @@ pipeline:
     opt_out: owner_stress_test_opt_out
     condition_undecidable: report_to_owner
     on_opt_out: record_opt_out_in_status
+    opt_out_carriers: [references/templates/任务简报-template.md, references/agents/00-主控-扩展职责.md]   # owner 节点无派发文件：opt-out 键的机械锚点载体清单（--check 逐文件验「键在」；架构评审 v3 R2③ 收口）
     verdict_scale: four_tier
     independence: bounded_owner_pressure_test
     note: "T9b 是主控亲完成的文本压力测试，不是 T9 盲审，不读取 T7/证据卡/过程稿，不参与修订回环。"
@@ -849,6 +857,7 @@ pipeline:
     default: triggered                      # v2.14.0 升级：默认触发（输出 4 节标准结构：研究设计 / 数据来源 / 分析方法 / 局限性），不再要求 Phase 0 opt-in
     opt_out: methodology_snapshot_opt_out   # 主人显式 opt-out 的条件键（真源 = condition_definitions）
     on_opt_out: record_opt_out_in_status
+    opt_out_carriers: [references/templates/任务简报-template.md]   # owner 节点无派发文件：opt-out 键机械锚点载体（--check 逐文件验「键在」）
     condition_undecidable: report_to_owner   # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认触发继续 + 呈主人
     note: "v2.14.0 升级：**默认触发**（含 4 节标准结构：研究设计 / 数据来源 / 分析方法 / 局限性）—— 替代 v2.12.49 T-6 的「≤2 节简版」。真源对照：[方法论-审计清单.md](../_shared/真源/方法论-审计清单.md) G18 12 项；模板：templates/方法论章节-template.md + walkthrough references/_shared/真源/方法论-落地示例.md。主人在 Phase 0 显式 opt-out ⇒ 不创建且记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）。"
     next: phase5_acceptance

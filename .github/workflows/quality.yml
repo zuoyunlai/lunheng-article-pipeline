@@ -50,14 +50,14 @@ jobs:
       - name: Run path-canonical boundary tests
         run: bash scripts/test-path-canonical.sh
 
-      - name: Run pytest（快速档：-m "not slow"；含 slow 的全量见 ci-test.yml 4 路分片）
+      - name: Run pytest（快速档：-m "not slow"；含 slow 的全量见 ci-test.yml slow/fast 双 job）
         # 2026-10-03 CI 收口提速 ①②：
         #   ① 位置：本步由 job 首步**移到末步** —— 旧顺序下任何便宜门（自审门/版本号/
         #      语法/changelog/路径边界）失败都要等本步跑完才轮到。实测 run 37121582571：
         #      Run pytest 红 ⇒ 其后 5 步全部 skipped，22 分钟后才有结论。
         #   ② 口径：本步只跑 `-m "not slow"`（slow 标记已注册于 pyproject：12 个测试
         #      文件对 self-audit-gate.sh 做 49 次 subprocess ≈ 470s）；**含 slow 的全量**
-        #      仍由 ci-test.yml 的 4 路分片 job 跑同一份 tests/ 全量，覆盖面未缩。
+        #      仍由 ci-test.yml 的 slow/fast 双 job 跑同一份 tests/ 全量（并集 = 全量），覆盖面未缩。
         #   原 v2.12.40 口径保留：仓库根跑 pytest（testpaths=tests）+ --cov=scripts；
         #   两份 requirements 全装（与门 N「两份锁定文件」口径对齐）。
         run: |

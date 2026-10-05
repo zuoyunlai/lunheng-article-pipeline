@@ -159,6 +159,21 @@ def test_e_workflow_script_references_exist():
     assert not missing, f"workflow 引用了不存在的脚本：{missing}"
 
 
+def test_j_ci_comments_match_actual_sharding():
+    """J（架构评审 v3 S-comment 防复发）：workflow 注释口径与实际分片结构一致。
+
+    2026-10-04 实测：ci-test.yml 已改 slow/fast 双 job（8ca7973），quality.yml 注释
+    仍写「4 路分片」；test_d 断言结构、不断言注释 ⇒ 注释漂移无门拦截。本测试锁注释锚点。
+    """
+    ci = CI_TEST.read_text(encoding="utf-8")
+    q = (WORKFLOWS / "quality.yml").read_text(encoding="utf-8")
+    # 实际结构判据（与 test_d 同源）：slow/fast 双 job 并集 = 全量
+    assert "test-slow-suite" in ci and "test-fast-suite" in ci
+    # 注释锚点：不得引用已废弃口径；指引必须与实际结构同词
+    assert "4 路分片" not in q, "quality.yml 注释仍引用已废弃的「4 路分片」（改分片结构时须同步注释）"
+    assert "slow/fast 双 job" in q, "quality.yml pytest 步注释应指向 ci-test.yml slow/fast 双 job（与实际结构一致）"
+
+
 def test_f_workflow_path_filters_exist():
     """F：workflow 的 paths 过滤器不能引用目录重组前已删除的路径。"""
     missing = []

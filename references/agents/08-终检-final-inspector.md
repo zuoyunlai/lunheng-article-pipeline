@@ -177,7 +177,7 @@ T8 除读取 E1 登记表和映射表外，必须接收 T7 的 `citation_evidenc
 
    **嵌入是论衡职责**（`final_assembly` 主控 `write`），不是主人手动步骤——「有图但文里只有一行字」= 不合格。排除项：若主人 Phase 5 显式选择「仅要纯文本占位版」（需写入 `status.md` 决策记录 + 交付说明披露），则只校 ① 不校 ②；无此记录时一律双校（fail-closed）。
 4. **T4 不得自行定 0**：T4 只出「建议」不出一决定；「拍板 0 张」须主人在 Phase 2.5 显式拍板（即使 T4 建议 = 0，仍须呈现「T4 建议 0 张，是否接受？」）。`figure_decision: 取消图表` 必须填写 reason。
-5. **图件交付时点**：phase4_4_figures 节点位于 final_assembly 之前（seq 17 → 18）；图件未产出 ⇒ final_assembly 不得推进（机械门，由 `phase-order.yaml` `next` 边隐式锁定）。
+5. **图件交付时点**：phase4_4_figures 节点位于 final_assembly 之前（seq 19 → 20）；图件未产出 ⇒ final_assembly 不得推进（机械门，由 `phase-order.yaml` `next` 边隐式锁定）。
 
 ### M-13：T8 后「主人自行操作建议清单」（与 M-12 互补）
 

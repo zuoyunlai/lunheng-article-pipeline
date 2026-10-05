@@ -14,6 +14,7 @@
   default: triggered                      # v2.12.54 S-1（Batch A 夹带的最小真源修复）：由 opt-in（owner_peer_review_consent，**全仓无生产方**）改为**默认启用**，写法同 methodology_snapshot
   opt_out: owner_peer_review_opt_out      # 主人显式 opt-out 的条件键（真源 = condition_definitions）
   on_opt_out: record_opt_out_in_status    # 主人显式退出 ⇒ 记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）
+  recheck_max_rounds: 0   # T9 无复检回环（盲审仅一次、无重跑场景）；显式登记 0 = 派发合同块取数源（原为代码侧无源常量，架构评审 v3 R2② 收口）
   condition_undecidable: report_to_owner  # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认启用继续 + 呈主人，不静默跳过整节点
   # v2.12.46 口径修正：体裁不再机械门控，公众号亦可由主人显式开启（体裁仅供主人参考、非门控）。
   # blocking:false = T9 是「建议性同行评审」，其评分/期刊/扩写建议不阻塞交付（采纳权在主人）；
@@ -49,4 +50,5 @@
   terminal_state_rules: {allowed: [worker_running, worker_failed, worker_timeout, missing_blind_review, done], empty_output_is_success: false, executor_takeover: forbidden, missing_report_blocks_t9_claims: true}
   output: audits/审稿报告-vN.md
   output_chars_max: 15000
+  dispatch: references/dispatch/T9-同行评审.md   # 派发话术合同块载体；合同面由生成器从本字段现算
   next: t9b_stress_test
