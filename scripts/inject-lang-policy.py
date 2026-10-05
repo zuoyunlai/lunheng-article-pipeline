@@ -39,7 +39,7 @@ ROOTS = ["REFERENCES", "QUICKSTART.md", "README.md"]
 EXCLUDE_REL = {
     "SKILL.md",
     "CHANGELOG.md",
-    "references/_shared/治理/changelog-cold-v2.0-v2.11.md",
+    "references/_shared/治理/changelog-cold-v2.0-v2.12.md",
     "references/设计文档.md",
     "references/设计文档-架构.md",
     "references/设计文档-哲学.md",

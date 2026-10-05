@@ -31,7 +31,11 @@ LINE_REF = re.compile(r"[A-Za-z0-9_/\-]+\.md:[0-9]+")
 
 
 def _md_files():
-    return [p for p in REFS.rglob("*.md")]
+    # changelog 冷归档（维护者侧历史层，与 CHANGELOG.md 同类但文件名小写故未被
+    # `CHANGELOG` 子串命中——v2.15.10 补记）：其**历史原文**含行号型引用、字面 \n 等
+    # 写法片段，属 changelog 史料而非技能内容，不受本组「内容判据」约束；
+    # **不得为过门而改写历史原文**。
+    return [p for p in REFS.rglob("*.md") if not p.name.startswith("changelog-cold")]
 
 
 def test_no_line_number_refs():

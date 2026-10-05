@@ -57,6 +57,6 @@ def test_non_strict_does_not_flag_strict_violations():
 
 def test_real_repo_passes_default_scan():
     """默认扫描（不含 strict）必须在现状仓库退出 0。"""
-    errs = _mod.scan(ROOT, ("reports/", "archive/", "教训索引.md", "CHANGELOG"), strict=False)
+    errs = _mod.scan(ROOT, _mod.DEFAULT_EXCLUDES, strict=False)
     assert errs == [], errs[:5]
 

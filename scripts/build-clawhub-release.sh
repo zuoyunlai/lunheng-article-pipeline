@@ -172,7 +172,7 @@ if command -v rsync >/dev/null 2>&1; then
     --exclude 'references/_shared/治理/lessons-max.snapshot' \
     --exclude 'references/_shared/治理/lessons-registry.md' \
     --exclude 'references/_shared/治理/ratchet-ledger.md' \
-    --exclude 'references/_shared/治理/changelog-cold-v2.0-v2.11.md' \
+    --exclude 'references/_shared/治理/changelog-cold-v2.0-v2.12.md' \
     --exclude 'references/_shared/通用韧化块-v2.1.0.md' \
     --exclude 'references/_shared/版本升级自审门-*.md' \
     --exclude 'references/_shared/M-Gate-渐进式验证-*.md' \
@@ -239,7 +239,7 @@ else
   rm -f "$OUT_DIR/references/_shared/治理/lessons-registry.md"
   # v2.15.9：体量棘轮台账（维护者侧，与登记表同侧）
   rm -f "$OUT_DIR/references/_shared/治理/ratchet-ledger.md"
-  rm -f "$OUT_DIR/references/_shared/治理/changelog-cold-v2.0-v2.11.md"
+  rm -f "$OUT_DIR/references/_shared/治理/changelog-cold-v2.0-v2.12.md"
   # ② v2.12.12：维护者扫描器豁免清单（非 md，消费者无用）不再随包分发
   rm -f "$OUT_DIR/.safe-pattern-manifest.json"
   rm -f "$OUT_DIR/references/_shared/通用韧化块-v2.1.0.md"
@@ -854,7 +854,7 @@ PKG_EXCLUDED_DOC_PATHS=(
   'references/_shared/治理/lessons-max.snapshot'
   'references/_shared/治理/lessons-registry.md'
   'references/_shared/治理/ratchet-ledger.md'
-  'references/_shared/治理/changelog-cold-v2.0-v2.11.md'
+  'references/_shared/治理/changelog-cold-v2.0-v2.12.md'
   'references/_shared/通用韧化块-v2.1.0.md'
   'references/_shared/版本升级自审门-*.md'
   'references/_shared/M-Gate-渐进式验证-*.md'

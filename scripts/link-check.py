@@ -145,7 +145,7 @@ def check_bare_entry_refs(entry=BARE_ENTRY):
 # -----------------------------------------------------------------------------
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 INLINE_ROOTS = ["references"]
-INLINE_SKIP_NAMES = {"CHANGELOG.md", "CHANGELOG-archive.md", "changelog-cold-v2.0-v2.11.md"}
+INLINE_SKIP_NAMES = {"CHANGELOG.md", "CHANGELOG-archive.md", "changelog-cold-v2.0-v2.12.md"}
 # 运行时项目树专用目录：这些前缀下的路径属 run/<项目名>/ 产物，不是仓库文件
 RUNTIME_PREFIXES = (
     "audits/", "drafts/", "final/", "analysis/", "data/", "cases/",

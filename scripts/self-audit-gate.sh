@@ -1317,7 +1317,14 @@ fi
 #   ⚠️ 登记遗漏修正：2026-10-05 上午 R2 契约真源化那轮把 phase-order.yaml 66574→68238 时**未同批写台账**，
 #      违反台账 §四-1（重定不得为隐式豁免），本轮一并补登（直接更新原 open 债务行的 to 值，不新开行）。
 #   按 v2.15 B1-B7 先例以实测重定，后续仍**只许降**。
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70277,references/_shared/真源/M-Gate-核心.md|77526,references/_shared/真源/phase-order.yaml|69293,references/_shared/真源/phase-order/index.yaml|25358"
+# ⚠️ 2026-10-05 发版重定（v2.15.9 → v2.15.10）：四个必读文件各 +1 B。
+#   原因 = **版本戳机械变长**（2.15.9 → 2.15.10，每处版本头 +1 字符），
+#   属 sync-version.sh 的协议必做动作，**非内容膨胀**（台账 §二 structural_exempt 记为
+#   version_stamp_lengthening 类；注意该类「只允许发生一次」的规则与每版必发的事实冲突，
+#   已登记为台账设计待办，见 ratchet-ledger.md §二注）。
+#   数值：00-主控 70277→70278 / M-Gate 77526→77527 / phase-order.yaml 69293→69294 / index.yaml 25358→25359
+#   三条 open 债务的 to 值同步累加（未销账不新开行），M-Gate-核心.md 新开 1 条。
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70278,references/_shared/真源/M-Gate-核心.md|77527,references/_shared/真源/phase-order.yaml|69294,references/_shared/真源/phase-order/index.yaml|25359"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：

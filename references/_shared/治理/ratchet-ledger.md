@@ -29,27 +29,35 @@ debt:
   - path: "references/_shared/真源/phase-order.yaml"
     raised_at: "2026-10-02"
     from: 63928
-    to: 69293
+    to: 69294
     settle_to: 63928
     due_version: "2.18.0"
     status: "open"
-    reason: "v2.15.7 新增 post_phase1_dispatch_verify 节点（装配视图为生成物，无分层可选）；2026-10-05 上午 R2 契约真源化 66574→68238（派发/轮次契约字段，**该轮漏登记，本轮补登**）+ 同日 T9b 降级 opt-in 68238→69293（opt-in 契约字段）；两次均未销账，故直接累加至原 open 行而非新开行"
+    reason: "v2.15.7 新增 post_phase1_dispatch_verify 节点（装配视图为生成物，无分层可选）；2026-10-05 上午 R2 契约真源化 66574→68238（派发/轮次契约字段，**该轮漏登记，本轮补登**）+ 同日 T9b 降级 opt-in 68238→69293（opt-in 契约字段）+ 发版 v2.15.10 版本戳变长 69293→69294；均未销账，故累加至原 open 行而非新开行"
   - path: "references/_shared/真源/phase-order/index.yaml"
     raised_at: "2026-10-02"
     from: 24767
-    to: 25358
+    to: 25359
     settle_to: 24767
     due_version: "2.18.0"
     status: "open"
-    reason: "v2.15.7 同上（契约段随节点新增）；2026-10-05 T9b 降级 opt-in：condition_definitions 键改名 owner_stress_test_opt_out→owner_stress_test_opt_in + 备案注（契约段随节点契约变更）"
+    reason: "v2.15.7 同上（契约段随节点新增）；2026-10-05 T9b 降级 opt-in：condition_definitions 键改名 owner_stress_test_opt_out→owner_stress_test_opt_in + 备案注；发版 v2.15.10 版本戳变长 25358→25359"
   - path: "references/agents/00-主控-扩展职责.md"
     raised_at: "2026-10-05"
     from: 70189
-    to: 70277
+    to: 70278
     settle_to: 70189
     due_version: "2.18.0"
     status: "open"
-    reason: "T9b 极性说明行改写（默认触发 + opt-out -> 默认不跑 + opt-in，含 status 留痕口径）"
+    reason: "T9b 极性说明行改写（默认触发 + opt-out -> 默认不跑 + opt-in，含 status 留痕口径）+ 发版 v2.15.10 版本戳变长 70277→70278"
+  - path: "references/_shared/真源/M-Gate-核心.md"
+    raised_at: "2026-10-05"
+    from: 77526
+    to: 77527
+    settle_to: 77526
+    due_version: "2.18.0"
+    status: "open"
+    reason: "发版 v2.15.10 版本戳变长（2.15.9→2.15.10，+1 B）—— **机械变长，非内容膨胀**；首次登记以备回落跟踪"
 ```
 
 ## §二、豁免类（结构性变更，走 §二 而非 §一）
@@ -62,6 +70,8 @@ structural_exempt:
     note: "v2.12.70 分层后 _shared/ 前缀 +3 字节/引用 —— 机械变长，非内容膨胀"
   - kind: "assembly_restore"
     note: "v2.13.5 R-21 装配从 YAML 重打改逐字拼接 —— 把上游本就存在的文本还原回来"
+  - kind: "version_stamp_lengthening"
+    note: "v2.15.10 起记录：发版时 `sync-version.sh` 把四个必读文件的版本头从 2.15.9 改 2.15.10，每处 +1 B —— 机械变长，非内容膨胀。⚠️ **本表『只允许发生一次』的规则与「每版必发号」的事实直接冲突**（下一版发号会立即触发第二次），待台主人裁决：建议该类改为『按发版频率豁免、不计入 §四-3 三次上调铁律』。"
 ```
 
 > **判据**：本表只作**记录**，不参与门 Y 判定；新增豁免类条目需在本文件写清「为什么不是内容膨胀 + 为什么不能分层解决」。
@@ -85,9 +95,9 @@ structural_exempt:
 
 | 文件 | 当前上限 | 未结债务 | 回落目标 | 截止 |
 |---|---|---|---|---|
-| 00-主控-扩展职责.md | 70277 | 1 | 70189 | 2.18.0 |
-| phase-order.yaml | 69293 | 1 | 63928 | 2.18.0 |
-| phase-order/index.yaml | 25358 | 1 | 24767 | 2.18.0 |
-| M-Gate-核心.md | 77526 | 0 | — | — |
+| 00-主控-扩展职责.md | 70278 | 1 | 70189 | 2.18.0 |
+| phase-order.yaml | 69294 | 1 | 63928 | 2.18.0 |
+| phase-order/index.yaml | 25359 | 1 | 24767 | 2.18.0 |
+| M-Gate-核心.md | 77527 | 1 | 77526 | 2.18.0 |
 
-> **合计未结债务**：3 条（2 条为 2026-10-02 v2.15.7 批次，本轮累加更新；1 条为 2026-10-05 T9b 降级批次）。
+> **合计未结债务**：4 条（3 条为 2026-10-05 T9b 降级 + 发版重定批次，1 条为 2026-10-02 v2.15.7 批次）。

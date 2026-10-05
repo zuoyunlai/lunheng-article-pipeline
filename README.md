@@ -1,4 +1,4 @@
-> 版本：v2.15.9（自动同步 2026-10-03）
+> 版本：v2.15.10（自动同步 2026-10-05）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -14,7 +14,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
 
-**v2.15.9**（2026-10-03，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**全量审计七项修订**：门 H 闭合（教训登记表替代外部真源，消除常态化 SKIP）、棘轮重定台账（上涨变可审债务）、仓库瘦身实测修正、主控文档外移 §二十二（销债 4884 B）、测试提速 520s→98s（slow 分层 + `make test-fast`）、frontmatter 预算事前拦截。
+**v2.15.10**（2026-10-05，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**架构评审收口**：派发/轮次契约真源化（删代码侧无源常量，覆盖集 / 轮次 / owner 载体三族判据全部从切片现算）、T9b 压力测试轮降级 **opt-in**（默认不跑，冲刺投稿时显式开）、seq 漂移修正、CI 注释锚点 + Python 3.12 支持面声明、门 Y 棘轮重定 + 台账补登。
 
 论衡把一篇深度长文 / 论文的生产拆成 **11 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
 
@@ -125,7 +125,7 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.9  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 
