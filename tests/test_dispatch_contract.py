@@ -86,7 +86,7 @@ def test_rounds_block_locks_all_slice_round_fields():
 
 
 def test_owner_carrier_baseline_green():
-    """owner 节点（t9b / methodology，无 dispatch 文件）的 opt-out 键在登记载体中全部在位。"""
+    """owner 节点（t9b opt-in / methodology opt_out，无 dispatch 文件）的契约键在登记载体中全部在位。"""
     assert _mod.check_owner_carriers() == []
 
 
@@ -144,7 +144,7 @@ def test_owner_carrier_missing_key_is_caught(tmp_path):
     carrier.parent.mkdir(parents=True)
     carrier.write_text("# 模板（测试副本，无 opt-out 键）", encoding="utf-8")
     errors = _mod.check_owner_carriers(root=tmp_path)
-    assert any("owner_stress_test_opt_out" in e or "methodology_snapshot_opt_out" in e
+    assert any("owner_stress_test_opt_in" in e or "methodology_snapshot_opt_out" in e
                for e in errors), errors
 
 

@@ -16,9 +16,9 @@
      全仓轮次上限字段的唯一机械登记处（audit_revision / t1b / g14 / t5_style_revision /
      t9_review 的轮限逐条从切片现算）；改切片 ⇒ 重跑生成 ⇒ --check 对账。
      T5 dispatch 明文「不复述轮次数字」——轮次契约的唯一载体就是本块，不入派发文件。
-  ③ owner 节点 opt-out 载体检查：t9b / methodology_snapshot 是 owner 节点（不 spawn、
-     无 dispatch 文件），其 opt-out 键的实际载体（任务简报模板 / 主控扩展职责卡）由切片
-     `opt_out_carriers:` 显式登记，--check 逐文件验「键在载体」。
+  ③ owner 节点契约键载体检查：t9b（opt-in）/ methodology_snapshot（opt_out）是 owner 节点
+     （不 spawn、无 dispatch 文件），其契约键的实际载体（任务简报模板 / 主控扩展职责卡）由切片
+     `contract_key_carriers:` 显式登记，--check 逐文件验「键在载体」（极性中立）。
 
 设计（最小化、零误伤）：
   - dispatch 块只插在版本头 + 语言政策之后、正文之前；已存在则替换，绝不重复
@@ -95,12 +95,20 @@ def rounds_declarations():
 
 
 def owner_carrier_specs():
-    """owner 节点 opt-out 载体登记 → [(node_id, opt_out_key, [carrier_rel])]。"""
+    """owner 节点契约键载体登记 → [(node_id, [contract_keys], [carrier_rel])]。
+
+    极性中立：owner 节点（不 spawn、无 dispatch 文件）的 opt-in / opt_out / condition 键
+    在任务简报与主控卡里有真实载体，按切片 `contract_key_carriers` 显式登记，
+    --check 逐文件验「每个声明的契约键都在」——键名或极性变化时改切片即改门。
+    """
     out = []
     for p in _slices():
         node = _load_slice(p)
-        if node.get("opt_out_carriers"):
-            out.append((node["id"], node.get("opt_out"), list(node["opt_out_carriers"])))
+        carriers = node.get("contract_key_carriers")
+        if not carriers:
+            continue
+        keys = [node[f] for f in ("condition", "opt_out", "opt_in") if node.get(f)]
+        out.append((node["id"], keys, list(carriers)))
     return out
 
 
@@ -209,20 +217,21 @@ def check_rounds():
 
 
 def check_owner_carriers(root=None):
-    """owner 节点 opt-out 键必须真实存在于切片登记的每个载体文件（防契约断链）。"""
+    """owner 节点契约键必须真实存在于切片登记的每个载体文件（防契约断链）。"""
     base = root if root is not None else ROOT
     errors = []
-    for nid, key, rels in owner_carrier_specs():
-        if not key:
-            errors.append(f"{nid}: opt_out_carriers 声明但切片缺 opt_out 字段（结构矛盾）")
+    for nid, keys, rels in owner_carrier_specs():
+        if not keys:
+            errors.append(f"{nid}: contract_key_carriers 声明但节点无任何契约键（condition/opt_out/opt_in）")
             continue
-        for rel in rels:
-            c = base / rel
-            if not c.is_file():
-                errors.append(f"{nid}: opt-out 载体缺失 {rel}")
-                continue
-            if key not in c.read_text(encoding="utf-8"):
-                errors.append(f"{nid}: opt-out 键「{key}」不在载体 {rel}（owner 契约断链）")
+        for key in keys:
+            for rel in rels:
+                c = base / rel
+                if not c.is_file():
+                    errors.append(f"{nid}: 契约键「{key}」的载体缺失 {rel}")
+                    continue
+                if key not in c.read_text(encoding="utf-8"):
+                    errors.append(f"{nid}: 契约键「{key}」不在载体 {rel}（owner 契约断链）")
     return errors
 
 
@@ -233,7 +242,7 @@ def main():
     args = ap.parse_args()
 
     nodes = covered_nodes()
-    n_carriers = sum(len(rels) for _, _, rels in owner_carrier_specs())
+    n_carriers = sum(len(keys) for _, keys, _ in owner_carrier_specs())
 
     if args.stdout:
         for nid, rel in nodes:

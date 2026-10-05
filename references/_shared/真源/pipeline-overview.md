@@ -43,7 +43,7 @@
 | 19 | `phase4_4_figures` | Phase 4.4 | 主控（亲为） | `final/图件/*.svg`（零外发、零 exec；有图位才触发） |
 | 20 | `final_assembly` | Phase 4.4 后置（定稿组装） | 主控（亲为） | `final/定稿.md`（**只产投稿版**，禁入工程元数据段；组装后必须完成 `g14_caption_recheck`） |
 | 21 | `t9_review` | Phase 4.5 | T9（盲审独立子代理） | `audits/审稿报告-vN.md`（6 维度 + D1/D2 → accept/minor/major/reject） |
-| 22 | `t9b_stress_test` | Phase 4.5 后置（压力测试轮） | 主控（亲为） | `audits/压力测试报告-vN.md`（三剧本、建议性） |
+| 22 | `t9b_stress_test` | Phase 4.5 后置（压力测试轮） | 主控（亲为） | `audits/压力测试报告-vN.md`（三剧本、建议性；**默认不跑**，冲刺投稿时 Phase 0 勾选 `owner_stress_test_opt_in`） |
 | 23 | `t8_technical_final` | Phase 5 终检 | 主控（T8 亲为） | `final/交付说明.md`（+ Acknowledged Limitations 时 `final/局限性.md`） |
 | 24 | `methodology_snapshot` | Phase 5 终检后置（方法论留档） | 主控（亲为） | `audits/methodology-footprint-*.md`（**默认触发**，主人可 opt-out） |
 | 25 | `phase5_acceptance` | Phase 5 验收 | 主人 × 主控（**人在环**） | `accepted` / `revision_requested` / `restart_phase` / `deferred`（四个 owner_checkpoint 一律 fail-closed） |

@@ -318,8 +318,8 @@ condition_definitions:
     requires: [owner_figure_decision]
     producer: references/templates/任务简报-template-lite.md
     producer_marker: "figure_decision"
-  owner_stress_test_opt_out:
-    requires: [owner_stress_test_opt_out]
+  owner_stress_test_opt_in:     # 2026-10-05：T9b 由「默认触发 + 主人 opt-out」改为「默认不跑 + 主人 opt-in」（架构评审 v3 R2 附带裁决：实跑 40+ 项目零产出、产出无下游消费方、主控重读定稿全文成本高；三剧本本身保留，冲刺投稿时开）
+    requires: [owner_stress_test_opt_in]
     producer: references/templates/任务简报-template-lite.md
     producer_marker: "压力测试轮"
 
@@ -815,14 +815,18 @@ pipeline:
     verification_authority: 主控
     input: final/定稿.md + audits/审稿报告-vN.md
     output: audits/压力测试报告-vN.md
-    default: triggered
-    opt_out: owner_stress_test_opt_out
+    # 2026-10-05（架构评审 v3 R2 附带裁决）：默认触发 → **opt-in**。
+    #   依据：实跑 40+ 项目零产出（管线越过该位置而报告不存在）；产出无下游消费方
+    #   （T8/交付说明/status 皆不读）；主控亲为 = 重读定稿全文 ≈20k tokens 压在最稀缺 agent 上。
+    #   保留节点（方法论审查者/立场与范围/跨语境三剧本有真实学术价值），改为冲刺投稿时显式开。
+    default: opt_in
+    condition: owner_stress_test_opt_in      # 条件键（真源 = condition_definitions）；opt-in 语义 = 仅主人 Phase 0 勾选才触发
     condition_undecidable: report_to_owner
-    on_opt_out: record_opt_out_in_status
-    opt_out_carriers: [references/templates/任务简报-template.md, references/agents/00-主控-扩展职责.md]   # owner 节点无派发文件：opt-out 键的机械锚点载体清单（--check 逐文件验「键在」；架构评审 v3 R2③ 收口）
+    on_not_triggered: record_not_triggered_in_status   # 未开启 ≠ 漏跑（与 opt-out 语义分离，留痕口径一致）
+    contract_key_carriers: [references/templates/任务简报-template.md, references/agents/00-主控-扩展职责.md]   # owner 节点无派发文件：契约键的机械锚点载体清单（--check 逐文件验「键在」；极性中立，架构评审 v3 R2③）
     verdict_scale: four_tier
     independence: bounded_owner_pressure_test
-    note: "T9b 是主控亲完成的文本压力测试，不是 T9 盲审，不读取 T7/证据卡/过程稿，不参与修订回环。"
+    note: "T9b 是主控亲完成的文本压力测试（**默认不跑**；主人冲刺投稿时 Phase 0 勾选 `owner_stress_test_opt_in` 开启），不是 T9 盲审，不读取 T7/证据卡/过程稿，不参与修订回环。"
     next: t8_technical_final
   - id: t8_technical_final
     phase: "Phase 5 终检"
@@ -857,7 +861,7 @@ pipeline:
     default: triggered                      # v2.14.0 升级：默认触发（输出 4 节标准结构：研究设计 / 数据来源 / 分析方法 / 局限性），不再要求 Phase 0 opt-in
     opt_out: methodology_snapshot_opt_out   # 主人显式 opt-out 的条件键（真源 = condition_definitions）
     on_opt_out: record_opt_out_in_status
-    opt_out_carriers: [references/templates/任务简报-template.md]   # owner 节点无派发文件：opt-out 键机械锚点载体（--check 逐文件验「键在」）
+    contract_key_carriers: [references/templates/任务简报-template.md]   # owner 节点无派发文件：契约键机械锚点载体（--check 逐文件验「键在」；极性中立）
     condition_undecidable: report_to_owner   # v2.12.54 R-6：opt-out 记录缺失/不可判定 ⇒ 按默认触发继续 + 呈主人
     note: "v2.14.0 升级：**默认触发**（含 4 节标准结构：研究设计 / 数据来源 / 分析方法 / 局限性）—— 替代 v2.12.49 T-6 的「≤2 节简版」。真源对照：[方法论-审计清单.md](../_shared/真源/方法论-审计清单.md) G18 12 项；模板：templates/方法论章节-template.md + walkthrough references/_shared/真源/方法论-落地示例.md。主人在 Phase 0 显式 opt-out ⇒ 不创建且记 `opt_out`（**不得**记 `not_triggered`，两者语义不同）。"
     next: phase5_acceptance

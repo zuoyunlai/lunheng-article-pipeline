@@ -1309,7 +1309,15 @@ fi
 #   真源化、t9b/methodology 的 opt_out_carriers、audit/t5 的 rounds_carrier）——派发合同块生成器
 #   由代码侧常量改为切片现算的配套真源登记，属协议契约内容（非注释膨胀）。
 #   按 v2.15 B1-B7 先例以实测重定，后续仍**只许降**。
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70189,references/_shared/真源/M-Gate-核心.md|77526,references/_shared/真源/phase-order.yaml|68238,references/_shared/真源/phase-order/index.yaml|25084"
+# ⚠️ 2026-10-05 第二轮扩容备案（T9b 降级 opt-in + R2 契约真源化累积）：
+#   00-主控-扩展职责.md 70189→70277（+88，T9b 极性说明行）
+#   phase-order.yaml 68238→69293（+1055，本轮 T9b 切片的 opt-in 契约字段 + 昨轮 R2 派发/轮次字段累积）
+#   phase-order/index.yaml 25084→25358（+274，condition_definitions 键改名 owner_stress_test_opt_out→owner_stress_test_opt_in + 备案注）
+#   均为**协议契约内容**（非注释膨胀），已同批写入 references/_shared/治理/ratchet-ledger.md（台账 §四-1「上涨 = 记账」）。
+#   ⚠️ 登记遗漏修正：2026-10-05 上午 R2 契约真源化那轮把 phase-order.yaml 66574→68238 时**未同批写台账**，
+#      违反台账 §四-1（重定不得为隐式豁免），本轮一并补登（直接更新原 open 债务行的 to 值，不新开行）。
+#   按 v2.15 B1-B7 先例以实测重定，后续仍**只许降**。
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70277,references/_shared/真源/M-Gate-核心.md|77526,references/_shared/真源/phase-order.yaml|69293,references/_shared/真源/phase-order/index.yaml|25358"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：

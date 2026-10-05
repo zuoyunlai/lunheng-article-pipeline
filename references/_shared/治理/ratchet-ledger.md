@@ -29,19 +29,27 @@ debt:
   - path: "references/_shared/真源/phase-order.yaml"
     raised_at: "2026-10-02"
     from: 63928
-    to: 66574
+    to: 69293
     settle_to: 63928
     due_version: "2.18.0"
     status: "open"
-    reason: "v2.15.7 新增 post_phase1_dispatch_verify 节点（装配视图为生成物，无分层可选）"
+    reason: "v2.15.7 新增 post_phase1_dispatch_verify 节点（装配视图为生成物，无分层可选）；2026-10-05 上午 R2 契约真源化 66574→68238（派发/轮次契约字段，**该轮漏登记，本轮补登**）+ 同日 T9b 降级 opt-in 68238→69293（opt-in 契约字段）；两次均未销账，故直接累加至原 open 行而非新开行"
   - path: "references/_shared/真源/phase-order/index.yaml"
     raised_at: "2026-10-02"
     from: 24767
-    to: 25084
+    to: 25358
     settle_to: 24767
     due_version: "2.18.0"
     status: "open"
-    reason: "v2.15.7 同上（契约段随节点新增）"
+    reason: "v2.15.7 同上（契约段随节点新增）；2026-10-05 T9b 降级 opt-in：condition_definitions 键改名 owner_stress_test_opt_out→owner_stress_test_opt_in + 备案注（契约段随节点契约变更）"
+  - path: "references/agents/00-主控-扩展职责.md"
+    raised_at: "2026-10-05"
+    from: 70189
+    to: 70277
+    settle_to: 70189
+    due_version: "2.18.0"
+    status: "open"
+    reason: "T9b 极性说明行改写（默认触发 + opt-out -> 默认不跑 + opt-in，含 status 留痕口径）"
 ```
 
 ## §二、豁免类（结构性变更，走 §二 而非 §一）
@@ -77,9 +85,9 @@ structural_exempt:
 
 | 文件 | 当前上限 | 未结债务 | 回落目标 | 截止 |
 |---|---|---|---|---|
-| 00-主控-扩展职责.md | 74923 | 1 | 69808 | 2.18.0 |
-| phase-order.yaml | 66574 | 1 | 63928 | 2.18.0 |
-| phase-order/index.yaml | 25084 | 1 | 24767 | 2.18.0 |
+| 00-主控-扩展职责.md | 70277 | 1 | 70189 | 2.18.0 |
+| phase-order.yaml | 69293 | 1 | 63928 | 2.18.0 |
+| phase-order/index.yaml | 25358 | 1 | 24767 | 2.18.0 |
 | M-Gate-核心.md | 77526 | 0 | — | — |
 
-> **合计未结债务**：3 条（均为 2026-10-02 v2.15.7 批次）。
+> **合计未结债务**：3 条（2 条为 2026-10-02 v2.15.7 批次，本轮累加更新；1 条为 2026-10-05 T9b 降级批次）。

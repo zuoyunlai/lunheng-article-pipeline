@@ -239,8 +239,8 @@ condition_definitions:
     requires: [owner_figure_decision]
     producer: references/templates/任务简报-template-lite.md
     producer_marker: "figure_decision"
-  owner_stress_test_opt_out:
-    requires: [owner_stress_test_opt_out]
+  owner_stress_test_opt_in:     # 2026-10-05：T9b 由「默认触发 + 主人 opt-out」改为「默认不跑 + 主人 opt-in」（架构评审 v3 R2 附带裁决：实跑 40+ 项目零产出、产出无下游消费方、主控重读定稿全文成本高；三剧本本身保留，冲刺投稿时开）
+    requires: [owner_stress_test_opt_in]
     producer: references/templates/任务简报-template-lite.md
     producer_marker: "压力测试轮"
 
