@@ -65,6 +65,7 @@ CHECKS=(
   "_shared/真源/M-Gate-Algorithm-appendix.md|v$EXPECTED|1"
   "_shared/真源/audit-checklist-quickref.md|v$EXPECTED|1"
   "_shared/真源/evidence-object-model.md|v$EXPECTED|1"
+  "_shared/真源/状态归约契约.md|v$EXPECTED|1"
 
   # 10 个角色卡（顶部必须含版本号）
   "agents/00-主控-coordinator.md|v$EXPECTED|1"

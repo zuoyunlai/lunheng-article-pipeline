@@ -48,6 +48,7 @@
 **draft_ref（B3）**: path=drafts/current_draft.md / sha256=<verified|unavailable> / section_manifest=<path|n/a> / changed_sections=<列表|n/a> / hash_status=<match|mismatch|unavailable> / resync=<not_needed|requested|completed>
 **上下文指标（B3）**: raw_input_bytes=<数值|unavailable> / structured_output_bytes=<数值|unavailable> / context_reduction_ratio=<数值|unavailable> / critical_evidence_preserved=<true|false|unavailable> / locator_preserved=<true|false|unavailable> / false_negative_count=<数值|unavailable>
 **审计修订轮**: 0 / 上限=2
+**节点重入**: node_reentry=<reused|executed|forced> / reentry_probe_at=<时间|n/a> / reentry_evidence=<产物路径:字节|pending_owner_verification>
 **T8 技术终检**: ⬜ 未完成 / ✅ 完成
 **Phase 5 主人验收**: ⬜ 未决策 / ✅ accepted / 🔁 revision_requested / ↩ restart_phase / ⏸ deferred
 
