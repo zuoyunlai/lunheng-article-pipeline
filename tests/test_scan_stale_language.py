@@ -19,7 +19,7 @@ ROOT = pathlib.Path(__file__).parent.parent
 
 # 可见面 = 净化包会携带的文件（与门 Q 同口径：排除教训索引 / 设计文档 / archive / CHANGELOG）
 EXCLUDE_PARTS = ("教训索引", "设计文档", "/archive/", "lessons-max.snapshot")
-EXCLUDE_NAMES = {"CHANGELOG.md"}
+EXCLUDE_NAMES = {"CHANGELOG.md", "CHANGELOG-archive.md", "changelog-cold-v2.0-v2.11.md"}
 
 
 def _visible_files():
