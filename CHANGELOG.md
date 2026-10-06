@@ -45,10 +45,12 @@
 
 ### 验收
 
-- `check-version.sh` **98/98 ✅**（v2.15.10）· `contract-check` PASS · `changelog-check --check` PASS · `flow-check` exit 0 · `markdown-structure-lint` PASS · `dispatch-contract --check` PASS（3 派发块 + 1 轮次块 + 2 owner 载体）
-- 快速回路 `pytest -m "not slow"` **605 passed / 1 skipped / 103 deselected**（113.36s；含新增节点数漂移反向注入 1 项）
+- `check-version.sh` **98/98 ✅**（v2.15.11）· `contract-check` PASS · `changelog-check --check` PASS · `flow-check` exit 0 · `markdown-structure-lint` PASS · `dispatch-contract --check` PASS（3 派发块 + 1 轮次块 + 2 owner 载体）
+- **全量 pytest 707 passed / 2 skipped（486.84s）**
+- 快速回路 `pytest -m "not slow"` **605 passed / 1 skipped**（113.36s；含新增节点数漂移反向注入 1 项）
 - 自审门 **42 PASS / 0 FAIL**（门 Z = 40 未越限）；门 Y 四个棘轮文件本轮未改动，无新增债务
 - `sync-version.sh` 归一化复核：9/9 通过，无残留 `.bak`
+- 门 AA：升版后按生成器重装配，26 节点切片逐字节一致（装配视图为生成物，bump 时只随真源重生成；棘轮字节维持 69294 B）
 
 ---
 
