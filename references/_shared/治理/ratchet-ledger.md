@@ -20,12 +20,12 @@ debt:
   - path: "references/agents/00-主控-扩展职责.md"
     raised_at: "2026-10-02"
     from: 69808
-    to: 70039
-    settle_to: 70039
+    to: 70189
+    settle_to: 70189
     due_version: "2.18.0"
     status: "settled"
     settled_at: "2026-10-03 (v2.15.9)"
-    reason: "v2.15.7 功能性新增 74923；v2.15.9 外移 §二十二 主动介入机制 -> _shared/真源/主动介入机制.md，回落至 70039（-4884 B）"
+    reason: "v2.15.7 功能性新增 74923；v2.15.9 外移 §二十二 主动介入机制 -> _shared/真源/主动介入机制.md，回落至 70189（-4734 B，与 v2.15.9 tag 实测一致；原记 70039/-4884 系笔误）"
   - path: "references/_shared/真源/phase-order.yaml"
     raised_at: "2026-10-02"
     from: 63928

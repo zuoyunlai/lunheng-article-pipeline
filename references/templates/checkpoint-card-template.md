@@ -188,14 +188,14 @@ progress_card 的 **plan** 字段承载流水线阶段清单——比在 markdow
 | 8 | Phase 3.6 批判+检测（T6+G14+修订） | |
 | 9 | Phase 4 审计（T7） | |
 | 10 | T7.5 完整性闸门 | |
-| 11 | T9 同行评审（条件启用） | |
+| 11 | T9 同行评审（默认触发，可 opt-out） | |
 | 12 | T8 终检 | |
 | 13 | Phase 5 终稿验收 | ✅ |
 
-- **T9 未启用**（mode 非 default 且主人未勾选）：该步从 plan 移除（或标 `completed` 跳过），不占 `in_progress`。
+- **T9 已关闭**（主人显式 opt-out）：该步从 plan 移除（或标 `completed` 跳过），不占 `in_progress`。
 - **状态翻转纪律**：一个节点真正完成（status.md 该节点 ✅ Done）→ plan 该步 `completed` + 下一节点 `in_progress` + 其余 `pending`。**禁止一次翻转多步**。
 
-#### 13 步 ↔ 25 节点映射说明（v2.12.54 R-1）
+#### 13 步 ↔ 26 节点映射说明（v2.12.54 R-1；v2.15.7 起节点数 26）
 
 > ① **本卡 plan 清单按 Phase 列 13 步，是「人环可见节点」的简化呈现**，与真源 **26 节点不等价**：13 步 ≠ 流程只有 13 个节点。机械闸门、条件节点与主控亲为节点**不单独占 plan 步**，被折叠进相邻步的实施明细（它们仍为必经节点，「不在 plan 清单」不等于「不执行」）。
 >
@@ -211,7 +211,7 @@ progress_card 的 **plan** 字段承载流水线阶段清单——比在 markdow
 >    8. Phase 3.6 批判+检测（T6+G14+修订） → `t6_critique`（Phase 3.6）+ `t5_feedback_revision`（Phase 3.7）。⚠️ 步骤名中的「**G14**」已不在本步：v2.12.40 起迁至 Phase 4.4 前置（含中文必跑；首审一次，如触发风格修订按闸门 §四复检 ≤2 轮），不在本三步内
 >    9. Phase 4 审计（T7） → `t7_audit`（Phase 4）+ `audit_revision`（Phase 4.2 审计修订回环）+ `t1b_targeted_review`（Phase 4.3 定向回查，v2.13.0；卡内未单列，折叠在本步实施明细）
 >    10. T7.5 完整性闸门 → `t7_5_integrity`
->    11. T9 同行评审（条件启用） → `t9_review`
+>    11. T9 同行评审（默认触发，可 opt-out） → `t9_review`
 >    12. T8 终检 → `t8_technical_final`
 >    13. Phase 5 终稿验收 → `phase5_acceptance`
 >

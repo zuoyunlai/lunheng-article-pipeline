@@ -10,7 +10,7 @@
 > 🔴 **本文件是全仓唯一承载「流水线全景」的派生视图**（v2.12.54 R-1 收敛）。SKILL.md、README、QUICKSTART、pipeline-readme、设计文档、checkpoint-card、glossary 等文档**已删除全景段，只留指向本文件的指针**——重列即构建期红（flow-check 规则 24；登记真源 = `phase-order.yaml` `panorama_sources`）。
 >
 > **流程顺序与阻断关系的唯一真源是 [`phase-order/`](phase-order/) 目录**；[`phase-order.yaml`](phase-order.yaml) 是装配视图（生成物，禁手改）。本文件是派生视图，与真源冲突时以真源为准。
-> **真源与读法（v2.13.5 R-21 增量 2：真源已倒置）**：流程真源 = **`phase-order/` 目录**——[`index.yaml`](phase-order/index.yaml)（跨阶段共用契约 + 别名映射 + **节点路由/顺序**）与 `phase-order/<node-id>.yaml`（25 个节点切片，含 `kind` / `condition` / `next` / `after_each` / `output_chars_max` / `independence_rules` 等全部字段）**共同构成唯一真源**；[`phase-order.yaml`](phase-order.yaml) 是它们的**装配视图（生成物，禁手改）**，保留原路径供 flow-check / 门 S / 既有引用读取。
+> **真源与读法（v2.13.5 R-21 增量 2：真源已倒置）**：流程真源 = **`phase-order/` 目录**——[`index.yaml`](phase-order/index.yaml)（跨阶段共用契约 + 别名映射 + **节点路由/顺序**）与 `phase-order/<node-id>.yaml`（26 个节点切片，含 `kind` / `condition` / `next` / `after_each` / `output_chars_max` / `independence_rules` 等全部字段）**共同构成唯一真源**；[`phase-order.yaml`](phase-order.yaml) 是它们的**装配视图（生成物，禁手改）**，保留原路径供 flow-check / 门 S / 既有引用读取。
 > **主控读法**：每进入一个节点前读 **①[索引](phase-order/index.yaml)** + **②该节点切片**，**不必读装配视图全文**（单次运行读取量约 −95%）。装配视图被手改、或改了真源未重生成，均由门 AA（维护者侧生成器 --check）当场判红；**不凭本段文字记忆推进**。
 >
 > 📎 **与 [`pipeline-readme.md`](../../pipeline-readme.md) 的分工**（v2.12.40 起显式声明）：本文件 = **派生速查视图**（全景 + 修订回环仲裁）；`pipeline-readme.md` = **完整运行手册**（触发词 / 适用边界 / 模型配置 / 派发话术索引 / 模板加载策略等百科内容）。**两者不可互替、不可精简为对方。**
@@ -71,6 +71,7 @@ t9_review.recheck_max_rounds: 0
 | **轮 1** | v2 → v3：**批判修订**（Phase 3.6 `t6_critique` 出报告 → Phase 3.7 `t5_feedback_revision`） | ✅ 计入 |
 | **轮 2** | v3 → v4（→ v5）：**审计修订**（Phase 4.2 `audit_revision`，审计阶段内部 ≤2 轮；对外计 1 轮） | ✅ 计入 |
 | minor | v 之后 minor cosmetic（≤5% 字 / 引用格式 / 拼写）→ T8 inline 亲修 | 独立登记（不计轮） |
+| B 类扩写 | T9「扩写/改写清单」经主人选 B → spawn T5 v4（任务书附扩写清单 + 目标期刊要求；字数档位字段须主人拍板后才同步） | 独立登记（不计轮；决策协议真源 = `agents/09-审稿-peer-reviewer.md`「主控决策协议」） |
 | 超限 | 耗尽 2 轮仍有 P0 / 结构性 P1 → **Acknowledged Limitations**（主人 20:42 裁定维持；须主人拍板） | 例外通道 |
 
 > **对外承诺口径**：论衡对外承诺「**常规批判/审计修订 ≤2 轮**」；Phase 3.5 主人洞察轮、minor 修补通道（含「章节级 minor」）、超限例外通道均为**显式披露的独立计数**（在交付说明中登记，不混入 2 轮承诺）——不存在静默的无限修订。章节级 minor 的判据：仅改单章、不改整体结构、跨章引用/结论不变、该章字数波动 ≤5%；否则不得走 minor 通道。

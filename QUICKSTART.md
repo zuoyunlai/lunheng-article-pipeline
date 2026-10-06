@@ -2,7 +2,7 @@
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
-> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（25 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order/` 目录。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（26 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order/` 目录。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 # 论衡快速开始指南
 
@@ -42,7 +42,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # 建议 pi
 
 使用论衡技能会触发以下副作用，请使用前确认你已理解并同意：
 
-- **⚠️ 文件写入**（**须先经 Phase 0 显式同意**，未确认前不写任何文件）：确认文件清单后，主控与各子代理会在 workspace 创建/修改约 15-25 个文件——`status.md` 状态机、`run/<项目名>/`（任务简报/文献卡/数据卡/案例卡/草稿/审计报告/定稿）、各子代理心跳文件；**仅写 workspace 内**，不写 workspace 外
+- **⚠️ 文件写入**（**须先经 Phase 0 显式同意**，未确认前不写任何文件）：确认文件清单后，主控与各子代理会在 workspace 创建/修改约 15-25 个文件——`status.md` 状态机、`run/<项目名>/`（任务简报/文献卡/数据卡/案例卡/草稿/审计报告/定稿）、各子代理心跳文件（**默认不写**：Phase 0 勾选「Operational Telemetry」才启用，启用后启动 + 每约 5 分钟追加一行；真源 = external-services.md）；**仅写 workspace 内**，不写 workspace 外
 - **Web 检索外发**：检索关键词 + 目标 URL 会发送到外部服务（web_search / tavily_search / web_fetch / tavily_extract）
 - **可选手动 sha256 验证**：主控会发占位符 `[SHA256-PENDING:HOST-VERIFY]`，如需真实 hash 需主人在 host shell 手动计算后回填
 
@@ -57,8 +57,8 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # 建议 pi
 # 2. 主控自动派 T1∥T2∥T3 三检索员并行检索
 # 3. 主控自动派 T4 分析 → T5 写手 → T6 批判 → T7 审计 → T8 主控终检
 #    
-# 3.5 Phase 4.5 派发（**按模式 / 按条件 / 默认启用**，均不是主人自由开关）：
-#     T9 同行评审（按模式：行业分析/学术默认开、公众号默认关）+ G14 中文 AI 痕迹闸（按条件：目标语言含中文即必跑，Phase 4.4 前置、只审一次）+ 方法论足迹面板（默认启用）  <!-- G14 九类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列九类） -->
+# 3.5 Phase 4.5 派发（**按条件 / 默认触发 / 默认启用**，均不是主人自由开关）：
+#     T9 同行评审（默认触发，主人显式 opt-out 才关闭）+ G14 中文 AI 痕迹闸（按条件：目标语言含中文即必跑，Phase 4.4 前置、只审一次）+ 方法论足迹面板（默认启用）  <!-- G14 九类判定真源 = gates/14-中文AI痕迹-gate.md §二 + checkers/中文AI痕迹-checker.md（本节不重列九类） -->
 # 4. 交付一份带引用来源的高质量长文
 ```
 
@@ -116,7 +116,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # 建议 pi
 6. **Phase 3.5 主人洞察补充**（人在环，必到）：主控呈现初稿 v1，主人选择提供洞察或「无补充」；有洞察才由 T5 写手融入 v2，二者都必须记录
 7. **Phase 3.6 批判派发**：自动派 **T6** 批判伙伴攻击 v2（含主人洞察）
 8. **Phase 4 审计派发**：自动派 **T7** 审计员
-9. **Phase 4.4 前置 + Phase 4.5 派发**（三项分别按「**按条件 / 按模式 / 默认启用**」决定）：
+9. **Phase 4.4 前置 + Phase 4.5 派发**（三项分别按「**按条件 / 默认触发 / 默认启用**」决定）：
    - **T9 同行评审**：默认触发；主人如需关闭，必须在任务简报记录显式 opt-out 及理由。6 维度评分 → accept/minor/major/reject。T9 结果必须在对话中呈现给主人
    - **G14 中文 AI 痕迹闸**（**目标语言含中文即必跑**，非可选项）：位置 = **Phase 4.4 前置**（`g14_style_gate`），**首审只一次；风格修订后按闸门 §四全文复检 ≤2 轮**；轻量档（**2000-3000 字**）走内置「G14 自检」；纯外语记 `n/a`；主人显式关闭须走「豁免 + 披露」窄口。9 类判定，0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1）/ 5+ 类 Fail → 仅风格层修订
    - **方法论足迹面板**（**默认启用**）：status.md 每阶段自动更新，按档位裁剪字段集（借鉴 deep-research-pro）
@@ -131,7 +131,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # 建议 pi
 预计时间（典型项目）：
 - 轻量档（**2000-3000 字**）：约 30-60 分钟
 - 中段档（3000-5000 字）：约 1-2 小时
-- 重量档（5000+ 字）：约 2-4 小时（估计值；已有 1 例实测 ~2h40m，仍不足 3 档位实测；登记表 = `references/_shared/真源/performance-benchmarks.md`）
+- 重量档（5000+ 字）：约 2-4 小时（估计值；已有 2 例实测 ~2h40m / ~2h42m 活动窗，仍不足 3 档位实测；登记表 = `references/_shared/真源/performance-benchmarks.md`）
 
 **注意**：实际时间包含 LLM 推理等待，可能因网络/模型负载波动
 
@@ -165,6 +165,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # 建议 pi
 | **T7 审计员** | 质量检查 + 修订任务书 | Phase 4 |
 | **T8 终检** | 交付物完整性 + AI 使用披露 | Phase 5 |
 | **T9 同行评审** | 预演期刊审稿（6 维度评分 → accept/minor/major/reject） | Phase 4.5（默认触发；主人显式 opt-out 才关闭） |
+| **T9b 压力测试** | 三剧本文本压力测试（方法论/立场/跨语境审查者） | Phase 4.5 后置（**默认不跑**，主人冲刺投稿时 Phase 0 勾选开启） |
 
 > **G14 中文 AI 痕迹闸**：**Phase 4.4 前置**（`g14_style_gate`），**首审只一次；风格修订后全文复检 ≤2 轮**；与 T6 **已解耦**（v2.12.40）；适用性 = 目标语言含中文即必跑（纯外语 `n/a`）。9 类判定（学术模板语/句式同质化/学术套话/破折号/三项排比/人称/辨识度/党报话语/防御性写作），0-2 类 Pass / 3-4 类 Warning（主控呈报 3 选 1，不自动修订）/ 5+ 类 Fail → T5 最后一次风格层修订（`t5_style_revision`）。
 
@@ -214,8 +215,8 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # 建议 pi
 ### 技巧 4：失败时用「Acknowledged Limitations」模式
 
 如修订超 2 轮仍有 P0/P1：
-- 主控不再死磕
-- 改为在文末列「未关闭项」清单
+- 主控暂停，**呈主人裁决**（轮次耗尽不得自动降级；三选一出口真源 = `phase-order.yaml` `rounds_exhausted_outlet`）
+- 主人拍板后：在文末列「未关闭项」清单
 - 搬入 `final/局限性.md`
 - 论文正常交付（不假装完美）
 
@@ -248,10 +249,10 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # 建议 pi
 
 ### Q2：数据来源可以是二手转引吗？
 
-**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/真源/glossary-full.md)。**🟢🟡🔴 是「信任级别」标识**，**与「时效评级」不共用**——时效评级用文字描述（≤2 年 / 2-5 年 / >5 年，详见 [`references/_shared/真源/audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md) 的 G11 条）：
-- 🟢 已发布公开数据（最高信任）
-- 🟡 主人投喂数据（中信任）
-- 🔴 二手转引（低信任，必须回溯一次文献 + 顶部标注）
+**答：可以但严格限制。** 详见 [`glossary-full.md § 三 数据信任级别`](references/_shared/真源/glossary-full.md)。两轴不混用：**信任级别只用文字取值**（已发布 / 主人投喂 / 二手转引）；**🟢🟡🔴 专用于「时效评级」**（🟢 ≤2 年 / 🟡 1-3 年 / 🔴 >3 年，详见 [`references/_shared/真源/audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md) 的 G11 条）：
+- 已发布公开数据（最高信任）
+- 主人投喂数据（中信任）
+- 二手转引（低信任，必须回溯一次文献 + 顶部标注）
 
 ---
 

@@ -68,6 +68,14 @@ def check_line(line: str, counts: dict):
         for m in re.finditer(r"(\d+)\s*(?:个)?文件", line):
             neq(m.group(1), counts["dispatch_files"], "dispatch 文件数")
 
+    # v2.15.11：节点数接入计数真源（25→26 漏改的根因修复）；历史沿革白名单照常豁免
+    for m in re.finditer(r"(\d+)\s*节点全表", line):
+        neq(m.group(1), counts["pipeline_nodes"], "全景节点数")
+    for m in re.finditer(r"(\d+)\s*个节点切片", line):
+        neq(m.group(1), counts["pipeline_nodes"], "节点切片数")
+    for m in re.finditer(r"(\d+)\s*节点，seq", line):
+        neq(m.group(1), counts["pipeline_nodes"], "节点总数（seq 注）")
+
     for m in re.finditer(r"(\d+)\s*Form\s*\+\s*(\d+)\s*Exist\s*\+\s*(\d+)\s*Integrity", line):
         neq(m.group(1), counts["m_gate_items"]["form"], "M-Form 项数")
         neq(m.group(2), counts["m_gate_items"]["exist"], "M-Exist 项数")
@@ -121,7 +129,7 @@ def collect_drift(root: pathlib.Path = ROOT):
 def test_counts_file_parses():
     c = load_counts()
     for key in ("g14_classes", "errors", "journals", "dispatch_files", "g_checklist_items", "t8_items",
-                "t9_dimensions", "m_gate_items", "role_cards", "role_card_files"):
+                "t9_dimensions", "m_gate_items", "role_cards", "role_card_files", "pipeline_nodes"):
         assert key in c, f"counts.yaml 缺键：{key}"
     assert c["m_gate_items"]["total"] == (
         c["m_gate_items"]["form"] + c["m_gate_items"]["exist"] + c["m_gate_items"]["integrity"]
@@ -178,6 +186,13 @@ def test_checker_catches_wrong_dispatch_count(tmp_path):
     root = _mini_tree(tmp_path, "dispatch 派发话术共 10 个文件。\n")
     drift = collect_drift(root)
     assert drift and "dispatch" in " ".join(drift), f"漏报 dispatch 文件数漂移：{drift}"
+
+
+def test_checker_catches_wrong_pipeline_node_count(tmp_path):
+    """v2.15.11：节点数漂移必须被抓（实测 v2.15.7 新增节点后 7 处指针块漏改 25→26）。"""
+    root = _mini_tree(tmp_path, "全景速查（25 节点全表 + 修订回环仲裁规则）。\n")
+    drift = collect_drift(root)
+    assert drift and "全景节点数" in " ".join(drift), f"漏报节点数漂移：{drift}"
 
 
 def test_whitelist_exempts_changelog_and_archive(tmp_path):

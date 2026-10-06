@@ -29,13 +29,20 @@ journals:
 dispatch_files: 11
 
 # 版本文件数（维护者侧版本一致性清单真源；历史沿革中的旧数字不参与扫描）
-version_files: 97
+version_files: 98
 
 # 高频分档口径（references/_shared/真源/字数判定表.md §五）
 word_tiers:
   light: "2000-3000"
   medium: "3000-5000"
   heavy_min: 5000
+
+# 流水线全景节点数（真源 = references/_shared/真源/phase-order/ 目录切片数；v2.15.11 接入 test_count_drift 三模式扫描）
+pipeline_nodes: 26
+
+# 布尔口径声明（文档一致性靠 grep/评审护，不接数值扫描——布尔句式无稳定数字模式）
+t9_default: triggered        # T9 默认触发，主人显式 opt-out 才关闭（真源 = phase-order/t9_review.yaml + dispatch/T9 契约块）
+heartbeat_telemetry: opt_in  # 心跳遥测默认不写，Phase 0 勾选 Operational Telemetry 才启用（真源 = external-services.md）
 
 # G 质量审计清单项数（G0-G18；G18 内部 12 项不拆成独立 G 门）
 g_checklist_items: 21

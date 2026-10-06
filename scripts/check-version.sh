@@ -100,6 +100,9 @@ CHECKS=(
   "gates/14-中文AI痕迹-gate.md|v$EXPECTED|1"
   "checkers/中文AI痕迹-checker.md|v$EXPECTED|1"
 
+  # v2.15.11 版本矩阵盲区补入：G18 真源（原带内部版本标记却不在两矩阵，D3 同型）
+  "_shared/真源/方法论-审计清单.md|v$EXPECTED|1"
+
   # 扩展 _shared 协议（实战反馈 + v2.5.0/v2.5.1 新增）
   "_shared/真源/执行韧化协议-exec.md|v$EXPECTED|1"
   "_shared/真源/执行韧化协议-design.md|v$EXPECTED|1"

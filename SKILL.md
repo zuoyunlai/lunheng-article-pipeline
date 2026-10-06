@@ -25,7 +25,7 @@ metadata:
     research:   ["base", "research_extra"]
     analysis:   ["base"]
     writing:    ["base"]
-    audit:      ["read"]   # P2-3 修复（2026-09-30）：原 fmt: 与 permissions.md 档位命名真源 (audit) 不一致；T6 批判 + T7 审计 + G14 中文 AI 痕迹闸均映射至此
+    audit:      ["read"]   # P2-3 修复（2026-09-30）：原 fmt: 与 permissions.md 档位命名真源 (audit) 不一致；T6 批判 + T7 审计映射至此（G14 中文 AI 痕迹闸归 review 档，与 T9 同为「报告回传、主控落盘」只读档）
     review:     ["read"]
 ---
 > 版本：v2.15.10（自动同步 2026-10-05）
@@ -34,7 +34,7 @@ metadata:
 
 ## 触发场景 + 字数分层
 
-**触发关键词**（**仅候选提示，非自动启动**；须与下方「适用场景」判据同时命中，并经 Phase 0 确认）：深度长文 / 学术论文 / 商业评论 / 行业分析。**不适用**：新闻快讯（<24h）/ 营销软文 / 需一手数据而主人未提供 / <3000 字短文（主控+写手直写）。
+**触发关键词**（**仅候选提示，非自动启动**；须与下方「适用场景」判据同时命中，并经 Phase 0 确认）：深度长文 / 学术论文 / 商业评论 / 行业分析。**不适用**：新闻快讯（<24h）/ 营销软文 / 需一手数据而主人未提供 / <2000 字短文（主控+写手直写；2000-3000 字可走轻量档，见下方分层）。
 
 **适用场景**：涉及事实/数据/多方观点、需要证据底座与人在环把关，且主人愿等待 1-3 小时。定位为中文学术/深度长文流水线；中文特化是设计定位，非 locale 限制。
 
@@ -84,7 +84,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 ## ⚠️ 执行前安全须知 + 外部服务声明（精简）
 
-**文件写入警告**：运行时创建/修改 `run/<项目名>/` 下 `status.md` + 项目文件树（约 15-25 个文件）+ 心跳 `.tmp/<两位角色号>-<角色名>-heartbeat.md`（启动 + 每约 5 分钟一行）。**仅写 workspace 根内**，Phase 0 必须先列全部将创建文件让主人确认后才进 Phase 1。**<项目名> 由主人确认**（**可 LLM 自动命名，不强制中文**；主人**可否决/改名**）。
+**文件写入警告**：运行时创建/修改 `run/<项目名>/` 下 `status.md` + 项目文件树（约 15-25 个文件）+ 心跳 `.tmp/<两位角色号>-<角色名>-heartbeat.md`（**默认不写**：Phase 0 勾选「Operational Telemetry」才启用；启用后启动 + 每约 5 分钟一行，真源 = external-services.md）。**仅写 workspace 根内**，Phase 0 必须先列全部将创建文件让主人确认后才进 Phase 1。**<项目名> 由主人确认**（**可 LLM 自动命名，不强制中文**；主人**可否决/改名**）。
 
 **主控 Phase 0 4 选 1 明示同意**（fail-closed，无记录 = 不得进 Phase 1；真源 = [`关键协议.md`](references/_shared/真源/关键协议.md)），写入 `01-任务简报.md`「外部服务同意记录」段。
 
@@ -109,7 +109,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 | 安全外发 / 字数分层 / M 门算法 / 交付边界 / 模型 5 档 / 其余条目 | [`asset-index.md`](references/_shared/真源/asset-index.md) 全表 + [`skill-entry-appendix.md`](references/_shared/真源/skill-entry-appendix.md) §五 |
 
 **派发话术**（教训 #268，spawn 哪角色读哪文件，勿凭记忆复制）：T1-T9 + G14 + T1b 共 11 文件（P2-1 修复 2026-09-30：与"11 概念角色"一致；与"12 物理角色卡文件"不互斥，因物理文件还含 dispatch-header.md 这类角色卡基础设施） → [`references/dispatch/`](references/dispatch/)。
-**角色速查**（10 角色卡 + G14）：T1 文献 · T2 数据 · T3 案例 · T4 分析 · T5 写手 · T6 批判 · T7 审计 · T8 终检 · T9 同行评审 · G14 中文 AI 痕迹检测闸（T8 = 主控亲为）。
+**角色速查**（T1-T9 + G14；T8 = 主控亲为，T9b 压力测试默认不跑；角色计数真源 = counts.yaml）：T1 文献 · T2 数据 · T3 案例 · T4 分析 · T5 写手 · T6 批判 · T7 审计 · T8 终检 · T9 同行评审 · G14 中文 AI 痕迹检测闸。
 
 
 **审计必查项**（G0-G18）→ [`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + 速查 [`audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md)；G11/G12/M 门三层 → [`M-Gate-核心.md`](references/_shared/真源/M-Gate-核心.md)（🟠 分片必读）；**G18 方法论审计**（v2.14.0 起）→ [`方法论-审计清单.md`](references/_shared/真源/方法论-审计清单.md)；**方法论留档模板**（v2.14.0 起）→ [`方法论章节-template.md`](references/templates/方法论章节-template.md) + [`方法论-落地示例.md`](references/_shared/真源/方法论-落地示例.md)。
@@ -120,7 +120,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 
 **T8 终检可发表性判据**：48 项（6 维度）唯一真源 = [`可发表性判定表.md`](references/_shared/真源/可发表性判定表.md)（各处只引用不罗列）。
 
-**T9 同行评审**（行业/学术默认开）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject；真源 = [`dispatch/T9-同行评审.md`](references/dispatch/T9-同行评审.md)；**v2.14.0 起新增 D2 方法论评分**（10 分制，真源 = [`方法论-审计清单.md` §五](references/_shared/真源/方法论-审计清单.md)）。
+**T9 同行评审**（默认触发，主人显式 opt-out 才关闭；轻量档不因档位静默跳过）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject；真源 = [`dispatch/T9-同行评审.md`](references/dispatch/T9-同行评审.md)；**v2.14.0 起新增 D2 方法论评分**（10 分制，真源 = [`方法论-审计清单.md` §五](references/_shared/真源/方法论-审计清单.md)）。
 
 ---
 

@@ -23,7 +23,7 @@
 ├── final/定稿.md + final/图件/ + final/证据包/ + final/交付说明.md # Phase 5
 ```
 
-**角色卡**（10 张，主控 + 9 子代理）：`references/agents/`（T8 终检有独立角色卡 `08-终检-final-inspector.md`，由主控亲完成不 spawn）
+**角色卡**（11 概念角色 / 12 物理卡文件，计数真源 = counts.yaml）：`references/agents/`（T8 终检有独立角色卡 `08-终检-final-inspector.md`，由主控亲完成不 spawn；T9b 默认不跑，见 phase-order）
 **角色速查**（11 张角色卡，`references/agents/`；T8 由主控亲完成不 spawn）：
 
 | 角色 | 职责 | 产出 |
@@ -36,7 +36,7 @@
 | **T6** 批判 | C1-C7 七维批判（攻击 v2 不是 v1） | `analysis/批判报告-vN.md` |
 | **T7** 审计 | G0-G18 独立审计（只审不改） | `audits/审计报告-vN.md` |
 | **T8** 终检 | 可发表性 48 项终检（主控亲完成，不 spawn） | `final/定稿.md` + 交付说明 |
-| **T9** 同行评审 | 6 维度评分（行业/学术默认开启，公众号可选） | `audits/审稿报告-vN.md` |
+| **T9** 同行评审 | 6 维度评分（默认触发；主人显式 opt-out 才关闭） | `audits/审稿报告-vN.md` |
 
 **流水线运行手册**（派发话术索引 + 模型配置 / 模板加载策略等百科内容；派发话术正文见 `references/dispatch/`，T8 不 spawn）：`references/pipeline-readme.md`
 
@@ -54,7 +54,7 @@
 - 中文数据源集成（OpenAlex/Crossref 默认关闭、Phase 0 勾选，无需 Key）：[`中文数据源集成.md`](中文数据源集成.md)
 - 多格式导出（可选 `--format md/latex/docx/pdf`）：[`format-export.md`](format-export.md)
 - 性能基准（四维实测登记）：[`performance-benchmarks.md`](performance-benchmarks.md)
-- 设计文档 / 实战案例库：[`references/设计文档.md`](../../设计文档.md) / [`references/case-studies.md`](../../case-studies.md)
+- 实战案例库：[`references/case-studies.md`](../../case-studies.md)（设计文档已收敛为纯索引页，不入本表）
 - 方法论实时可见面板（6 字段：当前阶段/证据强度/已触发闸门/下一步预测/不确定性/本轮模型分配）：[`status-template.md`](../../templates/status-template.md)「方法论足迹」段
 
 **T9 同行评审**（默认触发；主人显式 opt-out 才关闭）：6 维度 1-5 分（原创性 / 方法论 / 证据强度 / 论证结构 / 写作质量 / 引文规范），26-30 accept / 21-25 minor / 16-20 major / <16 reject。详见 [`references/agents/09-审稿-peer-reviewer.md`](../../agents/09-审稿-peer-reviewer.md) + [`references/templates/审稿报告-template.md`](../../templates/审稿报告-template.md)。
@@ -67,9 +67,9 @@
 
 | 用途 | 文档 | 加载时机 |
 |------|------|---------|
-| 核心概念单一真源（10 角色 + 三层防御 + 数据信任 3 档 + 工具边界）| [`glossary-full.md`](glossary-full.md)；子代理必读精简版 [`glossary-core.md`](glossary-core.md) | 🟡 按需 |
+| 核心概念单一真源（11 概念角色 + 三层防御 + 数据信任 3 档 + 工具边界）| [`glossary-full.md`](glossary-full.md)；子代理必读精简版 [`glossary-core.md`](glossary-core.md) | 🟡 按需 |
 | 快速开始（5 分钟上手）| [`QUICKSTART.md`](../../../QUICKSTART.md) | 新用户首读 |
-| 模型 5 档候选池 + 映射规则 | [`model-assignment.md`](../../model-assignment.md) | Phase 0 静态映射 |
+| 模型 5 档候选池 + 映射规则 | [`模型候选池.md`](模型候选池.md)（唯一真源；[`model-assignment.md`](../../model-assignment.md) 已降级为指针页） | Phase 0 静态映射 |
 | 交付边界 + F1-F9 失败模式 + M 门 + 阶段闸门 | [`deliverables.md`](../../deliverables.md) | Phase 0 读 / Phase 4-5 复核 |
 | F 体系详解 | [`failure-modes.md`](failure-modes.md) | Phase 0 / 4 |
 | 错误友好化（13 类常见错误）| [`errors.md`](../../errors.md) | 出错时查 |

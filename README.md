@@ -7,12 +7,11 @@
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
 ![GitHub Actions](https://img.shields.io/github/actions/workflow/status/zuoyunlai/lunheng-article-pipeline/quality.yml?branch=main&label=tests)
-![Code Quality](https://img.shields.io/badge/code%20quality-87%2F100-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 # 论衡（lunheng-article-pipeline）— 中文学术 / 深度长文多 Agent 流水线
 
-> **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。5000+ 字强推。
+> **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。≥3000 字推荐全量（≥5000 强推）；2000-3000 字可走轻量档（真源 = `字数判定表.md` §五）。
 
 **v2.15.10**（2026-10-05，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**架构评审收口**：派发/轮次契约真源化（删代码侧无源常量，覆盖集 / 轮次 / owner 载体三族判据全部从切片现算）、T9b 压力测试轮降级 **opt-in**（默认不跑，冲刺投稿时显式开）、seq 漂移修正、CI 注释锚点 + Python 3.12 支持面声明、门 Y 棘轮重定 + 台账补登。
 
@@ -24,7 +23,7 @@
 
 **第一次使用？** 从 [`QUICKSTART.md`](QUICKSTART.md) 开始；它负责安装、任务简报示例、启动步骤和常见问题。本 README 只保留面向人的定位与能力概览；主控执行入口和运行纪律以 [`SKILL.md`](SKILL.md) 为准。
 
-**预计项目时间**：轻量档（**2000-3000 字**，真源 = `字数判定表.md`）30-60 分钟 / 中段档 1-2 小时 / 重量档（≥5000 字）2-4 小时。实测四维数据（字数/耗时/token/成本）唯一登记表 = [`references/_shared/真源/performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md)；重量档已有 1 例实测（~2h40m，2026-09-22）但不足 3 行不同档位实测，上述数字仍为估计值（禁线性外推，见该表 §三）。
+**预计项目时间**：轻量档（**2000-3000 字**，真源 = `字数判定表.md`）30-60 分钟 / 中段档 1-2 小时 / 重量档（≥5000 字）2-4 小时。实测四维数据（字数/耗时/token/成本）唯一登记表 = [`references/_shared/真源/performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md)；重量档已有 2 例实测（2026-09-22 ~2h40m；2026-09-25 活动窗 ~2h42m）但不足 3 行不同档位实测，上述数字仍为估计值（禁线性外推，见该表 §三）。
 
 ---
 
@@ -119,7 +118,7 @@
 
 ## 全景与阶段顺序（指针）
 
-> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（25 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order/` 目录。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
+> 📎 **流水线全景与阶段顺序** → [唯一派生视图](references/_shared/真源/pipeline-overview.md)（26 节点全表 + 修订回环仲裁规则）；顺序与阻断关系的唯一真源 = `phase-order/` 目录。本文件**不重列全景**（重列即构建期红，flow-check 规则 24）。
 
 ## 怎么用
 
@@ -172,7 +171,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.10  # pin 审�
 | v2.12.11 | 2026-09-10 | — | **全仓四路专项审计（口径漂移 / 执行衔接 / 净化链内泄漏 / 交叉引用）真问题全修：加固口径 fail-closed 统一 + 人在环超时兜底 + status.md 写入者收口 + G14/T7/T9 时序校正 + 净化链规则补漏** |
 | v2.12.34 | 2026-09-13 | 规范合规 | 官方规范审计整改：SKILL.md 11,335→9,996 字符（棘轮 10,000）+ description 876→123 字节 + 门 H 改仓库内快照判据 + `outputs/` 迁出技能根（37MB→2.8MB）|
 | v2.12.46 | 2026-09-15 | 架构定案 | 九角色多 Agent 为唯一标准架构 + Phase 编号成为第一类真源字段（flow-check 规则 11）+ 角色产物写入边界 + 人在环 4 个 checkpoint 机械门 |
-| v2.12.54 | 2026-09-18 | 真源收敛 | 全景与阶段顺序收敛为唯一派生视图（`pipeline-overview.md` 24 节点全表，flow-check 机械守）+ R-2~R-6 构建期校验 + T9 改默认启用 |
+| v2.12.54 | 2026-09-18 | 真源收敛 | 全景与阶段顺序收敛为唯一派生视图（`pipeline-overview.md` 全景单源，flow-check 机械守）+ R-2~R-6 构建期校验 + T9 改默认启用 |
 | v2.12.58 | 2026-09-19 | 门扩围 | M 门文档围栏错位修复 + 自审门 X 新增并**全仓扩围**（X.1-X.4，扩围即抓到第二例同类缺陷）|
 | v2.12.59 | 2026-09-19 | 判据面 | 全面审计第一批整改：悬空指针补建（`host-verify-recipe.md`）+ 门 U 扩第三类扫描面（活文档内联引用）+ §十六 分层指针 + 定稿图件口径显式化 |
 | v2.12.60 | 2026-09-19 | 机械锁 | 图件**嵌入式**图位机械锁（M-11 双计数 + flow-check 20b）+ 节点 `kind` 必填门（32）+ 补打 4 个缺失 tag |
