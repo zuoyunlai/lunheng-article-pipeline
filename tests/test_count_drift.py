@@ -100,6 +100,14 @@ def check_line(line: str, counts: dict):
         for m in re.finditer(r"(\d+)\s*张角色卡", line):
             neq(m.group(1), counts["role_cards"], "角色卡数")
 
+    # v2.15.12（审计 P-2）：T9 默认口径**矛盾型**旧散句（「按模式开关 / 公众号默认关 / T9 默认关」）
+    #   真源 = counts.yaml \`t9_default\` + phase-order/t9_review.yaml；历史小节白名单照常豁免。
+    #   注：「T9 默认开启（可 opt-out）」与真源同义，不算漂移，故不入列。
+    if "T9" in line:
+        for bad in ("T9 默认关", "按模式开关", "公众号默认关"):
+            if bad in line:
+                msgs.append(f"T9 默认口径：出现旧散句「{bad}」（真源 = counts.yaml t9_default）")
+
     return msgs
 
 
@@ -129,7 +137,8 @@ def collect_drift(root: pathlib.Path = ROOT):
 def test_counts_file_parses():
     c = load_counts()
     for key in ("g14_classes", "errors", "journals", "dispatch_files", "g_checklist_items", "t8_items",
-                "t9_dimensions", "m_gate_items", "role_cards", "role_card_files", "pipeline_nodes"):
+                "t8_formal_compliance", "t8_publishability", "t9_dimensions", "t9_methodology_dimensions",
+                "m_gate_items", "role_cards", "role_card_files", "pipeline_nodes"):
         assert key in c, f"counts.yaml 缺键：{key}"
     assert c["m_gate_items"]["total"] == (
         c["m_gate_items"]["form"] + c["m_gate_items"]["exist"] + c["m_gate_items"]["integrity"]
@@ -137,11 +146,58 @@ def test_counts_file_parses():
     assert c["journals"]["total"] == c["journals"]["zh"] + c["journals"]["en"], "期刊总数 ≠ 中文 + 英文"
 
 
+def counts_internal_mismatches(c: dict):
+    """counts.yaml 内部自洽（分组之和 = 总数）；反例见反向注入测试。"""
+    msgs = []
+    if c["t8_items"] != c["t8_formal_compliance"] + c["t8_publishability"]:
+        msgs.append(
+            f"T8 总数 {c['t8_items']} ≠ 组 A-E {c['t8_formal_compliance']} + 组 F {c['t8_publishability']}"
+        )
+    if c["m_gate_items"]["total"] != (
+        c["m_gate_items"]["form"] + c["m_gate_items"]["exist"] + c["m_gate_items"]["integrity"]
+    ):
+        msgs.append("M 门总数 ≠ 分组之和（自发自证基线破坏）")
+    if c["journals"]["total"] != c["journals"]["zh"] + c["journals"]["en"]:
+        msgs.append("期刊总数 ≠ 中文 + 英文")
+    return msgs
+
+
+def phase_order_slices(root: pathlib.Path = ROOT):
+    """phase-order/ 物理节点切片（排除路由文件 index.yaml）。"""
+    d = root / "references" / "_shared" / "真源" / "phase-order"
+    return sorted(p for p in d.glob("*.yaml") if p.name != "index.yaml")
+
+
+def test_counts_internal_consistency():
+    """v2.15.12（审计 P-3）：48 项必须显式拆成「组 A-E 17 + 组 F 31」。"""
+    assert not counts_internal_mismatches(load_counts())
+
+
 def test_counts_match_repo_reality():
     """真源数字必须与仓库实物一致（防「真源自己写错」）。"""
     c = load_counts()
     assert len(list((ROOT / "references" / "dispatch").glob("*.md"))) == c["dispatch_files"]
     assert len(list((ROOT / "references" / "agents").glob("*.md"))) == c["role_card_files"]
+    # v2.15.12（审计 P-7）：phase-order/ 目录物理切片数纳入实物核对 ——
+    #   「加了 yaml 但没登记 index.yaml」这类静默漂移在此硬失败。
+    slices = phase_order_slices()
+    assert len(slices) == c["pipeline_nodes"], (
+        f"phase-order/ 物理切片 {len(slices)} ≠ counts.yaml pipeline_nodes {c['pipeline_nodes']}"
+    )
+
+
+def test_reverse_injection_t8_split_mismatch():
+    """反向注入：把 48 拆错（17 + 30）必须被抓。"""
+    broken = dict(load_counts())
+    broken["t8_publishability"] = 30
+    assert counts_internal_mismatches(broken), "T8 17+30 ≠ 48 未被抓"
+
+
+def test_reverse_injection_m_gate_split_mismatch():
+    """反向注入：M 门分组之和 ≠ 13 必须被抓。"""
+    broken = dict(load_counts())
+    broken["m_gate_items"] = {"form": 8, "exist": 3, "integrity": 3, "total": 13}
+    assert counts_internal_mismatches(broken), "M 门 8+3+3 ≠ 13 未被抓"
 
 
 def test_no_count_drift_in_repo():
@@ -237,3 +293,44 @@ def test_checker_catches_wrong_role_card_count(tmp_path):
     root = _mini_tree(tmp_path, "论衡有 10 张角色卡。\n")
     drift = collect_drift(root)
     assert drift and "角色卡数" in " ".join(drift), f"漏报角色卡数漂移：{drift}"
+
+
+# ------------------------------------------------ T9 默认口径真源（v2.15.12，审计 P-2）
+
+
+def test_t9_default_matches_phase_order():
+    """counts.yaml `t9_default` 必须与 phase-order/t9_review.yaml 的 `default:` 一致。"""
+    c = load_counts()
+    node = ROOT / "references" / "_shared" / "真源" / "phase-order" / "t9_review.yaml"
+    m = re.search(r"^\s*default:\s*(\S+)", node.read_text(encoding="utf-8"), re.M)
+    assert m, "t9_review.yaml 未声明 default（T9 默认口径真源缺失）"
+    assert m.group(1) == c["t9_default"], (
+        f"t9_review.yaml default={m.group(1)} ≠ counts.yaml t9_default={c['t9_default']}"
+    )
+
+
+def test_checker_catches_t9_default_prose_drift(tmp_path):
+    """反向注入：文档层「按模式开关 / 公众号默认关」旧散句必须被抓。"""
+    root = _mini_tree(tmp_path, "- T9 行业分析学术默认开、公众号默认关（按模式开关）\n")
+    drift = collect_drift(root)
+    assert drift and "T9 默认口径" in " ".join(drift), f"漏报 T9 默认口径散句：{drift}"
+
+
+def test_no_t9_default_prose_drift_in_repo():
+    """正向：全仓不得再出现 T9 默认口径旧散句（v2.15.11 §1 P1-4 只统一了文本）。"""
+    drift = [d for d in collect_drift() if "T9 默认口径" in d]
+    assert not drift, "T9 默认口径散句漂移：\n" + "\n".join(drift)
+
+
+# ---------------------------------------- phase-order seq 连续性（v2.15.12，审计 L-2）
+
+
+def test_phase_order_index_seq_is_contiguous():
+    """index.yaml `nodes[].seq` 必须条数与 pipeline_nodes 一致且连续 0..N-1。"""
+    c = load_counts()
+    text = (ROOT / "references" / "_shared" / "真源" / "phase-order" / "index.yaml").read_text(encoding="utf-8")
+    seqs = [int(x) for x in re.findall(r"^\s*-\s*seq:\s*(\d+)", text, re.M)]
+    assert len(seqs) == c["pipeline_nodes"], (
+        f"index.yaml seq 条数 {len(seqs)} ≠ pipeline_nodes {c['pipeline_nodes']}"
+    )
+    assert seqs == list(range(len(seqs))), f"index.yaml seq 不连续 / 乱序：{seqs}"

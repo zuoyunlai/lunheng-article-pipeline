@@ -1320,10 +1320,12 @@ fi
 # ⚠️ 2026-10-05 发版重定（v2.15.9 → v2.15.10）：四个必读文件各 +1 B。
 #   原因 = **版本戳机械变长**（2.15.9 → 2.15.10，每处版本头 +1 字符），
 #   属 sync-version.sh 的协议必做动作，**非内容膨胀**（台账 §二 structural_exempt 记为
-#   version_stamp_lengthening 类；注意该类「只允许发生一次」的规则与每版必发的事实冲突，
-#   已登记为台账设计待办，见 ratchet-ledger.md §二注）。
+#   version_stamp_lengthening 类；**2026-10-06 方案 A 定案**：该类按发版频率豁免，
+#   不计入 §四-3 三次上调铁律、不计入 §一 settle_to 比对，见 ratchet-ledger.md §二
+#   （原「只允许发生一次」与该类冲突的设计待办已销）。
 #   数值：00-主控 70277→70278 / M-Gate 77526→77527 / phase-order.yaml 69293→69294 / index.yaml 25358→25359
-#   三条 open 债务的 to 值同步累加（未销账不新开行），M-Gate-核心.md 新开 1 条。
+#   三条 open 债务的 to 值同步累加（未销账不新开行）；M-Gate-核心.md 那条为**纯版本戳机械变长**，
+#   2026-10-06 起按 §二 豁免口径**移出** §一 债务、记为豁免实例（不新开债务行）。
 BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70278,references/_shared/真源/M-Gate-核心.md|77527,references/_shared/真源/phase-order.yaml|69294,references/_shared/真源/phase-order/index.yaml|25359"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。

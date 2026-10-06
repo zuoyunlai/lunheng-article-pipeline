@@ -1,9 +1,9 @@
 ---
 name: lunheng-article-pipeline
-description: "学术论文/深度长文/行业分析流水线：含同行评审与期刊/发布渠道匹配建议（advisory）。不调用执行类工具（exec/process/code_execution，声明式）；主控持有会话编排与状态类工具（多 Agent 派发/收报告的设计内必需面）。标准架构 = 多 Agent 九角色；worker 不可用按节点接管并披露（详正文）。Routine 写盘（status.md / audits/）已声明；心跳为 opt-in「Operational Telemetry」。v2.14.0 起新增 G18 方法论审计（12 项清单 + D2 评分）。"
+description: "学术论文/深度长文/行业分析流水线：含同行评审与期刊/发布渠道匹配建议（advisory）。不调用执行类工具（exec/process/code_execution，声明式）；主控持有会话编排与状态类工具（多 Agent 派发/收报告的设计内必需面）。标准架构 = 多 Agent 九角色流水线（角色卡 11 张，含 T0 主控 + T9b 压力测试；T9b 默认不跑）；worker 不可用按节点接管并披露（详正文）。Routine 写盘（status.md / audits/）已声明；心跳为 opt-in「Operational Telemetry」。v2.14.0 起新增 G18 方法论审计（12 项清单 + D2 评分）。"
 metadata:
   openclaw:
-    version: 2.15.11
+    version: 2.15.12
     requires:
       bins: []
     # v2.15.7：交付建议默认经聊天渠道转发（声明性，加载器不执行）
@@ -28,7 +28,7 @@ metadata:
     audit:      ["read"]   # P2-3 修复（2026-09-30）：原 fmt: 与 permissions.md 档位命名真源 (audit) 不一致；T6 批判 + T7 审计映射至此（G14 中文 AI 痕迹闸归 review 档，与 T9 同为「报告回传、主控落盘」只读档）
     review:     ["read"]
 ---
-> 版本：v2.15.11（自动同步 2026-10-06）
+> 版本：v2.15.12（自动同步 2026-10-06）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
@@ -109,7 +109,7 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 | 安全外发 / 字数分层 / M 门算法 / 交付边界 / 模型 5 档 / 其余条目 | [`asset-index.md`](references/_shared/真源/asset-index.md) 全表 + [`skill-entry-appendix.md`](references/_shared/真源/skill-entry-appendix.md) §五 |
 
 **派发话术**（教训 #268，spawn 哪角色读哪文件，勿凭记忆复制）：T1-T9 + G14 + T1b 共 11 文件（P2-1 修复 2026-09-30：与"11 概念角色"一致；与"12 物理角色卡文件"不互斥，因物理文件还含 dispatch-header.md 这类角色卡基础设施） → [`references/dispatch/`](references/dispatch/)。
-**角色速查**（T1-T9 + G14；T8 = 主控亲为，T9b 压力测试默认不跑；角色计数真源 = counts.yaml）：T1 文献 · T2 数据 · T3 案例 · T4 分析 · T5 写手 · T6 批判 · T7 审计 · T8 终检 · T9 同行评审 · G14 中文 AI 痕迹检测闸。
+**角色速查**（T0 主控 + T1-T9 + G14；T8 = 主控亲为，T9b 压力测试默认不跑；11 概念角色 / 12 物理卡文件，计数真源 = counts.yaml）：T0 主控 · T1 文献 · T2 数据 · T3 案例 · T4 分析 · T5 写手 · T6 批判 · T7 审计 · T8 终检 · T9 同行评审 · G14 中文 AI 痕迹检测闸。
 
 
 **审计必查项**（G0-G18）→ [`07-审计-auditor.md`](references/agents/07-审计-auditor.md) + 速查 [`audit-checklist-quickref.md`](references/_shared/真源/audit-checklist-quickref.md)；G11/G12/M 门三层 → [`M-Gate-核心.md`](references/_shared/真源/M-Gate-核心.md)（🟠 分片必读）；**G18 方法论审计**（v2.14.0 起）→ [`方法论-审计清单.md`](references/_shared/真源/方法论-审计清单.md)；**方法论留档模板**（v2.14.0 起）→ [`方法论章节-template.md`](references/templates/方法论章节-template.md) + [`方法论-落地示例.md`](references/_shared/真源/方法论-落地示例.md)。

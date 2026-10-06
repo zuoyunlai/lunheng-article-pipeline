@@ -51,12 +51,17 @@ g_checklist_items: 21
 role_cards: 11        # 概念口径：T0 主控 + T1-T7 + T8 终检 + T9 同行评审 + T9b 压力测试
 role_card_files: 12   # 物理文件数：主控拆 coordinator + 扩展职责两张卡，另含 T9b（T1b 复用 T1 角色卡，不新增物理卡 —— 发版核查 2026-09-30 撤销误增）
 
-# T8 终检可发表性判据（真源：references/_shared/真源/可发表性判定表.md）
+# T8 终检可发表性判据（真源：references/_shared/真源/可发表性判定表.md §二）
 t8_items: 48
+t8_formal_compliance: 17   # 组 A-E（A 交付物纯净性 4 + B 引用闭环 5 + C 统计真实性+原创性 4 + D M 门+同步 2 + E Token+差异化 2）
+t8_publishability: 31      # 组 F 可发表性 6 维度拆分项（维度 1(5)+2(5)+3(5)+4(7)+5(5)+6(4)）
 t8_publishable_dimensions: 6
 
 # T9 同行评审维度（真源：references/dispatch/T9-同行评审.md）
 t9_dimensions: 6
+# T9 D2 方法论评分 = G18 12 项清单的**聚合**（消费关系，非独立维度；真源 = 方法论-审计清单.md §五）
+t9_methodology_dimensions: 4   # 研究设计 / 数据质量 / 分析严密性 / 可复现性
+t9_consumes_g18: true
 
 # M 门项数（真源：references/_shared/真源/M-Gate-核心.md）
 m_gate_items:

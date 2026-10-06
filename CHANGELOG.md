@@ -2,6 +2,55 @@
 
 ---
 
+## [v2.15.12] — 2026-10-06 · 全量审计报告核实修订（14/16 项落地 + 棘轮台账方案 A 定案）
+
+> 背景：`reports/2026-10-06-全量审计报告-v2.15.11.md`（§一–§八 缺陷清单 + §九 修订后复审）提出 16 项真问题 + 7 项延伸观察；本版逐项**实测核实**后落地 14 项，另 2 项经实测推翻 / 回退（见 §5）。
+> 性质：**计数真源扩展 + 机械门补齐 + 棘轮台账治理定案 + 文档口径收口**；不改流程节点、不改门判据。
+
+### 1. 计数真源扩展（P-3 / P-4）
+
+- `counts.yaml` 新增 `t8_formal_compliance: 17`（组 A-E）/ `t8_publishability: 31`（组 F 6 维度拆分）—— 48 项「17+31」分层首次进机械真源；`t8_items == 17 + 31` 由 `test_counts_internal_consistency` 硬校验。
+- `counts.yaml` 新增 `t9_methodology_dimensions: 4` + `t9_consumes_g18: true` —— 显式声明 T9 D2 方法论评分是 G18 12 项清单的**聚合（消费关系）**，而非第 7 个独立维度。
+
+### 2. 机械门补齐（P-2 / P-7 / L-2）
+
+`tests/test_count_drift.py` 新增 5 类门 + 4 组反向注入：
+
+- **P-2** `t9_default` 反向注入：`test_t9_default_matches_phase_order`（与 `t9_review.yaml` 对账）+ `test_no_t9_default_prose_drift_in_repo`（扫「按模式开关 / 公众号默认关 / T9 默认关」矛盾型散句）。**首跑命中 2 处同义表述后收窄规则**（「默认开启（可 opt-out）」与真源同义，不算漂移）。
+- **P-7** `phase-order/` **目录实物数**核对（27 yaml − index = 26）—— 「加了 yaml 却没登记 index.yaml」这类静默漂移从此硬失败。
+- **L-2** `test_phase_order_index_seq_is_contiguous`：`index.yaml` seq 条数 == `pipeline_nodes` 且必须连续 0..N-1。
+
+### 3. 文档口径收口（P-5 / P-6 / L-3 / L-4 / L-5 / R-3）
+
+- **P-5**：`字数判定表.md` §二 表后新增「生效条件（与 §七 对齐）」—— P1/P0 两档的「触发修订」**仅在有外部硬要求时成立**，与 §七「无外部要求不触发」互为条件分支。
+- **P-6**：`SKILL.md:112` 角色速查补 **T0 主控**（原先 T0 从角色生态图里缺失）。
+- **L-3**：`08-终检-final-inspector.md` 新增「M 门不重复项清单」—— 讲清「M 门 13 项」vs「T8 兜底 11 项」**不矛盾、不是漏检**（M-Integrity-1/2 锁定在 T2.5/T7.5 不回退）。
+- **L-4**：README 能力边界段「按 runtime 探针实测泄漏面全量补声明」→「按 **2026-09-20** runtime 探针**一次性实测** … **快照、非持续监控**」。
+- **L-5**：SKILL.md frontmatter description「标准架构 = 多 Agent 九角色」→「九角色流水线（角色卡 11 张，含 T0 主控 + T9b 压力测试；T9b 默认不跑）」。
+- **R-3**：README Phase 0「4 选 1」明细改指针（唯一真源 = `关键协议.md`）。
+
+### 4. 棘轮台账方案 A 定案（P-1 / L-1 / R-1，同源三面）
+
+`ratchet-ledger.md` §二 原先自承「『只允许发生一次』与『每版必发号』直接冲突，待台主人裁决」的设计债，本版按**主人裁决方案 A** 收口：
+
+- `version_stamp_lengthening`（发版机械 +1 B/文件）**按发版频率豁免**：不计入 §四-3 三次上调铁律、不计入 §一 `settle_to` 比对、不写 debt 行。
+- `M-Gate-核心.md` 原第 4 条债务为**纯版本戳 +1 B、零内容变更**（`settle_to` 物理上永不可达），**移出** §一 债务、记为 §二 豁免实例 → **未结债务 4 → 3 条**。
+- **未采用报告建议的「4 条减为 1 条」**：另 3 条 `reason` 混有真实内容增长（v2.15.7 新增节点 / 契约真源化 / T9b 极性改写），一并销账会掩盖真实债务。
+- 同步：`self-audit-gate.sh` 门 Y 注释改「已定案 / 已移出」（保留历史沿革句）；`可发表性判定表.md`「同步 6 处外部引用」→ **7 处**（补 `counts.yaml`）；`counts.yaml` T8 组名注按真源更正为 A–E 全称（§九 §9.3 三轮脱同步一并清）。
+
+### 5. 经实测推翻 / 回退的 2 项（不进版）
+
+- **R-2（🌐 语言政策块）不成立**：实测全块签名命中 **107 个文件**，由 `scripts/inject-lang-policy.py` **机械注入**、被**构建门 4d + `test_contract_check.py` 强制**。按建议改指针会**直接打破构建门**并让 v2.12.9 修掉的 SkillSpector finding 复发 → **驳回**（报告原估「8 处」已由 §九 自更正为 107）。
+- **R-4（硬卡阈值表外移）实测不可行**：移出后 **门 B 立即红**（`角色编号覆盖不全: T2 SKILL=1 …`）—— 该表是 `SKILL.md` 里 T1-T9 编号的主要覆盖源 → **已回退**，表原样保留。
+
+### 6. 验证
+
+- 自审门 `self-audit-gate.sh`：**PASS 42 / FAIL 0**（门 B 角色覆盖 / 门 V `8902 ≤ 10000` 且 frontmatter `1602 ≤ 9000` / 门 Y「台账 3 条未结」/ 门 Z `40 ≤ 40` 全绿）。
+- `check-version.sh`：**98/98 文件版本一致**；门 AA 装配视图与 27 真源文件逐字节一致（26 节点切片）。
+- 字节账：`2.15.11 → 2.15.12` 同长度 ⇒ 四个必读文件体量**零变化**，门 Y 上限无需重定。
+
+---
+
 ## [v2.15.11] — 2026-10-05 · 文档专项审计修订（22 项全修）
 
 > 背景：2026-10-04 文档专项审计（`outputs/2026-10-04-lunheng-doc-audit-report.md`，文档面 7.3/10）提出 7 项 P1 + 9 项 P2 + 6 项 P3 与机械加固建议；本版逐项落地。
@@ -51,6 +100,8 @@
 - 自审门 **42 PASS / 0 FAIL**（门 Z = 40 未越限）；门 Y 四个棘轮文件本轮未改动，无新增债务
 - `sync-version.sh` 归一化复核：9/9 通过，无残留 `.bak`
 - 门 AA：升版后按生成器重装配，26 节点切片逐字节一致（装配视图为生成物，bump 时只随真源重生成；棘轮字节维持 69294 B）
+
+---
 
 ---
 
@@ -106,6 +157,8 @@
 - CI 4/4 success：论衡算法测试 CI（含 slow/fast 全量 + 自审门 + 官方校验）10m27s、Code Quality 11m8s、版本号一致性、changelog 完整性
 - `contract-check` / `markdown-structure-lint` / `dispatch-contract --check` / `flow-check` 全绿
 - 门 AA：装配视图与 26 节点切片逐字节一致
+
+---
 
 ## [v2.15.9] — 2026-10-03 · 全量审计七项修订
 
@@ -163,6 +216,8 @@
 
 ---
 
+---
+
 ## [v2.15.8] — 2026-10-02 · 发版债务清零（v2.15.7 遗留 15 项 CI 失败全修）
 
 > 背景：v2.15.7 两笔提交（`3138ff2` / `4acd8f9`）遗留 **15 项 pytest 失败**（v2.15.6 基线 27/27 全绿），推送后 CI 必红。
@@ -201,23 +256,3 @@
 - **#492**：外部工具留下的 `.bak` 备份能同时躲过 `git status`（`.gitignore` 命中）与人工抽查（文件名不显眼），却在**构建门源树扫描**整片爆红 —— 清理纪律须覆盖「被 `.gitignore` 掩盖的中间产物」，不能只看 git 视角。
 
 ---
-
-## [v2.15.7] — 2026-10-02 · 派发硬验证 + fallback 接管协议 + 零宿主要求
-
-### 新能力（`3138ff2`）
-
-- **派发硬验证闸门**：新增 Phase 1 后置节点 `post_phase1_dispatch_verify`（切片 + 装配视图 + 门 AA 接线），spawn 返回值 `runId` / `childSessionKey` / `resolvedModel` 三字段硬校验，防「主控口头已派发、实际静默失败」；新增 `scripts/rebuild.sh` 一键重建装配视图（scripts 索引 34→35）。
-- **模型 fallback 接管协议真源**：新增 `references/_shared/真源/model_fallback_takeover_protocol.md`（触发三条件 / 接管五步 / status §八声明段）；`SKILL.md` frontmatter 新增 `coordinator_fallback_protocol_ref` 指向。
-- **frontmatter 声明面扩展**：`delivery`（channel_relay 默认 + session_local 兑底，纯声明性建议）；`compatible_models`（7 个已实测模型）+ `compatible_models_candidates`（4 个未实测候选，晋升须一次实跑验证）；`coordinator_spawn_hard_gate: true`。
-- **weight 阈值自包含（`4acd8f9`）**：撤回宿主配置耦合——`recommended_session_for_weight` 自造键从 openclaw.json 移除，阈值表改 skill 自包含，「零宿主配置」是架构红线（教训 #490；同族 #484）。
-
-### 审计收尾（外部全量审计报告 2026-10-02）
-
-- **95 个受管文件版本戳同步** v2.15.6→v2.15.7（外部审计复刻 `normalize-version-header.py` 幂等语义写入，diff 仅版本戳行）；README 正文「当前版本」块与安装 pin 同步。
-- **版本矩阵盲区修复（审计 D3，教训 #118.1 第三次表现）**：`model_fallback_takeover_protocol.md` 此前是全仓唯一带版本戳但不在两矩阵的受管文件，下次 bump 版本戳将永停 v2.15.7 → 补入 `check-version.sh` CHECKS 与 `sync-version.sh` SYNCS，`counts.yaml` `version_files` 95→96。
-- **CHANGELOG 补节 + 轮转（审计 D4）**：补本节；v2.15.2 轮转入归档（保主文件 5 期上限）。
-- **审计核实项**：phase-order 装配视图与真源一致（45251 字符，生成器零 diff）；报告所称 16 个 scripts 仅 mode 变化已消失；README/SKILL 版本真源两门人工核验通过。
-
-### 验收
-
-- `check-version.sh` 96/96 ✅ · `contract-check` PASS · `changelog-check` PASS · `phase-order-slice.py --check` 零 diff · pytest 版本真源两门通过。

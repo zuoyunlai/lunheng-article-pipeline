@@ -1,4 +1,4 @@
-> 版本：v2.15.11（自动同步 2026-10-06）
+> 版本：v2.15.12（自动同步 2026-10-06）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -13,7 +13,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。≥3000 字推荐全量（≥5000 强推）；2000-3000 字可走轻量档（真源 = `字数判定表.md` §五）。
 
-**v2.15.11**（2026-10-05，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**文档专项审计修订 22 项全修**：心跳 opt-in 口径三处统一、触发边界与字数判定表对齐、全景节点数 25→26 全批同步、T9 默认口径归一为「默认触发 + opt-out」、emoji 两轴混用修正、幽灵节点与字节账销号；机械面新增 `pipeline_nodes` 计数真源并接入漂移扫描。
+**v2.15.12**（2026-10-06，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**全量审计报告核实修订（16 项中落地 14 项）**：计数真源扩 T8「17+31」分层与 T9 方法论消费关系、新增 5 类机械门（phase-order 实物数 / index seq 连续 / t9_default 对账）与 4 组反向注入、棘轮台账按方案 A 定案（版本戳机械变长豁免，未结债务 4→3）、角色速查补 T0 与 M 门 11 项口径澄清；R-2 / R-4 经实测驳回或回退。
 
 论衡把一篇深度长文 / 论文的生产拆成 **11 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
 
@@ -46,12 +46,12 @@
 | 大模型推理 | 当前模型 provider | 文献/数据/案例/草稿/大纲全文 |
 
 **主控 agent 能力边界**（**不**会做的事）：
-- ❌ 不调用 `exec` / `process` / `code_execution` 等 **104 项 denied 工具**（清单真源 = `references/permissions.md`「禁用面（denied）唯一真源」块；按 runtime 探针实测泄漏面全量补声明）——⚠️ **声明式**，须宿主配置才生效
+- ❌ 不调用 `exec` / `process` / `code_execution` 等 **104 项 denied 工具**（清单真源 = `references/permissions.md`「禁用面（denied）唯一真源」块；按 **2026-09-20** runtime 探针**一次性实测**的泄漏面补声明 —— **快照、非持续监控**，之后不再重测；沙箱默认 off 时不自动生效）——⚠️ **声明式**，须宿主配置才生效
 - ❌ 不读取运行时内部路径（`~/.openclaw/agents/<agent>/sessions/*.trajectory.jsonl` 等）
 - ❌ 不直接计算 sha256（需要时由主人在 host shell 手动跑后回填）
 - ❌ 不主动采集一手数据（实验/调查/访谈）—— 主人投喂后使用
 
-**Phase 0 强同意关卡**：所有外发项在流水线启动前需主人明示同意（4 选 1：全部同意 / 脱敏+SVG+本地 Ollama / 部分同意 / 全部拒绝）。**未同意前不可跳到 Phase 1**。
+**Phase 0 强同意关卡**：所有外发项在流水线启动前需主人明示同意（**外发同意 4 选 1**；选项文本与逐类清单**唯一真源** = [`references/_shared/真源/关键协议.md`](references/_shared/真源/关键协议.md)「4 选 1（外发同意）选项」，本 README 不重列）。**未同意前不可跳到 Phase 1**。
 
 完整说明 + 错误信息友好化（13 类常见错误）：详见 [`SKILL.md`](SKILL.md) + [`references/errors.md`](references/errors.md)。
 
@@ -124,7 +124,7 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.11  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.12  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 
