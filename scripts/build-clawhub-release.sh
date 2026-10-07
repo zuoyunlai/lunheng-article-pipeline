@@ -381,6 +381,7 @@ SHARED_ADMITTED=(
   '真源/phase-order/t9b_stress_test.yaml'
   '真源/pipeline-overview.md'
   '真源/pressure-test-protocol.md'
+  '真源/route_tier.md'
   '真源/skill-entry-appendix.md'
   '真源/中文数据源集成.md'
   '真源/主动介入机制.md'

@@ -42,10 +42,12 @@
   independence_failure_policy:
     on_spawn_failure: retry_spawn_only        # 唯一合法恢复动作 = 重新 spawn 独立子代理（可同时换 provider 族 / 能力档）
     retry_limit: 2                            # 可调（主人可上调）；**不得**降为 0 后改由主控代笔
+    quota_class_retry: not_homogeneous        # v2.15.13（反哺 FB-11，实测 2026-10-06）：429 quota / 402 余额类失败属资源层故障，**不计入 retry_limit**（换族重试优先，真源 = route_tier.md §四）；实测 T9 第 1 次 429 后跨族重试成功且独立性反而达成
+    cross_family_retry: first_class_action    # v2.15.13（反哺 FB-11）：跨 provider 族重试为一级动作（与 on_spawn_failure 同级可选），优先于同族重试（候选池 §三换族优先）
     executor_takeover: forbidden              # 禁主控代笔：主控已读全部内部材料，代笔 = 盲审失效
     forbidden_recovery: [owner_ghostwriting, owner_synthesized_report, digest_existing_internal_reports]
     on_exhausted: record_missing_and_notify_owner   # 重试仍失败 ⇒ 记为缺失 + 显式告知主人
-    status_record: missing_blind_review       # status.md 记 missing_blind_review（**不得**记 Done / accepted）
+    status_record: missing_blind_review       # status.md 记 missing_blind_review（**不得**记 Done / accepted）；T9 缺失时交付说明写法 = 显式「T9 未产出（missing_blind_review）+ 失败时间线 + 主人已知会」三要素，**不得**留空或写「已评审」（v2.15.13 补替代呈现格式，反哺 FB-11③）
     downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
   terminal_state_rules: {allowed: [worker_running, worker_failed, worker_timeout, missing_blind_review, done], empty_output_is_success: false, executor_takeover: forbidden, missing_report_blocks_t9_claims: true}
   output: audits/审稿报告-vN.md

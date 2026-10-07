@@ -117,6 +117,7 @@ CHECKS=(
   "_shared/真源/关键协议.md|v$EXPECTED|1"
   "_shared/治理/教训索引.md|v$EXPECTED|1"
   "_shared/真源/模型候选池.md|v$EXPECTED|1"
+  "_shared/真源/route_tier.md|v$EXPECTED|1"
   "_shared/真源/可发表性判定表.md|v$EXPECTED|1"
   # v2.12.1 版本一致性盲区修复：project-archive-sop（v2.7.16 引入，版本戳格式已归一化）+ 路径校验规范（v2.9.1 引入，此前无版本戳）补入清单
   "_shared/治理/project-archive-sop.md|v$EXPECTED|1"

@@ -30,11 +30,11 @@ debt:
   - path: "references/_shared/真源/phase-order.yaml"
     raised_at: "2026-10-02"
     from: 63928
-    to: 69294
+    to: 70860
     settle_to: 63928
     due_version: "2.18.0"
     status: "open"
-    reason: "v2.15.7 新增 post_phase1_dispatch_verify 节点（装配视图为生成物，无分层可选）；2026-10-05 上午 R2 契约真源化 66574→68238（派发/轮次契约字段，**该轮漏登记，本轮补登**）+ 同日 T9b 降级 opt-in 68238→69293（opt-in 契约字段）+ 发版 v2.15.10 版本戳变长 69293→69294；均未销账，故累加至原 open 行而非新开行"
+    reason: "v2.15.7 新增 post_phase1_dispatch_verify 节点（装配视图为生成物，无分层可选）；2026-10-05 上午 R2 契约真源化 66574→68238（派发/轮次契约字段，**该轮漏登记，本轮补登**）+ 同日 T9b 降级 opt-in 68238→69293（opt-in 契约字段）+ 发版 v2.15.10 版本戳变长 69293→69294；均未销账，故累加至原 open 行而非新开行；2026-10-07 v2.15.13 反哺修订 69294→70860（FB-12 四 checkpoint blocks 局部阻塞 + FB-11 t9 quota_class_retry/cross_family_retry/缺失呈现三要素，装配视图为生成物，无分层可选，累加同一 open 行）"
   - path: "references/_shared/真源/phase-order/index.yaml"
     raised_at: "2026-10-02"
     from: 24767
@@ -51,6 +51,14 @@ debt:
     due_version: "2.18.0"
     status: "open"
     reason: "T9b 极性说明行改写（默认触发 + opt-out -> 默认不跑 + opt-in，含 status 留痕口径）+ 发版 v2.15.10 版本戳变长 70277→70278"
+  - path: "references/_shared/真源/M-Gate-核心.md"
+    raised_at: "2026-10-07"
+    from: 77527
+    to: 78090
+    settle_to: 77527
+    due_version: "2.18.0"
+    status: "open"
+    reason: "v2.15.13 反哺 FB-13：可复核判定协议四字段扩为五字段（新增 basis: mechanical|llm 证据类型二分 + 交付说明分组呈现口径，+563 B 纯功能性新增，非膨胀；无分层可选——basis 字段属判定协议本体）"
 ```
 
 ## §二、豁免类（结构性变更，走 §二 而非 §一）
@@ -91,8 +99,9 @@ structural_exempt:
 | 文件 | 当前上限 | 未结债务 | 回落目标 | 截止 |
 |---|---|---|---|---|
 | 00-主控-扩展职责.md | 70278 | 1 | 70189 | 2.18.0 |
-| phase-order.yaml | 69294 | 1 | 63928 | 2.18.0 |
+| phase-order.yaml | 70860 | 1 | 63928 | 2.18.0 |
 | phase-order/index.yaml | 25359 | 1 | 24767 | 2.18.0 |
+| M-Gate-核心.md | 78090 | 1 | 77527 | 2.18.0 |
 
-> **合计未结债务**：3 条（1 条 2026-10-02 v2.15.7 批次；2 条 2026-10-05 T9b 降级 + 发版重定批次）。
+> **合计未结债务**：4 条（v2.15.7 批次 1 条；T9b 降级 + 发版重定批次 2 条；v2.15.13 反哺批次 1 条新增 + phase-order 累加）。
 > **机械变长豁免（2026-10-06 方案 A）**：`M-Gate-核心.md` 原第 4 条债务为**纯发版版本戳 +1 B**，已按 §二 `version_stamp_lengthening` 豁免口径移出为记录 → 未结债务 4 → 3 条。

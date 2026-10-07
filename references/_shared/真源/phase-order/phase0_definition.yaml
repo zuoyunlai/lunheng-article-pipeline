@@ -12,5 +12,6 @@
   #   原 restart_phase 系 v2.12.28「与其余人工节点结构对齐」复制而来：Phase 0 即定题，无更早节点可回退，
   #   该值在本节点自指不可达 ⇒ 移除（避免「真源声明了、卡与 status 却无从落到」）。
   timeout_fallback: pending_owner_halt
+  blocks: [retrieval]   # v2.15.13 FB-12：局部阻塞 —— 本检查点只阻塞检索层；允许「呈现但不等」的并行准备（如顶配/三档路由探活、模板加载）可在等待期进行，全局停摆非本节点语义
   output: 01-任务简报.md
   next: pre_spawn_enforcement

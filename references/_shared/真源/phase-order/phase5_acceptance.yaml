@@ -9,6 +9,7 @@
   owner_visible: true
   decisions: [accepted, revision_requested, restart_phase, deferred]
   timeout_fallback: pending_owner_halt
+  blocks: [methodology_snapshot]   # v2.15.13 FB-12：局部阻塞 —— 只阻塞验收后置节点；产物已在盘，挂起不丢任何东西（owner_timeout_policy 同源）
   terminal: accepted   # v2.12.49 M-2：终态标记真源；详见顶层 terminal_freeze 段
 
 # ⚠️ v2.12.54 R-1：**全景载体收敛登记**（修 P0「派生全景与真源漂移」）

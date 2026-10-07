@@ -54,6 +54,7 @@ references/_shared/真源/phase-order/t9_review.yaml
 references/_shared/真源/phase-order/t9b_stress_test.yaml
 references/_shared/真源/pipeline-overview.md
 references/_shared/真源/pressure-test-protocol.md
+references/_shared/真源/route_tier.md
 references/_shared/真源/skill-entry-appendix.md
 references/_shared/真源/中文数据源集成.md
 references/_shared/真源/主动介入机制.md

@@ -45,7 +45,7 @@
 #   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
 #      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
 
-version: 2.15.12
+version: 2.15.13
 
 # ⚠️ 判定结果分档（v2.12.40）：本文件的 condition / mechanical_checkpoint 节点，结论一律落以下四档之一
 #   （替代「退出码」语义；真源 = references/_shared/真源/M-Gate-核心.md §判定结果分档）。
@@ -347,6 +347,7 @@ pipeline:
     #   原 restart_phase 系 v2.12.28「与其余人工节点结构对齐」复制而来：Phase 0 即定题，无更早节点可回退，
     #   该值在本节点自指不可达 ⇒ 移除（避免「真源声明了、卡与 status 却无从落到」）。
     timeout_fallback: pending_owner_halt
+    blocks: [retrieval]   # v2.15.13 FB-12：局部阻塞 —— 本检查点只阻塞检索层；允许「呈现但不等」的并行准备（如顶配/三档路由探活、模板加载）可在等待期进行，全局停摆非本节点语义
     output: 01-任务简报.md
     next: pre_spawn_enforcement
   - id: pre_spawn_enforcement
@@ -481,6 +482,7 @@ pipeline:
     owner_visible: true
     decisions: [approved, revision_requested, restart_phase]
     timeout_fallback: pending_owner_halt
+    blocks: [t5_draft_v1]   # v2.15.13 FB-12：局部阻塞 —— 只阻塞写作层；Phase 1.5 定向回查（t1b_targeted_review）可与本等待并行（实测 2026-10-06：主控自行并行才没白等，规则化之）
     next: t5_draft_v1
   - id: t5_draft_v1
     phase: "Phase 3"
@@ -503,6 +505,7 @@ pipeline:
     decisions: [insight, direction_correction, no_insight]
     decision_contract: "direction_correction = 方向纠偏；记录 correction_scope，回 T5 重定向后才可进 current_draft_sync；不得把它降格为普通补充洞察。"
     timeout_fallback: pending_owner_halt
+    blocks: [current_draft_sync, t6_critique]   # v2.15.13 FB-12：局部阻塞 —— 阻塞下游同步/批判层；上游产物整理（归档/心跳核对）可并行
     next: current_draft_sync
   - id: current_draft_sync   # 别名：文档层「Phase 3.6 前置」（非独立 Phase 标签，主控呈现时归入 Phase 3.6）
     phase: "Phase 3.6 前置"
@@ -796,10 +799,12 @@ pipeline:
     independence_failure_policy:
       on_spawn_failure: retry_spawn_only        # 唯一合法恢复动作 = 重新 spawn 独立子代理（可同时换 provider 族 / 能力档）
       retry_limit: 2                            # 可调（主人可上调）；**不得**降为 0 后改由主控代笔
+      quota_class_retry: not_homogeneous        # v2.15.13（反哺 FB-11，实测 2026-10-06）：429 quota / 402 余额类失败属资源层故障，**不计入 retry_limit**（换族重试优先，真源 = route_tier.md §四）；实测 T9 第 1 次 429 后跨族重试成功且独立性反而达成
+      cross_family_retry: first_class_action    # v2.15.13（反哺 FB-11）：跨 provider 族重试为一级动作（与 on_spawn_failure 同级可选），优先于同族重试（候选池 §三换族优先）
       executor_takeover: forbidden              # 禁主控代笔：主控已读全部内部材料，代笔 = 盲审失效
       forbidden_recovery: [owner_ghostwriting, owner_synthesized_report, digest_existing_internal_reports]
       on_exhausted: record_missing_and_notify_owner   # 重试仍失败 ⇒ 记为缺失 + 显式告知主人
-      status_record: missing_blind_review       # status.md 记 missing_blind_review（**不得**记 Done / accepted）
+      status_record: missing_blind_review       # status.md 记 missing_blind_review（**不得**记 Done / accepted）；T9 缺失时交付说明写法 = 显式「T9 未产出（missing_blind_review）+ 失败时间线 + 主人已知会」三要素，**不得**留空或写「已评审」（v2.15.13 补替代呈现格式，反哺 FB-11③）
       downstream: 下游 t8_technical_final 必须显式标注「审稿报告缺失」，交付说明**不得**出现任何 T9 结论 / 评分 / 期刊匹配（无来源精度 = 编造）
     terminal_state_rules: {allowed: [worker_running, worker_failed, worker_timeout, missing_blind_review, done], empty_output_is_success: false, executor_takeover: forbidden, missing_report_blocks_t9_claims: true}
     output: audits/审稿报告-vN.md
@@ -873,6 +878,7 @@ pipeline:
     owner_visible: true
     decisions: [accepted, revision_requested, restart_phase, deferred]
     timeout_fallback: pending_owner_halt
+    blocks: [methodology_snapshot]   # v2.15.13 FB-12：局部阻塞 —— 只阻塞验收后置节点；产物已在盘，挂起不丢任何东西（owner_timeout_policy 同源）
     terminal: accepted   # v2.12.49 M-2：终态标记真源；详见顶层 terminal_freeze 段
 
   # ⚠️ v2.12.54 R-1：**全景载体收敛登记**（修 P0「派生全景与真源漂移」）

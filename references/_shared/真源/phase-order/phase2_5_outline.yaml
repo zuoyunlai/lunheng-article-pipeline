@@ -9,4 +9,5 @@
   owner_visible: true
   decisions: [approved, revision_requested, restart_phase]
   timeout_fallback: pending_owner_halt
+  blocks: [t5_draft_v1]   # v2.15.13 FB-12：局部阻塞 —— 只阻塞写作层；Phase 1.5 定向回查（t1b_targeted_review）可与本等待并行（实测 2026-10-06：主控自行并行才没白等，规则化之）
   next: t5_draft_v1

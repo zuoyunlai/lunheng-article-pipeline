@@ -2,6 +2,50 @@
 
 ---
 
+## [v2.15.13] — 2026-10-07 · 实测反哺修订（16 项 merge，含模型路由三档真源）
+
+> 背景：`run/2026-10-06-ai风格剥削与美学权利` 全量档实跑的反哺报告（`audits/反哺报告-v2.md`，T7 未产后主控 Phase 5 补写，经两轮复核修正）提出 14 项 FB + FB-02a + R-04；主人 2026-10-07 21:03 指令「开始修订，全部修订」，并拍板「模型路由三档由 Phase 0 主人选择」。
+> 方法论：逐项先实测核实再动手；修订过程自身两度回改（v2.1 字数口径 / v2.2 T5b+探活叙事），教训 #523 沉淀「否定型修订先穷尽权威留痕与全部工件口径」。
+> 性质：**新建 1 真源 + 14 文件条款落地 + 4 checkpoint 局部阻塞 + 机械件同步**；不改节点数、不改 G/M 门计数、不改门判据总数。
+
+### 1. 模型路由三档（R-04 + FB-10 + FB-11，新建真源）
+
+- **新建 `references/_shared/真源/route_tier.md`**（单一真源）：T1 继承主对话 / T2 同平台换能力 / T3 跨平台换族；Phase 0 三档探活（T3 需 ≥2 互异族）+ **主人选择提示**（默认链 T1→T2→T3，T7/T9 固定 T3）+ fallback 升级链（**配额类 429/402 不计 retry_limit**；升档留痕 `route_degraded` 三处）；链外中途换族须回主人确认（实测 17:38 T7 换族未确认的缺口）。
+- `模型候选池.md` §二·补·2 接线（不重列）；§三 增「配额类失败不计同质 retry」。
+- `t9_review.yaml` `independence_failure_policy` 增 `quota_class_retry: not_homogeneous` + `cross_family_retry: first_class_action` + 缺失呈现三要素（status_record 注释）。
+- `dispatch-header.md` 增 route_tier 字段块；`SKILL.md` Phase 0 增第 7 步指针；`permissions.md` 配额预授权交叉引用。
+
+### 2. 读密集与修订安全（FB-01 + FB-02 + FB-14）
+
+- `dispatch-header.md` 增 **read_budget 必填字段**（默认 1/4/8/3500）；`主动介入机制.md` 硬卡表增**读密集 ×1.5** 注 + **超硬卡处置判据**（磁盘有产物接受 partial / 零回传换族重派，取代临场判断）。
+- T5 派发 + 写手卡：**cp 基线升为强制**（禁 write 整稿）+ `read_basis=<fresh|stale_suspected>` + **结构探针**（edit occurrence 自证唯一）+ 断言式批量替换路径；`关键协议.md` 重要写入完整性同步（含**主控兑底版本链** drafts/版本链.md）。
+
+### 3. 审计判据补齐（FB-05 + FB-06 + FB-07 + FB-02a）
+
+- G16 增第 5 类「任务书指令残留」机械判据（`须[^，。；]{0,12}：` 等，命中即 P1；whitelist：直接引语/法条原文/G14 结构必写段）——实测 13 处三层防御全漏。
+- G4-3 扩为**三格式图位门**：数量 ≥ 拍板 + **编号单调递增**（防 1→2→4→3）+ **交叉引用一致**（防错号）；T4 派发/角色卡增「按插入位置出现顺序编号」铁律；T7 派发/角色卡增 b/c 必查；T8 增组装后复查 + G16⑤ 终检。
+- G14 复检严格度档增第 3 条：指令残留模式并入复检词表（含 whitelist 与「禁笼统报 0」——实测自报全部清除与实测 4 处不符）。
+
+### 4. 口径与流程（FB-03 + FB-04 + FB-08 + FB-09 + FB-12 + FB-13）
+
+- `permissions.md` 新增**执行器降级路径**节（留痕三要求 + 独立性边界：降级不得生成审计结论；主控亲为审计须异族）。
+- 字数判定表 §七 增**下限型要求行**（body_floor；自设带宽 = floor+20% 非契约）+ **口径强制标注纪律**（禁跨口径比较——实测草稿 12,978 vs 定稿 14,138 双口径未声明制造虚高读数）。
+- 可发表性 4.1 并入**同体系门 + 三轨→单轨交付层映射**（T8 交付前置，映射表附交付说明）——不动 48 项计数。
+- **反哺报告后移 Phase 5**：T7 不再产（只产审计报告）；主控基于全流程留痕撰写；`反哺报告处理.md` 改写第 1 步；T7 卡/派发同步（交付单报告）。
+- 四个 owner_checkpoint 切片增 `blocks: [节点列表]` 局部阻塞字段（Phase 2.5 等待期允许 t1b 并行等，实测自行并行的规则化）。
+- M 门可复核判定协议增第 5 字段 **`basis: mechanical|llm`**（交付说明按 basis 分组呈现）。
+
+### 5. 机械件同步
+
+- 版本 v2.15.12 → **v2.15.13**（98+1 文件，route_tier.md 新入版本矩阵：check-version.sh / sync-version.sh / .pkg-manifest.txt 三清单同步）；`counts.yaml` version_files 98→99。
+- 门 Y 上限重定：M-Gate-核心 77527→78090、phase-order.yaml 69294→70860；棘轮台账登记 1 条新 debt（M-Gate basis 字段）+ phase-order 累加原 open 行；未结债务 3→4 条。
+- phase-order.yaml 重装配（blocks 字段入装配视图）；README 版本散文刷新。
+
+### 6. 验证
+
+- `sync-version.sh`：门 AB/AC/AA 全过（v2.15.13）。
+- 其余构建门（self-audit / contract / count-drift / flow-check）见提交前 `make all`。
+
 ## [v2.15.12] — 2026-10-06 · 全量审计报告核实修订（14/16 项落地 + 棘轮台账方案 A 定案）
 
 > 背景：`reports/2026-10-06-全量审计报告-v2.15.11.md`（§一–§八 缺陷清单 + §九 修订后复审）提出 16 项真问题 + 7 项延伸观察；本版逐项**实测核实**后落地 14 项，另 2 项经实测推翻 / 回退（见 §5）。
@@ -216,43 +260,3 @@
 
 ---
 
----
-
-## [v2.15.8] — 2026-10-02 · 发版债务清零（v2.15.7 遗留 15 项 CI 失败全修）
-
-> 背景：v2.15.7 两笔提交（`3138ff2` / `4acd8f9`）遗留 **15 项 pytest 失败**（v2.15.6 基线 27/27 全绿），推送后 CI 必红。
-> 归属判定：`/tmp` 建 v2.15.6 与 HEAD 双基线 worktree 复跑同一批测试，区分「既有失败」与「新增失败」——本轮修复**零新增**（双基线 11F 完全一致）。
-
-### P0 净化包构建门 6F（根因：v2.15.7 两个新文件未登记入包）
-
-- `scripts/build-clawhub-release.sh` `SHARED_ADMITTED` 补 `真源/model_fallback_takeover_protocol.md` + `真源/phase-order/post_phase1_dispatch_verify.yaml`（按 LC_ALL=C 排序位插入）。
-- `scripts/.pkg-manifest.txt` 全包白名单同批补两条。**两处漏任一 ⇒ 构建失败**（该门设计意图：新文件默认入包 = 泄漏风险）。
-- 连带清理：`references/` 树下 **55 个** `.bak.20261002-122541`（外部审计者遗留；`.gitignore` 挡得住 git、挡不住构建门源树扫描）移出仓库。
-
-### P1 门 H / 门 Y 棘轮 4F（根因：#490 引用未同步快照 + 上限表未随扩容重定）
-
-- `references/_shared/治理/lessons-max.snapshot` **437 → 490**：#438–#489 为宿主/工作区类（不推高本值），#490（skill 行为判据不得写入宿主配置）属论衡类，随 `4acd8f9` 引用入库；同批补 `tests/fixtures/lessons-gate.md` 的 #490 定义（hermetic fixture 缺项 ⇒ 门 H 硬红）。
-- `BULK_RATCHET_CEIL_DEFAULT` 基线重定（v2.15 B1-B7 先例，以实测为准、后续**只许降**）：扩展职责卡 69808→74923、phase-order.yaml 63928→66574、index.yaml 24767→25084；装配视图重生成后再校准一次（+162 B）。
-
-### P1 SKILL.md 预算回涨 1F（根因：v2.15.7 把模型清单内联进 frontmatter）
-
-- 违反 R-22「frontmatter 常驻预算 <9000 字符」：实测 **9487**（内联 7 项已实测模型 + 4 项候选模型清单）。
-- 修复：清单整体收回其**既有唯一真源** `references/_shared/真源/模型候选池.md` §二·三（新增「compatible_models 实测清单与候选池」两表），frontmatter 只留指针注释 + `delivery` / `coordinator_spawn_hard_gate` / `coordinator_fallback_protocol_ref`。**9487 → 8641 字符**。
-- 附带修正架构一致性：候选池.md §五 章程本就写明「SKILL.md 引用本文件，不重复定义」，v2.15.7 内联写法同时违反该章程与预算门。
-
-### P1 新节点连带面 4F（根因：`post_phase1_dispatch_verify` 插入 seq 3 后位移未同步）
-
-- 该 `mechanical_checkpoint` 补 `rerun_after_report: true`（v2.12.40「报告后激活」纪律，参照 `t7_5_integrity` 先例）⇒ 重生成装配视图。
-- canary 校准（`tests/test_v2130_p0_fixes.py`）：t1b `phase_seq` 断言 14→**15**、全景节点计数 25→**26**（与 pipeline-overview.md 头部 v2.15.7 更新记录一致）。
-
-### 验收
-
-- **pytest 681 项 / 57 文件全绿**（分块：块1 159✓+1s · 块2 254✓ · 块3 286✓+1s；零失败）。
-- `check-version.sh` 96/96 · `contract-check` PASS · `changelog-check` PASS · 门 AA 逐字节一致 · 自审门 37 PASS / 0 FAIL。
-
-### 同族教训
-
-- **#491**：v2.15.7 两笔提交各留 15 项 CI 失败却已发版/tag —— 「提交后不跑全量回归」与「升版只改 SKILL.md 不跑三层联动」同源于**流程断裂**。新增受管/随包文件时，登记清单不止版本矩阵（check/sync + counts），还包括**净化包双白名单**（SHARED_ADMITTED + `.pkg-manifest`）与**教训快照/fixture**。
-- **#492**：外部工具留下的 `.bak` 备份能同时躲过 `git status`（`.gitignore` 命中）与人工抽查（文件名不显眼），却在**构建门源树扫描**整片爆红 —— 清理纪律须覆盖「被 `.gitignore` 掩盖的中间产物」，不能只看 git 视角。
-
----

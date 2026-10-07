@@ -3,7 +3,7 @@ name: lunheng-article-pipeline
 description: "学术论文/深度长文/行业分析流水线：含同行评审与期刊/发布渠道匹配建议（advisory）。不调用执行类工具（exec/process/code_execution，声明式）；主控持有会话编排与状态类工具（多 Agent 派发/收报告的设计内必需面）。标准架构 = 多 Agent 九角色流水线（角色卡 11 张，含 T0 主控 + T9b 压力测试；T9b 默认不跑）；worker 不可用按节点接管并披露（详正文）。Routine 写盘（status.md / audits/）已声明；心跳为 opt-in「Operational Telemetry」。v2.14.0 起新增 G18 方法论审计（12 项清单 + D2 评分）。"
 metadata:
   openclaw:
-    version: 2.15.12
+    version: 2.15.13
     requires:
       bins: []
     # v2.15.7：交付建议默认经聊天渠道转发（声明性，加载器不执行）
@@ -28,7 +28,7 @@ metadata:
     audit:      ["read"]   # P2-3 修复（2026-09-30）：原 fmt: 与 permissions.md 档位命名真源 (audit) 不一致；T6 批判 + T7 审计映射至此（G14 中文 AI 痕迹闸归 review 档，与 T9 同为「报告回传、主控落盘」只读档）
     review:     ["read"]
 ---
-> 版本：v2.15.12（自动同步 2026-10-06）
+> 版本：v2.15.13（自动同步 2026-10-07）
 
 # 多 Agent 深度长文流水线（论文/深度文章生产）
 
@@ -69,7 +69,8 @@ Phase 0 按「主控必读文档清单」分层读入（🔴/🟠/🟡）；真�
 3. **spawn 前必读对应派发话术**（`references/dispatch/` 11 个文件，spawn 哪角色读哪文件，勿凭记忆复制，教训 #268）。**含「能力自检」**：主控核验自身工具面是否超限；子代理 spawn 后首步自检回报 —— **工具面超限 = 警告级**（记录 + 披露 + 照样开工，**≠ 调用许可**）；**实际调用越权工具 = 阻断级**（停止 + 回报 `capability_excess`）。见 [`permissions.md`](references/permissions.md)「能力自检」
 4. **审计前必读 G 体系**：`references/agents/07-审计-auditor.md`（G0-G18 必查项 + M 门算法；v2.14.0 起 G18 方法论审计必跑）
 5. **文件修改安全流程**：**禁止 `sed -i`**（静默清空，教训 #265）——用 `edit` 精确 oldText 匹配；改前 `read` 后另存备份（`write` 到 `drafts/archive/`，语义等价 `cp`），改后验证
-6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1/T2/T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 15 分钟/**900s** · T7 12 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）
+6. **硬卡阈值表**（左＝硬卡墙钟；右＝平台机械超时 `runTimeoutSeconds`，**同源不另立数**）：T1/T2/T3 10 分钟/**600s** · T4 12 分钟/**720s** · T5 15 分钟/**900s** · T6 15 分钟/**900s** · T7 12 分钟/**720s** · T9/**600s** · G14 8 分钟/**480s** · **spawn watchdog 8 分钟**（spawn 后无产物兜底）；读密集×1.5+read_budget 必填（真源=主动介入机制.md）
+7. 三档路由探活+主人选择：真源=route_tier.md（T7/T9 固定 T3；配额不计 retry）
 
 **spawn 参数约定**（平台参数，非 frontmatter 键）：完整表见 [`skill-entry-appendix.md`](references/_shared/真源/skill-entry-appendix.md) §一（`cwd` **必须绝对路径** / `runTimeoutSeconds` 同源 / `visible` 策略）。
 
