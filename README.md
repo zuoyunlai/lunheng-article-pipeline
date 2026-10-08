@@ -1,4 +1,4 @@
-> 版本：v2.15.13（自动同步 2026-10-07）
+> 版本：v2.16.0（自动同步 2026-10-08）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -13,7 +13,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。≥3000 字推荐全量（≥5000 强推）；2000-3000 字可走轻量档（真源 = `字数判定表.md` §五）。
 
-**v2.15.13**（2026-10-07，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**实测反哺修订（16 项 merge）**：新建模型路由三档真源（route_tier.md：T1 继承/T2 同平台/T3 跨平台 + Phase 0 主人选择 + fallback 升级链）、T9 配额类失败不计 retry + 跨族重试一级化、read_budget 必填 + 读密集硬卡 ×1.5、cp 基线升强制 + read_basis + 结构探针、主控兑底版本链、执行器降级路径、body_floor 下限分支 + 字数口径强制标注、G16⑤ 指令残留机械门（含 whitelist）、G4-3 图位单调递增 + 交叉引用门、可发表性 4.1 同体系门 + 三轨→单轨交付层映射、反哺报告后移 Phase 5、owner_checkpoint blocks 局部阻塞、M 门 basis 二分；旧版摘要见 CHANGELOG。
+**v2.16.0**（2026-10-08，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**全量审计修订（里程碑：新增交付级闸门）**：① 修终态假绿灯（`status.md` 头部降为派生视图 + 验收前置对账四项）；② 新增 `delivery_readiness` 二态闸（`submission_ready` / `accepted_with_open_items`，Phase 5 点明 `accepted` ≠ `submission_ready`）；③ Phase 1.5 拆两个求值点（红数据窗口移至完整性门之后，消除「时序上恒为假且被静默吞掉」的触发项）；④ 修模型路由族数算术错误（2 族不能满足 T6/T7/T9 两两互异，拆为两判据）；⑤ 取消路由「无记录走默认」fail-open 尾巴；⑥ 修终态重开链顺序（盲审不得排在定稿组装之前）；⑦ 可发表性判定表伪代码对齐判据列；⑧ **门 Y 体量棘轮由「只告警」升为硬门**（此前超限仍 `exit 0`）；⑨ Checkpoint 卡两层呈现（待决策 ⛔ / 已落定 ✅）。节点数 26→27；负例注入 10/10 捕获。v2.15.13 及更早摘要见 CHANGELOG。
 
 论衡把一篇深度长文 / 论文的生产拆成 **11 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
 
@@ -124,7 +124,7 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.15.13  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.16.0  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

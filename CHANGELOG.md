@@ -2,6 +2,42 @@
 
 ---
 
+## [v2.16.0] — 2026-10-08 · 全量审计修订（里程碑：新增交付级闸门）
+
+> 背景：对 v2.15.13 做只读全量审计（26 节点真源 + 四个人环节点 + 修订回环 + 上下文契约 + 测试面 + 历史实跑交叉核验），综合评分 **7.1/10**；产出 **12 项修订清单（P0×4 / P1×4 / P2×4）**、4 个施工批次、4 个待主人拍板项。主人拍板 **A1**（投稿就绪升独立闸门）/ **B1**（Phase 1.5 拆两求值点）/ **C1**（状态真源收敛）。
+> 性质：**新增 1 交付级闸门 + 1 节点 + 2 组判据单源**；节点数 26→27；不新增 G/M 门计数；不新增 flow-check 规则（规则数保持 49/50）。
+> 审计与施工报告：`reports/2026-10-08-审计修订计划-v2.15.13.md`（含逐项证据、负例与踩坑复盘）。
+
+### 1. 终态假绿灯面（P0，新增交付级闸门）
+
+- **R-2（C1）** `status.md` §一 头部摘要**降为派生视图**（以详情段为准，禁独立编辑本节「追平」）；新增 `acceptance_reconciliation` + 四项前置对账（决策齐 / 报告齐 / 状态自洽 / 产物在盘），判据落 `可发表性判定表.md` §六·6.1。依据：2026-10-06 实跑中头部写「已通过 Phase 5 验收」而同文件 `Phase 3.5 = 未决策`、`T7.5 = ⬜ Inbox`、`status_json` 停在项目早期。
+- **R-3（A1，里程碑）** 新增 `delivery_readiness: [submission_ready, accepted_with_open_items]`（**必填二态，禁留空**）；`submission_ready` 四项必要条件见 §六·6.2（含「末轮 P0/P1 修订须经独立审计员复核」）；Phase 5 卡点明 **`accepted` ≠ `submission_ready`**。依据：同次实跑 T9 盲审 22/30（minor revision）、引文体例 D 项 ⚠️、末轮修订未经独立审计员复核，仍可「按现状接受」。
+
+### 2. 流程时序与契约自洽
+
+- **R-1（B1）** Phase 1.5 拆两个求值点：原单节点（seq 4）同时承载「简报标记」与「T2.5 红数据未回溯」，却**早于** `t2_5_integrity`(seq 5) ⇒ 红数据项首次到达**恒为假**且被 `on_not_triggered` 静默吞掉（与「闸门真没跑」不可分）。新增 `phase1_5b_post_t2_5_review`(seq 6) 承接红数据求值；旧节点只认简报标记。条件键拆为 `phase1_5_brief_flag_trigger` / `phase1_5b_red_data_trigger`。**节点数 26→27**。
+- **R-4** `route_tier.md` 族数算术错误：原文「至少 2 族可满足 T6/T7/T9 三节点两两互异」——**三节点两两互异需 3 族**。拆为 `writer_audit_distinct_families ≥ 2` 与 `audit_full_independence_families ≥ 3` 两判据，N=2 时后者必判 `degraded`。
+- **R-5** 取消 `phase0_route`「无记录 = 走默认链」fail-open 尾巴（与 `silence_doctrine` 正面冲突）；`pre_spawn_enforcement.precondition` 增判据，缺记录判 `path_or_param_error`。
+- **R-6** `terminal_freeze` 重开链改**依赖序**：原序 `g14→t9_review→final_assembly` 与 `t9_review.input = final/定稿.md`（seq 22 > 21）矛盾，按原序执行等于让盲审读**旧版定稿**。
+- **R-7** `可发表性判定表.md` 伪代码对齐判据列：`check_charts` 由 `>= 5` 改 `== 拍板 N`（原伪代码比判据宽松）；`check_citation_ordering` 补 `order_mismatch`——**「顺序编码闭环」判据此前从未被伪代码实现**。
+- **R-9** `owner_checkpoint.blocks`（局部阻塞）纳入 flow-check **规则 12**（不开新规则，总数保持 49/50）。
+- **R-11** Checkpoint 卡两层呈现：首屏 ⛔ 待决策（≤1 核心 + 2 取舍）/ 次屏 ✅ 已落定（不阻塞但**仍须留痕**）。依据：Phase 0 一屏 6 项、主人只答 1-2 项、其余静默与「已答」不可分。
+
+### 3. 构建门与棘轮
+
+- **门 Y 升为硬门（本日实测发现的治理缺陷）**：此前 `BULK_RATCHET_OK=0` **不写 `FAILED[]`**，超限只 `warn` ⇒ 「只许降」棘轮形同建议（当日两次超限 +273 B / +94 B，gate 均 `exit 0`）。补聚合 `fail`；逃生口沿用 `LUNHENG_BULK_RATCHET`。
+- 新增切片同步登记 **两份清单**：`scripts/.pkg-manifest.txt` 与 `build-clawhub-release.sh` 的 `SHARED_ADMITTED`（后者须保持 `LC_ALL=C` 排序）。**门 G 只验不建**：修完后须在默认 `OUTPUTS_ROOT` 重建才能转绿。
+- 棘轮台账按 v2.15.13 既有先例**累加至原 open 行**（未销账不新开行），并在 §五 标注 **`phase-order.yaml` / `index.yaml` 上调额度已用尽**（§四-3 铁律）⇒ 后续内容须沉旁侧真源。
+- 升版 `2.15.13 → 2.16.0`：版本串由 7 字符缩为 6 字符（`2.15.13` 5 位数字 / `2.16.0` 4 位），四个必读文件**各减 1 B**，方向与「只许降」一致，`ceils` 无需上调。
+
+### 4. 验证与已知边界
+
+- 自审门 **42 PASS / 0 FAIL**（`exit 0`）；全量 pytest **618 passed / 1 skipped / 0 failed**（新增 2 条测试前；其所在文件单独验证 19/19）。
+- **负例注入 12/12 捕获**：R-1~R-4、R-5、R-6、R-7、R-9、R-11 边界、门 Y 硬门、`hash_mismatch` 降级、「不得判通过」边界被抹。
+- 已知边界：① 门 G 依赖默认 `OUTPUTS_ROOT` 的既有包，改动后需重建；② `index.yaml` 余量 0 B，内容新增前须先做分层提案；③ flow-check 规则 49/50，仅余 1 条额度；④ `hash_mismatch` 分支在真实项目中的执行仍待主人回填一次 `sha256sum`。
+
+---
+
 ## [v2.15.13] — 2026-10-07 · 实测反哺修订（16 项 merge，含模型路由三档真源）
 
 > 背景：`run/2026-10-06-ai风格剥削与美学权利` 全量档实跑的反哺报告（`audits/反哺报告-v2.md`，T7 未产后主控 Phase 5 补写，经两轮复核修正）提出 14 项 FB + FB-02a + R-04；主人 2026-10-07 21:03 指令「开始修订，全部修订」，并拍板「模型路由三档由 Phase 0 主人选择」。
