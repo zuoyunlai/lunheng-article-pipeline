@@ -41,7 +41,8 @@ debt:
     to: 25359
     settle_to: 24767
     due_version: "2.18.0"
-    status: "open"
+    status: "settled"
+    settled_at: "2026-10-08 (d1baa40b, N-2 结构约束外移)：index.yaml 26813→22939，22939 ≤ settle_to 24767，达成"
     reason: "v2.15.7 同上（契约段随节点新增）；2026-10-05 T9b 降级 opt-in：condition_definitions 键改名 owner_stress_test_opt_out→owner_stress_test_opt_in + 备案注；发版 v2.15.10 版本戳变长 25358→25359"
   - path: "references/agents/00-主控-扩展职责.md"
     raised_at: "2026-10-05"
@@ -73,7 +74,8 @@ debt:
     to: 26813
     settle_to: 25359
     due_version: "2.18.0"
-    status: "open"
+    status: "settled"
+    settled_at: "2026-10-08 (d1baa40b, N-2 结构约束外移)：index.yaml 26813→22939，22939 ≤ settle_to 25359，达成；§四-3 上调额度随回落释放"
     reason: "审计 R-6（重开链依赖序修正）：`terminal_freeze.doctrine` 原序 `g14_style_gate / t9_review / final_assembly / t8_technical_final` 与 `t9_review.input = final/定稿.md`（phase_seq 21 > final_assembly 20）**矛盾** —— 按原序执行等于让盲审读**旧版定稿**，重跑形同虚设。改为依赖序 `current_draft_sync(有改时) → g14_style_gate → phase4_4_figures/final_assembly(含 g14_caption_recheck) → t9_review → t8_technical_final`，并注明 T9 受审对象指纹须与重开后定稿一致。**2026-10-08 批次 2 R-1（B1）累加**：`nodes:` 路由表插入 `phase1_5b_post_t2_5_review`（seq 6）并整体重编号，26→27 ⇒ 25909→26813（+904 B）。无分层可选（顶层 terminal_freeze 为跨阶段共享不变式，不属可外移的节点体）。**⚠️ 本行已累计 2 次上调（25359→25909→26813），§四-3 铁律额度用尽**。本行 = 该 path 第 2 条 debt"
 ```
 
@@ -115,10 +117,10 @@ structural_exempt:
 | 文件 | 当前上限 | 未结债务 | 回落目标 | 截止 |
 |---|---|---|---|---|
 | 00-主控-扩展职责.md | 70278 | 1 | 70189 | 2.18.0 |
-| phase-order.yaml | 75003 | 2 | 70860（另有一条历史 open 行 settle_to 63928） | 2.18.0 |
-| phase-order/index.yaml | 26813 | 2 | 25359（另有一条历史 open 行 settle_to 24767） | 2.18.0 |
+| phase-order.yaml | 71091 | 2 | 70860（另有一条历史 open 行 settle_to 63928） | 2.18.0 |
+| phase-order/index.yaml | 22939 | 0 | —（两条均已销账，见下） | — |
 | M-Gate-核心.md | 78090 | 1 | 77527 | 2.18.0 |
 
-> **合计未结债务**：**6 条**（v2.15.7 批次 1 条；T9b 降级 + 发版重定批次 2 条；v2.15.13 反哺 1 条；2026-10-08 审计批次 1「契约自洽」新增 2 条）。
-> **棘轮余量提示（2026-10-08 更新）**：`phase-order.yaml` 与 `phase-order/index.yaml` 的 §四-3 上调额度**已用尽**（各累计 2 次：70860→71724→75003 / 25359→25909→26813，第 3 次按铁律不再受理）。**批次 2 剩余项（R-2 状态真源收敛、R-9 blocks 门）的新增内容一律沉入旁侧载体**（`status-template.md` / `scripts/flow-check.py` / 专项测试），不得再堆进这两个契约文件。
+> **合计未结债务**：**4 条**（v2.15.7 批次 1 条；T9b 降级 + 发版重定批次 1 条；v2.15.13 反哺 1 条；2026-10-08 审计批次 1「契约自洽」1 条）。**index.yaml 两条已销账**（N-2 结构约束外移，commit `d1baa40b`）。
+> **棘轮余量提示（2026-10-08 N-2 后更新）**：`index.yaml` 已回落至 22939 B（上限同步下调，余量 3874 B），**§四-3 上调额度已释放**。`phase-order.yaml` 71091 B（上限同步下调，余量 3912 B）但其两条 debt 的 `settle_to`（70860 / 63928）**尚未达成，仍 open** —— 下一轮内容若再逼近上限，仍须先走外移。
 > **机械变长豁免（2026-10-06 方案 A）**：`M-Gate-核心.md` 原第 4 条债务为**纯发版版本戳 +1 B**，已按 §二 `version_stamp_lengthening` 豁免口径移出为记录 → 未结债务 4 → 3 条。

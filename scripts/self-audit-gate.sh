@@ -1349,7 +1349,10 @@ fi
 #   `^ *# (\d{1,2}[a-z]?)\s`）**均抽不出任何规则号**，规则号集合保持 50 不变（现**贴** RULE_COUNT_MAX=50）。
 #   回落同时触发台账 §四-2 销账：`index.yaml` 两条 debt 均达成 settle_to（22939 ≤ 25359 / ≤ 24767）⇒ 已销；
 #   `phase-order.yaml` 71091 仍高于其 settle_to（70860 / 63928）⇒ 保持 open。
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70278,references/_shared/真源/M-Gate-核心.md|78090,references/_shared/真源/phase-order.yaml|71091,references/_shared/真源/phase-order/index.yaml|22939"
+#   注：实际值 index 22947 / phase-order 71099（比 22939/71091 多 8 B）—— 因随包指针必须去掉
+#   `scripts/` 字面量（构建链 FINAL_PATTERNS 将 `scripts/` 列为包内残留，带则构建失败），替代措辞略长；
+#   **非内容膨胀**，不上调任何 debt。
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70278,references/_shared/真源/M-Gate-核心.md|78090,references/_shared/真源/phase-order.yaml|71099,references/_shared/真源/phase-order/index.yaml|22947"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：
