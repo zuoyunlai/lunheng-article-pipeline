@@ -1,4 +1,4 @@
-> 版本：v2.16.0（自动同步 2026-10-08）
+> 版本：v2.16.1（自动同步 2026-10-08）
 
 > 🛠️ **根级工具说明**：根目录 `Makefile` / `pyproject.toml` / `requirements.txt` / `tests/` / `.github/` 是**开发者工具**（主控自审门、pytest、净化链、CI）。ClawHub 净化包（`$OUTPUTS_ROOT/clawhub-release/<v>/`）不包含这些，只携带 `SKILL.md` + `LICENSE` + `references/` + `QUICKSTART.md`。**发布者无需为这些根级文件设置路径期望。**
 
@@ -13,7 +13,7 @@
 
 > **中文学术/深度长文专用**。多 Agent 编排 + 三角验证（文献/数据/案例）+ M 门形式合规 + 实战反馈驱动升级。≥3000 字推荐全量（≥5000 强推）；2000-3000 字可走轻量档（真源 = `字数判定表.md` §五）。
 
-**v2.16.0**（2026-10-08，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**全量审计修订（里程碑：新增交付级闸门）**：修终态假绿灯（`status.md` 头部降为派生视图 + 验收前置对账四项）；新增 `delivery_readiness` 二态闸（`accepted` ≠ `submission_ready`）；Phase 1.5 拆两个求值点；修族数算术错误与路由 fail-open 尾巴；门 Y 棘轮升为硬门。节点数 26→27，逐项详见 CHANGELOG 首节。
+**v2.16.1**（2026-10-08，当前版本；以 [`CHANGELOG.md`](CHANGELOG.md) 首节为准）——**changelog 排水机制修复**：温层超限告警此前指向被 .gitignore 排除的 `docs/history/`（照做会丢章节），已改指版本控制内的冷归档层；冷层新增同款棘轮；温层实排水 20 期（260196 → 170714 B）。并纠正一处误判：ceiling 语义是「上限 == 实测」，并非两门互斥。逐项详见 CHANGELOG 首节。
 
 论衡把一篇深度长文 / 论文的生产拆成 **11 张角色卡 + 6 个阶段**，由主控用 OpenClaw `sessions_spawn` 编排三方真并行子代理（T1∥T2∥T3 互不干涉），产出有**证据底座、反方论证、独立审计、人工核验节点**的交付物。T8 终检有独立角色卡，**T9 同行评审**（6 维度评分 + 期刊匹配）。定位：学术论文 / 商业评论 / 行业分析 / 公众号深度长文通用（非 locale 缺陷）。单点实测约 9500 字深度文全流程约 2 小时；统计口径与档位数据以 [`performance-benchmarks.md`](references/_shared/真源/performance-benchmarks.md) 为准。
 
@@ -124,7 +124,7 @@
 
 **方式一（推荐）**：ClawHub 安装
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.16.0  # pin 审计版本（回应 ClawHub T08）
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.16.1  # pin 审计版本（回应 ClawHub T08）
 # 或本地：openclaw skills add /path/to/lunheng-article-pipeline
 ```
 

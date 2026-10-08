@@ -37,11 +37,19 @@ CHANGELOG_KEEP = 5
 # ⚠️ v2.15.10 下调：362901 → 244721。发版轮转 v2.15.5 后温层实测 372507 B 超限，按上方告警指引
 #   执行冷归档外移（最旧 29 章 v2.12.0–v2.12.28 迁入 changelog-cold-v2.0-v2.12.md）而非放宽本值。
 # ⚠️ v2.15.12 上调：249426 → 251849（发版轮转 v2.15.7 入温层后实测水位；棘轮语义 = 上限 == 当前实测）。
-# ⚠️ v2.15.14 再上调：255758 → 260196（v2.15.13→v2.16.0 发版，把 v2.15.9 轮转入温层，沿用 v2.15.12 同一先例：发版轮转致实测水位上移 ⇒ 同步实测，非内容膨胀。
-#   ⚠️ **结构性冲突待解**：温层 ceiling 归零后，「主文件只留 5 期」的强制轮转**必然**撑破温层 ceiling，
-#   而下沉章节又会因其 tag 失去章节（changelog-check 只读主文件+温层两份）⇒ 校验红。
-#   两道门在温层满水位时互斥，须主人拍板后改机制（见计划 §九）。
-CHANGELOG_ARCHIVE_CEIL = 260196
+# ⚠️ v2.16.1 同步：260196 → 176488（20 期冷归档排水后温层实测；棘轮语义 = 上限 == 实测）
+# ⚠️ v2.15.14 上调记录：255758 → 260196（v2.15.13→v2.16.0 发版，把 v2.15.9 轮转入温层，沿用 v2.15.12 同一先例：发版轮转致实测水位上移 ⇒ 同步实测，非内容膨胀。
+# ✅ **v2.16.1 机制修复（审计 §九 结构性冲突）**：此前上行那条「结构性冲突待解」的前提是错的 ——
+#   `changelog_files()` 本就返回**三份**文件（主 + 温 + 冷），`documented` 早已含冷层，
+#   所以「把温层章节下沉到冷归档会让其 tag 失去章节」**不成立**。真正缺的是**可执行的排水出口**：
+#   下方告警一直让人「冷归档到 docs/history/」，而 `docs/` 是 **.gitignore 第 4 行排除的**路径
+#   （实测 `git check-ignore` 命中 `.gitignore:4:docs/`）—— 照做会让章节**从版本控制消失**。
+#   故本版：① 排水指引改指**已在版本控制内、且已被 changelog_files() 读取**的 CHANGELOG_COLD；
+#   ② 冷层加**同款棘轮**，避免「温层排水 = 把无界问题平移到冷层」；③ 两层 ceiling 均随实测同步（只许降）。
+CHANGELOG_ARCHIVE_CEIL = 176488
+# 冷层体量棘轮（v2.16.1 新增）：与温层同纪律。冷层是**终极兜底**，故其上限放宽到「温层一次排水的产物」量级，
+#   但**同样只许降**；冷层亦撞顶时，唯一合规出路是 GitHub Release 视图（tag 已有的章节在 tag 处可查）。
+CHANGELOG_COLD_CEIL = 360777
 # v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法单行 >4000 字符，
 #   可读性崩坏且与 CHANGELOG 职责重叠）。新写法 = 摘要 + 链接；超限即红。
 README_PROSE_MAX = 500
@@ -219,16 +227,25 @@ def cmd_check(online):
               f"把最旧的 {len(_main_sections) - CHANGELOG_KEEP} 章移入 {CHANGELOG_ARCHIVE.name}")
         fail = 1
 
-    # v2.15.9（审计 P2「仓库瘦身」）：归档体量软上限 —— 主文件有 5 期门，归档无上限 ⇒
-    #   长期看「轮转」只是把体积从主文件挪到归档（491KB / 382 章，已是全仓最大被跟踪文件）。
-    #   本门给归档设**棘轮**：按维护者裁定的当前水位为上限，只许降（与门 Y 同纪律）；
-    #   需要扩容时走「冷归档外移」而非放宽本值（拆到 docs/history/ 或 GitHub Release 视图）。
-    #   超限仅 warn（软门，不阻断 changelog 校验本身）；本值变更须同批更新说明。
+    # v2.15.9（审计 P2「仓库瘦身」）：温层体量软上限 —— 主文件有 5 期门，温层无上限 ⇒
+    #   长期看「轮转」只是把体积从主文件挪到温层。本门给温层设**棘轮**：按维护者裁定的当前水位为上限，
+    #   只许降（与门 Y 同纪律）；超限仅 warn（软门，不阻断 changelog 校验本身）。
+    # ✅ v2.16.1：排水出口改指 CHANGELOG_COLD（**已在版本控制内 + 已被 changelog_files() 读取** ⇒
+    #   下沉后其 tag 仍能解析到章节），不再指向被 .gitignore 排除的 docs/history/。
     if CHANGELOG_ARCHIVE.is_file():
         _arch_bytes = CHANGELOG_ARCHIVE.stat().st_size
         if _arch_bytes > CHANGELOG_ARCHIVE_CEIL:
             print(f"⚠️  {CHANGELOG_ARCHIVE.name} 体积 {_arch_bytes} B > 上限 {CHANGELOG_ARCHIVE_CEIL} B —— "
-                  f"归档已接近无界；下次轮转请把最旧若干章冷归档到 docs/history/，而不是放宽本值")
+                  f"温层已接近无界；请把**最旧若干章**下沉到冷归档 {CHANGELOG_COLD.name}（该文件在版本控制内、"
+                  f"且已参与「每个版本 tag 都有章节」校验，下沉不会让 tag 失去章节），然后把本值同步为实测；"
+                  f"**不要**放宽本值，也不要用 docs/history/（该路径被 .gitignore 排除）")
+    # v2.16.1 新增：冷层同款棘轮（冷层撞顶 ⇒ 唯一合规出路是 GitHub Release 视图）
+    if CHANGELOG_COLD.is_file():
+        _cold_bytes = CHANGELOG_COLD.stat().st_size
+        if _cold_bytes > CHANGELOG_COLD_CEIL:
+            print(f"⚠️  {CHANGELOG_COLD.name} 体积 {_cold_bytes} B > 上限 {CHANGELOG_COLD_CEIL} B —— "
+                  f"冷层已接近无界（冷层是终极兜底，无处再下沉）；这些版本均已有 GitHub Release 视图可查，"
+                  f"请评估是否新建独立历史仓/压缩，或把本值同步为实测并在此说明理由")
 
     # v2.12.67：README 正文「当前版本」块容量门（审计 P2-4：堆叠式写法曾单行 >4000 字符）。
     #   判据与 test_audit_residuals 的版本一致性断言互补：那边锁「版本号对」，这边锁「可读性」。

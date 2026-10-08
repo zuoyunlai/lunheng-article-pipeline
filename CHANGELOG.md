@@ -2,6 +2,35 @@
 
 ---
 
+## [v2.16.1] — 2026-10-08 · changelog 排水机制修复（纠 2.16.0 误判）
+
+> 背景：2.16.0 发布后核查发现 ClawHub 上该版 changelog 是平台自动生成的假摘要（教训 #354 复发）；顺藤排查 changelog 分层机制时，误判「温层撞 ceiling 与主文件 5 期门互斥」，主人拍板 **A**（修机制）后实测推翻了该误判。
+> 性质：**仅机制与门判据修正**；不改流水线节点、不改 G/M 门计数、不改门 Y 棘轮；不新增产品功能。
+
+### 1. 误判纠正：ceiling 语义是「上限 == 实测」，不存在「余量归零 ⇒ 两门互斥」
+
+- 实测 `test_changelog_archive_ratchet` 第 ①② 条均断言 `actual == CHANGELOG_ARCHIVE_CEIL` ⇒ **每次轮转后同步 ceiling 到新实测就是正常流程**（v2.15.12、v2.15.14 皆如此），并非「放宽上限」。
+- 故上一轮所称「温层 ceiling 归零 ⇒ 强制轮转必然撑破 ceiling ⇒ 两门互斥」**不成立**；本版据实纠正，避免后人再按错误前提改动机制。
+- 另一处误判：`changelog_files()` 本就返回**三份**文件（主 + 温 + 冷），`documented` 早已含冷层 ⇒「下沉会让 tag 失去章节」**不成立**。当时误信第 196 行那句过时文案（只写「主文件 + 归档」，漏冷层），未读实现。
+
+### 2. 实修：排水出口此前指向 gitignored 路径（唯一真缺陷）
+
+- 温层超限告警一直指示「冷归档到 `docs/history/`」，而 `.gitignore` 第 4 行排除 `docs/` ⇒ 照做会让章节**从版本控制消失**。已改指 `CHANGELOG_COLD`（`references/_shared/治理/changelog-cold-v2.0-v2.12.md`）：该文件**在版本控制内**，且**已参与**「每个版本 tag 都有章节」校验集合。
+- 冷层新增同款棘轮 `CHANGELOG_COLD_CEIL`（v2.16.1）—— 否则「温层排水」只是把无界问题平移到冷层；冷层撞顶时唯一合规出路为 GitHub Release 视图。
+
+### 3. 实际排水与回归门
+
+- 温层 20 期（v2.12.48 – v2.12.29）下沉冷层：温层 260196 → 170714 B，冷层 271296 → 360777 B；`documented` 章节总数 **221 期不变**（tag 解析不受影响），`changelog-check` EXIT=0。
+- 新增 4 条回归门（`tests/test_changelog_archive_ratchet.py`）：① 排水目标是冷层且**在版本控制内**、并断言 `docs/` 确被 .gitignore 排除（前提失效即红）② 冷层必须参与 `changelog_files()` ③ 冷层 ceiling == 实测 ④ 生效代码不得再指示 `docs/history/`（**只扫代码行不扫注释**——修复说明注释会刻意引用旧指引原文，全文扫描会自证失败）。
+- 2.16.1 轮转 v2.15.10 入温层，ceiling 同步实测 176488 B。
+
+### 4. 已知遗留（未动）
+
+- ClawHub **2.16.0 的 changelog 仍是假摘要**，同版本号不可重发修正 ⇒ 本版以 `publish-clawhub.sh` 发布，正文取自本章节。教训：`changelogSource` 字段不可信，须实读 changelog 文本。
+- `⚠️ CHANGELOG 有章节但无 tag：v2.15.7`（历史遗留）。
+
+---
+
 ## [v2.16.0] — 2026-10-08 · 全量审计修订（里程碑：新增交付级闸门）
 
 > 背景：对 v2.15.13 做只读全量审计（26 节点真源 + 四个人环节点 + 修订回环 + 上下文契约 + 测试面 + 历史实跑交叉核验），综合评分 **7.1/10**；产出 **12 项修订清单（P0×4 / P1×4 / P2×4）**、4 个施工批次、4 个待主人拍板项。主人拍板 **A1**（投稿就绪升独立闸门）/ **B1**（Phase 1.5 拆两求值点）/ **C1**（状态真源收敛）。
@@ -182,60 +211,5 @@
 - 门 AA：升版后按生成器重装配，26 节点切片逐字节一致（装配视图为生成物，bump 时只随真源重生成；棘轮字节维持 69294 B）
 
 ---
-
----
-
-## [v2.15.10] — 2026-10-05 · 架构评审收口：契约真源化 + T9b 降级 opt-in
-
-> 背景：2026-10-04 架构与扩展性评审。原评审报告的 P0 结论（`ci-test.yml` 不存在、CI 漏跑全量测试）经复核**证伪**——该文件自 v2.5.6 起一直在仓，且被评审时点双 workflow 各跑一遍全量；原报告的 9 项「字节数」实为字符数（系统性计量口径错误）。真正成立且值得修的是派发合同机制三缺口（R2），本版逐项落地，并按主理人指令把 T9b 降级为 opt-in。
-
-### 1. 派发/轮次契约真源化（P1）—— 删除代码侧无源常量
-
-- **问题**：`dispatch-contract.py` 的 `NODE_CONSTANTS` 把 `recheck_max_rounds` 硬编码在代码侧——其中 `t9_review: 0` 在切片中**任何层级都不存在**（纯代码侧发明）；且 `--check` 比较的是「生成结果 vs 生成结果」，常量漂移对门不可见。覆盖集 `NODE_TO_DISPATCH` 靠手工登记，新增派发节点零成本漏登。
-- **修复**：
-  - 切片真源化：`g14`/`t9` 补 `recheck_max_rounds`；`g14`/`t9`/`t1b` 补 `dispatch:` 载体登记；`t9b`/`methodology_snapshot` 补 `contract_key_carriers:`；`audit_revision`/`t5_style_revision` 补 `rounds_carrier:`。
-  - 生成器重写：覆盖集由切片 `dispatch:` 字段**现算**（新增派发节点零手工登记）；轮次合同块入 `pipeline-overview.md` 仲裁段，成为全仓 5 项轮限的唯一机械登记处；owner 节点契约键逐文件验「键在载体」（极性中立：condition / opt_out / opt_in 任一声明键均覆盖）。
-  - 测试重写 7 → 15 项，含「切片改值 ⇒ 块跟着变」传播测试与「常量不得还魂」棘轮。
-- **纪律**：T5 派发文件明文「本文件不复述轮次数字」⇒ 轮次契约**不写入 T5 dispatch**，另择仲裁段为唯一载体（避免当场违反既有纪律）。
-- **验收**：`dispatch-contract --check` 绿（3 派发块 + 1 轮次块 + 2 项 owner 载体检查）。
-
-### 2. T9b 压力测试轮降级为 opt-in（默认不跑）
-
-- **问题**（三条实测证据）：
-  ① 扫描 `run/` 下 40+ 项目目录**零产出**（管线明显越过该位置而报告不存在；同类型的 `methodology_snapshot` 却多次实跑产出，差别在产出是否交付必需）；
-  ② 产出**无下游消费方**（T8/交付说明/status 皆不读，协议自承不改 T9 评分、不代替 T7、不自行触发修订、默认不入交付说明）；
-  ③ 主控亲为 = 重读定稿全文 ≈20k tokens 压在管线最稀缺的 agent 上，方向与「落盘减负」纪律相反。
-- **修复**：`default: triggered → opt_in`；`opt_out/on_opt_out` → `condition: owner_stress_test_opt_in` + `on_not_triggered`（未开启 ≠ 漏跑，留痕口径与 opt-out 分离）+ `condition_undecidable`；条件键在 `condition_definitions` 登记 producer + marker（规则 25 同族治理）；同步任务简报 full/lite、09b 角色卡、00-主控-扩展职责、压力测试协议、全景行 22。
-- **保留理由**：三类剧本（方法论审查者 / 立场与范围 / 跨语境）有真实学术价值（对应投稿前的 referee method review）⇒ **保留节点**，改为**冲刺投稿时**由主人在 Phase 0 勾选 `owner_stress_test_opt_in: yes` 开启。
-- **守卫**：新增 `tests/test_t9b_optin_downgrade.py`（6 项，含 2 项反向注入：改回 `default: triggered` 必红、生产方载体丢键必红），防静默回潮。
-- **顺带修正**：任务简报「2 个默认启用项」计数漂移（实为 3 项，T9b 移出可选项组后归真）。
-
-### 3. 散文 seq 漂移修正
-
-- `dispatch/T1b-定向回查.md:16-17` 两处 `seq 3` / `seq 14` → **4 / 15**（与 `phase_seq` 真源对账；v2.15.7 插入 `post_phase1_dispatch_verify` 后整体位移，此处未同步）。
-- `agents/08-终检-final-inspector.md:180` `seq 17→18` → **19→20**（同一批次位移）。
-
-### 4. CI 口径注释 + Python 支持面声明
-
-- `quality.yml:53,60` 注释「4 路分片」→ **slow/fast 双 job**（对齐 `8ca7973` 方案 A 现状），并新增 `test_ci_config::test_j` 注释锚点防复发（原 `test_d` 只断言结构、不断言注释 ⇒ 漂移无门拦截）。
-- README 开发环境段补 **Python 3.12** 支持面声明（CI 钉 3.12；`target-version = py312`；3.11/3.13 不在支持面）。
-
-### 5. 门 Y 体量棘轮重定 + 台账补登
-
-- 三个必读文件按协议契约字段重定基线：`00-主控-扩展职责.md` 70189→70277、`phase-order.yaml` 68238→69293、`phase-order/index.yaml` 25084→25358，同批写入棘轮台账。
-- **补登**：本日第 1 项那轮把 `phase-order.yaml` 66574→68238 时**漏记账**（违反台账 §四-1「上涨 = 记账」——重定不得退化为注释豁免），本版一并补登，并在门内注释写明是哪一轮、为何漏。
-- 未结债务 3 条（回落目标与截止版本见 `references/_shared/治理/ratchet-ledger.md`，截止 2.18.0）。
-
-### 6. 冷归档扫描豁免补登（v2.15.9 同族遗漏）
-
-- `tests/test_scan_stale_language.py` 的 `EXCLUDE_NAMES` 补 `CHANGELOG-archive.md` / `changelog-cold-v2.0-v2.12.md`（历史沿革文件的旧口径是史实，不得被漂移扫描要求改写；与 `test_count_drift.py` 的白名单对齐）。
-
-### 验收
-
-- 自审门 **PASS 42 / FAIL 0**（0 SKIP）
-- 全量 pytest **707 passed / 1 skipped**（515.21s）
-- CI 4/4 success：论衡算法测试 CI（含 slow/fast 全量 + 自审门 + 官方校验）10m27s、Code Quality 11m8s、版本号一致性、changelog 完整性
-- `contract-check` / `markdown-structure-lint` / `dispatch-contract --check` / `flow-check` 全绿
-- 门 AA：装配视图与 26 节点切片逐字节一致
 
 ---
