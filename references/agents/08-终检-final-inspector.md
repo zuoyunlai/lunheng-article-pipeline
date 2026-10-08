@@ -149,6 +149,7 @@ T8 除读取 E1 登记表和映射表外，必须接收 T7 的 `citation_evidenc
 ### M-1：交付物指纹绑定
 
 1. **写指纹**：`final/定稿.md` 产出后，主控 `read` 后必须由主人在 host shell 跑 `sha256sum` 补算并写入 `final/定稿.sha256`（命令模板 + 自验 + 回填登记四处，见 [`../_shared/真源/host-verify-recipe.md`](../_shared/真源/host-verify-recipe.md) §二 / §四）。
+   - ⚠️ **不是「写一次」而是「与定稿同寿」**：`final/定稿.md` 或 `final/图件/*.svg` **任何一次变更后必须重跑 §二 + §三**（含终态重开链 `post_acceptance_reopen`、minor 修补、B 类扩写、主人手动编辑）—— 四类触发情形见 `host-verify-recipe.md` **§3.1**。**实测反例（2026-10-08 审计 D）**：`run/first-degree-screening-2026` 的 `final/定稿.sha256` 至今记的是 v2.3 归档稿哈希，而定稿自 v2.4 组装后未刷新；同项目 `status.md` 正文记的却是正确的 v2.4 值 ⇒ **两个「权威」互相矛盾而全程无报红**。
 2. **报头必填**：T7 / G14 / T9 / T8 四类只读档报告（含交付说明）头部必填 `audited_artifact` 字段组（`path` / `bytes` / `sha256`）；`path` 缺失 = 该报告作废（`bytes` / `sha256` 按第 3 条处理，缺失不等于作废）。
 3. **零 exec 边界**：`sha256` 与**精确 `bytes`** 属**主人侧量值** —— 论衡 agent（零 exec）**不计算、不模拟、不声称已复算**。agent 侧可确知的只有 `path`（`read` 可确知）与**文本度量**（行数 / 字符数 / 首末行摘要）。任一量值未经主人回填时记 `unavailable`，对应判定档 = **`pending_owner_verification`（无法判定）**：**明文禁止判「通过」**（空值或占位符即视为通过 = fail-open），也**不判「不合格」**；须在交付说明「主人侧待办」段披露。
 4. **同源检查（agent 侧可执行）**：T8 终检以 `read` 比对四处报告的 `path` + 文本度量是否**同源一致**（对象名与度量须来自同一次 `read`）；不一致 ⇒ **判不合格（审计对象漂移）**，返回 T5 v(N+1) 重走。
@@ -167,7 +168,7 @@ T8 除读取 E1 登记表和映射表外，必须接收 T7 的 `citation_evidenc
 1. **下游只读档报告必填 `audited_artifact`**：T7 / G14 / T9 / T8 四处 `path` 必须**同源**，`sha256` 在主人回填后必须**两两相等**；任一处不一致 = 门失败（详见 M-1 第 4 / 5 条）。未回填的 `sha256` 记 `unavailable` 并落 `pending_owner_verification`，**不得据此判通过**。
 2. **`t7_5_integrity` 与 `t8_technical_final` 是集合相等断言点**：上游报告落盘后做**单点对多点**集合比对；差集非空 = 审计对象曾经被多版本路由（如 `final_assembly` 重出后未同步所有报告）。
 3. **`current_draft_sync` 是 sha256 锚点真源**：下游报告 sha256 必须等于 `current_draft_sync` 同步那一刻的 `final/定稿.md` sha256；等于更早或更晚版本 = 静默漂移。
-4. **T8 终检复核（零 exec 语义）**：T8 **不重算 sha256**（零 exec 不可得，见 M-1 第 3 条）。T8 以 `read` 做两件事：① 四处 `path` + 文本度量同源比对（agent 可执行）；② 核对 `final/定稿.sha256` **是否已由主人回填** —— 已回填 ⇒ 按 M-1 第 5 条判指纹合格；未回填 ⇒ 记 `pending_owner_verification`，**禁止判通过**。
+4. **T8 终检复核（零 exec 语义）**：T8 **不重算 sha256**（零 exec 不可得，见 M-1 第 3 条）。T8 以 `read` 做三件事：① 四处 `path` + 文本度量同源比对（agent 可执行）；② 核对 `final/定稿.sha256` **是否已由主人回填** —— 已回填 ⇒ 按 M-1 第 5 条判指纹合格；未回填 ⇒ 记 `pending_owner_verification`，**禁止判通过**；③ **指纹新鲜度交叉判定**（2026-10-08 审计 D 补）：比对本项目 §3.1 的四类触发情形，核 `.sha256` 内的哈希与 `status.md` / `final/交付说明.md` 登记的哈希**是否同源一致**。二者不一致 ⇒ 指纹至少有一处是陈的 ⇒ 记 `pending_owner_verification` + 在交付说明「主人侧待办」段列出，**禁止判通过**（agent 零 exec 无法判定哪一侧陈旧，交由主人跑 `sha256sum -c` 定夺）。
 
 ### M-11：图位决策必答 + 图位↔终稿绑定（M-10 路径归一是真源锁）
 

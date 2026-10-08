@@ -33,6 +33,28 @@ sha256sum -c final/定稿.sha256
 
 逐行输出 `OK` 才算落盘正确。任一行 `FAILED` = 文件在补算后被改动（或路径写错）⇒ 重新补算，并把改动原因记入 `status.md`。
 
+### 3.1 变更后必须重跑（2026-10-08 审计 D 补，治「指纹静默陈旧」）
+
+> **实测缺陷**：`run/first-degree-screening-2026` 的 `final/定稿.sha256` 记的是 **v2.3 归档稿**的哈希
+> （`e675323a…` = `drafts/archive/定稿-v2.3.md`），而 `final/定稿.md` 自 v2.4 机械组装（49,877 B）后
+> **从未刷新指纹**。于是同一项目内出现**两个「权威」互相矛盾**：`status.md` 正文记的 `59c2dd6d…` 正确，
+> 而 `.sha256` 文件为 v2.3 陈值。**全程无任何报红** —— 因为 §二/§三 都是「写一次 + 验一次」，
+> 没有任何一条规则说「定稿变了要重来」。
+
+**规则（硬）**：以下任一情形发生后，**必须重跑 §二 补算 + §三 自验**，否则指纹不得视为有效：
+
+1. `final/定稿.md` 因**任何**原因被写入或修改（含主控组装、minor 修补、B 类扩写、跨章一致性调整）；
+2. `final/图件/*.svg` 任一被重新生成或改名；
+3. 走 `phase-order.yaml` `terminal_freeze` 的**终态重开链**（`post_acceptance_reopen`）—— 该路径必然改动受保护路径；
+4. 项目被主人手动编辑过定稿。
+
+> **与 R-6 的关系**：`terminal_freeze.doctrine` 已把重开链改为依赖序（`current_draft_sync` → `g14_style_gate`
+> → `phase4_4_figures` / `final_assembly` → `t9_review` → `t8_technical_final`）。本条是它的**指纹侧配套**：
+> 重开链跑完、主人重新拍板之前，§二/§三 **必须已重跑**，否则 Phase 5 只能记 `pending_owner_verification`。
+
+**指纹陈旧的判读**：`sha256sum -c` 报 `FAILED` 且 `status.md` 中记录的 sha256 **与文件实际值不一致** ⇒
+不是「补算后被改动」，而是**指纹自写入起就一直是陈的** ⇒ 按上表补记缺陷、重跑 §二/§三，并在 `status.md` 记明发现时点与旧值。
+
 ## 四、回填登记位置（四处，缺一即不合格）
 
 > **P1-5 修复（2026-09-30）**：旧版要求 T7/G14/T9/T8 四份报告 `audited_artifact` 的

@@ -517,6 +517,33 @@ def test_R11_two_layer_presentation_cannot_become_fail_open():
     print("  ✓ R-11: 两层呈现在场且已钉死 fail-open 边界")
 
 
+def test_fingerprint_refresh_on_change_is_wired():
+    """交付物指纹必须「与定稿同寿」，而非写一次（2026-10-08 审计 D 补）。
+
+    实测缺陷：`run/first-degree-screening-2026` 的 `final/定稿.sha256` 记的是 v2.3 归档稿哈希，
+    定稿自 v2.4 组装后未刷新；同项目 `status.md` 正文记的却是正确值 ⇒ 两个「权威」互相矛盾、
+    全程无报红。根因：`host-verify-recipe.md` §二/§三 只规定「补算 + 自验」，
+    **没有任何一条规则说「定稿变更后要重来」**。
+    故本用例同时守两处：配方侧的触发情形清单、T8 侧的新鲜度交叉判定。
+    """
+    recipe = _read(ROOT / "references" / "_shared" / "真源" / "host-verify-recipe.md")
+    t8 = _read(ROOT / "references" / "agents" / "08-终检-final-inspector.md")
+
+    # ① 配方侧：§3.1 在场 + 四类触发情形
+    assert "3.1 变更后必须重跑" in recipe, "host-verify-recipe 缺 §3.1（指纹与定稿同寿）"
+    assert "post_acceptance_reopen" in recipe, "§3.1 未覆盖终态重开链（最高频的变更来源）"
+    for trig in ("sha256sum -c", "图件", "主人手动编辑"):
+        assert trig in recipe, f"§3.1 缺触发条件「{trig}」"
+    # 自验步骤（旧有）必须仍在
+    assert "sha256sum -c final/定稿.sha256" in recipe, "§三 自验步骤丢失"
+
+    # ② T8 侧：新鲜度交叉判定接线
+    assert "指纹新鲜度交叉判定" in t8, "T8 终检缺「指纹新鲜度交叉判定」"
+    assert "§3.1" in t8, "T8 终检未指向配方 §3.1"
+    assert "pending_owner_verification" in t8, "T8 侧未保持 fail-closed 判定档"
+    print("  ✓ 指纹刷新规则已双端接线（配方 §3.1 + T8 交叉判定）")
+
+
 # =============================================================================
 # 主入口（v2.12.42 删）
 # =============================================================================
