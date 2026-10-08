@@ -83,23 +83,35 @@ def test_gate_y_clean_tree_passes():
         f"余量应达标（若不足请外移内容，而不是压低阈值）：{lines}"
 
 
-def test_gate_y_overrun_warns_but_does_not_fail():
-    """② 红样本：阈值压到 1 ⇒ 必告警，但软门语义要求 RC 仍为 0（不许变成第二个硬门）"""
+def test_gate_y_overrun_fails_hard():
+    """② 红样本：阈值压到 1 ⇒ 逐文件告警**且**门 Y 升为硬门（RC=1）。
+
+    ⚠️ **契约变更（2026-10-08，审计 N-1，主人批准）**：本用例原名 `..._warns_but_does_not_fail`，
+    断言「软门不得改 exit code（否则等于第二个硬门）」。门 Y 已由**软门升为硬门** —— 起因是当日实测：
+    超限只走 `warn`，既不进 `FAILED[]` 也不影响退出码，gate 连续两次带棘轮违规 `exit 0`，
+    「只许降」棘轮形同建议（不会失败的门等于没有门）。
+    **未变更的部分**：逐文件告警必须保留（要能定位到**哪个**文件超了），下两行断言原样保留。
+    **变更的部分**：收口档位 warn → fail，故 RC 由 0 变 1。
+    """
     tiny = ",".join(f"{p}|1" for p in BULK_FILES)
     r, out = _run_gate({"LUNHENG_BULK_RATCHET": tiny})
     lines = _y_lines(out)
     warns = [l for l in lines if l.lstrip().startswith("⚠") and "上限" in l]
     assert len(warns) == len(BULK_FILES), f"回涨未逐文件告警：{lines}"
-    assert r.returncode == 0, f"软门不得改 exit code（否则等于第二个硬门）：\n{out}"
-    assert "FAIL: 0" in out, f"软门不得进 FAIL 列表：\n{out}"
+    assert r.returncode == 1, f"门 Y 已是硬门，超限必须红（否则退回形同建议的软门）：\n{out}"
+    assert "FAIL: 1" in out, f"超限须进 FAIL 列表：\n{out}"
 
 
-def test_gate_y_missing_target_warns():
-    """④ 清单指向不存在的文件 ⇒ 必须告警（防清单失效后静默通过）"""
+def test_gate_y_missing_target_fails_hard():
+    """④ 清单指向不存在的文件 ⇒ 必须告警**且**升为硬门（防清单失效后静默通过）。
+
+    ⚠️ 同上契约变更（2026-10-08 审计 N-1）：原断言 `RC=0`（「缺失告警仍属软门语义」），
+    现为 `RC=1`。**「必须告警」这一半保留**——清单失效本就不该静默，升为硬门只会让暴露更早。
+    """
     r, out = _run_gate({"LUNHENG_BULK_RATCHET": "references/__不存在__.md|1"})
     lines = _y_lines(out)
     assert any("目标文件缺失" in l for l in lines), f"缺失文件未告警：{lines}"
-    assert r.returncode == 0, "缺失告警仍属软门语义"
+    assert r.returncode == 1, "门 Y 已是硬门，清单指向缺失文件必须红（防清单失效静默通过）"
 
 
 def test_gate_y_covers_all_mandatory_files():
