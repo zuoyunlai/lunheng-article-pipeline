@@ -1463,6 +1463,14 @@ fi
 
 if [ "$BULK_RATCHET_OK" = "1" ]; then
   pass "门 Y: 必读文件体量棘轮清单全部在位且未回涨（${_RATCHET_LEDGER_NOTE:-台账未检}）"
+else
+  # 2026-10-08 修（N-1）：此前本分支**什么都不发** —— 超限只在循环里 `warn`，而 `warn` 既不进
+  #   FAILED[] 也不调 `_record_gate_id`，于是「只许降」棘轮形同建议：2026-10-08 当日实测两次
+  #   （超限 +273 B、超限 +94 B）gate 均为 PASS 42 / FAIL 0 且 `exit 0`。
+  #   即「不会失败的门等于没有门」。现补一条聚合 fail：`_record_gate_id` 对 Y 幂等（case 去重），
+  #   不影响门 0 的 29 门对账；本行位于门 0 之前，顺序正确。
+  fail "门 Y: 体量棘轮超限（只许降不可绕）" \
+       "见上方 ⚠ 逐文件超限行；修法 = 分层/外移到旁侧真源，**不得**放宽上限（已论证的例外走 LUNHENG_BULK_RATCHET 环境变量）"
 fi
 
 if [ -n "${SKILL_CHARS:-}" ]; then
