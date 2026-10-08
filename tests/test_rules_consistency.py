@@ -495,6 +495,28 @@ def test_hash_mismatch_contract_is_fail_closed_and_cannot_slip():
     print("  ✓ hash_mismatch 契约 fail-closed 且 unavailable 不被当已核验")
 
 
+def test_R11_two_layer_presentation_cannot_become_fail_open():
+    """R-11：Checkpoint 卡两层纪律必须在场，且**不得**滑成 fail-open 逃生口。
+
+    R-11 把「待决策」与「已落定」分层，是为修 Phase 0 一屏 6 项、主人只答 1-2 项的交互失败。
+    风险面：有人日后把「次屏不阻塞」读成「主人可以不答就推进」——那正好触犯本仓最贵的纪律
+    （`silence_doctrine`：静默 ≠ 决策）。故本用例同时钉住**存在性**与**边界**。
+    """
+    card = _read(ROOT / "references" / "templates" / "checkpoint-card-template.md")
+
+    # ① 两层与标记存在
+    for need in ("两层呈现纪律", "⛔", "✅", "首屏上限"):
+        assert need in card, f"Phase 5/通用卡模板缺 R-11 要求要素「{need}」"
+    assert "已落定" in card and "非待决策" in card, "次屏未标明「已落定 / 非待决策」"
+
+    # ② 边界：只改呈现分层，**不得**改阻断语义（否则 R-11 = fail-open 逃生口）
+    assert "不改变任何阻断语义" in card, "R-11 未声明「不改变阻断语义」——可能被读成绕过 fail-closed"
+    assert "仍须已落定并留痕" in card, "R-11 缺「次屏也必须已落定留痕」——会被读成「先不问也不记」"
+    for guard in ("owner_timeout_policy", "silence_doctrine", "decisions"):
+        assert guard in card, f"R-11 未回指真源 {guard}（一条款一真源）"
+    print("  ✓ R-11: 两层呈现在场且已钉死 fail-open 边界")
+
+
 # =============================================================================
 # 主入口（v2.12.42 删）
 # =============================================================================
