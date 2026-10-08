@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: phase3_5_insight
   phase: "Phase 3.5"
-  phase_seq: 9
+  phase_seq: 10
   kind: owner_checkpoint
   blocking: true        # v2.12.49：「无补充」也是决策，必须留痕；静默不得当作无补充
   owner_visible: true

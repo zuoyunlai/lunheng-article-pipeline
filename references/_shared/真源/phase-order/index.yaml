@@ -170,8 +170,13 @@ terminal_freeze:
   enforcement: flow_check_rule_15 + t8_assertion
   doctrine: >
     终态后任何写入受保护路径 ⇒ 主控必须 (1) 状态机 status.md 记 post_acceptance_reopen + 原因，
-    (2) 依次重跑 g14_style_gate / t9_review / final_assembly / t8_technical_final，
+    (2) 按**依赖序**重跑：current_draft_sync（权威稿有改时）→ g14_style_gate → phase4_4_figures /
+    final_assembly（含 g14_caption_recheck）→ t9_review → t8_technical_final，
     (3) 重新取主人在 phase5_acceptance 拍板（仍走 owner_checkpoint，不得默认保留旧 accepted）。
+    ⚠️ 2026-10-08 审计 R-6 修：原序为 g14_style_gate / t9_review / final_assembly / t8_technical_final，
+    但 t9_review.input = final/定稿.md（phase_seq 21 > final_assembly 的 20）—— 按原序执行等于让盲审读
+    **旧版定稿**，重跑形同虚设。T9 的受审对象必须与重开后的 final/定稿.md 指纹一致（t9_review.fingerprint
+    + audited_artifact_required 已提供校验位）。
 # ⚠️ v2.12.46（业主定案）：论衡**只有一个标准架构 = 多 Agent 九角色流水线**。
 #   T1-T7 / T9 / G14 = worker 角色，各自写自己的正式角色产物；主控（T0/T8）负责流程状态、
 #   权威稿同步、配图、定稿组装、终检与交付裁决。**不存在与多 Agent 并列的「单主控模式」**：
@@ -211,10 +216,14 @@ condition_definitions:
     requires: [owner_methodology_snapshot_opt_out]
     producer: references/templates/任务简报-template-lite.md
     producer_marker: "方法论留档"
-  phase1_5_targeted_review_any_trigger_hit:    # v2.12.49 改名（原 any_listed_trigger_condition_met）：Phase 1.5 复核窗口「列表任一命中」即触发；含义 = trigger_conditions 中 ① 简报标注 [Dxx 待复核] 或 ② t2_5 红数据未回溯 任一为真
+  phase1_5_brief_flag_trigger:    # 2026-10-08 审计 R-1（B1）：原 `phase1_5_targeted_review_any_trigger_hit` 含两项触发（简报标记 + T2.5 红数据），但承载它的节点 seq=4 **早于** t2_5_integrity(5) ⇒ 红数据项首次到达恒为假、且被 on_not_triggered 静默吞掉。拆分后本键**只认简报标记**
     requires: [phase0_review_flags]
     producer: references/templates/任务简报-template-lite.md
     producer_marker: "待复核关键 Dxx"
+  phase1_5b_red_data_trigger:     # 2026-10-08 审计 R-1（B1）：T2.5 判定报 🔴 二手转引未回溯时触发定向回查；由 phase1_5b_post_t2_5_review(6) 承担，**排在 t2_5_integrity(5) 之后**（时序可达）
+    requires: [t2_5_red_data_flag]
+    producer: references/_shared/真源/M-Gate-核心.md
+    producer_marker: "M-Form-6"
   t5_t7_report_unverified_references:   # v2.13.0 P0-1（ECS 实战反馈）：T5 修订说明/初稿或 T7 审计报告出现「待人工核验」标记 ⇒ t1b_targeted_review 定向回查；T9 发现的引用问题走 Phase 5 主人拍板（时序在后，不回流）
     requires: [t5_report_marker, t7_report_marker]
     producer: references/agents/05-写作-writer.md
@@ -299,62 +308,68 @@ nodes:
     phase: T2.5 完整性门
     node: t2_5_integrity
   - seq: 6
+    phase: Phase 1.5 后置（T2.5 红数据窗口）
+    node: phase1_5b_post_t2_5_review
+    # 2026-10-08 审计 R-1（B1）：原 Phase 1.5 节点（seq 4）同时承载「简报标记」与「T2.5 红数据」两类触发，
+    #   但它早于 t2_5_integrity ⇒ 红数据项首次到达恒为假、且被 on_not_triggered 静默吞掉。
+    #   本节点承接红数据求值，排在完整性门之后；简报标记求值仍由 phase1_5_targeted_review 承担。
+  - seq: 7
     phase: Phase 2
     node: t4_analysis
-  - seq: 7
+  - seq: 8
     phase: Phase 2.5
     node: phase2_5_outline
-  - seq: 8
+  - seq: 9
     phase: Phase 3
     node: t5_draft_v1
-  - seq: 9
+  - seq: 10
     phase: Phase 3.5
     node: phase3_5_insight
-  - seq: 10
+  - seq: 11
     phase: Phase 3.6 前置
     node: current_draft_sync
-  - seq: 11
+  - seq: 12
     phase: Phase 3.6
     node: t6_critique
-  - seq: 12
+  - seq: 13
     phase: Phase 3.7
     node: t5_feedback_revision
-  - seq: 13
+  - seq: 14
     phase: Phase 4
     node: t7_audit
-  - seq: 14
+  - seq: 15
     phase: Phase 4.2
     node: audit_revision
-  - seq: 15
+  - seq: 16
     phase: Phase 4.3 定向回查（T1b）
     node: t1b_targeted_review
-  - seq: 16
+  - seq: 17
     phase: T7.5 完整性门
     node: t7_5_integrity
-  - seq: 17
+  - seq: 18
     phase: Phase 4.4 前置（G14 风格闸）
     node: g14_style_gate
-  - seq: 18
+  - seq: 19
     phase: Phase 4.4 前置·风格修订
     node: t5_style_revision
-  - seq: 19
+  - seq: 20
     phase: Phase 4.4
     node: phase4_4_figures
-  - seq: 20
+  - seq: 21
     phase: Phase 4.4 后置（定稿组装）
     node: final_assembly
-  - seq: 21
+  - seq: 22
     phase: Phase 4.5
     node: t9_review
-  - seq: 22
+  - seq: 23
     phase: Phase 4.5 后置（压力测试轮）
     node: t9b_stress_test
-  - seq: 23
+  - seq: 24
     phase: Phase 5 终检
     node: t8_technical_final
-  - seq: 24
+  - seq: 25
     phase: Phase 5 终检后置（方法论留档）
     node: methodology_snapshot
-  - seq: 25
+  - seq: 26
     phase: Phase 5 验收
     node: phase5_acceptance

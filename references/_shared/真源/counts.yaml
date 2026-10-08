@@ -38,7 +38,7 @@ word_tiers:
   heavy_min: 5000
 
 # 流水线全景节点数（真源 = references/_shared/真源/phase-order/ 目录切片数；v2.15.11 接入 test_count_drift 三模式扫描）
-pipeline_nodes: 26
+pipeline_nodes: 27
 
 # 布尔口径声明（文档一致性靠 grep/评审护，不接数值扫描——布尔句式无稳定数字模式）
 t9_default: triggered        # T9 默认触发，主人显式 opt-out 才关闭（真源 = phase-order/t9_review.yaml + dispatch/T9 契约块）

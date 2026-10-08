@@ -1326,7 +1326,21 @@ fi
 #   数值：00-主控 70277→70278 / M-Gate 77526→77527 / phase-order.yaml 69293→69294 / index.yaml 25358→25359
 #   三条 open 债务的 to 值同步累加（未销账不新开行）；M-Gate-核心.md 那条为**纯版本戳机械变长**，
 #   2026-10-06 起按 §二 豁免口径**移出** §一 债务、记为豁免实例（不新开债务行）。
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70278,references/_shared/真源/M-Gate-核心.md|78090,references/_shared/真源/phase-order.yaml|70860,references/_shared/真源/phase-order/index.yaml|25359"
+# ⚠️ 2026-10-08 审计修订（批次 1「契约自洽」R-4/R-5/R-6 + 批次 2「假绿灯面」R-1/B1）：
+#   phase-order.yaml 70860→75003（+4143 B）/ index.yaml 25359→26813（+1454 B）。
+#   原因 = **功能性判据新增，非注释膨胀**：
+#     · 批次 1 R-5：`pre_spawn_enforcement.precondition` 增「模型路由 phase0_route 段且 selected_by=owner，
+#       缺记录判 path_or_param_error」判据（取消 route_tier「无记录走默认」fail-open 尾巴）。
+#     · 批次 1 R-6：`terminal_freeze.doctrine` 重开链改**依赖序** current_draft_sync→g14→final_assembly
+#       (含 g14_caption_recheck)→t9_review→t8（原序与 `t9_review.input = final/定稿.md`（seq 22 > 21）矛盾，
+#       会让盲审读旧版定稿）。
+#     · 批次 2 R-1（B1）：Phase 1.5 拆两个求值点，新增节点 `phase1_5b_post_t2_5_review`（seq 6），
+#       节点数 26→27（装配视图为生成物，随切片同步变长）。
+#   ⚠️ **铁律预警已触发**：两文件各自在 2026-10-08 一天内被上调（原 70860/25359 → 71724/25909 → 75003/26813），
+#   按 §四-3「同一 path 第 3 次上调须走分层/外移」的口径，**本次按 v2.15.13 批次既有先例累加到原 open 行**
+#   （未销账不新开行），但额度已用尽：**批次 2 剩余项（R-2 状态真源收敛 / R-9 blocks 门）的新增内容一律
+#   沉入旁侧真源（status-template.md / flow-check.py / 专项测试），不得再堆进这两个契约文件**。
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70278,references/_shared/真源/M-Gate-核心.md|78090,references/_shared/真源/phase-order.yaml|75003,references/_shared/真源/phase-order/index.yaml|26813"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：

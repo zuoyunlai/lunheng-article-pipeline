@@ -37,7 +37,9 @@ TIER_LABELS = {"pass": "通过", "fail": "不通过",
 
 # 依赖他角色报告落盘的节点（「报告后激活」适用面）
 REPORT_DEPENDENT_CONDITIONAL = (
-    "phase1_5_targeted_review", "t5_feedback_revision", "audit_revision",
+    # R-1(B1)：phase1_5_targeted_review 触发依据已收窄为 Phase 0 简报标记（非下游报告）⇒ 移出；
+    #   真正依赖 T2.5 判定落盘的是新节点 phase1_5b_post_t2_5_review（rerun_after_report: true）。
+    "phase1_5b_post_t2_5_review", "t5_feedback_revision", "audit_revision",
 )
 
 

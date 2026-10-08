@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t5_draft_v1
   phase: "Phase 3"
-  phase_seq: 8
+  phase_seq: 9
   input: analysis/分析大纲.md + analysis/T5-写作上下文.md
   kind: agent
   agent: T5

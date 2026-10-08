@@ -295,6 +295,18 @@ def main():
         fb = n.get('timeout_fallback')
         if fb not in fb_kinds:
             errs.append(f"{n['id']}.timeout_fallback->{fb}（未在 owner_timeout_policy.fallback_kinds 中定义）")
+        # 规则 12 扩展（2026-10-08 审计 R-9）：人环须声明**局部阻塞范围** blocks。
+        #   背景（FB-12）：`blocking: true` 只表达「不拍板不推进」，未表达「阻塞到哪」——主人等待期
+        #   全局停摆会让可并行的准备动作白等（2026-10-06 实跑即为主控自行并行才没白等）。
+        #   blocks 被删 = 静默退回全局停摆，而原规则 12 抓不到 ⇒ 补进同族校验。
+        _bl = n.get('blocks')
+        if not _bl:
+            errs.append(f"{n['id']}（owner_checkpoint）缺 blocks —— 人环须声明局部阻塞范围"
+                        f"（FB-12 / R-9；缺此项 = 静默退回全局停摆）")
+        else:
+            for _b in _bl:
+                if _b not in byid:
+                    errs.append(f"{n['id']}.blocks->{_b}（该节点未定义）")
 
     # 13 终态冻结真源（v2.12.49 M-2）：phase5_acceptance 须声明 terminal；rerun_after_post_acceptance 拓扑检查
     tf = d.get('terminal_freeze') or {}

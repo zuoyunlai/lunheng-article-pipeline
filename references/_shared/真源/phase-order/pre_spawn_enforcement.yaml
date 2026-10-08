@@ -9,7 +9,7 @@
   blocking: true
   input: 01-任务简报.md
   output: status.md（Phase 0 同意记录与标准架构声明）
-  precondition: Phase 0 外发同意记录 + 目标语言 + 项目名均已写入 01-任务简报.md
+  precondition: Phase 0 外发同意记录 + 目标语言 + 项目名 + 模型路由记录（01-任务简报.md §模型映射 的 phase0_route 段，且 selected_by=owner；真源 = route_tier.md §三）均已写入 01-任务简报.md；phase0_route 缺记录或 selected_by 为空 = 本节点未过，判 path_or_param_error（2026-10-08 审计 R-5：取消 route_tier「无记录走默认」fail-open 尾巴）
   write_authority: owner
   top_tier_liveness_gate:                 # v2.12.49 T-3：Phase 0 后置顶配档探活门（在任何 worker spawn 之前）
     target: 顶配档（批判审计：T6 / T7 / T9 / G14）

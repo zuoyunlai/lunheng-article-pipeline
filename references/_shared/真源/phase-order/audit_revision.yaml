@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: audit_revision   # 别名：文档层「Phase 4.2」
   phase: "Phase 4.2"
-  phase_seq: 14
+  phase_seq: 15
   kind: bounded_loop
   verdict_scale: four_tier   # v2.12.40：T7 审计报告判定落四档（「本轮无 P0/P1」= 通过，非失败）
   rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 审计报告已落盘；不得沿用审计进行中的中间态

@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t9b_stress_test
   phase: "Phase 4.5 后置（压力测试轮）"
-  phase_seq: 22
+  phase_seq: 23
   kind: owner_agent
   owner: 主控
   write_authority: owner

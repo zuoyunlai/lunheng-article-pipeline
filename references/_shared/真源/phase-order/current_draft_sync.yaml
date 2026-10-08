@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: current_draft_sync   # 别名：文档层「Phase 3.6 前置」（非独立 Phase 标签，主控呈现时归入 Phase 3.6）
   phase: "Phase 3.6 前置"
-  phase_seq: 10
+  phase_seq: 11
   kind: mechanical_checkpoint
   verdict_scale: four_tier   # v2.12.40：结论落四档（本节点最常见失败 = 上游稿不存在 → 路径或参数错误档）
   rerun_after_report: true   # v2.12.40「报告后激活」：前提 = 上游最新稿已在磁盘；上游改写后必须重刷

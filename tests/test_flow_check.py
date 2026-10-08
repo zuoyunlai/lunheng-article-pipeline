@@ -465,6 +465,18 @@ def test_flow_check_detects_missing_owner_gate_declaration(tmp_path):
     _inject_and_expect(YAML_REL, mutate, "phase5_acceptance", tmp_path)
 
 
+def test_r9_owner_checkpoint_blocks_required(tmp_path):
+    """反向注入（2026-10-08 审计 R-9）：owner_checkpoint 删掉 `blocks` 必须被规则 12 检出。
+
+    背景（FB-12）：`blocking: true` 只表达「不拍板不推进」，不表达「阻塞到哪」。`blocks` 被删 = 主人等待期
+    静默退回**全局停摆**，而原规则 12 只校验 blocking/owner_visible/decisions/timeout_fallback ⇒ 抓不到。
+    本负例证明规则 12 扩展后不再漏检（不是永真门）。
+    """
+    def mutate(src):
+        return _drop_key(src, "  - id: phase2_5_outline", "blocks:")
+    _inject_and_expect(YAML_REL, mutate, "phase2_5_outline", tmp_path)
+
+
 # ===== v2.12.49 M-1 交付物指纹 =====
 
 def test_m1_fingerprint_required_nodes_declared():

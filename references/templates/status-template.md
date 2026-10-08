@@ -27,6 +27,13 @@
 
 ## 一、项目元数据（key:value 替换，主控用 `**当前**: X` 策略）
 
+> **🔒 2026-10-08 审计 R-2（C1）本节为派生视图，不是第二真相**：
+> 本节字段值**必须**与 §二「角色状态」末个 ✅ 节点、§三「闸门清单」、§「人在环决策记录」、§4.9 `status_json` **一致**；
+> 不一致时以**详情段**为准，并按 §六 对账第 3 项处理。**主控不得独立编辑本节去「追平」详情段** —— 两处各改一次即双份真相漂移。
+> 治本理由（2026-10-06 实跑）：同一 `status.md` 头部写「已通过 Phase 5 验收」，而 §二 记 `Phase 3.5 = 未决策`、
+> `T7.5 = ⬜ Inbox`、§4.9 `status_json.updated_at` 停在项目早期 —— 无对账门时全程无人报红。
+> **写入顺序**：先改详情段 → 再同步本节派生字段 → 最后跑 §六 对账（判据真源 = `可发表性判定表.md` §六）。
+
 **项目名**: <项目名>
 **模式**: 学术论文 / 商业评论 / 行业分析 / 公众号深度长文
 **当前阶段**（枚举由 `phase-order.yaml` 的 `phase_order` 生成，禁止手工维护）：`<当前 phase 值>`
@@ -51,6 +58,9 @@
 **节点重入**: node_reentry=<reused|executed|forced> / reentry_probe_at=<时间|n/a> / reentry_evidence=<产物路径:字节|pending_owner_verification>
 **T8 技术终检**: ⬜ 未完成 / ✅ 完成
 **Phase 5 主人验收**: ⬜ 未决策 / ✅ accepted / 🔁 revision_requested / ↩ restart_phase / ⏸ deferred
+**验收前置对账（R-2）**: reconciliation=<未跑|pass|fail|path_or_param_error> / 四项=<决策齐?报告齐?状态自洽?产物在盘?> / checked_at=<时间>
+**交付就绪（R-3）**: delivery_readiness=<submission_ready|accepted_with_open_items>（**必填，禁留空**）/ 未闭合项=<路径或 n/a>
+> **R-3 纪律**：`accepted` **不等于** `submission_ready`。本字段只在 §六 四项对账全过后才可填；取 `accepted_with_open_items` 时 `final/交付说明.md`「已知局限」段必须逐条列出未闭合项。判据真源 = `可发表性判定表.md` §六。
 
 ## ▲ 重要写入验证记录（B1-M2）
 

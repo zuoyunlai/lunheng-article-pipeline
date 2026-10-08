@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: phase5_acceptance
   phase: "Phase 5 验收"
-  phase_seq: 25
+  phase_seq: 26
   kind: owner_checkpoint
   blocking: true        # v2.12.49：旧口径「不答 = 接受当前定稿」已删除 —— 静默不得记为 accepted
   owner_visible: true
@@ -11,6 +11,8 @@
   timeout_fallback: pending_owner_halt
   blocks: [methodology_snapshot]   # v2.15.13 FB-12：局部阻塞 —— 只阻塞验收后置节点；产物已在盘，挂起不丢任何东西（owner_timeout_policy 同源）
   terminal: accepted   # v2.12.49 M-2：终态标记真源；详见顶层 terminal_freeze 段
+  acceptance_reconciliation: required   # R-2(C1) 验收前置对账四项；判据 = 可发表性判定表.md §六；不符 ⇒ halt，不得记 accepted
+  delivery_readiness: [submission_ready, accepted_with_open_items]   # R-3(A1) 必填二态，判据同 §六
 
 # ⚠️ v2.12.54 R-1：**全景载体收敛登记**（修 P0「派生全景与真源漂移」）
 #   历史实况（2026-09-18 论文实测）：11 份文档各自维护全景，**无一与真源一致** ——

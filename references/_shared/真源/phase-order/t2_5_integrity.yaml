@@ -10,4 +10,4 @@
   owner: 主控
   write_authority: owner
   input: data/数据卡.md + cases/案例卡.md + literature/文献卡.md   # v2.12.40 补 P1-5：本闸门的判据对象必须显式声明（原未声明 input → 前置产物无人核对）
-  next: t4_analysis
+  next: phase1_5b_post_t2_5_review   # R-1(B1)：闸门后先过红数据求值点，未命中才进 T4；不得跳（否则 seq 6 不可达，门 S 断链）

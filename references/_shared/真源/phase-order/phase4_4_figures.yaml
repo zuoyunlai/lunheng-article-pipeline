@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: phase4_4_figures   # 别名：文档层「Phase 4.4」
   phase: "Phase 4.4"
-  phase_seq: 19
+  phase_seq: 20
   verdict_scale: four_tier   # v2.12.40：图位数拍板与图件核验结论落四档
   input: drafts/current_draft.md + data/数据卡.md（图上数据源）
   kind: owner_agent

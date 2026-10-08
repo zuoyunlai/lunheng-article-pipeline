@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t6_critique   # 别名：文档层「Phase 3.6」（v2.12.40：G14 迁出至 Phase 4.4 前置，本节点仅 T6）
   phase: "Phase 3.6"
-  phase_seq: 11
+  phase_seq: 12
   kind: agent
   verdict_scale: four_tier
   agent: T6

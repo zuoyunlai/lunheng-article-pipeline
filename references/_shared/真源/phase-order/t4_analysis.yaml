@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: t4_analysis
   phase: "Phase 2"
-  phase_seq: 6
+  phase_seq: 7
   input: literature/文献卡.md + data/数据卡.md + cases/案例卡.md
   kind: agent
   agent: T4

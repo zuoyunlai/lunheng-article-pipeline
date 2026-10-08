@@ -3,7 +3,7 @@
 # ── 节点 YAML 正文（装配时逐字拼入；本行以上为切片头）──
 - id: methodology_snapshot
   phase: "Phase 5 终检后置（方法论留档）"
-  phase_seq: 24
+  phase_seq: 25
   kind: owner_agent
   owner: 主控
   write_authority: owner

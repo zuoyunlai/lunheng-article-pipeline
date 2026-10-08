@@ -22,11 +22,19 @@
 
 1. **T1 探活**：主对话当前模型本轮可 spawn（静态映射确认在列即过，不做实弹）。
 2. **T2 探活**：主对话同 provider 至少 1 个备 model 可被指派（候选池 §二 映射结果）。
-3. **T3 探活**：**至少 2 个互异 provider 族**可用（满足 T6/T7/T9 三节点两两互异的最小池；本机常见 = deepseek / minimax / moonshot / zhipu 中取 2）。
+3. **T3 探活（族数按独立性要求拆两档；两判据独立成立，**不得**互相顶替）**：
+   - `writer_audit_distinct_families ≥ 2` = **写手族 ≠ 审计族**（T5 写手与 T7/T9 不同族）—— **最小池 2 族**；
+   - `audit_full_independence_families ≥ 3` = **T6 / T7 / T9 三节点两两互异**（批判 / 审计 / 评审各占一族）—— **最小池 3 族**。
+
+   > ⚠️ **算术纪律（2026-10-08 审计 R-4 修）**：原文写「至少 2 族可满足 T6/T7/T9 三节点两两互异」是**错的** —— 三节点两两互异需 **3 族**；2 族只能满足「每族至多承载 1 个独立节点」。按原文，主控会把 2 族误判为 T3 探活通过。实测 2026-10-06 即 2 族（deepseek / minimax）⇒ T6 与 T9 同族 ⇒ 仅「信息独立达成 / 模型独立性不成立」，已由该次 `final/交付说明.md` 披露。
+
+   探活结论**分档分别**记录：`families_available: <N>` + `writer_audit_distinct: pass | degraded` + `audit_full_independence: pass | degraded`。**N=2 时 `audit_full_independence` 必判 `degraded`，不得判 `pass`**；N=1 时两判据均 `degraded`。
 
 **探活产出**：`run/<项目名>/01-任务简报.md` §模型映射 段记三档结果 + 配额水位档位符号（✅/⚠️/❌，**不留具体数值**，遥测收容口径同 `关键协议.md` §遥测收容）。
 
 **失败处置（不静默）**：任一档不可用 ⇒ Phase 0 **当场告知主人**降级路径（如「T3 仅 1 族 ⇒ T6/T7/T9 无法两两互异」），与顶配探活门三选一合并呈现，**不得 Phase 4 才披露**（实测教训：17:38 T7 换族独立性二次降级仅靠 T7 报告事后披露）。
+
+> 📌 **`degraded` 判档的处置**（2026-10-08 审计 R-4 补）：`audit_full_independence: degraded`（N=2）本身即**属本节「失败处置」面** —— 必须在 Phase 0 当面告知「T6/T7/T9 只能部分互异，将产生同族节点」，并把「接受部分同族（须写 `final/交付说明.md` 独立性降级披露）/ 停摆 / 放宽」并入三选一。**禁止**把 N=2 静默记为通过、留到 Phase 4 再披露。
 
 ## 三、Phase 0 主人选择（owner 在环，agent 不静默自决）
 
@@ -40,7 +48,12 @@ T3 ▸ 跨平台换族（<可用族清单>）—— 独立性节点必需；单�
 主人选择：[1] 接受自动建议（默认） [2] 全程 T1 禁升级 [3] 全程 T2 [4] 关键节点 T3+其余 T1 [5] 自定义
 ```
 
-**记录**：选择结果写任务简报 §模型映射 `phase0_route:` 段（profile / route_table{default, fallback_chain, pinned_tier} / probe 时间戳）；无记录 = 按 [1] 默认链执行并披露「未显式选择，走默认」。
+**记录**：选择结果写任务简报 §模型映射 `phase0_route:` 段（`profile` / `route_table{default, fallback_chain, pinned_tier}` / `probe` 时间戳 / `families_available` / `writer_audit_distinct` / `audit_full_independence` / **`selected_by: owner`**）。
+
+> 🚫 **取消「无记录 = 走默认」（2026-10-08 审计 R-5 收口，fail-closed）**
+> 原口径「无记录 = 按 [1] 默认链执行并披露『未显式选择，走默认』」与本仓全局纪律 **`silence_is_not_valid_decision`**（`phase-order/index.yaml` 顶层）/「静默 ≠ 决策」正面冲突：它让「**没被呈现**」「**呈现了但漏记录**」「**主人主动选 [1]**」三态在留痕层不可分 —— 同一缺陷已在 `phase0_definition` / `phase5_acceptance` 用 `pending_owner_halt` 修掉，唯独本处留了 fail-open 尾巴。
+> **现口径**：`phase0_route` 段缺记录（或 `selected_by` 为空）⇒ **视同未过 Phase 0 后置**，`pre_spawn_enforcement` 判 **`path_or_param_error`** 并 `halt` 呈主人；修齐后重跑该节点，**不得**以默认链兜底推进。
+> **选项 [1]「接受自动建议」保留**，但**必须由主人点选并落 `selected_by: owner`** —— 「默认」只能是**主人选出来的默认**，不是系统兜底。
 
 ## 四、fallback 升级链（运行时）
 

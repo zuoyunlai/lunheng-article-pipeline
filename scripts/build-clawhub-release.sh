@@ -360,6 +360,7 @@ SHARED_ADMITTED=(
   '真源/phase-order/methodology_snapshot.yaml'
   '真源/phase-order/phase0_definition.yaml'
   '真源/phase-order/phase1_5_targeted_review.yaml'
+  '真源/phase-order/phase1_5b_post_t2_5_review.yaml'   # R-1(B1) 2026-10-08：Phase 1.5 拆两个求值点新增的切片
   '真源/phase-order/phase2_5_outline.yaml'
   '真源/phase-order/phase3_5_insight.yaml'
   '真源/phase-order/phase4_4_figures.yaml'
