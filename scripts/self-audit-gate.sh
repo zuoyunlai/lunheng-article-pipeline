@@ -1337,10 +1337,19 @@ fi
 #     · 批次 2 R-1（B1）：Phase 1.5 拆两个求值点，新增节点 `phase1_5b_post_t2_5_review`（seq 6），
 #       节点数 26→27（装配视图为生成物，随切片同步变长）。
 #   ⚠️ **铁律预警已触发**：两文件各自在 2026-10-08 一天内被上调（原 70860/25359 → 71724/25909 → 75003/26813），
-#   按 §四-3「同一 path 第 3 次上调须走分层/外移」的口径，**本次按 v2.15.13 批次既有先例累加到原 open 行**
-#   （未销账不新开行），但额度已用尽：**批次 2 剩余项（R-2 状态真源收敛 / R-9 blocks 门）的新增内容一律
-#   沉入旁侧真源（status-template.md / flow-check.py / 专项测试），不得再堆进这两个契约文件**。
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70278,references/_shared/真源/M-Gate-核心.md|78090,references/_shared/真源/phase-order.yaml|75003,references/_shared/真源/phase-order/index.yaml|26813"
+#   按 §四-3「同一 path 第 3 次上调须走分层/外移」的口径，按 v2.15.13 批次既有先例累加到原 open 行（未销账不新开行）。
+#   当日下半段**主动回落（见下）**，铁律额度已释放。
+# ⚠️ 2026-10-08 N-2「真分层·结构约束外移」（当日主动回落，铁律额度已释放）：
+#   index.yaml 26813→22939（−3874 B）、phase-order.yaml 75003→71091（−3912 B）。
+#   动因 = **真冗余**：index.yaml 第 16-48 行「结构约束 ①-⑬」共 4481 B，是对 flow-check.py **已实现**规则的
+#   散文复述（12 个约束关键词中 11 个两处重复）。这些是**真源编写 / 构建期校验**规则，而 flow-check.py
+#   随 `scripts/` 整目录排除、**不随包分发** —— 留在随包的 index.yaml 等于让包内用户读到「无法执行的
+#   校验规则」。故全文迁至 flow-check.py docstring 之后，index.yaml 只留指针。
+#   迁移安全性已验：迁移块对 `_rule_labels()` 两个正则（`^ {1,2}(\d{1,2}[a-z]?)\s` 与
+#   `^ *# (\d{1,2}[a-z]?)\s`）**均抽不出任何规则号**，规则号集合保持 50 不变（现**贴** RULE_COUNT_MAX=50）。
+#   回落同时触发台账 §四-2 销账：`index.yaml` 两条 debt 均达成 settle_to（22939 ≤ 25359 / ≤ 24767）⇒ 已销；
+#   `phase-order.yaml` 71091 仍高于其 settle_to（70860 / 63928）⇒ 保持 open。
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70278,references/_shared/真源/M-Gate-核心.md|78090,references/_shared/真源/phase-order.yaml|71091,references/_shared/真源/phase-order/index.yaml|22939"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：

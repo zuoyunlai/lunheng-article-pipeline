@@ -56,6 +56,49 @@
     四个 dispatch 载体必须同时含「分片清单」与「报告分片 N/M」口径——超长报告回传协议不得从任何
     载体静默消失（#427 同族）；触发线 3500 的数值真源在协议本体，本规则只锁存在性（防双判据漂移）。
 用法：python3 scripts/flow-check.py  → 无输出=通过；有输出=问题列表（分号分隔）。"""
+# ═══════════════════════════════════════════════════════════════════
+# 流程真源「结构约束 ①-⑬」全文（2026-10-08 由 references/_shared/真源/phase-order/index.yaml 迁入）
+# 迁移动因：① 这些是**真源编写 / 构建期校验**规则，enforcement 就在本文件；
+#           ② flow-check.py 不随包分发（scripts/ 排除），留在随包的 index.yaml 会让包内用户
+#              读到「无法执行的校验规则」；
+#           ③ index.yaml 已顶到棘轮上限（台账 §四-3 铁律禁止第 3 次上调），必须外移。
+# 迁移安全性已验：本块对 _rule_labels() 的两个正则（`^ {1,2}(\d{1,2}[a-z]?)\s` 与
+#   `^ *# (\d{1,2}[a-z]?)\s`）**均抽不出任何规则号**，规则号集合保持 50 不变。
+# ═══════════════════════════════════════════════════════════════════
+# ⚠️ 结构约束（v2.12.30 起由构建侧流程检查机械校验；v2.12.37 补 ⑤⑥⑦）：
+#   ① **同一节点内不得出现重复键**（YAML 后键会静默覆盖前键 —— 2026-09-12 审计 P0-2：重复 `output` 曾使 G14 报告路径丢失）；
+#   ② `output` 可为**字符串**（单产物，多产物用 `A.md + B.md` 写法）或 **`角色: 路径` 映射**（多产物并行节点）—— 映射时**每个值都是必须核对的产物**；
+#   ③ 执行类节点（agent / owner_agent / parallel_agents / conditional_agent / advisory_agent / bounded_loop）**必须同时声明 `input` 与 `output`**；
+#   ④ **每个被消费的受管路径都必须有节点以 `output` 生产**（v2.12.37 取消原「≥2 消费者」前提 —— 单消费者路径同样逃检，实测 `analysis/T5-写作上下文.md` / `final/定稿.md` 均被漏掉）；
+#   ⑤ 声明 `condition` 的节点必须给出未触发处置（`on_not_triggered` / `degrade` / `decisions` 三者其一），防「未触发」与「漏跑」不可分；
+#   ⑥ 产出 `drafts/初稿-v#.md` 的节点，沿 next/after_each 到达 `t7_audit` 的路径**必须经过 `current_draft_sync`**（v2.12.37 审计 P0-2：Phase 3.7 修订后未刷新 current_draft → T7 审旧稿）；
+#   ⑦ 条件节点未触发的留痕口径与 `on_not_triggered: record_not_triggered_in_status` 一致；
+#   ⑧ **`verdict_scale` 名称必须可解析**（v2.12.40 修 P0-1）：节点写 `verdict_scale: <名>` 时，该名必须在本文件顶层
+#      `verdict_scale.<名>` 有定义，且定义含 `tiers`（四档）与 `default_handling`（四档全覆盖，禁 fail-open）。
+#      未接线 = 构建期 flow-check 失败。原实况为「只写名称、无同名定义、节点无分档处置」→「路径/参数错误」档 fail-open 放行；
+#   ⑨ `on_fail` / `verdict_handling` 中出现的节点 id 必须已定义（v2.12.40 新增键，纳入规则①的引用校验面）。
+#   ⑩ **owner_checkpoint 必须具备完整人环闸门声明**（v2.12.49 新增，修 P2-1「阻断语义只活在散文」）：
+#      每个 `kind: owner_checkpoint` 节点必须声明 `blocking: true` + `owner_visible: true` + 非空 `decisions`
+#      + `timeout_fallback`；顶层 `owner_checkpoints` 列表必须与该 kind 的节点集**双向一致**。
+#      未声明 = 构建期 flow-check 失败（规则 12）。本条把「人环闸门不可自动绕过」从文档纪律升级为机械可校验。
+#      反面实例（v2.12.48 前实况）：恰是最不能自动推进的四个节点**全都没写 blocking**，
+#      而 pre_spawn_enforcement / phase1_5_targeted_review / t9_review 都写了 —— 本文件自称
+#      「流程顺序与阻断关系的唯一真源」，却独独承载不到「人环闸门阻断」这一条。
+#   ⑪ **无应答处置的唯一真源 = 顶层 `owner_timeout_policy`**（v2.12.49 新增，修 P2-2）：
+#      人环节点无应答一律 `pending_owner_halt`（写 status `pending_owner` + 告警挂起，不静默推进）；
+#      静默**永不**等于有效决策。docs 层只引用本节，**不得重列分钟数**（一条款一真源）。
+#   ⑫ **盲审节点禁主控代笔**（v2.12.55 S-2 新增，修「同一节点两条互斥条款并存」）：
+#      凡 `independence: blind_review` 的节点，**禁止主控代笔** —— 主控已读遍全部内部材料，代笔即独立性归零，
+#      且**事后不可修复**（产物看起来完整）。故该节点**不得**声明通用 fallback `on_worker_failure.executor: 主控`；
+#      失败唯一合法恢复动作 = **重试 spawn 独立子代理**（`independence_failure_policy.retry_limit` 可调）；
+#      仍失败 ⇒ **记为缺失 + 显式告知主人**，**不得自行产出该节点的结论**。
+#      反面实况（v2.12.54 前）：`t9_review` **同时**声明通用 fallback（= 主控接管）与下方
+#      `independence_rules`「必须 spawn 为独立子代理（禁主控代笔）」→ 两条互斥条款并存，
+#      实测被读成「主控代写审稿报告并给出编造精度」。未接线 = 构建期 flow-check 失败（规则 30）。
+#   ⑬ **同 provider 连续静默升级**（v2.12.55 S-3）：同 provider 连续 ≥3 次静默 ⇒ 强制主人三选、
+#      无默认、必须挂起。真源 = 顶层 `provider_silence_escalation`（含实测背景，见其段注）；未接线 = 规则 31。
+
+
 import json, pathlib, re, sys, yaml
 from collections import deque
 
