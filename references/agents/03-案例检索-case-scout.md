@@ -1,4 +1,4 @@
-> 版本：v2.16.1（自动同步 2026-10-08）
+> 版本：v2.17.0（自动同步 2026-10-09）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -200,25 +200,28 @@
 
 
 
-## 中文数据源集成派发（自适应 opt-in）
+## 学术检索与元数据层派发（v2.17.0 重写；自适应 opt-in）
+
+> 旧版本节引用 `multi_search` / `exa_search` / `consensus_search` / `AI4Scholar_search` 等**标准环境不存在**的工具名，v2.17.0 起只引用声明面内真名（清单真源 = SKILL.md frontmatter `academic_extra`）。
 
 **任务类型 → 工具选用决策树（T3 案例检索）**：
 
 | 任务类型 | 优先工具 | fallback 链 |
 |----------|---------|------------|
-| 新闻事件 / 企业案例 / 司法案件 | `multi_search`（新闻/微信/神马引擎，含中英文）→ `exa_search`（公司研究） | `tavily_search` → `web_search` |
-| 学术案例研究 / 案例论文 | `consensus_search`（学术问答）→ OpenAlex + Crossref | `exa_search` → `tavily_search` → `web_search` |
-| 中文案例 / 中文学术案例 | `AI4Scholar_search`（中文学术）→ `multi_search`（百度/微信/神马） | `tavily_search` → `web_search` |
-| 案例全文抓取（公司公告 / 案件文书 / 论文全文） | `firecrawl_scrape`（已勾选抓取层 opt-in） | `web_fetch`（HTML 直拉） |
+| 新闻事件 / 企业案例 / 司法案件（**主业**） | `tavily_search`（`include_domains` 限定财新/一财/虎嗅/36kr/界面/澎湃/Reuters/Bloomberg/FT/巨潮/交易所）→ `web_fetch`（官方公告/判决书直拉） | `web_search` |
+| 学术案例研究 / 案例论文 | `search_semantic` → `search_google_scholar`（中文案例） | OpenAlex + Crossref → `tavily_search` → `web_search` |
+| 案例学理论框架（为何会发生此类事件） | `search_semantic` → `get_semantic_recommendations_for_paper` | `tavily_search` → `web_search` |
+| 案例全文抓取（公司公告 / 案件文书 / 论文全文） | `web_fetch`（HTML/PDF 直拉） | — |
 
 **自适应启用原则**：
 
-1. **启动自检** 时探测当前可见工具集（含 `exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` / `firecrawl_*` 等候选）
-2. **已装工具按上表优先级选用**；未装工具**不报错，降级到下一档**
-3. 工具选用记录写入交接报告「工具选用记录」段
+1. **启动自检** 时探测当前可见工具集（学术层候选 = `academic_extra` 清单）
+2. **已勾选且可见的工具按上表优先级选用**；未装插件/未勾选**不报错，降级到下一档**
+3. 工具选用记录写入交接报告「工具选用记录」段（按 B5 记 `requested` / `actually_used` / `unavailable` / `fallback_chain` / `degradation_level`）
 4. **fail-closed**：主人选「④全部拒绝」时全部搜索工具一次都不调
+5. **成本纪律**：企业/司法/新闻类案例**默认走默认层**（学术库不收录未公开事件）；仅“已有学术案例研究/理论框架”类诉求走学术层。
 
-**唯一真源**：[`../_shared/真源/中文数据源集成.md`](../_shared/真源/中文数据源集成.md)—— URL / API 用法详见真源 §二。
+**唯一真源**：[`../_shared/真源/中文数据源集成.md`](../_shared/真源/中文数据源集成.md)—— 工具清单 / 同意门 / URL 与 API 用法详见真源。
 
 
 ## 🔲 边界：不负责什么

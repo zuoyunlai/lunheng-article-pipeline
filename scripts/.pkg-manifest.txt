@@ -129,4 +129,5 @@ references/templates/文献卡-template.md
 references/templates/方法论章节-template.md
 references/templates/案例卡-template-lite.md
 references/templates/案例卡-template.md
+references/templates/检索覆盖矩阵-template.md
 references/templates/理论贡献声明-template.md

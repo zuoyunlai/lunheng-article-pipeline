@@ -25,7 +25,10 @@ def _frontmatter_tools():
     text = SKILL.read_text(encoding="utf-8")
     fm = yaml.safe_load(text.split("---", 2)[1])
     tools = fm["metadata"]["tools"]
-    allowed = set(tools.get("base", [])) | set(tools.get("coordinator_only", [])) | set(tools.get("research_extra", []))
+    allowed = (set(tools.get("base", []))
+               | set(tools.get("coordinator_only", []))
+               | set(tools.get("research_extra", []))
+               | set(tools.get("academic_extra", [])))  # v2.17.0 学术检索层
     denied = _denied_truth()   # R-22：完整清单已外移，frontmatter 不再承载
     return allowed, denied
 
@@ -33,7 +36,20 @@ def _frontmatter_tools():
 def _boundary_tools():
     text = BOUNDARY.read_text(encoding="utf-8")
     section = text.split("### ✅ 可以使用的工具", 1)[1].split("### ❌ 不可以使用的工具", 1)[0]
-    return set(re.findall(r"(?<![\w-])(?:read|write|edit|web_search|web_fetch|tavily_search|tavily_extract|sessions_spawn|sessions_yield|sessions_history|sessions_list|subagents|progress_card|session_status|ask_user)(?![\w-])", section))
+    # 长名在前：负向前瞻会把短名（如 search_semantic）截在长名内部
+    return set(re.findall(
+        r"(?<![\w-])(?:"
+        r"read_semantic_paper|read_arxiv_paper|read_biorxiv_paper|read_medrxiv_paper|read_by_doi|"
+        r"search_semantic_bulk|search_semantic_paper_match|search_semantic_snippets|"
+        r"search_semantic_authors|search_google_scholar|search_arxiv|search_biorxiv|"
+        r"search_medrxiv|search_pubmed|search_semantic|"
+        r"get_semantic_recommendations_for_paper|get_semantic_paper_authors|"
+        r"get_semantic_paper_batch|get_semantic_paper_detail|get_semantic_citations|"
+        r"get_semantic_references|get_semantic_author_batch|get_semantic_author_detail|"
+        r"read|write|edit|web_search|web_fetch|tavily_search|tavily_extract|"
+        r"sessions_spawn|sessions_yield|sessions_history|sessions_list|subagents|"
+        r"progress_card|session_status|ask_user"
+        r")(?![\w-])", section))
 
 
 def test_boundary_reference_matches_frontmatter_allowed_surface():
@@ -47,4 +63,9 @@ def test_boundary_reference_matches_frontmatter_allowed_surface():
 
 def test_boundary_declares_total_allowed_count():
     text = BOUNDARY.read_text(encoding="utf-8")
-    assert "允许工具共 15 项" in text
+    import yaml
+    fm = yaml.safe_load(SKILL.read_text(encoding="utf-8").split("---", 2)[1])
+    tools = fm["metadata"]["tools"]
+    n = sum(len(v) for k, v in tools.items()
+            if isinstance(v, (list, tuple)) and k not in ("denied", "denied_high_risk"))
+    assert f"允许工具共 {n} 项" in text, f"边界文档计数与 frontmatter 实际允许面不符（应 {n}）"

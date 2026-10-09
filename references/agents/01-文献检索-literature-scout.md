@@ -1,4 +1,4 @@
-> 版本：v2.16.1（自动同步 2026-10-08）
+> 版本：v2.17.0（自动同步 2026-10-09）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -139,25 +139,31 @@ E1 对象、字段和枚举唯一真源见 [`../_shared/真源/evidence-object-m
 
 
 
-## 🧰 工具选用决策树（自适应 opt-in）
+## 🧰 工具选用决策树（v2.17.0 重写；声明面 = SKILL.md frontmatter `academic_extra`）
 
-> 宿主网关装了 `exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` / `firecrawl_*` 任一工具后，本卡通过 `dispatch-header.md` §启动自检 自动发现，按下表选用。
+> **声明面**：本卡只用 frontmatter `metadata.subagent_tiers.research` 声明的工具 = base + `research_extra`（web/tavily 4 项）+ `academic_extra`（学术工具族 23 项）。**逐项清单真源 = SKILL.md frontmatter**；用法与梯队说明 = [`中文数据源集成.md`](../_shared/真源/中文数据源集成.md)。
+>
+> ⚠️ **旧版幽灵工具名已删除**：`exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` 在标准 OpenClaw 环境**均不存在**（学术插件的真实工具名是 `search_semantic` 等）。旧决策树引用它们会导致「按树调用 = 调用声明面外工具 = `capability_excess` 阻断」，v2.17.0 起本卡只引用真名。
 
 **任务类型 → 工具选用决策树（T1 文献检索）**：
 
-| 任务类型 | 优先工具（按可用性探测） | fallback 链 |
+| 任务类型 | 优先工具（按启动自检探测到的可见集选用） | fallback 链 |
 |----------|-------------------------------|------------|
-| 学术文献 / 期刊论文 / DOI 查询 | `search_google_scholar`（multi-search-engine + `site:scholar.google.com`）→ `exa_search`（语义最匹配）→ `consensus_search`（学术问答）→ `AI4Scholar_search`（中文） | OpenAlex + Crossref（已勾选 opt-in） → `tavily_search` → `web_search` |
-| 学术元数据补全（被引频次 / 概念标签 / DOI） | OpenAlex + Crossref（已勾选 opt-in，无需 Key） | — |
-| 中文文献全文抓取 | `firecrawl_scrape`（paper.edu.cn，抓取层 opt-in） | `web_fetch`（HTML 直拉） |
-| 跨语言快速概览 | `multi_search`（16 引擎聚合：百度/Bing CN+INT/360/Sogou/微信/神马/Google/Google HK/DuckDuckGo/Yahoo/Startpage/Brave/Ecosia/Qwant/WolframAlpha） | `tavily_search` → `web_search` |
+| 学术文献发现（找论文） | `search_semantic` → `search_google_scholar`（覆盖中文文献）→ 按领域追加 `search_arxiv` / `search_pubmed` / `search_biorxiv` / `search_medrxiv` | OpenAlex + Crossref（已勾选 opt-in） → `tavily_search` → `web_search` |
+| **引用存在性核验**（v2.17.0 新增；取代网页比对） | `search_semantic_paper_match`（精确题名→最佳匹配）→ `get_semantic_paper_batch`（批量 DOI/标题核验，单次可达数百条） | `web_fetch`（原网页核验） |
+| 学术元数据补全（被引频次 / 期刊 / 年份 / 作者） | `get_semantic_paper_detail` / `get_semantic_paper_batch` | OpenAlex + Crossref（已勾选 opt-in） |
+| **引文图谱滚雪球**（v2.17.0 新增；文献综述扩展） | `get_semantic_references`（后向：这篇引了谁）→ `get_semantic_citations`（前向：谁引了这篇） | `search_semantic`（改关键词再搜） |
+| **论点级原文片段**（v2.17.0 新增；E1 `SnippetRecord`） | `search_semantic_snippets`（全文片段检索）→ `read_by_doi` / `read_arxiv_paper` | `web_fetch`（只拿摘要） |
+| 先行者清单（谁写过类似论点） | `search_semantic_snippets` → `get_semantic_recommendations_for_paper`（相似论文） | `tavily_search` → `web_search` |
+| 中文文献全文抓取 | `read_semantic_paper`（已勾选学术层） | `web_fetch`（HTML 直拉） |
 
 **自适应启用原则**（与 [`中文数据源集成.md`](../_shared/真源/中文数据源集成.md) §一 同步）：
 
-1. **启动自检** 时探测当前会话可见工具集（含 `exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` / `firecrawl_*` 等候选）
-2. **已装工具按上表优先级选用**；未装工具**不报错，降级到 fallback 链下一档**
+1. **启动自检** 时探测当前会话可见工具集（学术层候选 = `academic_extra` 清单；`firecrawl_*` 抓取层单独 opt-in）
+2. **已勾选且可见的工具按上表优先级选用**；未装插件/未勾选**不报错，降级到 fallback 链下一档**（默认层始终可用）
 3. 调用结果记录到交接报告「工具选用记录」段：每条来源 = 「用了什么工具 + 是否降级」
 4. **fail-closed**：主人选「④全部拒绝」时，**全部搜索工具（含默认层 + 所有 opt-in 层）一次都不调**，改纯本地材料 + 本地推理
+5. **tool cost 纪律**：优先用批量接口（`search_semantic_bulk` / `get_semantic_paper_batch`）替代逐条调用；read_* 全文仅对要登记原文片段的核心文献用，不逐篇读
 
 
 

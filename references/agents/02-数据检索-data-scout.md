@@ -1,4 +1,4 @@
-> 版本：v2.16.1（自动同步 2026-10-08）
+> 版本：v2.17.0（自动同步 2026-10-09）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -165,25 +165,29 @@
 
 
 
-## 中文数据源集成派发（自适应 opt-in）
+## 学术检索与元数据层派发（v2.17.0 重写；自适应 opt-in）
+
+> 旧版本节引用 `multi_search` / `exa_search` / `consensus_search` 等**标准环境不存在**的工具名，v2.17.0 起只引用声明面内真名（清单真源 = SKILL.md frontmatter `academic_extra`）。
 
 **任务类型 → 工具选用决策树（T2 数据检索）**：
 
 | 任务类型 | 优先工具 | fallback 链 |
 |----------|---------|------------|
-| 统计数据 / 行业报告 / 市场数据 | `multi_search`（行业报告引擎：百度/Bing/Google）→ `exa_search`（公司研究） | OpenAlex + Crossref（数据集元数据）→ `tavily_search` → `web_search` |
-| 学术数据集 / 期刊数据 | OpenAlex + Crossref（已勾选 opt-in） | `tavily_search` → `web_search` |
-| 事实查询 / 公司研究 / 人物 | `exa_search`（神经搜索，最匹配） | `consensus_search` → `tavily_search` → `web_search` |
-| 数据集全文抓取 | `firecrawl_scrape`（已勾选抓取层 opt-in） | `web_fetch`（HTML 直拉） |
+| 官方统计 / 行业报告 / 市场数据（**主业**） | `web_fetch`（直拉统计局/机构 PDF 或页面）→ `tavily_search`（`include_domains` 限定统计局/行业协会/巨潮资讯） | `web_search` |
+| 学术计量数据（C 方向：论文数 / 被引频次） | `search_semantic`（带年份/领域过滤计命中）→ `get_semantic_author_detail`（h-index，需先 `search_semantic_authors` 取作者 ID） | OpenAlex + Crossref（已勾选 opt-in） → `tavily_search` → `web_search` |
+| 实证结果 / 论文中的统计量 | `search_semantic_snippets`（全文片段定位）→ `read_by_doi` / `read_semantic_paper` | OpenAlex + Crossref → `web_fetch` |
+| 事实查询 / 公司研究 / 人物 | `tavily_search` → `web_search` | — |
+| 数据集全文抓取 | `web_fetch`（HTML/PDF 直拉） | — |
 
 **自适应启用原则**：
 
-1. **启动自检** 时探测当前可见工具集（含 `exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` / `firecrawl_*` 等候选）
-2. **已装工具按上表优先级选用**；未装工具**不报错，降级到下一档**
-3. 工具选用记录写入交接报告「工具选用记录」段
+1. **启动自检** 时探测当前可见工具集（学术层候选 = `academic_extra` 清单）
+2. **已勾选且可见的工具按上表优先级选用**；未装插件/未勾选**不报错，降级到下一档**
+3. 工具选用记录写入交接报告「工具选用记录」段（按 B5 记 `requested` / `actually_used` / `unavailable` / `fallback_chain` / `degradation_level`）
 4. **fail-closed**：主人选「④全部拒绝」时全部搜索工具一次都不调
+5. **成本纪律**：A/B 方向（A 官方统计 + B 行业报告）**默认走默认层**（多数机构站点不在学术库内）；仅 C 方向（学术计量）走学术层——避免为一个统计数字做不必要的学术库检索。
 
-**唯一真源**：[`../_shared/真源/中文数据源集成.md`](../_shared/真源/中文数据源集成.md)—— URL / API 用法详见真源 §二。
+**唯一真源**：[`../_shared/真源/中文数据源集成.md`](../_shared/真源/中文数据源集成.md)—— 工具清单 / 同意门 / URL 与 API 用法详见真源。
 
 
 ## 🔲 边界：不负责什么

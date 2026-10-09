@@ -1,4 +1,4 @@
-> 版本：v2.16.1（自动同步 2026-10-08）
+> 版本：v2.17.0（自动同步 2026-10-09）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -17,7 +17,7 @@
 
 ## 二、核心概念与真源
 
-**执行主控任务前先读** [`glossary-core.md`](../_shared/真源/glossary-core.md)（概念单一真源）：11 张角色卡职责与协作关系（T0-T7 + T8 终检 + T9 同行评审 + T9b 压力测试；T8 由主控亲完成，不 spawn）、三层防御体系（M 门 / F 模式 / G 清单）、关键协议、数据信任级别、工具能力边界（**15 项默认可用（base 3 + coordinator_only 8 + research_extra 4）/ 104 项禁用**，以 SKILL.md frontmatter `metadata.tools` 为准）。
+**执行主控任务前先读** [`glossary-core.md`](../_shared/真源/glossary-core.md)（概念单一真源）：11 张角色卡职责与协作关系（T0-T7 + T8 终检 + T9 同行评审 + T9b 压力测试；T8 由主控亲完成，不 spawn）、三层防御体系（M 门 / F 模式 / G 清单）、关键协议、数据信任级别、工具能力边界（**38 项声明可用（base 3 + coordinator_only 8 + research_extra 4 + academic_extra 23，学术层 opt-in）/ 104 项禁用**，以 SKILL.md frontmatter `metadata.tools` 为准）。
 
 **阶段顺序唯一真源** = [`phase-order/`](../_shared/真源/phase-order/)（`index.yaml` + 各节点切片）。本卡与其他流程描述冲突时，以该目录为准。
 

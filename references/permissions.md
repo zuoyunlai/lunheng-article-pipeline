@@ -1,4 +1,4 @@
-> 版本：v2.16.1（自动同步 2026-10-08）
+> 版本：v2.17.0（自动同步 2026-10-09）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -42,6 +42,7 @@
 - subagents（`coordinator_only`；仅看本技能 spawn 的子代理，不枚举宿主可见会话）
 - ask_user（`coordinator_only`，向主人追问）
 - web_search / web_fetch / tavily_search / tavily_extract（`research_extra`，检索，T1-T3 子代理共享）
+- search_semantic / search_semantic_paper_match / get_semantic_paper_batch / get_semantic_citations / get_semantic_references / search_google_scholar / search_arxiv / search_pubmed / read_by_doi 等 23 项（`academic_extra`，学术检索与元数据，**opt-in**；宿主未装学术插件时不可见，决策树自动降级）
 - session_status / progress_card（`coordinator_only`，可观测性）
 
 **子代理 5 档分级白名单（`metadata.subagent_tiers`）**：**档位命名真源 = `SKILL.md` frontmatter 短名**（`research` / `analysis` / `writing` / `audit` / `review`）。
@@ -49,7 +50,7 @@
 
 | 档位 | 适用角色 | 工具集（最小权限声明） | 凭什么调网络/记忆 |
 |---|---|---|---|
-| `allow_research` | T1/T2/T3 文献/数据/案例检索 | read + write + edit + web_* + tavily_* | 检索是本职 |
+| `allow_research` | T1/T2/T3 文献/数据/案例检索 | read + write + edit + web_* + tavily_* + academic_*（学术层 opt-in） | 检索是本职 |
 | `allow_analysis` | T4 分析 | read + write + edit | 不出网，仅本地读产物 |
 | `allow_writing` | T5 写手 | read + write + edit | 纯本地写盘，不出网 |
 | `allow_audit` | T6/T7 批判/审计 | **read** | 不修改上游产物；报告由主控落盘 |
@@ -88,7 +89,7 @@
 > 📊 **数据图表 SVG 能力不受影响（v2.12.39 说明）**：图件由主控用 `write` **本地手写矢量图**（零外发、不依赖任何视觉/生成工具）；校验走「SVG XML/结构检查 + 嵌入文本孤儿检查（T8）+ 主人目视」。本轮移除 `view_image` 仅取消「主控自查渲染截图」这一**可选**路径，**数据图表生成能力完整保留**。
 
 **Opt-in（v2.12.49 起已归零）**：论衡不调任何默认禁止的工具；**封面与图件去留均由主人手动操作**（T8 终检后提供「主人自行操作建议清单」）。**服务级外发类别（3 类，v2.12.49 由 4 类减去「封面」类）的唯一真源 = [`_shared/真源/external-services.md` 逐类表](_shared/真源/external-services.md)** —— 本节不重列服务级类别（重列必漂移）。
-- ⚠️ **授权点同意约束（v2.12.43）**：`research_extra`（检索 4 工具）虽**默认启用**，但**每次调用前**仍须核对任务简报 §0 的结构化同意记录；其中**学术元数据（OpenAlex / Crossref）为 opt-in、默认关闭**，未勾选即不得调用（与 `SKILL.md` frontmatter `research_extra` 行注释**同源**，两处一起改）。
+- ⚠️ **授权点同意约束（v2.12.43）**：`research_extra`（检索 4 工具）虽**默认启用**，但**每次调用前**仍须核对任务简报 §0 的结构化同意记录；其中**学术检索与元数据层**（`academic_extra` 学术插件工具族 + OpenAlex / Crossref）为 **opt-in、默认关闭**，未勾选即不得调用（与 `SKILL.md` frontmatter `academic_extra` / `research_extra` 行注释**同源**，两处一起改）。
 
 **行为授权（非工具，Phase 0 预授权记录，默认全部关闭）**：
 - **配额耗尽预授权**：主人预勾选「配额耗尽时授权 X（换 provider 重试 / 白名单接力）」后，配额事件发生时主控按预授权选项直接执行并事后通报；**未勾选 = 必须暂停等主人拍板**（fail-closed）。预授权仅限白名单工具路径，**永不覆盖 exec/process 等永久拒绝**（v2.15.13：换 provider 重试的升档链与留痕口径 = [`_shared/真源/route_tier.md`](_shared/真源/route_tier.md) §四）

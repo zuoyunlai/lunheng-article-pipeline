@@ -1,4 +1,4 @@
-> 版本：v2.16.1（自动同步 2026-10-08）
+> 版本：v2.17.0（自动同步 2026-10-09）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -40,7 +40,9 @@
 
 **流水线运行手册**（派发话术索引 + 模型配置 / 模板加载策略等百科内容；派发话术正文见 `references/dispatch/`，T8 不 spawn）：`references/pipeline-readme.md`
 
-**模板**（类数以实际枚举为准，含 lite + full）：`references/templates/`（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单 / **证据登记表 / 主张—证据映射** + 审稿报告 / 修订说明 / 投稿就绪检查表 / checkpoint-card）
+**模板**（类数以实际枚举为准，含 lite + full）：`references/templates/`（任务简报 / status状态机 / 交接报告 / 文献卡 / 数据卡 / 案例卡 / 先行者清单 / **证据登记表 / 主张—证据映射** / **检索覆盖矩阵（v2.17.0 新增，Phase 0 建表 + Phase 1 对账）** + 审稿报告 / 修订说明 / 投稿就绪检查表 / checkpoint-card）
+
+**素材与论据检索（v2.17.0 升级面）**：工具清单与档位真源 = SKILL.md frontmatter `metadata.tools.academic_extra`（学术检索与元数据层，opt-in，23 项）；**用法 / 梯队 / 同意门 / 去重规则唯一真源** = [`中文数据源集成.md`](中文数据源集成.md)；三员决策树唯一真源 = 各角色卡（`01-文献检索` / `02-数据检索` / `03-案例检索` 的 §工具选用决策树），派发话术只留纪律不复制树；Phase 1 覆盖对账 + 冲突仲裁 = [`phase-1-details.md`](phase-1-details.md) §Phase 1 覆盖对账；T1b 机械核验路径 = [`../dispatch/T1b-定向回查.md`](../../dispatch/T1b-定向回查.md)。
 
 **E1 证据对象基础层（第一阶段）**：对象、字段、枚举和边界唯一真源 = [`evidence-object-model.md`](evidence-object-model.md)；运行期登记模板 = [`evidence-register-template.md`](../../templates/evidence-register-template.md)；T4 初始映射模板 = [`claim-evidence-map-template.md`](../../templates/claim-evidence-map-template.md)。E1-0 仅落基础资产，尚未接入角色、闸门或外部全文服务。
 

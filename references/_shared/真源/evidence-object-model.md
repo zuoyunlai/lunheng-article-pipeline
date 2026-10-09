@@ -1,4 +1,4 @@
-> 版本：v2.16.1（自动同步 2026-10-08）
+> 版本：v2.17.0（自动同步 2026-10-09）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -192,7 +192,9 @@ evidence_force：1 推测，2 相关，3 支持，4 直接，5 多源/充分确�
 
 ## 6. 外部服务与权限边界
 
-E1 不新增外发类别，不默认启用 AI4Scholar，也不把供应商接口键名写入核心协议。未来接入任何外部全文/学术服务，必须先遵守 [`external-services.md`](external-services.md) 与 Phase 0 外部服务同意门；禁止上传未公开全文、客户材料或完整正文。E1 不新增 exec、宿主配置读取或运行时数据库依赖。
+E1 不新增外发类别。v2.17.0 起学术检索层（AI4Scholar 工具族 `academic_extra` + OpenAlex/Crossref）**已归入 `external-services.md` 既有类别 ②「学术检索与元数据」**（opt-in，Phase 0 勾选），不升为新类别，也不把供应商接口键名写入核心协议。未来接入任何**新的**外部全文/学术服务，仍必须先遵守 [`external-services.md`](external-services.md) 与 Phase 0 外部服务同意门；禁止上传未公开全文、客户材料或完整正文。
+
+**E1 与学术层的接线口径**：经学术层取得的元数据与全文片段**不因工具来源可信而免核验**——`retrieval_status` 仍按 `candidate` / `verified` / `rejected` 三值实记；经 `read_*` 取得全文的 `SnippetRecord` 填 `access_basis: open_access`，仅得摘要填 `abstract_only`；批量元数据接口（`get_semantic_paper_batch` 等）返回的是**检索排序与被引数**，不得转写为 `evidence_force`（沿用 §2.2「`relevance_score` 不得转换成 `evidence_force`」）。E1 不新增 exec、宿主配置读取或运行时数据库依赖。
 
 ## 7. 接线状态
 

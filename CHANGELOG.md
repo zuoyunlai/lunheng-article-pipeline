@@ -2,6 +2,45 @@
 
 ---
 
+## [v2.17.0] — 2026-10-09 · 素材与论据检索升级（学术检索层接入 + 一致性修复）
+
+> 背景：主人要求审计论衡「素材与论据检索」面的全面性 / 精准性 / 真实性 / 冗余 / token 成本，并据此升级。
+> 性质：**检索能力与一致性修复**；新增 1 工具档（`academic_extra`，opt-in）+ 1 模板（检索覆盖矩阵）+ Phase 1 覆盖对账环节；不新增 G/M 门计数；不新增流水线节点。
+
+### 1. P0 一致性缺陷：决策树引用了声明面外的工具名
+
+- 实测：T1/T2/T3 角色卡的「工具选用决策树」引用 `exa_search` / `consensus_search` / `AI4Scholar_search` / `multi_search` / `search_google_scholar` 五个名字，其中**前四个在标准 OpenClaw 环境不存在**，且**全部不在 `research_extra` 白名单**内。
+- 危害：宿主若确实装了某工具，worker 按树调用即「调用声明面外工具」→ 按既有纪律属 `capability_excess` **阻断级**——角色卡与白名单自相矛盾。
+- 修复：v2.17.0 起决策树只引用 frontmatter 声明面内的真实工具名；决策树真源收敛到角色卡，dispatch 只留纪律（消除 3 份重复树）。
+
+### 2. 新增 `academic_extra` 学术检索层（23 项，opt-in）
+
+- 接入宿主学术插件工具族：结构化检索（`search_semantic` / `search_google_scholar` / `search_arxiv` / `search_pubmed` 等）、元数据核验（`search_semantic_paper_match` / `get_semantic_paper_batch`）、引文图谱（`get_semantic_citations` / `get_semantic_references`）、全文读取（`read_by_doi` / `read_arxiv_paper` 等）。
+- 归类：并入 [`external-services.md`] 既有类别 ②「学术检索与元数据」（默认关闭、Phase 0 勾选；**不新增第 4 类**）；外发数据形态不变（仅关键词 / DOI / 标题；全文类工具为读入）。
+- 降级：宿主未装插件 ⇒ 全层不可见 ⇒ 决策树自动回落默认层，**零行为变化**。
+- 收益：真实性（引文核验由「网页比对」升级为数据库主键比对）、全面性（前向/后向引文滚雪球 + 预印本）、精准性（结构化元数据）、成本（批量接口单次可达数百条）。
+
+### 3. 新增「检索覆盖矩阵」（Phase 0 建表 → Phase 1 对账）
+
+- 针对三检索员「各查各的」导致的子问题集体漏检：Phase 0 拆题时由主控建 3-5 子问题 × L/D/C 需求矩阵（模板 = `templates/检索覆盖矩阵-template.md`）。
+- Phase 1 新增「覆盖对账」四步（数量对账 → 缺口分类 → 冲突仲裁 → 冻结）：客观缺口写入局限性，检索缺口触发 T1b 补检索；同指标多来源矛盾强制并列 + 口径归因。
+- 三检索员任务首步新增「检索分工」与「检索覆盖清单」留痕，使「全面性」可度量、可审计。
+
+### 4. 冗余与成本治理
+
+- 消除 dispatch 与角色卡之间 3 份重复决策树（真源收敛到角色卡）。
+- `SKILL.md` 入口压缩：条目清单类内容回归真源文件（G18 12 项 / T9 维度档位 / 派发计数），全文 9734 → 8977 字符（守住 R-22 预算与 门 V）。
+- `read_budget` 新增检索档默认（N=2 / M=4 / K=12）——检索密集而非读密集，原 K=8 会在产卡前耗尽。
+- 清理仓库内 200 个 2026-10-08 遗留的 `*.bak.*` 备份（.gitignore 内，污染净化包一致性门 G）。
+
+### 5. 同步面
+
+- frontmatter `metadata.tools.academic_extra`（23 项）+ `subagent_tiers.research` 增挂该档；`工具能力边界.md` 计数 15 → 38；`permissions.md` 五档表、`dispatch-header.md` `allow_research`、同意门判定表、`关键协议.md`、`glossary-full.md`、`pipeline-readme.md` 同步。
+- 测试：`test_tool_surface_consistency.py` 计数改为**从 frontmatter 推导**（防再漂移）。
+- 新增模板同时登记 `scripts/.pkg-manifest.txt`。
+
+---
+
 ## [v2.16.1] — 2026-10-08 · changelog 排水机制修复（纠 2.16.0 误判）
 
 > 背景：2.16.0 发布后核查发现 ClawHub 上该版 changelog 是平台自动生成的假摘要（教训 #354 复发）；顺藤排查 changelog 分层机制时，误判「温层撞 ceiling 与主文件 5 期门互斥」，主人拍板 **A**（修机制）后实测推翻了该误判。
@@ -157,59 +196,5 @@
 - 自审门 `self-audit-gate.sh`：**PASS 42 / FAIL 0**（门 B 角色覆盖 / 门 V `8902 ≤ 10000` 且 frontmatter `1602 ≤ 9000` / 门 Y「台账 3 条未结」/ 门 Z `40 ≤ 40` 全绿）。
 - `check-version.sh`：**98/98 文件版本一致**；门 AA 装配视图与 27 真源文件逐字节一致（26 节点切片）。
 - 字节账：`2.15.11 → 2.15.12` 同长度 ⇒ 四个必读文件体量**零变化**，门 Y 上限无需重定。
-
----
-
-## [v2.15.11] — 2026-10-05 · 文档专项审计修订（22 项全修）
-
-> 背景：2026-10-04 文档专项审计（`outputs/2026-10-04-lunheng-doc-audit-report.md`，文档面 7.3/10）提出 7 项 P1 + 9 项 P2 + 6 项 P3 与机械加固建议；本版逐项落地。
-> 方法论：每项先**实测核实**再动手（教训 #480「先对齐再归因」，本轮再次奏效——P2-1 的 README 部分与 P3-4 的 gates/14 部分经 grep **证伪**，见 §4 勘误）。
-> 性质：**纯文档层修订 + 计数/版本机械件**；不改流程逻辑、不改门判据。
-
-### 1. P1 口径修复（7 项）
-
-- **心跳 opt-in 三处漂移**（真源 = `external-services.md`「默认不写，Phase 0 勾选 Operational Telemetry 才启用」；入口层原先写成无条件副作用，按字面执行会在未勾选时写 `.tmp/`，直接违反 fail-closed 同意门）：`SKILL.md` 写入警告段、`QUICKSTART.md` 副作用清单、`permissions.md` 完整写入清单第 ③ 类，三处同批补 opt-in 限定。
-- **触发边界自相矛盾**：`SKILL.md` 触发段「<3000 字短文不适用」与紧邻的「2000-3000 可走轻量档」互斥 —— 改为 **<2000**（对齐 `字数判定表.md` §五）；`pipeline-readme.md` 定位段「任务形态判据 ≥3000 / 3000 字以下不适用」同批 → **≥2000 / 2000 字以下**。
-- **G14 权限档归属冲突**：`SKILL.md` frontmatter `audit` 档注释含 G14，与 `permissions.md` 五档表（`allow_review` = T9/G14）及 `dispatch-header.md` 矛盾 —— 注释改为「T6 批判 + T7 审计映射至此，G14 归 review 档」。
-- **节点数 25 → 26 全批同步**：v2.15.7 新增 `post_phase1_dispatch_verify` 后，**11 处**副本漏改 —— README / QUICKSTART / 设计文档-架构 / 设计文档-哲学 / pipeline-readme / glossary-full / dispatch-header 指针块（7）+ skill-entry-appendix「25 节点切片」+ pipeline-overview R-21 段「25 个节点切片」+ 模板填写说明「25 节点，seq 0–24」+ checkpoint-card 映射标题；另删 README 演进表内的历史数字「24 节点全表」（避免新扫描面误报）。
-- **T9 默认开关三口径并存**：真源 `t9_review.yaml` = `default: triggered`（无条件默认开 + 显式 opt-out），而 SKILL / QUICKSTART TL;DR / 字数判定表 §五 / asset-index / 设计文档-架构 / glossary-core / 09 角色卡 / pipeline-readme 派发索引仍写「按模式：行业分析学术默认开、公众号默认关」或「可选」—— 全部统一为「默认触发；主人显式 opt-out 才关闭；轻量档不因档位静默跳过」。
-- **pipeline-readme 外发表缺 2 类**：Phase 0 披露面只列 4 行，缺 **学术元数据（OpenAlex/Crossref，opt-in）** 与 **抓取层（Firecrawl，opt-in）** —— 补齐两行（与真源 3 类 + 轴 A 对齐）。
-- **QUICKSTART 技巧 4 残留旧语义**：「主控不再死磕 → 直接走 Acknowledged Limitations」隐含自动降级，与同文件后文及真源「暂停等主人裁决」冲突 —— 改为「暂停呈主人裁决（出口真源 = `phase-order.yaml` `rounds_exhausted_outlet`）」。
-
-### 2. P2 修复（9 项）
-
-- **两轴不混用（emoji 混用）**：`QUICKSTART.md` Q2 整段轴颠倒（原文「🟢🟡🔴 是信任级别标识」+ 时效评级写成文字「≤2/2-5/>5 年」）→ 重写为「信任=文字（已发布/主人投喂/二手转引）、时效=emoji（🟢 ≤2 年 / 🟡 1-3 年 / 🔴 >3 年）」；`glossary-core.md` 数据信任段原表列的是**来源类型**（一手/二手转引/单边）却挂「数据信任 3 档」标题，且聚合铁律借 🟡 表信任 → 改双轴分列（信任级别 / 来源类型），铁律改「一律按二手来源起步」；`案例卡-template-lite.md` 信任级别字段去 emoji。
-- **quickref G14 名实不符**：自称「9 类检测维度」却只列 A-H 共 **8 类**（漏 G14-I 防御性写作），且自称「不重列」却带全部阈值 —— 改为九类名称内联（含 G14-I）+ 阈值/判定档/热力图一律指真源（同时收敛了 8 行阈值的漂移面）。
-- **角色计数四套口径**：counts.yaml 已有权威定义（概念 11 / 物理 12），但 `asset-index.md` 同文件先「10 张」后「11 张」、`pipeline-readme.md`「10 张卡」、`设计文档.md`「10 角色卡 + 6 阶段」、`SKILL.md`「10 角色卡 + G14」 —— 统一为「11 概念角色 / 12 物理卡文件（计数真源 = counts.yaml）」或直接去数字化（SKILL 角色速查行改为「T1-T9 + G14」）；`QUICKSTART.md` 角色表补 **T9b 行**（与表题「11 张角色卡」一致，并标注默认不跑）；`设计文档-架构.md` 表补 T9b 口径。
-- **性能基准「1 例 vs 2 例」自相矛盾**：§二 实测表有 2 行重量档（09-22 / 09-25），§三/§五 与 README/QUICKSTART 却称「1 例」—— 四处统一为 2 例，并补 09-25 主控侧实测（66k in / 11k out / $0.03）作为预算模型校准依据。
-- **幽灵节点 Phase 5.5**：`可发表性判定表.md` 3.4 与 `任务简报-template.md` 要求交付物含「Phase 0/2.5/3.5/5/**5.5** 主人拍板记录」，而全流程人环节点只有 4 个（phase-order 无 5.5 节点；T8.5 是外发许可标记、非 owner checkpoint）—— 两处删「5.5」。
-- **D2 映射双计**：`方法论-审计清单.md` 附录 B 中 G18 项 11 同时映射「数据质量」与「可复现性」（一分两算），项 12（理论框架对照）被塞进「可复现性」（语义错位）—— 重排为 研究设计 1+2+3 / 数据质量 3+4 / 分析严密性 5+6+7 / 可复现性 11，项 12 归 D1，并补「参照底本非逐项计分公式 + 项 3 双侧参照 / 8-9-10 门槛项」的防双计口径注。
-- **glossary 章节乱序**：§十二「核心原则」（最重要的一节）被追加式编辑挤到「词汇表结束」标记**之后**，§十三 插在 §九/§十 之间 —— 重排为 §一…§十三 顺序，核心原则回到结束标记之前，T9b 段（补 v2.15.10 opt-in 口径）归位为 §十三。
-- **字节账不平**：`主动介入机制.md` 外移说明写 69488 B、`CHANGELOG.md` v2.15.9 写 70189 B、棘轮台账 settled 行写 70039 B —— 以 `git show v2.15.9` 实测 **70189 B** 为准统一两处（台账 reason 注明原记系笔误）。
-- **B 类扩写通道未入真源**：T9「扩写/改写清单」B 类修订（不占 2 轮预算）只在 09 角色卡定义，而自称轮次真源的 `pipeline-overview.md` 仲裁表没有该通道 —— 补「B 类扩写」独立行并指向决策协议真源。
-
-### 3. P3 + 机械加固
-
-- `关键协议.md` 硬卡段删「原列：T1-T3 10 / …」数字残留（与同段「不在此重列数字」自相矛盾），§二十二 指针改指 `主动介入机制.md`（v2.15.9 外移后未更新）。
-- README：删无出处、无更新机制的 Code Quality 87/100 徽章；首屏「5000+ 字强推」改为「≥3000 推荐全量（≥5000 强推）；2000-3000 轻量档」；`asset-index.md` 关键参考去掉已收敛为纯索引页的 `设计文档.md`。
-- **版本矩阵盲区补入（教训 #118.1 同型）**：`方法论-审计清单.md`（G18 真源，带内部版本标记却不在两矩阵，下次 bump 将永停旧版）补版本头 + `check-version.sh` CHECKS + `sync-version.sh` SYNCS，`counts.yaml` `version_files` 97→98（`contract-check` 计数对齐）。
-- **根因修复：节点数接入计数真源**：`counts.yaml` 新增 `pipeline_nodes: 26`，`test_count_drift.py` 接入三模式扫描（`N 节点全表` / `N 个节点切片` / `N 节点，seq`）+ 反向注入测试 —— 本轮 25→26 漂移的根因就是「节点数不在任何计数真源里，机械门扫不到」，现已闭环。另以注释键登记 `t9_default` / `heartbeat_telemetry` 两个布尔口径（不接数值扫描：布尔句式无稳定数字模式）。
-- **CHANGELOG 轮转**：v2.15.6 迁入归档（主文件保持 4 期，待本节落账后为 5 期），`CHANGELOG_ARCHIVE_CEIL` 按实测 245143 → 249426 同步重定（随轮转同步，非内容扩容）。
-
-### 4. 审计报告勘误（两处经 grep 证伪）
-
-- **P2-1 的 README 部分不成立**：审计报告称 README 信任级别表带 🟢🟡🔴 —— 实测 README 现行版本早已是「文字取值 + 两轴不混用」注记，本次无需修订；真实缺陷面为 QUICKSTART Q2 / glossary-core / 案例卡-lite（已修）。
-- **P3-4 的 gates/14 部分不成立**：`gates/14-中文AI痕迹-gate.md` 早在 v2.4.0 即在 `check-version.sh` + `sync-version.sh` 两矩阵内；真实盲区仅 `方法论-审计清单.md`（已补入）。
-
-### 验收
-
-- `check-version.sh` **98/98 ✅**（v2.15.11）· `contract-check` PASS · `changelog-check --check` PASS · `flow-check` exit 0 · `markdown-structure-lint` PASS · `dispatch-contract --check` PASS（3 派发块 + 1 轮次块 + 2 owner 载体）
-- **全量 pytest 707 passed / 2 skipped（486.84s）**
-- 快速回路 `pytest -m "not slow"` **605 passed / 1 skipped**（113.36s；含新增节点数漂移反向注入 1 项）
-- 自审门 **42 PASS / 0 FAIL**（门 Z = 40 未越限）；门 Y 四个棘轮文件本轮未改动，无新增债务
-- `sync-version.sh` 归一化复核：9/9 通过，无残留 `.bak`
-- 门 AA：升版后按生成器重装配，26 节点切片逐字节一致（装配视图为生成物，bump 时只随真源重生成；棘轮字节维持 69294 B）
-
----
 
 ---
