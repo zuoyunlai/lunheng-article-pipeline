@@ -1354,7 +1354,7 @@ fi
 #   **非内容膨胀**，不上调任何 debt。
 #   （v2.15.14 发版微调 2 项：版本串 2.15.13→2.16.0 变短 1 字符 ⇒ 00-主控 / M-Gate-核心
 #   各缩 1 B。棘轮语义「上限 == 实测」要求同步下调，否则 test_bulk_ratchet 红。）
-BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70277,references/_shared/真源/M-Gate-核心.md|78089,references/_shared/真源/phase-order.yaml|71099,references/_shared/真源/phase-order/index.yaml|22947"
+BULK_RATCHET_CEIL_DEFAULT="references/agents/00-主控-扩展职责.md|70185,references/_shared/真源/M-Gate-核心.md|78089,references/_shared/真源/phase-order.yaml|71099,references/_shared/真源/phase-order/index.yaml|22947"
 # v2.15 B1-B7 扩容备案：新增运行可靠性、证据链、上下文指针、机械对账、遥测、pipeline-doctor 与质量/HMI 真源字段；
 # phase-order.yaml/index.yaml 的基线按本轮真实落盘体量重定，后续仍只许降，不得借此掩盖无关内容膨胀。
 #   v2.13.5 R-21 增量 2 基线说明（**不是放宽既有上限**，而是规范形态变更后的重新定基）：

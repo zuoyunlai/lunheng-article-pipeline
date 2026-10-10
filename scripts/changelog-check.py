@@ -47,7 +47,7 @@ CHANGELOG_KEEP = 5
 #   （实测 `git check-ignore` 命中 `.gitignore:4:docs/`）—— 照做会让章节**从版本控制消失**。
 #   故本版：① 排水指引改指**已在版本控制内、且已被 changelog_files() 读取**的 CHANGELOG_COLD；
 #   ② 冷层加**同款棘轮**，避免「温层排水 = 把无界问题平移到冷层」；③ 两层 ceiling 均随实测同步（只许降）。
-CHANGELOG_ARCHIVE_CEIL = 185987
+CHANGELOG_ARCHIVE_CEIL = 191142
 # 冷层体量棘轮（v2.16.1 新增）：与温层同纪律。冷层是**终极兜底**，故其上限放宽到「温层一次排水的产物」量级，
 #   但**同样只许降**；冷层亦撞顶时，唯一合规出路是 GitHub Release 视图（tag 已有的章节在 tag 处可查）。
 CHANGELOG_COLD_CEIL = 360777
