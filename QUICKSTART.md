@@ -1,4 +1,4 @@
-> 版本：v2.17.1（自动同步 2026-10-10）
+> 版本：v2.18.1（自动同步 2026-10-10）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -16,7 +16,7 @@
 论衡是纯 skill，无需创建独立 agent。以下命令由**主人手动执行**，技能本体零 exec：
 
 ```bash
-openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.17.1  # 建议 pin 具体版本
+openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.18.1  # 建议 pin 具体版本
 ```
 
 装好后，在**任意有 `sessions_spawn` + 检索工具的 agent** 里 `@lunheng-article-pipeline` **显式触发**即可启动流水线；主控会先走 Phase 0 定题确认（含外部服务同意关卡），主人确认后才开始写文件/外发检索。模型由主控 Phase 0 自检自动映射，无需手动配置。
@@ -34,6 +34,8 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.17.1  # 建议 pin
 - 默认项目目录 `run/<项目名>/`（在 **workspace 根**下；不设 `cwd_default`，否则被解析到 skill 目录内，教训 #255）；**spawn 时 `cwd` 必须传绝对路径** `<workspace>/run/<项目名>/`（相对路径会被解析到 skill 目录，v2.12.28 实测）
 - token 统计走精确路径（子代理完成事件 `Stats:` 行 + `session_status`）；拿不到精确值 = 平台异常，不估算
 - **权限边界（宿主职责）**：论衡**唯一标准架构 = 多 Agent 九角色**；**worker 不可用/失败属单节点故障** ⇒ 主控接管该节点 + `status.md`/交付说明披露独立性影响（L1 自审残留风险）；不整轮降级、不跳质量门。子代理与主控的工具面由 OpenClaw 平台决定；论衡不读取、不修改宿主配置，也不附带任何宿主侧配置项——需要收紧子代理权限时，参见 OpenClaw 官方文档的 subagents 配置说明。
+- **人环呈现与可视化（宿主最低要求，v2.18.0 补 H-9）**：Checkpoint 卡为纯文本呈现，任意 OpenClaw 配置可用；`ask_user` 属可选增强，宿主/渠道不支持时自动回退文本卡（不阻塞）。`viz/index.html` 为自包含单文件工件（v2.17.1 契约）：宿主面板可渲染，无面板时主人直接打开文件，功能不减。
+- **宿主工具面要求（v2.18.1 反哺 FB-05）**：论衡假设 worker **直接可见** `read`/`write`/`edit`/检索类工具。若宿主把工具**全部置于 Code Mode（exec）之后**，则「零 exec」在本会话不可执行 ⇒ worker 判 `capability_excess` 阻断、主控接管并披露（**这是设计内处置，不是宿主缺陷**）。另：`sessions_yield` 在部分宿主**不可调用**（降级写法 = 以普通回合结束，等待完成事件）；`ask_user` 若可**直接暴露**则应直连调用，**不要**经 Code Mode 发起（其生命周期绑定 code-mode run，run 过期则问题作废）。
 - 维护自检：`bash scripts/self-audit-gate.sh`（commit 态应全 PASS / 0 FAIL，具体门数以脚本终值为准）
 
 ---
@@ -122,7 +124,7 @@ openclaw skills install @zuoyunlai/lunheng-article-pipeline@2.17.1  # 建议 pin
    - **方法论足迹面板**（**默认启用**）：status.md 每阶段自动更新，按档位裁剪字段集（借鉴 deep-research-pro）；**镜像工件 `viz/index.html`**（v2.17.1，自包含单文件，宿主面板可渲染 / 主人可直接打开）
 10. **Phase 5 终检**：主控 **T8** 主控终检交付
 
-**主人在 4 个节点介入**：Phase 0 / Phase 2.5 / Phase 3.5 / Phase 5。四个节点都必须呈现材料并记录明确决策；Phase 3.5 可选「无补充」，但不可静默跳过。Phase 3.6 T6 批判是内部流水线动作，非主人介入（教训 #138）
+**主人在 4 个节点介入**：Phase 0 / Phase 2.5 / Phase 3.5 / Phase 5。四个节点都必须呈现材料并记录明确决策；Phase 3.5 可选「无补充」，但不可静默跳过。Phase 3.6 T6 批判是内部流水线动作，非主人介入（教训 #138）。**运行模式（v2.18.0）**：选「全自动流水线」时，2.5/3.5/5 三环由 Phase 0 一次性预授权自动通过（仍写合法决策值 + 留痕），质量门与异常三选照停；选「人在四环」则逐环拍板。
 
 ---
 

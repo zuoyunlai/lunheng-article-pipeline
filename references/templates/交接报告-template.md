@@ -1,4 +1,4 @@
-> 版本：v2.17.1（自动同步 2026-10-10）
+> 版本：v2.18.1（自动同步 2026-10-10）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -39,6 +39,7 @@
 - high_risk_categories: <执行类 / 外发类 / 写入类 / 会话类；无则填 `none`>
 - write_capability_observed: `yes` / `no` / `unavailable`
 - enforcement_boundary: `self-discipline`（只读档默认值；不得写成 platform-enforced）
+- call_channel: <`direct`（顶层工具）/ `code-mode`（经 exec）；不可核验填 `unavailable`>  ← v2.18.1 必填（反哺 FB-02：不标通道的自报主控不采信）
 
 > **口径**：工具面超出声明面不等于获得调用许可；只读档若观察到 `write/edit`，必须写
 > `write_capability_observed: yes`，并将隔离描述为**自律纪律**，不得表述为宿主或平台机械只读。

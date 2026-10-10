@@ -105,11 +105,13 @@ def test_expired_debt_warns(tmp_path):
     tracked_tree(ROOT, dst)
     ledger = dst / "references" / "_shared" / "治理" / "ratchet-ledger.md"
     text = ledger.read_text(encoding="utf-8")
-    # v2.15.9：只改第一条 status=open 的条目（settled 条目不受过期判据管辖）
+    # v2.15.9：只改第一条 status=open 的条目（settled 条目不受过期判据管辖）。
+    #   v2.18.0：due_version 字面量改正则匹配——台账 open 行的 due 会随顺延合法变动（如 2.19.0），
+    #   测试意图是「把第一条 open 行改成相对当前版本已过期」，不应锁具体字面值。
     parts = text.split("- path:")
     for i in range(1, len(parts)):
         if 'status: "open"' in parts[i]:
-            parts[i] = parts[i].replace('due_version: "2.18.0"', 'due_version: "1.0.0"', 1)
+            parts[i] = re.sub(r'due_version: "[0-9.]+"', 'due_version: "1.0.0"', parts[i], count=1)
             break
     ledger.write_text("- path:".join(parts), encoding="utf-8")
     r, out = _run_gate(dst)

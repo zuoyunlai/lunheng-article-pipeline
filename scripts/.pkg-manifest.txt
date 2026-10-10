@@ -73,6 +73,7 @@ references/_shared/真源/模型候选池.md
 references/_shared/真源/状态归约契约.md
 references/_shared/真源/理论贡献-protocol.md
 references/_shared/真源/路径校验规范.md
+references/_shared/真源/运行模式对照表.md
 references/agents/00-主控-coordinator.md
 references/agents/00-主控-扩展职责.md
 references/agents/01-文献检索-literature-scout.md

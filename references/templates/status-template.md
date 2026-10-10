@@ -1,4 +1,4 @@
-> 版本：v2.17.1（自动同步 2026-10-10）
+> 版本：v2.18.1（自动同步 2026-10-10）
 
 > 🌐 **语言政策**：产出语言由 Phase 0「目标语言」字段**显式选择**（中文 / English / 中英混 / 其他，**不设默认**），全流程以该字段为准；中文特化按**目标语言客观适用**——含中文时 **G14 中文 AI 痕迹闸必跑**（v2.12.40 起不再是可选项），纯外语时记 `n/a`（客观不适用，非「关闭」）；GB/T 7714-2015 引用规范为可选能力。二者均不构成使用者语种限制。
 
@@ -11,9 +11,9 @@
 > 真源 = [`../_shared/真源/关键协议.md`](../_shared/真源/关键协议.md) §遥测收容。
 
 > **运行期呈现留痕（四节点每次都填；仅记录主控动作，不冒充主人已阅读）**：
-> `checkpoint_id=<唯一值>` / `checkpoint_presented=true|false` / `checkpoint_presented_at=<时间>` / `checkpoint_materials=<路径列表>` / `checkpoint_status=<awaiting_owner|reminded|pending_owner|decided>` / `reminder_sent=<true|false>` / `pending_owner_at=<时间|n/a>` / `owner_response_received=<true|false>` / `owner_response_at=<时间|n/a>` / `owner_decision_normalized=<合法枚举值|n/a>`
+> `checkpoint_id=<唯一值>` / `checkpoint_presented=true|false` / `checkpoint_presented_at=<时间>` / `checkpoint_materials=<路径列表>` / `checkpoint_status=<awaiting_owner|reminded|pending_owner|decided|preauthorized>`（preauthorized 仅 run_mode=生产·全自动 合法） / `reminder_sent=<true|false>` / `pending_owner_at=<时间|n/a>` / `owner_response_received=<true|false>` / `owner_response_at=<时间|n/a>` / `owner_decision_normalized=<合法枚举值|n/a>`
 
-> **留痕纪律**：进入节点先写 `checkpoint_presented=true`；发送轻提醒后才写 `reminder_sent=true`；超时只写 `checkpoint_status=pending_owner`，不得写 accepted。主人回复后核对同一 `checkpoint_id` 和材料版本，再写 `owner_response_received=true` 与规范化决策。
+> **留痕纪律**：进入节点先写 `checkpoint_presented=true`；发送轻提醒后才写 `reminder_sent=true`；超时只写 `checkpoint_status=pending_owner`，不得写 accepted。主人回复后核对同一 `checkpoint_id` 和材料版本，再写 `owner_response_received=true` 与规范化决策。**生产·全自动短路（v2.18.0）**：进入节点先验预授权记录——有效 ⇒ 不呈现卡，直接写 `checkpoint_status=preauthorized` + decision 落值 + basis，对话流留一行备案通知；缺失/含糊 ⇒ 按人在四环走（fail-closed）。
 
 > **🔒 v2.12.54 R-2 节点 id 合法性**：§二 / §四 出现的节点 id 必须取自 `_shared/真源/phase-order.yaml`；**禁止自创**节点 id。
 > **🔒 v2.12.54 R-3 Done 记账一致性**：`Done` 必须对应磁盘上存在且非空的产物；`Not Triggered` / `opt_out` / `pending_owner` / 产物缺失一律**不得计 Done**。
@@ -43,7 +43,11 @@
 **接管 L1 披露**: <无 worker 接管时填 `n/a`；有接管时必填：接管角色 / 原因 / 判定者=主控（L1）/ 交付说明须披露无法独立复核的残留风险>
 **worker 终态**: <worker_not_started|worker_running|worker_failed|worker_empty_output|worker_timeout|main_controller_takeover|owner_decision_required|not_executed> / 原计划执行者=<角色> / 实际执行者=<角色|n/a> / 产物状态=<present|missing|empty|unverified>
 > **终态纪律（B1-M1）**：`worker_empty_output` 不得记为成功；主控接管不得把原角色记为 `Done`；T9 只能 `retry_spawn_only`，耗尽后记 `missing_blind_review`，不得主控代笔。
-**运行性质**: 生产 / **测试模式**（测试模式 = phase2_5_outline / phase3_5_insight / phase5_acceptance 三个人在环节点自动通过；**必须在此 + 任务简报 + 交付说明三处同步披露**，v2.12.38；**v2.12.43：T8 终检机械核对三处一致，缺任一 = P1 并重跑终检**）
+**运行性质**: 生产·人在四环 / **生产·全自动** / **测试模式**（三值枚举，Phase 0「运行模式」拍板；真源 = [`运行模式对照表.md`](../_shared/真源/运行模式对照表.md)）
+  - 生产·全自动 = Phase 0 一次性预授权（2.5 → approved+采用T4建议 / 3.5 → no_insight / 5 → accepted+对账照跑+delivery_readiness 机械判定；**预授权 ≠ 自动继续**，各节点仍写合法枚举值 + basis）
+  - 测试模式 = 3 个节点自动通过，不具备交付效力（v2.12.38 语义不变）
+  - **生产·全自动与测试模式均必须在此 + 任务简报 + 交付说明三处同步披露**；**T8 终检机械核对三处一致，缺任一 = P1 并重跑终检**（v2.12.43 纪律对全自动同样适用，v2.18.0 扩展）
+**运行模式预授权**: run_mode=<生产·人在四环|生产·全自动|测试模式> / preauthorized_at=<Phase 0 时间|n/a> / preauthorization_basis=01-任务简报.md「运行模式」 / nodes_preauthorized=<phase2_5_outline, phase3_5_insight, phase5_acceptance|n/a>（仅生产·全自动填后两项）
 **活体冒烟**: smoke_level=<n/a|L1|L2> / smoke_run_id=<n/a|唯一值> / smoke_started_at=<时间|n/a> / smoke_finished_at=<时间|n/a> / smoke_verdict=<pending|pass|fail>（L2 不得自动通过 owner_checkpoint）
 **M 门**: v2.2.12 / v2.5.x
 **数据信任档**: 全外发 / 混合 / 全人工（Phase 0 拍板）
@@ -75,9 +79,9 @@
 ## 人在环决策记录（四节点，缺一不可）
 
 - **Phase 0 定题**: decision=<approved|revision_requested> / owner_confirmed_at=<时间> / evidence=01-任务简报.md / **未启动时**：decision=n/a + `pre_pipeline_exit=<pause|reject>`（v2.12.61：「是否启动」是流水线**外**前置门，其字面值**不进** `decision`；真源 = `phase-order.yaml` `phase0_definition.decisions`）
-- **Phase 2.5 大纲**: decision=<approved|revision_requested|restart_phase> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md / **v2.12.49 M-11**：figures=<N> / figure_decision=<采用 T4 建议|调整图位数|取消图表> —— **任一字段缺失 = 不合格**（t7_5_integrity / T8 机械门均报）
-- **Phase 3.5 洞察**: decision=<insight|direction_correction|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md / correction_scope=<方向纠偏时必填>
-- **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md
+- **Phase 2.5 大纲**: decision=<approved|revision_requested|restart_phase> / owner_confirmed_at=<时间> / evidence=analysis/分析大纲.md / **v2.12.49 M-11**：figures=<N> / figure_decision=<采用 T4 建议|调整图位数|取消图表> —— **任一字段缺失 = 不合格**（t7_5_integrity / T8 机械门均报）/ **生产·全自动**：owner_confirmed_at=<Phase 0 预授权时间> + preauthorization_basis=任务简报「运行模式」
+- **Phase 3.5 洞察**: decision=<insight|direction_correction|no_insight> / owner_confirmed_at=<时间> / evidence=drafts/初稿-v1.md / correction_scope=<方向纠偏时必填> / **生产·全自动**：owner_confirmed_at=<Phase 0 预授权时间> + preauthorization_basis=任务简报「运行模式」
+- **Phase 5 验收**: decision=<accepted|revision_requested|restart_phase|deferred> / owner_confirmed_at=<时间> / evidence=final/定稿.md / **生产·全自动**：owner_confirmed_at=<Phase 0 预授权时间> + preauthorization_basis=任务简报「运行模式」+ delivery_readiness=机械判定二态
 
 > 仅有材料、主控代判、子代理声称已确认，均不构成决策；`no_insight` 是明确决策，不是跳过。
 
@@ -153,6 +157,7 @@
 
 ```yaml
 b7_quality_hmi:
+  run_mode: 生产·人在四环 | 生产·全自动 | 测试模式
   g14_caption_recheck: pass | warning | fail | n/a | unavailable
   caption_scope: <组装新增或变形范围|n/a>
   caption_checked_at: <时间|n/a>
@@ -281,6 +286,7 @@ mechanical_reconciliation:
 status_json: {
   "project": "<项目名>",
   "phase": "<phase-order.yaml node id>",
+  "run_mode": "生产·人在四环|生产·全自动|测试模式",
   "updated_at": "YYYY-MM-DD HH:MM",
   "spawn_landing": [{"node": "<id>", "role": "T1", "result": "ok|missing|retry:<N>"}],
   "display_cap_truncated": [],

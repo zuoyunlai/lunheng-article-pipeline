@@ -400,6 +400,7 @@ SHARED_ADMITTED=(
   '真源/状态归约契约.md'
   '真源/理论贡献-protocol.md'
   '真源/路径校验规范.md'
+  '真源/运行模式对照表.md'
 )
 _SA_ACTUAL=$(find "$OUT_DIR/references/_shared" -mindepth 1 -maxdepth 3 -type f -printf '%P\n' 2>/dev/null | LC_ALL=C sort)
 _SA_EXPECT=$(printf '%s\n' "${SHARED_ADMITTED[@]}" | LC_ALL=C sort)

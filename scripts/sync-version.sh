@@ -154,6 +154,8 @@ SYNCS=(
   "_shared/真源/evidence-object-model.md|header"
   # D1：状态归约契约（字段级写入权 + 归约器）
   "_shared/真源/状态归约契约.md|header"
+  # v2.18.0：运行模式对照表（Phase 0 运行模式判据单源）
+  "_shared/真源/运行模式对照表.md|header"
   # v2.15.7：新增 fallback 接管协议真源（SKILL.md frontmatter coordinator_fallback_protocol_ref 指向）
   "_shared/真源/model_fallback_takeover_protocol.md|header"
 

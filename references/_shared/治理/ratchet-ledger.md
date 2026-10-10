@@ -32,8 +32,9 @@ debt:
     from: 63928
     to: 70860
     settle_to: 63928
-    due_version: "2.18.0"
+    due_version: "2.19.0"
     status: "open"
+    note: "v2.18.0 顺延一窗：本批未触碰该文件内容本体（装配视图尺寸 = 上一版实测，仅版本戳等长替换）；回落需专项分层施工，超出 v2.18.0 批次范围；顺延不构成重定，上限未动"
     reason: "v2.15.7 新增 post_phase1_dispatch_verify 节点（装配视图为生成物，无分层可选）；2026-10-05 上午 R2 契约真源化 66574→68238（派发/轮次契约字段，**该轮漏登记，本轮补登**）+ 同日 T9b 降级 opt-in 68238→69293（opt-in 契约字段）+ 发版 v2.15.10 版本戳变长 69293→69294；均未销账，故累加至原 open 行而非新开行；2026-10-07 v2.15.13 反哺修订 69294→70860（FB-12 四 checkpoint blocks 局部阻塞 + FB-11 t9 quota_class_retry/cross_family_retry/缺失呈现三要素，装配视图为生成物，无分层可选，累加同一 open 行）"
   - path: "references/_shared/真源/phase-order/index.yaml"
     raised_at: "2026-10-02"
@@ -50,23 +51,26 @@ debt:
     to: 70278
     settle_to: 70189
     due_version: "2.18.0"
-    status: "open"
+    status: "settled"
+    settled_at: "2026-10-10 (v2.18.0 施工批)：回落至 70185 ≤ settle_to 70189，达成（v2.17.1→v2.18.0 版本戳等长零净变；新增内容全部沉入旁侧真源，本卡未增行）"
     reason: "T9b 极性说明行改写（默认触发 + opt-out -> 默认不跑 + opt-in，含 status 留痕口径）+ 发版 v2.15.10 版本戳变长 70277→70278"
   - path: "references/_shared/真源/M-Gate-核心.md"
     raised_at: "2026-10-07"
     from: 77527
     to: 78090
     settle_to: 77527
-    due_version: "2.18.0"
+    due_version: "2.19.0"
     status: "open"
+    note: "v2.18.0 顺延一窗：本批未触碰该文件内容本体（尺寸 = 上一版实测，仅版本戳等长替换）；回落需专项分层施工，超出 v2.18.0 批次范围；顺延不构成重定，上限未动"
     reason: "v2.15.13 反哺 FB-13：可复核判定协议四字段扩为五字段（新增 basis: mechanical|llm 证据类型二分 + 交付说明分组呈现口径，+563 B 纯功能性新增，非膨胀；无分层可选——basis 字段属判定协议本体）"
   - path: "references/_shared/真源/phase-order.yaml"
     raised_at: "2026-10-08"
     from: 70860
     to: 75003
     settle_to: 70860
-    due_version: "2.18.0"
+    due_version: "2.19.0"
     status: "open"
+    note: "v2.18.0 顺延一窗：本批曾试增 run_mode 机制后已全部撤出（台账 §四-3 铁律），现尺寸 = 上一版实测；回落需专项分层施工；顺延不构成重定，上限未动"
     reason: "审计 R-5（fail-closed 收口）：`pre_spawn_enforcement.precondition` 增「模型路由 `phase0_route` 段且 `selected_by=owner`；缺记录或 selected_by 为空 = 判 path_or_param_error」判据，废除 route_tier.md「无记录 = 走默认链」尾部。**2026-10-08 批次 2 R-1（B1）累加**：Phase 1.5 拆两个求值点，新增节点 `phase1_5b_post_t2_5_review`（seq 6，排在 t2_5_integrity 之后），节点数 26→27 ⇒ 装配视图 71724→75003（+3279 B）。两次上调均为判据本体（非注释），装配视图为生成物、**无分层可选**（分层 = 改真源切片）。**⚠️ 本行已累计 2 次上调（70860→71724→75003），按 §四-3 铁律额度用尽：后续新增内容一律沉入旁侧真源，不得再堆进本文件**。本行 = 该 path 第 2 条 debt（第 3 条按铁律不再受理）"
   - path: "references/_shared/真源/phase-order/index.yaml"
     raised_at: "2026-10-08"
@@ -121,6 +125,6 @@ structural_exempt:
 | phase-order/index.yaml | 22939 | 0 | —（两条均已销账，见下） | — |
 | M-Gate-核心.md | 78090 | 1 | 77527 | 2.18.0 |
 
-> **合计未结债务**：**4 条**（v2.15.7 批次 1 条；T9b 降级 + 发版重定批次 1 条；v2.15.13 反哺 1 条；2026-10-08 审计批次 1「契约自洽」1 条）。**index.yaml 两条已销账**（N-2 结构约束外移，commit `d1baa40b`）。
+> **合计未结债务**：**3 条**（v2.18.0 施工批顺延：本批未触碰三文件内容本体，回落需专项分层施工，统一顺延至 2.19.0，上限未动、不构成重定；原 4 条中 00-主控第二行已由本批销账——回落至 70185 ≤ settle_to 70189）。**index.yaml 两条已销账**（N-2 结构约束外移，commit `d1baa40b`）。
 > **棘轮余量提示（2026-10-08 N-2 后更新）**：`index.yaml` 已回落至 22939 B（上限同步下调，余量 3874 B），**§四-3 上调额度已释放**。`phase-order.yaml` 71091 B（上限同步下调，余量 3912 B）但其两条 debt 的 `settle_to`（70860 / 63928）**尚未达成，仍 open** —— 下一轮内容若再逼近上限，仍须先走外移。
 > **机械变长豁免（2026-10-06 方案 A）**：`M-Gate-核心.md` 原第 4 条债务为**纯发版版本戳 +1 B**，已按 §二 `version_stamp_lengthening` 豁免口径移出为记录 → 未结债务 4 → 3 条。
